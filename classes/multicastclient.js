@@ -23,7 +23,7 @@ class MulticastClient {
 
   getAddress () {
     this.address = this.client.address()
-    console.log(`UDP Client listening on ${this.address.address}:${this.address.port}`)
+    console.log(`UDP Multicast Client listening on localhost:${this.address.port}`)
   }
 
   messageReceived (message, rinfo) {
@@ -59,6 +59,7 @@ class MulticastClient {
       if (now - 60000 > this.examServerList[i].timestamp) {
         console.log('found old server')
         // remove from list .. this server is dead
+        this.examServerList.splice(i, 1)
       }
     }
   }

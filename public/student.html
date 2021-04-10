@@ -21,14 +21,9 @@ async function getData(){
        .then( data => {  
             let html = "";
             data.forEach( row => {
-                html += `<div class=examinstance> Name: ${row.servername} <br>  Age: ${row.timestamp}  <br>  Id: ${row.id} </div>`;
-             
-               
+                html += `<div class=examinstance> Name: ${row.servername} <br>  Last seen: ${row.timestamp}  <br>  Id: ${row.id} </div>`;
             });
-             
-            document.getElementById("list").innerHTML = html;
-               
-             
+            document.getElementById("list").innerHTML = html;     
     });
 }
 getData();

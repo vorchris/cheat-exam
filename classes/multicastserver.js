@@ -19,6 +19,7 @@ class MulticastServer {
       this.broadcastIntervall = setInterval(() => { this.multicastNew() }, 2000)
     })
     this.running = true
+    console.log('UDP Multicast Server broadcasting');
   }
 
   initMessage () {
