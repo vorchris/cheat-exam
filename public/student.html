@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+    <link rel="stylesheet" href="stylesheets/style.css">
+</head>
+<body>
+
+
+
+<h1>Next-Exam</h1>
+<p>Please chose the exam server you want to join</p>
+<div id="container">
+    <div id="list" class="placeholder"></div>
+</div>
+
+
+<script>
+
+async function getData(){
+    await fetch("http://localhost:3000/client/")
+       .then( response => response.json() )
+       .then( data => {  
+            let html = "";
+            data.forEach( row => {
+                html += `<div class=examinstance> Name: ${row.servername} <br>  Age: ${row.timestamp}  <br>  Id: ${row.id} </div>`;
+             
+               
+            });
+             
+            document.getElementById("list").innerHTML = html;
+               
+             
+    });
+}
+getData();
+
+</script>
+</body>
+</html>
+
+

@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+    <link rel="stylesheet" href="stylesheets/style.css">
+</head>
+<body>
+
+
+
+<div id="startcontainer">
+    <h1>Next-Exam</h1>
+    <p>Please chose a name for this Exam session</p>
+
+    <input type=text value=mathe>
+    <button id=examstart value="start exam">start exam</button>
+
+    <div id="list" class="placeholder"></div>
+</div>
+
+
+
+
+<script>
+    document.getElementById("examstart").onclick = getData; 
+
+    async function getData(){
+        await fetch("http://localhost:3000/server/start")
+        .then( response => response.json() )
+        .then( async (data) => {  
+                document.getElementById("list").innerHTML = data; 
+                await sleep(2000); 
+                document.getElementById("list").innerHTML = ""; 
+                await sleep(1000); 
+                window.location.replace("http://localhost:3000/overview");
+         
+        });
+    }
+
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+</script>
+
+
+</body>
+</html>
+
+

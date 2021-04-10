@@ -1,32 +1,72 @@
-const uuid = require('uuid');
- 
-const SRC_PORT = 6025;
-const PORT = 6024;
-const MULTICAST_ADDR = '239.255.255.250';
-const dgram = require('dgram');
-const server = dgram.createSocket("udp4");
+#!/usr/bin/env node
 
-let multicastInterval = null;
+const app = require('./app');
+const debug = require('debug')('test:server');
+const http = require('http');
+
+const client = require("./classes/multicastclient.js");
+client.init();
+
+var port = '3000';
+app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
 
 
-server.bind(SRC_PORT, function () {         // Add the HOST_IP_ADDRESS for reliability
-    multicastInterval = setInterval(multicastNew, 2000);
-});
 
 
-let message =  { 
-    servername: "testserver", 
-    pin: "2344",
-    timestamp: 0,
-    id: uuid.v4()
+
+
+
+
+
+
+
+
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
 }
 
-function multicastNew() {
-    
-    message.timestamp =  new Date().getTime();
-    preparedMessage = JSON.stringify(message);
-    
-    server.send(preparedMessage, 0, preparedMessage.length, PORT, MULTICAST_ADDR, function () {
-        console.log(`Sent ${JSON.stringify(message)}`);
-    });
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
 }

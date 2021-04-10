@@ -1,7 +1,7 @@
 
 const dgram = require('dgram');
 
-class Client{
+class MulticastClient{
     
     constructor(){
         this.PORT = 6024;
@@ -70,7 +70,7 @@ class Client{
 }
 
 
-module.exports = new Client();
+module.exports = new MulticastClient();
 
 
 
