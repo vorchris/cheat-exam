@@ -12,6 +12,7 @@
     <div class=exambutton>Datei senden</div>
     <div class=exambutton>Abgabe holen</div>
     <div class=exambutton>Exam beenden</div>
+    <div class=exambutton onclick="getData()">Trigger Script</div>
 
     <div id="studentslist" class="list" class="placeholder">
 
@@ -20,6 +21,23 @@
 
 
 <script>
+
+    async function getData(){   
+        await fetch("http://localhost:3000/server/cmd")
+        .then( response => response.json() )
+        .then( async (data) => {  
+                document.getElementById("list").innerHTML = data; 
+                await sleep(2000); 
+                document.getElementById("list").innerHTML = ""; 
+                await sleep(1000); 
+                window.location.replace("http://localhost:3000/overview");
+         
+        });
+    }
+
+
+
+
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }

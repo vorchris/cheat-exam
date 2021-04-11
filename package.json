@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node server"
+    "start": "node server.js"
   },
   "dependencies": {
     "cookie-parser": "^1.4.5",
@@ -12,6 +12,7 @@
     "html": "^1.0.0",
     "http-errors": "^1.6.3",
     "morgan": "^1.9.1",
+    "nodemon": "^2.0.7",
     "pug": "^3.0.2",
     "uuid": "^8.3.2"
   },
