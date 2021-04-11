@@ -3,8 +3,7 @@ const childProcess = require('child_process')
 const router = express.Router()
 const server = require('../../src/classes/multicastserver.js')
 const path = require('path')
-// const rootpath = path.join(__dirname, '..',)
-const rootpath = path.dirname(require.main.filename);
+const rootpath = path.dirname(require.main.filename)
 
 router.get('/', function (req, res, next) {
   console.log('Server: API request recieved')
