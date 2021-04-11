@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "start": "node server.js",
-    "dev": "cross-env DEBUG=express:* node server.js"
+    "dev": "npm run debug-api",
+    "debug-api": "cross-env DEBUG=express:* nodemon server.js"
   },
   "dependencies": {
     "cookie-parser": "^1.4.5",
