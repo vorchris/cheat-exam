@@ -4,9 +4,9 @@ const path = require('path')
 const cookieParser = require('cookie-parser')
 const logger = require('morgan')
 
-const webRoutes = require('./routes/webroutes')
-const clientRoutes = require('./routes/clientroutes')
-const serverRoutes = require('./routes/serverroutes')
+const webRoutes = require('./src/routes/webroutes')
+const clientRoutes = require('./src/routes/clientroutes')
+const serverRoutes = require('./src/routes/serverroutes')
 
 // the Express web framework
 const app = express()

@@ -36,7 +36,7 @@ class Notification_Core(QtWidgets.QDialog):
         # position right middle of screen
         self.moveToDefaultPosition()
 
-        iconfile = self.rootDir.joinpath('pixmaps/success.png').as_posix()
+        iconfile = self.rootDir.joinpath('src/images/icons/success.png').as_posix()
         self.ui.icon.setPixmap(QPixmap(iconfile))
 
         self.ui.exit.clicked.connect(self._onAbbrechen)
@@ -135,19 +135,19 @@ class Notification(QObject):
         typ = self._notification.getType()
         if typ == Notification_Type.Information:
             self._notification.setHeader("Information")
-            self._notification.setIcon('pixmaps/notice.png')
+            self._notification.setIcon('src/images/icons/notice.png')
             self._notification.setBarColor("#2C54AB")
         elif typ == Notification_Type.Success:
             self._notification.setHeader("Done")
-            self._notification.setIcon('pixmaps/success.png')
+            self._notification.setIcon('src/images/icons/success.png')
             self._notification.setBarColor("#009961")
         elif typ == Notification_Type.Error:
             self._notification.setHeader("Error")
-            self._notification.setIcon('pixmaps/error.png')
+            self._notification.setIcon('src/images/icons/error.png')
             self._notification.setBarColor("#CC0033")
         elif typ == Notification_Type.Warning:
             self._notification.setHeader("Warning")
-            self._notification.setIcon('pixmaps/warning.png')
+            self._notification.setIcon('src/images/icons/warning.png')
             self._notification.setBarColor("#E23E0A")
 
         if self.demo:

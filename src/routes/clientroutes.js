@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const client = require('../classes/multicastclient.js')
+const client = require('../../src/classes/multicastclient.js')
 
 /* GET users listing. */
 router.get('/', function (req, res, next) {
