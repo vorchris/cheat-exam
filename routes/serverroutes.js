@@ -7,7 +7,7 @@ const rootpath = path.join(__dirname, '..')
 
 router.get('/', function (req, res, next) {
   console.log('Server: API request recieved')
-  res.send('hello teacher')
+  res.send('hello teacher' )
 })
 
 router.get('/start', function (req, res, next) {
@@ -16,7 +16,7 @@ router.get('/start', function (req, res, next) {
   if (server.running) {
     console.log('server already running')
     res.json('server already running')
-  } else {
+  } else{
     server.init()
     res.json('server started')
   }
@@ -30,7 +30,7 @@ router.get('/info', function (req, res, next) {
 router.get('/cmd', function (req, res, next) {
   console.log('Server: API request recieved')
 
-  const filepath = path.join(rootpath, '/pythonscripts/Notification/NotificationTest.py')
+  const filepath = path.join(rootpath, '/assets/pythonscripts/Notification/NotificationTest.py')
 
   // https://nodejs.org/api/child_process.html#child_process_child_process_execfile_file_args_options_callback
 
@@ -47,5 +47,4 @@ router.get('/cmd', function (req, res, next) {
     }
   })
 })
-
 module.exports = router
