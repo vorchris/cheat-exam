@@ -4,7 +4,7 @@ const app = require('./app')
 const debug = require('debug')('test:server')
 const http = require('http')
 
-const client = require('./classes/multicastclient.js')
+const client = require('./src/classes/multicastclient.js')
 client.init()
 
 const port = '3000'

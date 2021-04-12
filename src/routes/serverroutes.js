@@ -1,13 +1,13 @@
 const express = require('express')
 const childProcess = require('child_process')
 const router = express.Router()
-const server = require('../classes/multicastserver.js')
+const server = require('../../src/classes/multicastserver.js')
 const path = require('path')
-const rootpath = path.join(__dirname, '..')
+const rootpath = path.dirname(require.main.filename)
 
 router.get('/', function (req, res, next) {
   console.log('Server: API request recieved')
-  res.send('hello teacher')
+  res.send('hello teacher' )
 })
 
 router.get('/start', function (req, res, next) {
@@ -30,7 +30,7 @@ router.get('/info', function (req, res, next) {
 router.get('/cmd', function (req, res, next) {
   console.log('Server: API request recieved')
 
-  const filepath = path.join(rootpath, '/pythonscripts/Notification/NotificationTest.py')
+  const filepath = path.join(rootpath, '/assets/pythonscripts/Notification/NotificationTest.py')
 
   // https://nodejs.org/api/child_process.html#child_process_child_process_execfile_file_args_options_callback
 
@@ -47,5 +47,4 @@ router.get('/cmd', function (req, res, next) {
     }
   })
 })
-
 module.exports = router

@@ -4,22 +4,25 @@ const path = require('path')
 const cookieParser = require('cookie-parser')
 const logger = require('morgan')
 
-const webRoutes = require('./routes/webroutes')
-const clientRoutes = require('./routes/clientroutes')
-const serverRoutes = require('./routes/serverroutes')
+const webRoutes = require('./src/routes/webroutes')
+const clientRoutes = require('./src/routes/clientroutes')
+const serverRoutes = require('./src/routes/serverroutes')
 
+// the Express web framework
 const app = express()
 
-// view engine setup
+// view engine setup,  pug = high performance template engine
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'pug')
 
 app.use(logger('dev'))
 app.use(express.json())
+// Returns middleware that only parses urlencoded bodies
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
 
+// Routing part ----------------------------
 app.use('/', webRoutes)
 app.use('/client', clientRoutes)
 app.use('/server', serverRoutes)
