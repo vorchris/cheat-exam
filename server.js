@@ -3,17 +3,19 @@
 const app = require('./app')
 const debug = require('debug')('test:server')
 const http = require('http')
+const multicastClient = require('./src/classes/multicastclient.js')
+multicastClient.init()
 
-const client = require('./src/classes/multicastclient.js')
-client.init()
+// load Config
+const env = process.env.NODE_ENV || 'development'
+const config = require('./src/config')[env]
 
-const port = '3000'
+const port = config.server.port
 app.set('port', port)
 
 /**
  * Create HTTP server.
  */
-
 const server = http.createServer(app)
 server.listen(port)
 server.on('error', onError)
@@ -22,23 +24,18 @@ server.on('listening', onListening)
 /**
  * Event listener for HTTP server "error" event.
  */
-
 function onError (error) {
   if (error.syscall !== 'listen') {
     throw error
   }
 
-  const bind = typeof port === 'string'
-    ? 'Pipe ' + port
-    : 'Port ' + port
-
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      console.error(bind + ' requires elevated privileges')
+      console.error('Port ' + port + ' requires elevated privileges')
       process.exit(1)
     case 'EADDRINUSE':
-      console.error(bind + ' is already in use')
+      console.error('Port ' + port + ' is already in use')
       process.exit(1)
     default:
       throw error
@@ -48,11 +45,10 @@ function onError (error) {
 /**
  * Event listener for HTTP server "listening" event.
  */
-
 function onListening () {
   const addr = server.address()
   const bind = typeof addr === 'string'
-    ? 'pipe ' + addr
-    : 'port ' + addr.port
+    ? 'Pipe ' + addr
+    : addr.port
   console.log(`Express Server Listening on locahost:${bind}`)
 }
