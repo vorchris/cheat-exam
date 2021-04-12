@@ -1,6 +1,11 @@
-# teacher 
+# webfrontend
+Bootsrap Framework
+Sass
+
+
+# teacher
 ### teacher api (serverroutes)
-meldet sich ein client mit PIN an muss dieser überprüft werden und bei korrektem pin in eine lokale ClientList gelegt werden.. 
+meldet sich ein client mit PIN an muss dieser überprüft werden und bei korrektem pin in eine lokale ClientList gelegt werden..
 
 
 ### multicastserver (broadcasting)
@@ -38,4 +43,3 @@ auf klick sollte dann ein PIN abgefragt werden und dieser pin mit client name un
 dadurch kann man dann über die client ip die ensprechende #clientapi ansprechen und zb. den start von "startexam.sh"  triggern.. oder die abgabe
 
 [child_process_execfile documentation](https://nodejs.org/api/child_process.html#child_process_child_process_execfile_file_args_options_callback)
-
