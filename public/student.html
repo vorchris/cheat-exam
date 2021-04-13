@@ -15,23 +15,31 @@
 
 <script>
 
+//start Multicast Client
+fetch("http://localhost:3000/client/start")
+.then( response => response.json() )
+.then(data => {
+  console.log(data);
+});
+
+// Update EXAM List
 async function getData(){
     await fetch("http://localhost:3000/client/")
        .then( response => response.json() )
        .then( data => {
-            let html = "";
-            data.forEach( row => {
-                html += `<div class=examinstance> Name: ${row.servername} <br>  Last seen: ${row.timestamp}  <br>  Id: ${row.id} </div>`;
-            });
-            document.getElementById("list").innerHTML = html;
+          let html = "";
+          data.forEach( row => {
+              html += `<div class=examinstance> Name: ${row.servername} <br>  Last seen: ${row.timestamp}  <br>  Id: ${row.id} </div>`;
+          });
+          document.getElementById("list").innerHTML = html;
+
+    })
+    .catch(function(error) {
+      console.log(error);
     });
 }
 getData();
-
-
-setInterval(() => {
-    getData()
-}, 2000)
+setInterval(() => { getData() }, 2000)
 
 
 </script>

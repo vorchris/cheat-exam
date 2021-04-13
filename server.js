@@ -3,8 +3,7 @@
 const app = require('./app')
 const debug = require('debug')('test:server')
 const http = require('http')
-const multicastClient = require('./src/classes/multicastclient.js')
-multicastClient.init()
+
 
 // load Config
 const config = require('./src/config')

@@ -1,7 +1,7 @@
 const express = require('express')
 const childProcess = require('child_process')
 const router = express.Router()
-const multiCastserver = require('../../src/classes/multicastserver.js')
+const multiCastserver = require('../classes/multicastserver.js')
 const path = require('path')
 const rootpath = path.dirname(require.main.filename)
 

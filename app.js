@@ -12,7 +12,7 @@ const serverRoutes = require('./src/routes/serverroutes')
 const app = express()
 
 // view engine setup,  pug = high performance template engine
-app.set('views', path.join(__dirname, 'views'))
+app.set('views', path.join(__dirname, 'src/views'))
 app.set('view engine', 'pug')
 
 app.use(logger('dev'))
