@@ -7,10 +7,9 @@ const multicastClient = require('./src/classes/multicastclient.js')
 multicastClient.init()
 
 // load Config
-const env = process.env.NODE_ENV || 'development'
-const config = require('./src/config')[env]
+const config = require('./src/config')
 
-const port = config.server.port
+const port = config.port
 app.set('port', port)
 
 /**

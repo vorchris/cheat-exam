@@ -1,13 +1,9 @@
 const config = {
+  debug: true,
+  port: 3000,
   development: {
-    server: {
-      port: 3000
-    }
   },
   production: {
-    server: {
-      port: 3000
-    }
   }
 }
 module.exports = config
