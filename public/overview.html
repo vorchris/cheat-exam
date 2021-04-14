@@ -23,7 +23,7 @@
 <script>
 
     async function getData(){
-        await fetch("http://localhost:3000/server/cmd")
+        await fetch("http://localhost:3000/client/cmd")
         .then( response => response.json() )
         .then( async (data) => {
                 document.getElementById("list").innerHTML = data;

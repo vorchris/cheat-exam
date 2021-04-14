@@ -10,14 +10,14 @@ router.get('/', function (req, res, next) {
   res.send('hello teacher')
 })
 
-router.get('/start', function (req, res, next) {
+router.get('/start/:servername/:pin', function (req, res, next) {
   console.log('Server: API request recieved')
 
   if (multiCastserver.running) { // we could allow the creation of several exam servers ?
     console.log('server already running')
     res.json('server already running')
   } else {
-    multiCastserver.init()
+    multiCastserver.init(req.params.servername, req.params.pin)
     res.json('server started')
   }
 })

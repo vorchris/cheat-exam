@@ -11,7 +11,8 @@
     <h1>Next-Exam</h1>
     <p>Please chose a name for this Exam session</p>
 
-    <input type=text value=mathe>
+    <input id=servername type=text value=mathe>
+    <input id=pin type=text value=1234>
     <button id=examstart value="start exam">start exam</button>
 
     <div id="list" class="placeholder"></div>
@@ -24,7 +25,10 @@
     document.getElementById("examstart").onclick = getData;
 
     async function getData(){
-        await fetch("http://localhost:3000/server/start")
+        let servername =  document.getElementById("servername").value;
+        let pin = document.getElementById('pin').value;
+
+        await fetch(`http://localhost:3000/server/start/${servername}/${pin}`)
         .then( response => response.json() )
         .then( async (data) => {
                 document.getElementById("list").innerHTML = data;

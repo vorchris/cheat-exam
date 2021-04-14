@@ -10,11 +10,11 @@ class MulticastServer {
 
     this.address = '0.0.0.0'
     this.broadcastIntervall = null
-    this.serverinfo = this.initMessage()
     this.running = false
   }
 
-  init () {
+  init (servername, pin) {
+    this.serverinfo = this.initMessage(servername, pin)
     this.server.bind(this.SRC_PORT, () => { // Add the HOST_IP_ADDRESS for reliability
       this.broadcastIntervall = setInterval(() => { this.multicastNew() }, 2000)
     })
@@ -22,10 +22,10 @@ class MulticastServer {
     console.log('UDP Multicast Server broadcasting');
   }
 
-  initMessage () {
+  initMessage (servername, pin) {
     const message = {
-      servername: 'testserver',
-      pin: '2344',
+      servername: servername,
+      pin: pin,
       timestamp: 0,
       id: uuid.v4()
     }

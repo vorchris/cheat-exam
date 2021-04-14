@@ -8,12 +8,15 @@ const webRoutes = require('./src/routes/webroutes')
 const clientRoutes = require('./src/routes/clientroutes')
 const serverRoutes = require('./src/routes/serverroutes')
 
+const eta = require('eta')
+
 // the Express web framework
 const app = express()
 
 // view engine setup,  pug = high performance template engine
+app.engine('eta', eta.renderFile)
+app.set('view engine', 'eta')
 app.set('views', path.join(__dirname, 'src/views'))
-app.set('view engine', 'pug')
 
 app.use(logger('dev'))
 app.use(express.json())
