@@ -32,8 +32,6 @@ router.get('/cmd', function (req, res, next) {
 
   const filepath = path.join(rootpath, '/assets/pythonscripts/Notification/NotificationTest.py')
 
-  // https://nodejs.org/api/child_process.html#child_process_child_process_execfile_file_args_options_callback
-
   childProcess.execFile('python3', [filepath], (error, stdout, stderr) => {
     if (stderr) {
       console.log(stderr)
