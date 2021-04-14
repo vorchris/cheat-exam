@@ -15,13 +15,30 @@
 
 <script>
 
+
+async function registerClient(){
+    await fetch("http://localhost:3000/server/registerclient/1234")
+       .then( response => response.json() )
+       .then( data => {
+            let html = "";
+            document.getElementById("list").innerHTML = JSON.stringify(data);
+    });
+}
+
+
+
+
 async function getData(){
     await fetch("http://localhost:3000/client/")
        .then( response => response.json() )
        .then( data => {
             let html = "";
             data.forEach( row => {
-                html += `<div class=examinstance> Name: ${row.servername} <br>  Last seen: ${row.timestamp}  <br>  Id: ${row.id} </div>`;
+                html += `<div class=examinstance onclick="registerClient()">
+                            Name: ${row.servername} <br>  
+                            Last seen: ${row.timestamp}  <br>  
+                            Id: ${row.id} 
+                        </div>`;
             });
             document.getElementById("list").innerHTML = html;
     });

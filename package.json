@@ -5,7 +5,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "npm run debug-api",
-    "debug-api": "cross-env DEBUG=express:* nodemon server.js"
+    "debug-api": "cross-env DEBUG=express:* nodemon server.js",
+    "lowdev": "npm run monitor",
+    "monitor": " nodemon server.js"
   },
   "dependencies": {
     "cookie-parser": "^1.4.5",
