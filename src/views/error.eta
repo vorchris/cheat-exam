@@ -1,0 +1,8 @@
+<% layout('./layout') %>
+
+
+<div id="content">
+  <p><%= it.error %></p>
+  <pre><%= it.error.stack %></pre>
+</div>
+
