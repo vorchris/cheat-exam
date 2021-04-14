@@ -1,12 +1,15 @@
-# webfrontend
-Bootsrap Framework
+# webfrontend generell
+Bootsrtap Framework
 Sass
 
 
 # teacher
-### teacher api (serverroutes)
+### server api (serverroutes)
 meldet sich ein client mit PIN an muss dieser überprüft werden und bei korrektem pin in eine lokale ClientList gelegt werden..
 
+    teacherinstanz sollte eine crfs token für den client erstellen und bei korrektem PIN dem client zurücksenden und dieses muss vorraussetzung sein für die verarbeitung an der #client api (sonst kann ja jeder xbeliebige call von irgendeinem webbrowser im netz den client in den exam mode schicken zb. oder sperren)
+
+bei der server api sollten wir aufpassen dass sie nicht missbraucht werden kann.. (siehe crfs token bei der client api)  - zu diesem zeitpunkt aber denke ich, dass zb. die route /start/  ja durchaus von überall her offen sein sollte.. dies würde es ermöglichen das ganze node programm am schulserver laufen zu lassen und jeder lehrer connected einfach von irgendeinem webbrowser aus (dadurch würde das teacher programm plattformübergreifend funktionieren)
 
 ### multicastserver (broadcasting)
 
@@ -26,6 +29,8 @@ formular um exam name zu wählen... startet über #teacher api den #multicastser
 # student
 ### client api (clientroutes)
 wartet auf befehle vom #teacherUI (api calls) um zb. zu speichern, oder in den exam mode zu wechseln, oder einen screenshot zu machen
+
+die #client api darf keinen api call annehmen bevor der client sich nicht am server registriert hat und sein crfs token erhalten und gespeichert hat.. die #client api muss bei jedem request zuerst das übermittelte crfs token überprüfen 
 
 ### multicastclient (listening)
 startet automatisch... jede exam instanz ist automatsch auch "listening" für andere broadcasts...
