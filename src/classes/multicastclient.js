@@ -1,5 +1,6 @@
 
 const dgram = require('dgram')
+const config = require('../config')
 
 class MulticastClient {
   constructor () {
@@ -9,12 +10,14 @@ class MulticastClient {
     this.examServerList = []
     this.address = '0.0.0.0'
     this.refreshExamsIntervall = null
+    this.debug = config.debug
   }
 
   init () {
     this.client.on('listening', () => { this.getAddress() })
     this.client.on('message', (message, rinfo) => { this.messageReceived(message, rinfo) })
-    this.client.bind(this.PORT, () => { this.client.addMembership(this.MULTICAST_ADDR) })// Add the HOST_IP_ADDRESS for reliability
+    // Add the HOST_IP_ADDRESS for reliability
+    this.client.bind(this.PORT, () => { this.client.addMembership(this.MULTICAST_ADDR) })
 
     this.refreshExamsIntervall = setInterval(() => {
       this.isDeprecatedInstance()
@@ -30,7 +33,7 @@ class MulticastClient {
     const serverInfo = JSON.parse(String(message))
     serverInfo.serverip = rinfo.address
     serverInfo.serverport = rinfo.port
-    console.log(serverInfo)
+    if (this.debug) { console.log(serverInfo) }
 
     this.addOrUpdateServer(serverInfo)
   }
@@ -45,7 +48,7 @@ class MulticastClient {
   isNewExamInstance (obj) {
     for (let i = 0; i < this.examServerList.length; i++) {
       if (this.examServerList[i].id === obj.id) {
-        console.log('existing server - updating timestamp')
+        if (this.debug) { console.log('existing server - updating timestamp') }
         this.examServerList[i].timestamp = obj.timestamp // existing server - update timestamp
         return false
       }

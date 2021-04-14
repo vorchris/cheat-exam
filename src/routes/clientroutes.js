@@ -1,11 +1,11 @@
 const express = require('express')
 const router = express.Router()
-const client = require('../../src/classes/multicastclient.js')
+const multiCastclient = require('../../src/classes/multicastclient.js')
 
 /* GET users listing. */
 router.get('/', function (req, res, next) {
   console.log('Client: API request recieved')
-  res.send(client.examServerList)
+  res.send(multiCastclient.examServerList)
 })
 
 module.exports = router

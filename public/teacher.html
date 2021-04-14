@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-    <link rel="stylesheet" href="stylesheets/style.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
@@ -21,18 +21,18 @@
 
 
 <script>
-    document.getElementById("examstart").onclick = getData; 
+    document.getElementById("examstart").onclick = getData;
 
     async function getData(){
         await fetch("http://localhost:3000/server/start")
         .then( response => response.json() )
-        .then( async (data) => {  
-                document.getElementById("list").innerHTML = data; 
-                await sleep(2000); 
-                document.getElementById("list").innerHTML = ""; 
-                await sleep(1000); 
+        .then( async (data) => {
+                document.getElementById("list").innerHTML = data;
+                await sleep(2000);
+                document.getElementById("list").innerHTML = "";
+                await sleep(1000);
                 window.location.replace("http://localhost:3000/overview");
-         
+
         });
     }
 
@@ -44,5 +44,3 @@
 
 </body>
 </html>
-
-
