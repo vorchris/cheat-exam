@@ -22,6 +22,7 @@ class MulticastClient {
     this.refreshExamsIntervall = setInterval(() => {
       this.isDeprecatedInstance()
     }, 5000)
+    this.running = true
   }
 
   getAddress () {

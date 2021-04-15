@@ -28,6 +28,14 @@ async function registerClient(){
 
 
 
+//start Multicast Client
+fetch("http://localhost:3000/client/start")
+.then( response => response.json() )
+.then(data => {
+  console.log(data);
+});
+
+// Update EXAM List
 async function getData(){
     await fetch("http://localhost:3000/client/")
        .then( response => response.json() )
@@ -44,11 +52,7 @@ async function getData(){
     });
 }
 getData();
-
-
-setInterval(() => {
-    getData()
-}, 2000)
+setInterval(() => { getData() }, 2000)
 
 
 </script>

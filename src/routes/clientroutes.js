@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const multiCastclient = require('../../src/classes/multicastclient.js')
+const multiCastclient = require('../classes/multicastclient.js')
 const path = require('path')
 const rootpath = path.dirname(require.main.filename)
 const childProcess = require('child_process')
@@ -28,6 +28,17 @@ router.get('/cmd', function (req, res, next) {
       res.send(stdout)
     }
   })
+})
+
+router.get('/start', function (req, res, next) {
+  console.log('Starting up: Multicast')
+  if (multiCastclient.running) {
+    console.log('Multicasting ist already running')
+    res.json('Multicasting Client running')
+  } else {
+    multiCastclient.init()
+    res.json('Multicasting Client started')
+  }
 })
 
 module.exports = router
