@@ -2,8 +2,6 @@
 
 
 
-
-
 <div id="welcomecontainer">
     <h1>Next-Exam</h1>
     <div id=student> <a href="http://localhost:3000/student">Student</a> </div>
@@ -12,3 +10,11 @@
 
 
 
+
+<div id="test">
+    <pre>
+        cool.. man kann einfach ganz normales javascript zwischen die ETA tags reinhaun und alles machen <br>
+        testvar: 
+        <%= JSON.stringify(it.mcast,null, 2) %> <br>
+    </pre>
+ </div>

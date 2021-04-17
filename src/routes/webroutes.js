@@ -3,15 +3,15 @@ const router = express.Router()
 const multiCastserver = require('../classes/multicastserver.js')
 
 router.get('/', function (req, res, next) {
-  res.render('index', { title: 'Welcome' })
+  res.render('index', { title: 'Welcome', mcast: multiCastserver })
 })
 
 router.get('/student/', function (req, res, next) {
-  res.render('student', { title: 'Exam Student'})
+  res.render('student', { title: 'Exam Student' })
 })
 
 router.get('/teacher/', function (req, res, next) {
-  res.render('teacher', { title: 'Exam Teacher'})
+  res.render('teacher', { title: 'Exam Teacher' })
 })
 
 router.get('/overview/', function (req, res, next) {
