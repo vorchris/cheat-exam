@@ -6,6 +6,6 @@
   </head>
   <body>
     <%~ it.body %>
-    <%~ includeFile('./footer', it) %>
+    <%~ includeFile('./footer-part', it) %>
   </body>
 </html>
