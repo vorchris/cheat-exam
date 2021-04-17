@@ -1,7 +1,5 @@
 #!/usr/bin/env node
-
 const app = require('./app')
-const debug = require('debug')('test:server')
 const http = require('http')
 
 
@@ -45,8 +43,5 @@ function onError (error) {
  */
 function onListening () {
   const addr = server.address()
-  const bind = typeof addr === 'string'
-    ? 'Pipe ' + addr
-    : addr.port
-  console.log(`Express Server Listening on locahost:${bind}`)
+  console.log(`Express Server Listening on locahost:${addr.port}`)
 }

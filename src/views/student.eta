@@ -1,9 +1,7 @@
-<!doctype html>
-<html>
-<head>
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
+<% layout('./layout') %>
+
+
+
 
 
 <h1>Next-Exam</h1>
@@ -56,5 +54,3 @@ setInterval(() => { getData() }, 2000)
 
 
 </script>
-</body>
-</html>
