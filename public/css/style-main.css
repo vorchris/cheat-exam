@@ -3,10 +3,17 @@
     margin: 0;
     padding: 0;
 }
+
+
 body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
-}
+    display: flex;
+    flex-wrap: nowrap;
+    height: 100vh;
+    height: -webkit-fill-available;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
 
 a {
   color: #2ccaa8;
@@ -17,6 +24,18 @@ a {
 a:hover {
     color:#2ccaa8a6;
 }
+
+
+.white {
+    filter: invert(100%) ;
+}
+
+
+#content {
+    height: 100vh;
+    padding: 10px;
+}
+
 
 
 
@@ -59,11 +78,6 @@ a:hover {
 
 
 
-#overview {
-    display: block;
-    height: 70vh;
-
-}
 .exambutton{
     width: 120px;
     height: 40px;

@@ -1,10 +1,13 @@
+
 <% layout('./layout-part') %>
 
+<%~ includeFile('./sidebar-part', it) %>
 
 
 
 
-<div id="overview">
+
+<div id="content">
     <h1>Overview</h1>
 
     <div class=exambutton>Exam starten</div>
@@ -46,4 +49,11 @@
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
+    
+   $(".nav").find(".active").removeClass("active");
+   $("#overview").addClass("active");
+
+
+
+
 </script>

@@ -1,0 +1,26 @@
+<div class="p-3 text-white bg-dark h-100  " style="width: 280px;">
+    <img src="img/svg/shield-lock-fill.svg" class="white me-2 " width="32" height="32" >
+    <span class="fs-4 align-middle">Next-Exam</span>
+  <hr>
+  <ul class="nav nav-pills flex-column mb-auto">
+    <li class="nav-item">
+      <a href="teacher" id="teacher" class="nav-link active">
+        <img src="img/svg/server.svg" class="white me-2"  width="16" height="16" >
+        Start Exam Server
+      </a>
+    </li>
+    <li>
+      <a href="overview" id="overview" class="nav-link">
+        <img src="img/svg/person-lines-fill.svg" class="white me-2"  width="16" height="16" >
+        Dashboard
+      </a>
+    </li>
+    <li>
+      <a href="#" class="nav-link">
+        <img src="img/svg/question-square-fill.svg" class="white me-2"  width="16" height="16" >
+        Help
+      </a>
+    </li>
+  </ul>
+</div>
+

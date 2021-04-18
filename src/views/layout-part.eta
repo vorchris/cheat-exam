@@ -1,11 +1,31 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <link rel="stylesheet" href="css/style.css">
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+
+    <!-- Custom CSS  -->
+    <link href="css/style-main.css" rel="stylesheet">
+
+
     <title><%= it.title %></title>
   </head>
-  <body>
+  <body class="vh-100 ">
+    
+    <!-- jQuery -->
+    <script src="js/jquery-3.6.0.min.js">
+
+    <!-- Bootstrap JS -->
+    <script src="js/bootstrap.bundle.min.js"></script>
+
+
     <%~ it.body %>
+  
     <%~ includeFile('./footer-part', it) %>
-  </body>
+   
 </html>

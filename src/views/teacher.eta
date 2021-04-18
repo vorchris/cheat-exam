@@ -1,16 +1,31 @@
 <% layout('./layout-part') %>
 
 
+<%~ includeFile('./sidebar-part', it) %>
 
 
-<div id="startcontainer">
-    <h1>Next-Exam</h1>
+
+
+
+<div id="content">
     <p>Please chose a name for this Exam session</p>
 
-    <input id=servername type=text value=mathe>
-    <input id=pin type=text value=1234>
-    <button id=examstart value="start exam">start exam</button>
+    <form>
+        <div class="row">
+            <div class="col">
+                <input id=servername type=text value=mathe class="form-control">
+            </div>
+            <div class="col">
+                <input id=pin type=text value=1234 class="form-control">
+            </div>
+            <div class="col">
+                <button id=examstart class="btn btn-success" value="start exam">start exam</button>
+            </div>
+        </div>
+    </form>
 
+
+   
     <div id="list" class="placeholder"></div>
 </div>
 
@@ -39,5 +54,10 @@
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
+
+   $(".nav").find(".active").removeClass("active");
+   $("#teacher").addClass("active");
+
+
 
 </script>
