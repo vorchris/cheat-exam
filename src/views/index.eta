@@ -1,26 +1,7 @@
 <% layout('./layout-part') %>
 
-
-
 <div id="welcomecontainer">
     <h1>Next-Exam</h1>
     <div id=student> <a href="http://localhost:3000/student">Student</a> </div>
     <div id=teacher> <a href="http://localhost:3000/teacher">Teacher</a> </div>
 </div>
-
-
-
-
-<div id="test">
-    <pre>
-        testvar: (geht nur wenn server läuft)
-        <%= JSON.stringify(it.mcast.serverinfo,null, 2) %> <br>
-    </pre>
-
-    und so bekommt man eine eta variable in eine javascript section: (console.log)
-    <script>
-        let variable = "<%= it.mcast.serverinfo.servername %>"
-
-       console.log( variable)
-    </script>
- </div>
