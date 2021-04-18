@@ -13,8 +13,14 @@
 
 <div id="test">
     <pre>
-        cool.. man kann einfach ganz normales javascript zwischen die ETA tags reinhaun und alles machen <br>
-        testvar: 
-        <%= JSON.stringify(it.mcast,null, 2) %> <br>
+        testvar: (geht nur wenn server läuft)
+        <%= JSON.stringify(it.mcast.serverinfo,null, 2) %> <br>
     </pre>
+
+    und so bekommt man eine eta variable in eine javascript section: (console.log)
+    <script>
+        let variable = "<%= it.mcast.serverinfo.servername %>"
+
+       console.log( variable)
+    </script>
  </div>
