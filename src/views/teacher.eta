@@ -8,9 +8,7 @@
 
 
 <div id="content">
-    <p>Please chose a name for this Exam session</p>
-
-    <form>
+ 
         <div class="row">
             <div class="col">
                 <input id=servername type=text value=mathe class="form-control">
@@ -22,9 +20,7 @@
                 <button id=examstart class="btn btn-success" value="start exam">start exam</button>
             </div>
         </div>
-    </form>
-
-
+  
    
     <div id="list" class="placeholder"></div>
 </div>
@@ -44,8 +40,7 @@
         .then( async (data) => {
                 document.getElementById("list").innerHTML = data;
                 await sleep(2000);
-                document.getElementById("list").innerHTML = "";
-                await sleep(1000);
+             
                 window.location.replace("http://localhost:3000/overview");
 
         });

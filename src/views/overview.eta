@@ -8,25 +8,19 @@
 
 
 <div id="content">
-    <h1>Overview</h1>
-
-    <div class=exambutton>Exam starten</div>
-    <div class=exambutton>Datei senden</div>
-    <div class=exambutton>Abgabe holen</div>
-    <div class=exambutton>Exam beenden</div>
-    <div class=exambutton onclick="getData()">Trigger Script</div>
-
-   
-
-
-    <div id="examinfo">
-       Name: <%= it.servername %> <br>
-       Pin : <%= it.pin %>
-    </div>
-
-    <div id="studentslist" class="list" class="placeholder">
-    </div>
+    <div class="btn btn-danger">Exam starten</div>
+    <div class="btn btn-info">Datei senden</div>
+    <div class="btn btn-info">Abgabe holen</div>
+    <div class="btn btn-info">Exam beenden</div>
+    <div class="btn btn-info" onclick="getData()">Trigger Script</div>
+    <div class="btn btn-light">  Name: <%= it.servername %> </div>
+    <div class="btn btn-light">  Pin: <%= it.pin %>  </div>
+    <div id="studentslist" class="list" class="placeholder"> </div>
 </div>
+
+
+
+
 
 <script>
 
@@ -43,13 +37,10 @@
         });
     }
 
-
-
-
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
-    
+
    $(".nav").find(".active").removeClass("active");
    $("#overview").addClass("active");
 

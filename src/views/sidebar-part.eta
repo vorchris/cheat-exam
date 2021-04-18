@@ -1,6 +1,8 @@
 <div class="p-3 text-white bg-dark h-100  " style="width: 280px;">
+  <a href="/" class="text-white">
     <img src="img/svg/shield-lock-fill.svg" class="white me-2 " width="32" height="32" >
     <span class="fs-4 align-middle">Next-Exam</span>
+  </a>
   <hr>
   <ul class="nav nav-pills flex-column mb-auto">
     <li class="nav-item">
