@@ -1,0 +1,17 @@
+<div class="w-100 p-3 text-white bg-dark shadow text-right">
+
+
+  <a href="/" class="text-white m-1" >
+    <img src="img/svg/shield-lock-fill.svg" class="white me-2  " width="32" height="32" >
+    <span class="fs-4 align-middle me-4 ">Next-Exam</span>
+  </a>
+
+
+
+<% if (it.title === "Exam Student") { %>
+    <span class="fs-4 align-middle" style="float: right">Student</span>
+<% } else if  (it.title === "Exam Teacher") { %>
+    <span class="fs-4 align-middle" style="float: right">Teacher</span>
+<% } %>
+
+</div>

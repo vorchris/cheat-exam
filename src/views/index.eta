@@ -1,7 +1,16 @@
 <% layout('./layout-part') %>
+<%~ includeFile('./topbar-part', it) %>
 
-<div id="welcomecontainer">
-    <h1>Next-Exam</h1>
-    <div id=student> <a href="http://localhost:3000/student">Student</a> </div>
-    <div id=teacher> <a href="http://localhost:3000/teacher">Teacher</a> </div>
+<div id="wrapper" class="w-100 h-100 d-flex" >
+
+    <%~ includeFile('./sidebar-part', it) %>
+
+    <div id="content" class="">
+            <h2> Welcome ! </h2>
+
+
+
+
+
+    </div>
 </div>

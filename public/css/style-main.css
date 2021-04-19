@@ -3,70 +3,32 @@
     margin: 0;
     padding: 0;
 }
-
-
 body {
-    display: flex;
-    flex-wrap: nowrap;
+    /* display: flex;
+    flex-wrap: nowrap; */
     height: 100vh;
     height: -webkit-fill-available;
     overflow-x: auto;
     overflow-y: hidden;
   }
 
-
 a {
   color: #2ccaa8;
   text-decoration: none;
   transition: .3s;
 }
-
 a:hover {
     color:#2ccaa8a6;
 }
-
-
 .white {
     filter: invert(100%) ;
 }
-
-
 #content {
-    margin-top:16px;
-    height: 100vh;
+    height: 100%;
+    width: 100%;
     padding: 10px;
+    padding-top: 1em;
 }
-
-
-
-
-
-#welcomecontainer {
-    width: 620px;
-    height: 500px;
-    border: 0px solid #ddd;
-    margin: auto auto;
-    text-align: center;
-    font-variant: small-caps;
-  }
-
-#welcomecontainer div {
-    margin-top: 70px;
-    font-size: 4em;
-    display: inline-block;
-    padding: 15px;
-    width: 300px;
-}
-
-
-
-
-
-#teacher{
-    border-left: 1px solid black;
-}
-
-
 
 
 
@@ -84,27 +46,7 @@ a:hover {
 
 
 
-
-
-
-
-
-
-
-
 #list {
     width: 100%;
     height: 100%;
-}
-.examinstance {
-    border: 0px solid rgba(0,0,0,0.2);
-    border-radius: 0px;
-    padding: 4px;
-    margin: 0px;
-    width: 300px;
-    background: linear-gradient(90deg, rgba(94,173,161,1) 0%, rgba(94,173,161,1) 80%, rgba(255,255,255,1) 100%);
-    cursor: pointer;
-}
-.examinstance:hover {
-     box-shadow: 0px 0px 5px rgba(0,0,0,0.4);
 }

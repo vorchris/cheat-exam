@@ -1,29 +1,39 @@
 <% layout('./layout-part') %>
-
-
-<%~ includeFile('./sidebar-part', it) %>
-
+<%~ includeFile('./topbar-part', it) %>
 
 
 
 
-<div id="content">
- 
-        <div class="row">
-            <div class="col">
-                <input id=servername type=text value=mathe class="form-control">
+<div id="wrapper" class="w-100 h-100 d-flex" >
+
+    <%~ includeFile('./sidebar-part', it) %>
+
+    <div id="content">
+    
+            <div class="row">
+                <div class="col">
+                    <input id=servername type=text value=mathe class="form-control">
+                </div>
+                <div class="col">
+                    <input id=pin type=text value=1234 class="form-control">
+                </div>
+                <div class="col">
+                    <button id=examstart class="btn btn-success" value="start exam">start exam</button>
+                </div>
             </div>
-            <div class="col">
-                <input id=pin type=text value=1234 class="form-control">
-            </div>
-            <div class="col">
-                <button id=examstart class="btn btn-success" value="start exam">start exam</button>
-            </div>
-        </div>
-  
-   
-    <div id="list" class="placeholder"></div>
+    
+    
+        <div id="list" class="placeholder"></div>
+    </div>
+
+
+
+
 </div>
+
+
+
+
 
 
 

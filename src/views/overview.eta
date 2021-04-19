@@ -1,21 +1,25 @@
-
 <% layout('./layout-part') %>
-
-<%~ includeFile('./sidebar-part', it) %>
-
+<%~ includeFile('./topbar-part', it) %>
 
 
 
 
-<div id="content">
-    <div class="btn btn-danger">Exam starten</div>
-    <div class="btn btn-info">Datei senden</div>
-    <div class="btn btn-info">Abgabe holen</div>
-    <div class="btn btn-info">Exam beenden</div>
-    <div class="btn btn-info" onclick="getData()">Trigger Script</div>
-    <div class="btn btn-light">  Name: <%= it.servername %> </div>
-    <div class="btn btn-light">  Pin: <%= it.pin %>  </div>
-    <div id="studentslist" class="list" class="placeholder"> </div>
+<div id="wrapper" class="w-100 h-100 d-flex" >
+
+    <%~ includeFile('./sidebar-part', it) %>
+
+    <div id="content">
+        <div class="btn btn-danger">Exam starten</div>
+        <div class="btn btn-info">Datei senden</div>
+        <div class="btn btn-info">Abgabe holen</div>
+        <div class="btn btn-info">Exam beenden</div>
+        <div class="btn btn-info" onclick="getData()">Trigger Script</div>
+        <div class="btn btn-light">  Name: <%= it.servername %> </div>
+        <div class="btn btn-light">  Pin: <%= it.pin %>  </div>
+        <div id="studentslist" class="list" class="placeholder"> </div>
+    </div>
+
+
 </div>
 
 

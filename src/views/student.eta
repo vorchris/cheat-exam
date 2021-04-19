@@ -1,16 +1,33 @@
 <% layout('./layout-part') %>
+<%~ includeFile('./topbar-part', it) %>
 
 
-<h1>Next-Exam</h1>
-<p>Please chose the exam server you want to join</p>
-<div id="container">
-    <div id="list" class="placeholder"></div>
+<div id="wrapper" class="w-100 h-100 d-flex" >
+
+    <%~ includeFile('./sidebar-part', it) %>
+
+    <div id="content" class="">
+
+        <div id="list" class="placeholder"></div>
+
+    </div>
+
+
 </div>
 
 
+
+
+
+
+
+
+
+
+
+
+
 <script>
-
-
 async function registerClient(){
     await fetch("http://localhost:3000/server/registerclient/1234")
        .then( response => response.json() )
@@ -19,8 +36,6 @@ async function registerClient(){
             document.getElementById("list").innerHTML = JSON.stringify(data);
     });
 }
-
-
 
 
 //start Multicast Client
@@ -37,7 +52,7 @@ async function getData(){
        .then( data => {
             let html = "";
             data.forEach( row => {
-                html += `<div class=examinstance onclick="registerClient()">
+                html += `<div class="btn btn-success btn-block" onclick="registerClient()">
                             Name: ${row.servername} <br>  
                             Last seen: ${row.timestamp}  <br>  
                             Id: ${row.id} 
