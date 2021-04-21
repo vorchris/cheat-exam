@@ -45,16 +45,23 @@ router.get('/registerclient/:pin/:clientname', function (req, res, next) {
   const csrftoken = `csrf-${uuid.v4()}`
 
   if (pin === multiCastserver.serverinfo.pin) {
-    status = {
-      registered: 'true',
-      csrftoken: csrftoken
-    }
+    let registeredClient = multiCastserver.studentList.find(element => element.clientname === clientname)
 
-    const client = {
-      clientname: clientname,
-      csrftoken: csrftoken
+    if (!registeredClient) {
+      console.log('adding new client')
+
+      status = {
+        registered: 'true',
+        csrftoken: csrftoken
+      }
+      // create client object
+      const client = {
+        clientname: clientname,
+        csrftoken: csrftoken
+      }
+
+      multiCastserver.studentList.push(client)
     }
-    multiCastserver.studentList.push(client)
   }
 
   console.log(multiCastserver.studentList)

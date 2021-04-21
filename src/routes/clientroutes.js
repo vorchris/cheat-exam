@@ -62,9 +62,11 @@ router.get('/register/:serverip/:serverport/:pin/:clientname', async function (r
     .then(response => response.json())
     .then(data => {
       console.log(JSON.stringify(data))
-      multiCastclient.clientinfo.name = clientname
-      multiCastclient.clientinfo.server = serverip
-      multiCastclient.clientinfo.token = data.csrftoken // we need to store the client token in order to check against it before processing critical api calls
+      if (data) { // registration successfull otherwise data would be "false"
+        multiCastclient.clientinfo.name = clientname
+        multiCastclient.clientinfo.server = serverip
+        multiCastclient.clientinfo.token = data.csrftoken // we need to store the client token in order to check against it before processing critical api calls
+      }
       res.json(data)
     })
 })
