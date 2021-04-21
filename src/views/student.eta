@@ -28,8 +28,12 @@
 
 
 <script>
-async function registerClient(){
-    await fetch("http://localhost:3000/server/registerclient/1234")
+
+const apiport = <%= it.apiport%>
+
+async function registerClient(serverip){
+    
+    await fetch(`http://${serverip}:${apiport}/server/registerclient/1234/thomas`)
        .then( response => response.json() )
        .then( data => {
             let html = "";
@@ -52,10 +56,12 @@ async function getData(){
        .then( data => {
             let html = "";
             data.forEach( row => {
-                html += `<div class="btn btn-success btn-block" onclick="registerClient()">
+                html += `<div class="btn btn-success btn-block" onclick="registerClient('${row.serverip}')">
                             Name: ${row.servername} <br>  
                             Last seen: ${row.timestamp}  <br>  
-                            Id: ${row.id} 
+                            Id: ${row.id} <br> 
+                            IP: ${row.serverip}
+                            
                         </div>`;
             });
             document.getElementById("list").innerHTML = html;

@@ -1,5 +1,7 @@
 const uuid = require('uuid')
 const dgram = require('dgram')
+const config = require('../config')
+
 
 class MulticastServer {
   constructor () {
@@ -11,6 +13,7 @@ class MulticastServer {
     this.address = '0.0.0.0'
     this.broadcastIntervall = null
     this.running = false
+    this.studentList = []
   }
 
   init (servername, pin) {
@@ -36,7 +39,7 @@ class MulticastServer {
     this.serverinfo.timestamp = new Date().getTime()
     const preparedMessage = JSON.stringify(this.serverinfo)
     this.server.send(preparedMessage, 0, preparedMessage.length, this.PORT, this.MULTICAST_ADDR, function () {
-      console.log(`Sent ${preparedMessage}`)
+      if (config.debug) { console.log(`Sent ${preparedMessage}`) }
     })
   }
 }

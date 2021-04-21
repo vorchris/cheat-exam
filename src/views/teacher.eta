@@ -51,7 +51,7 @@
                 document.getElementById("list").innerHTML = data;
                 await sleep(2000);
              
-                window.location.replace("http://localhost:3000/overview");
+                window.location.replace("http://localhost:3000/dashboard");
 
         });
     }

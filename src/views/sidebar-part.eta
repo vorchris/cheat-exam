@@ -22,7 +22,7 @@
 
 
 
-<% } else if (it.title === "Exam Teacher" || it.title === "Exam Overview"){ %>
+<% } else if (it.title === "Exam Teacher" || it.title === "Exam Dashboard"){ %>
 
 
   <ul class="nav nav-pills flex-column mb-auto">
@@ -33,7 +33,7 @@
       </a>
     </li>
     <li>
-      <a href="overview" id="overview" class="nav-link">
+      <a href="dashboard" id="dashboard" class="nav-link">
         <img src="img/svg/person-lines-fill.svg" class="white me-2"  width="16" height="16" >
         Dashboard
       </a>

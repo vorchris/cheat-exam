@@ -27,22 +27,38 @@ router.get('/info', function (req, res, next) {
   res.send('hello info')
 })
 
+router.get('/studentlist', function (req, res, next) {
+  console.log('Server: API request recieved')
+  res.send( multiCastserver.studentList)
+})
+
 /**
 *  checks pin code, creates csrf token for client, answeres with token
 *  @param clientinfo  the information the client needs in order to register (pin)
 */
-router.get('/registerclient/:clientinfo', function (req, res, next) {
+router.get('/registerclient/:pin/:clientname', function (req, res, next) {
   console.log('Server: API request recieved')
 
   let status = false
+  let clientname = req.params.clientname
+  let pin = req.params.pin
+  let csrftoken = `csrf-${uuid.v4()}`
 
-  if (req.params.clientinfo === '1234') {
+
+  if (pin === multiCastserver.serverinfo.pin) {
     status = {
       registered: 'true',
-      csrftoken: `csrf-${uuid.v4()}`
+      csrftoken: csrftoken
     }
+
+    const client = {
+      clientname: clientname,
+      csrftoken: csrftoken
+    }
+    multiCastserver.studentList.push(client)
   }
 
+  console.log( multiCastserver.studentList)
   res.json(status)
 })
 
