@@ -1,6 +1,6 @@
-
 const dgram = require('dgram')
 const config = require('../config')
+const ip = require('ip')
 
 class MulticastClient {
   constructor () {
@@ -11,6 +11,12 @@ class MulticastClient {
     this.address = '0.0.0.0'
     this.refreshExamsIntervall = null
     this.debug = config.debug
+    this.clientinfo = {
+      name: '',
+      token: '',
+      ip: '',
+      server: ''
+    }
   }
 
   init () {
@@ -25,7 +31,8 @@ class MulticastClient {
     this.running = true
   }
 
-  getAddress () {
+  async getAddress () {
+    this.clientinfo.ip = ip.address()
     this.address = this.client.address()
     console.log(`UDP Multicast Client listening on localhost:${this.address.port}`)
   }

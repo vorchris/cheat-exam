@@ -44,6 +44,19 @@ a:hover {
     margin-top: 4px;
 }
 
+.studentwidget {
+    width: 200px;
+    height: 200px;
+    white-space: nowrap;
+    text-overflow:    ellipsis; 
+    overflow: hidden; 
+    margin: 2px;    
+}
+.studentwidget img {
+    height: 100px;
+    text-overflow:    hidden; 
+    margin: 2px;    
+}
 
 
 #list {

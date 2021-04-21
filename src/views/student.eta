@@ -33,7 +33,7 @@ const apiport = <%= it.apiport%>
 
 async function registerClient(serverip){
     
-    await fetch(`http://${serverip}:${apiport}/server/registerclient/1234/thomas`)
+    await fetch(`http://localhost:3000/client/register/${serverip}/${apiport}/1234/thomas`)
        .then( response => response.json() )
        .then( data => {
             let html = "";

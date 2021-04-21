@@ -23,13 +23,13 @@ router.get('/start/:servername/:pin', function (req, res, next) {
 })
 
 router.get('/info', function (req, res, next) {
-  console.log('Server: API request recieved')
+  // console.log('Server: API request recieved')
   res.send('hello info')
 })
 
 router.get('/studentlist', function (req, res, next) {
-  console.log('Server: API request recieved')
-  res.send( multiCastserver.studentList)
+  // console.log('Server: API request recieved')
+  res.send(multiCastserver.studentList)
 })
 
 /**
@@ -37,13 +37,12 @@ router.get('/studentlist', function (req, res, next) {
 *  @param clientinfo  the information the client needs in order to register (pin)
 */
 router.get('/registerclient/:pin/:clientname', function (req, res, next) {
-  console.log('Server: API request recieved')
+  // console.log('Server: API request recieved')
 
   let status = false
-  let clientname = req.params.clientname
-  let pin = req.params.pin
-  let csrftoken = `csrf-${uuid.v4()}`
-
+  const clientname = req.params.clientname
+  const pin = req.params.pin
+  const csrftoken = `csrf-${uuid.v4()}`
 
   if (pin === multiCastserver.serverinfo.pin) {
     status = {
@@ -58,7 +57,7 @@ router.get('/registerclient/:pin/:clientname', function (req, res, next) {
     multiCastserver.studentList.push(client)
   }
 
-  console.log( multiCastserver.studentList)
+  console.log(multiCastserver.studentList)
   res.json(status)
 })
 
