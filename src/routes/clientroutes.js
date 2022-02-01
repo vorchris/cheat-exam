@@ -32,10 +32,8 @@ router.get('/receive/:token/:filename', async function (req, res, next) {  //TOD
   else {
     console.log("initializing receiver")
     let absoluteFilepath = path.join('public/files/inbox', filename);
-    let response = await receiver.init(absoluteFilepath)
-    console.log(response)   // how do we know when this is finished??
-    
-   
+    receiver.init(absoluteFilepath)
+    // how do we know when this is finished??
   }
 })
 
