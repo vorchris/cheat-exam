@@ -60,8 +60,8 @@ class transportReceiver {
     }
   }
 
-  init (filename) {
-    http.get(this.options, res => {
+  async init (filename) {
+    await http.get(this.options, res => {
       console.log('response received')
 
       this.ostream = fs.createWriteStream(filename)
@@ -73,7 +73,8 @@ class transportReceiver {
       })
 
       res.on('end', () => {
-        console.log(`\n Finished getting file. Speed was: ${((this.size / (1024 * 1024)) / (this.elapsed / 1000)).toFixed(6)} MB/s`)
+        let result = `\nFinished getting file. Speed was: ${((this.size / (1024 * 1024)) / (this.elapsed / 1000)).toFixed(6)} MB/s`
+        console.log(result)
       })
     })
   }

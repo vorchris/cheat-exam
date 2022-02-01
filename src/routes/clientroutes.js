@@ -1,16 +1,46 @@
 const express = require('express')
 const router = express.Router()
 const multiCastclient = require('../classes/multicastclient.js')
+
 const path = require('path')
 const rootpath = path.dirname(require.main.filename)
 const childProcess = require('child_process')
 const fetch = require('node-fetch')
+const Transportreceive = require('../classes/filetransport').transportReceiver
+const receiver = new Transportreceive()
+
+
+function checkToken(token){
+  if (token === multiCastclient.clientinfo.token) {
+    return true
+  }
+  return false
+}
+
 
 /* GET users listing. */
 router.get('/', function (req, res, next) {
   // console.log('Client: API request recieved')
   res.send(multiCastclient.examServerList)
 })
+
+router.get('/receive/:token/:filename', async function (req, res, next) {  //TODO: get md5 hash + do hashconfirmation 
+  const token = req.params.token
+  const filename = req.params.filename
+
+  if ( !checkToken(token) ) { res.json({ tokenisvalid: false }) }
+  else {
+    console.log("initializing receiver")
+    let absoluteFilepath = path.join('public/files/inbox', filename);
+    let response = await receiver.init(absoluteFilepath)
+    console.log(response)   // how do we know when this is finished??
+    
+   
+  }
+})
+
+
+
 
 router.get('/cmd', function (req, res, next) {
   // console.log('Server: API request recieved')
@@ -30,15 +60,12 @@ router.get('/cmd', function (req, res, next) {
 })
 
 router.get('/tokencheck/:token', function (req, res, next) {
-  // console.log('Server: API request recieved')
   const token = req.params.token
-  if (token === multiCastclient.clientinfo.token) {
-    console.log(true)
+  if ( checkToken(token) ) {
     res.json({ tokenisvalid: true })
   }
   else {
     res.json({ tokenisvalid: false })
-    console.log(false)
   }
 })
 
@@ -58,7 +85,8 @@ router.get('/register/:serverip/:serverport/:pin/:clientname', async function (r
   const pin = req.params.pin
   const serverip = req.params.serverip
   const serverport = req.params.serverport
-  await fetch(`http://${serverip}:${serverport}/server/registerclient/${pin}/${clientname}`)
+  const clientip = multiCastclient.clientinfo.ip
+  await fetch(`http://${serverip}:${serverport}/server/registerclient/${pin}/${clientname}/${clientip}`)
     .then(response => response.json())
     .then(data => {
       console.log(JSON.stringify(data))

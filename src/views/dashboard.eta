@@ -10,7 +10,7 @@
 
     <div id="content">
         <div class="btn btn-danger">Exam starten</div>
-        <div class="btn btn-info">Datei senden</div>
+        <div class="btn btn-info" onclick="sendFileToAllClients()">Datei senden</div>
         <div class="btn btn-info">Abgabe holen</div>
         <div class="btn btn-info">Exam beenden</div>
         <div class="btn btn-info" onclick="task1()">Trigger Script</div>
@@ -27,6 +27,7 @@
 
 
 <script>
+    let studentList = []
 
     async function task1(){
         await fetch("http://localhost:3000/client/cmd")
@@ -37,13 +38,36 @@
     }
 
 
-     async function task2(token){
-        await fetch(`http://localhost:3000/client/tokencheck/${token}`)
+     async function task2(token, ip){
+        await fetch(`http://${ip}:3000/client/tokencheck/${token}`)
         .then( response => response.json() )
         .then( async (data) => {
                console.log(data);
         });
     }
+
+
+    async function sendFileToAllClients(){
+        let filename = "test.txt"  // TODO: let the teacher pick the file
+
+        await fetch(`http://localhost:3000/server/send/${filename}/${studentList.length}`)
+            .then( response => response.json() )
+            .then( async (data) => {
+                console.log(data);
+            });
+
+        studentList.forEach( (student) => {
+
+            fetch(`http://${student.clientip}:3000/client/receive/${student.csrftoken}/${filename}`)
+            .then( response => response.json() )
+            .then( async (data) => {
+                console.log(data);
+            });
+        });
+    }
+
+
+
 
     // Update Students List
     async function getStudentlist(){
@@ -51,11 +75,13 @@
         await fetch("http://localhost:3000/server/studentlist")
         .then( response => response.json() )
         .then( data => {
+                studentList = data
                 let html = "";
                 data.forEach( row => {
-                    html += `<div class="studentwidget btn btn-info btn-block" onclick='task2("${row.csrftoken}")'>
+                    html += `<div class="studentwidget btn btn-info btn-block" onclick='task2("${row.csrftoken}","${row.clientip}" )'>
                                 Name: ${row.clientname} <br>  
-                                Token: ${row.csrftoken}  <br>  
+                                Token: ${row.csrftoken}  <br>
+                                IP:  ${row.clientip}  <br> 
                                 <img src='img/icons/nouserscreenshot.png'>
                             </div>`;
                 });

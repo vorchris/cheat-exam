@@ -2,13 +2,45 @@ const express = require('express')
 const router = express.Router()
 const multiCastserver = require('../classes/multicastserver.js')
 const uuid = require('uuid')
-// const path = require('path')
+const path = require('path')
 // const rootpath = path.dirname(require.main.filename)
+
+const Transportsend = require('../classes/filetransport').transportSender
+const sender = new Transportsend()
+
 
 router.get('/', function (req, res, next) {
   console.log('Server: API request recieved')
   res.send('hello teacher')
 })
+
+// opens a filestream until file is distributed numclients times
+router.get('/send/:filename/:numclients', function (req, res, next) {  //TODO: send md5 hash 
+
+  const filename = req.params.filename
+  const numclients = req.params.numclients
+
+  
+  if ( numclients <= 0  ) { res.json({ numberOfClients: numclients }) }
+  else {  
+    console.log("initializing sender")
+
+    let absoluteFilepath = path.join('public/files/outbox', filename);
+    console.log(absoluteFilepath)
+    sender.init(absoluteFilepath, numclients)
+
+    res.json({ filebroadcast: true }) 
+  }
+
+  
+})
+
+
+
+
+
+
+
 
 router.get('/start/:servername/:pin', function (req, res, next) {
   console.log('Server: API request recieved')
@@ -36,11 +68,12 @@ router.get('/studentlist', function (req, res, next) {
 *  checks pin code, creates csrf token for client, answeres with token
 *  @param clientinfo  the information the client needs in order to register (pin)
 */
-router.get('/registerclient/:pin/:clientname', function (req, res, next) {
+router.get('/registerclient/:pin/:clientname/:clientip', function (req, res, next) {
   // console.log('Server: API request recieved')
 
   let status = false
   const clientname = req.params.clientname
+  const clientip = req.params.clientip
   const pin = req.params.pin
   const csrftoken = `csrf-${uuid.v4()}`
 
@@ -57,7 +90,8 @@ router.get('/registerclient/:pin/:clientname', function (req, res, next) {
       // create client object
       const client = {
         clientname: clientname,
-        csrftoken: csrftoken
+        csrftoken: csrftoken,
+        clientip: clientip
       }
 
       multiCastserver.studentList.push(client)

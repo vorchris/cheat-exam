@@ -13,7 +13,7 @@ const eta = require('eta')
 // the Express web framework
 const app = express()
 
-// view engine setup,  pug = high performance template engine
+// view engine setup,  https://eta.js.org/  
 app.engine('eta', eta.renderFile)
 app.set('view engine', 'eta')
 app.set('views', path.join(__dirname, 'src/views'))

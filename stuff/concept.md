@@ -3,7 +3,8 @@ Bootsrtap Framework
 Sass
 
 template engine ETA
-[ETA](https://github.com/eta-dev/eta)
+[ETA](https://github.com/eta-dev/eta) 
+[ETA] [vscode Syntaxhighlighting] (https://marketplace.visualstudio.com/items?itemName=shadowtime2000.eta-vscode) >> drag&drop from /stuff
 
 
 # teacher

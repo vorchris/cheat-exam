@@ -17,7 +17,7 @@ router.get('/teacher/', function (req, res, next) {
 
 router.get('/dashboard/', function (req, res, next) {
   if (multiCastserver.running) { // we could allow the creation of several exam servers ?
-    res.render('dashboard', { title: 'Exam Dashboard', servername: multiCastserver.serverinfo.servername, pin: multiCastserver.serverinfo.pin })
+    res.render('dashboard', { title: 'Exam Dashboard', servername: multiCastserver.serverinfo.servername, pin: multiCastserver.serverinfo.pin, studentlist: multiCastserver.studentList })
   } else {
     res.render('teacher', { title: 'Exam Teacher' })
   }
