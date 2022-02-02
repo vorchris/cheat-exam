@@ -18,7 +18,9 @@
   <body class="vh-100 ">
     
     <!-- jQuery -->
-    <script src="js/jquery-3.6.0.min.js">
+    <script src="js/jquery-3.6.0.min.js"></script>
+    <script src="js/jquery.form.min.js"></script>
+
 
     <!-- Bootstrap JS -->
     <script src="js/bootstrap.bundle.min.js"></script>

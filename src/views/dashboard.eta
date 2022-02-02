@@ -10,7 +10,7 @@
 
     <div id="content">
         <div class="btn btn-danger">Exam starten</div>
-        <div class="btn btn-info">Datei senden</div>
+        <div class="btn btn-info" onclick="toggleUpload()">Datei senden</div>
         <div class="btn btn-info">Abgabe holen</div>
         <div class="btn btn-info">Exam beenden</div>
         <div class="btn btn-info" onclick="task1()">Trigger Script</div>
@@ -19,11 +19,16 @@
         <div id="studentslist" class="list" class="placeholder"> </div>
     </div>
 
-   <form method="POST" action="http://localhost:3000/server/send" enctype="multipart/form-data">
-      <input type="file" name="myFile" />
-      <input type="submit" />
-    </form>
-
+    <div id="uploaddiv">
+        <form id="uploadform" method="POST" action="http://localhost:3000/filetransfer/send/all" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="formFileMultiple" class="form-label">Send File to ALL Clients</label>
+                <input class="form-control" type="file" name="file" id="formFileMultiple" multiple>
+            </div>
+            <input type="submit" name="submit" class="btn btn-info"/>
+            <span id="status"></span> 
+        </form>
+    </div>
 
 </div>
 
@@ -32,6 +37,26 @@
 
 
 <script>
+    $(document).ready(function() {  
+        $('#uploadform').submit(function(e) {  
+            e.preventDefault(); // avoid to actual submit the form data
+            $("#status").empty().text("File is uploading...");  
+            $(this).ajaxSubmit({  
+                error: function(xhr) {  
+                    status('Error: ' + xhr.status);  
+                },  
+    
+                success: function(response) {  
+                    console.log(response)  
+                    $("#status").empty().text(response.status);  
+                    setTimeout(toggleUpload, 2000);
+                }  
+            });  
+        });      
+    });  
+
+
+
     let studentList = []
 
     async function task1(){
@@ -83,6 +108,12 @@
 
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function toggleUpload(){
+        let status =  $("#uploaddiv").css("display");
+        if (status == "none") {  $("#uploaddiv").css("display","block");}
+        else {  $("#uploaddiv").css("display","none"); }
     }
 
    $(".nav").find(".active").removeClass("active");

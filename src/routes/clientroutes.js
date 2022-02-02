@@ -1,13 +1,10 @@
 const express = require('express')
 const router = express.Router()
 const multiCastclient = require('../classes/multicastclient.js')
-
 const path = require('path')
 const rootpath = path.dirname(require.main.filename)
 const childProcess = require('child_process')
 const fetch = require('node-fetch')
-const Transportreceive = require('../classes/filetransport').transportReceiver
-const receiver = new Transportreceive()
 
 
 function checkToken(token){
@@ -20,24 +17,8 @@ function checkToken(token){
 
 /* GET users listing. */
 router.get('/', function (req, res, next) {
-  // console.log('Client: API request recieved')
   res.send(multiCastclient.examServerList)
 })
-
-router.get('/receive/:token/:filename', async function (req, res, next) {  //TODO: get md5 hash + do hashconfirmation 
-  const token = req.params.token
-  const filename = req.params.filename
-
-  if ( !checkToken(token) ) { res.json({ tokenisvalid: false }) }
-  else {
-    console.log("initializing receiver")
-    let absoluteFilepath = path.join('public/files/inbox', filename);
-    receiver.init(absoluteFilepath)
-    // how do we know when this is finished??
-  }
-})
-
-
 
 
 router.get('/cmd', function (req, res, next) {

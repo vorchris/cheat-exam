@@ -21,8 +21,7 @@
                     <button id=examstart class="btn btn-success" value="start exam">start exam</button>
                 </div>
             </div>
-    
-    
+
         <div id="list" class="placeholder"></div>
     </div>
 

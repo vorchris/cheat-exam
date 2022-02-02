@@ -1,11 +1,14 @@
 # webfrontend generell
 Bootsrtap Framework
-Sass
+JQuery
 
 template engine ETA
 [ETA](https://github.com/eta-dev/eta) 
 [ETA] [vscode Syntaxhighlighting] (https://marketplace.visualstudio.com/items?itemName=shadowtime2000.eta-vscode) >> drag&drop from /stuff
 
+
+File Upload
+[[ https://github.com/richardgirges/express-fileupload ]]
 
 # teacher
 ### server api (serverroutes)

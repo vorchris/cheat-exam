@@ -8,6 +8,8 @@ const logger = require('morgan')
 const webRoutes = require('./src/routes/webroutes')
 const clientRoutes = require('./src/routes/clientroutes')
 const serverRoutes = require('./src/routes/serverroutes')
+const filetransferRoutes = require('./src/routes/filetransferroutes')
+
 
 const eta = require('eta')
 
@@ -25,10 +27,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
-
-app.use(
-  fileUpload()
-);
+app.use(fileUpload());  //When you upload a file, the file will be accessible from req.files
 
 app.use(function (req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -39,6 +38,8 @@ app.use(function (req, res, next) {
 app.use('/', webRoutes)
 app.use('/client', clientRoutes)
 app.use('/server', serverRoutes)
+app.use('/filetransfer', filetransferRoutes)
+
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
