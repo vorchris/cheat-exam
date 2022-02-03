@@ -22,7 +22,7 @@
     <div id="uploaddiv">
         <form id="uploadform" method="POST" action="http://localhost:3000/filetransfer/send/all" enctype="multipart/form-data">
             <div class="mb-3">
-                <label for="formFileMultiple" class="form-label">Send File to ALL Clients</label>
+                <label for="formFileMultiple" class="form-label">Send Files to ALL Clients</label>
                 <input class="form-control" type="file" name="file" id="formFileMultiple" multiple>
             </div>
             <input type="submit" name="submit" class="btn btn-info"/>

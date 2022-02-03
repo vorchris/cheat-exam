@@ -10,7 +10,7 @@
 
 <% if (it.title === "Exam Student") { %>
     <span class="fs-4 align-middle" style="float: right">Student</span>
-<% } else if  (it.title === "Exam Teacher") { %>
+<% } else if  (it.title === "Exam Teacher" || it.title === "Exam Dashboard") { %>
     <span class="fs-4 align-middle" style="float: right">Teacher</span>
 <% } %>
 

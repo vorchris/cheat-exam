@@ -12,10 +12,10 @@ class MulticastClient {
     this.refreshExamsIntervall = null
     this.debug = config.debug
     this.clientinfo = {
-      name: '',
-      token: '',
-      ip: '',
-      server: ''
+      name: false,
+      token: false,
+      ip: false,
+      server: false
     }
   }
 

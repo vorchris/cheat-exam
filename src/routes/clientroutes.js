@@ -17,7 +17,7 @@ function checkToken(token){
 
 /* GET users listing. */
 router.get('/', function (req, res, next) {
-  res.send(multiCastclient.examServerList)
+  res.send({serverlist:multiCastclient.examServerList, clientinfo: multiCastclient.clientinfo})
 })
 
 
@@ -59,13 +59,18 @@ router.get('/start', function (req, res, next) {
   }
 })
 
-router.get('/register/:serverip/:serverport/:pin/:clientname', async function (req, res, next) {
+router.get('/register/:serverip/:pin/:clientname', async function (req, res, next) {
   const clientname = req.params.clientname
   const pin = req.params.pin
   const serverip = req.params.serverip
-  const serverport = req.params.serverport
+ 
+  if (multiCastclient.clientinfo.token){
+      res.json({status: "already registered on a server"})
+      return
+  }
+
   const clientip = multiCastclient.clientinfo.ip
-  await fetch(`http://${serverip}:${serverport}/server/registerclient/${pin}/${clientname}/${clientip}`)
+  await fetch(`http://${serverip}:3000/server/registerclient/${pin}/${clientname}/${clientip}`)
     .then(response => response.json())
     .then(data => {
       console.log(JSON.stringify(data))

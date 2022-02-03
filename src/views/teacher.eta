@@ -18,7 +18,7 @@
                     <input id=pin type=text value=1234 class="form-control">
                 </div>
                 <div class="col">
-                    <button id=examstart class="btn btn-success" value="start exam">start exam</button>
+                    <button id=examstart class="btn btn-success" value="start exam">start exam server</button>
                 </div>
             </div>
 
