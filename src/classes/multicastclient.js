@@ -2,6 +2,10 @@ const dgram = require('dgram')
 const config = require('../config')
 const ip = require('ip')
 
+
+/**
+ * Starts a dgram (udp) socket that listens for mulitcast messages
+ */
 class MulticastClient {
   constructor () {
     this.PORT = 6024
@@ -19,12 +23,15 @@ class MulticastClient {
     }
   }
 
+  /**
+   * receives messages and stores new exam instances in this.examServerList[]
+   * starts an intervall to check server status by timestamp
+   */
   init () {
     this.client.on('listening', () => { this.getAddress() })
     this.client.on('message', (message, rinfo) => { this.messageReceived(message, rinfo) })
     // Add the HOST_IP_ADDRESS for reliability
     this.client.bind(this.PORT, () => { this.client.addMembership(this.MULTICAST_ADDR) })
-
     this.refreshExamsIntervall = setInterval(() => {
       this.isDeprecatedInstance()
     }, 5000)
@@ -37,6 +44,11 @@ class MulticastClient {
     console.log(`UDP Multicast Client listening on localhost:${this.address.port}`)
   }
 
+
+  /**
+   * receives messages and stores new exam instances in this.examServerList[]
+   * starts an intervall to check server status by timestamp
+   */
   messageReceived (message, rinfo) {
     const serverInfo = JSON.parse(String(message))
     serverInfo.serverip = rinfo.address
@@ -46,6 +58,9 @@ class MulticastClient {
     this.addOrUpdateServer(serverInfo)
   }
 
+  /**
+   * adds server instance to list if server is new
+   */
   addOrUpdateServer (serverInfo) {
     if (this.isNewExamInstance(serverInfo)) {
       console.log(`Adding new Exam Instance "${serverInfo.servername}" to Serverlist`)
@@ -53,6 +68,10 @@ class MulticastClient {
     }
   }
 
+
+  /**
+   * checks if the message came from a new exam instance or an old one that is already registered
+   */
   isNewExamInstance (obj) {
     for (let i = 0; i < this.examServerList.length; i++) {
       if (this.examServerList[i].id === obj.id) {
@@ -64,6 +83,10 @@ class MulticastClient {
     return true
   }
 
+
+  /**
+   * checks servertimestamp and removes server from list if older than 1 minute
+   */
   isDeprecatedInstance () {
     for (let i = 0; i < this.examServerList.length; i++) {
       const now = new Date().getTime()

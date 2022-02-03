@@ -7,6 +7,9 @@ const childProcess = require('child_process')
 const fetch = require('node-fetch')
 
 
+/**
+ * Checks if the token is valid and the api is allowed to process the request
+ */ 
 function checkToken(token){
   if (token === multiCastclient.clientinfo.token) {
     return true
@@ -15,12 +18,18 @@ function checkToken(token){
 }
 
 
-/* GET users listing. */
+/**
+ * Returns all found Servers and the information about this client
+ */ 
 router.get('/', function (req, res, next) {
   res.send({serverlist:multiCastclient.examServerList, clientinfo: multiCastclient.clientinfo})
 })
 
 
+
+/**
+ * Runs a specific command in a child process
+ */ 
 router.get('/cmd', function (req, res, next) {
   // console.log('Server: API request recieved')
   const filepath = path.join(rootpath, '/assets/pythonscripts/Notification/NotificationTest.py')
@@ -38,6 +47,11 @@ router.get('/cmd', function (req, res, next) {
   })
 })
 
+
+/**
+ * Runs a tokencheck and returns true or false
+ * @param token a csrf token for validation
+ */ 
 router.get('/tokencheck/:token', function (req, res, next) {
   const token = req.params.token
   if ( checkToken(token) ) {
@@ -48,6 +62,12 @@ router.get('/tokencheck/:token', function (req, res, next) {
   }
 })
 
+
+
+
+/**
+ * Starts the Multicast Client that receives the broadcasts of an exam server instance
+ */ 
 router.get('/start', function (req, res, next) {
   console.log('Starting up: Multicast')
   if (multiCastclient.running) {
@@ -59,6 +79,14 @@ router.get('/start', function (req, res, next) {
   }
 })
 
+
+
+/**
+ * Sends a register request to the given server ip
+ * @param serverip the examserver instance ip 
+ * @param pin the given pin code to authenticate on the server
+ * @param clientname the given username of the student
+ */
 router.get('/register/:serverip/:pin/:clientname', async function (req, res, next) {
   const clientname = req.params.clientname
   const pin = req.params.pin

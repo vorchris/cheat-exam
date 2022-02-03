@@ -5,11 +5,8 @@
 
 
 <div id="wrapper" class="w-100 h-100 d-flex" >
-
     <%~ includeFile('./sidebar-part', it) %>
-
     <div id="content">
-    
             <div class="row">
                 <div class="col">
                     <input id=servername type=text value=mathe class="form-control">
@@ -18,29 +15,22 @@
                     <input id=pin type=text value=1234 class="form-control">
                 </div>
                 <div class="col">
-                    <button id=examstart class="btn btn-success" value="start exam">start exam server</button>
+                    <button id=examstart class="btn btn-success" value="start exam">Start Exam Server</button>
                 </div>
             </div>
-
         <div id="list" class="placeholder"></div>
     </div>
-
-
-
-
 </div>
 
 
 
 
 
-
-
-
 <script>
-    document.getElementById("examstart").onclick = getData;
+    document.getElementById("examstart").onclick = startServer;
 
-    async function getData(){
+    
+    async function startServer(){
         let servername =  document.getElementById("servername").value;
         let pin = document.getElementById('pin').value;
 
@@ -49,9 +39,7 @@
         .then( async (data) => {
                 document.getElementById("list").innerHTML = data;
                 await sleep(2000);
-             
                 window.location.replace("http://localhost:3000/dashboard");
-
         });
     }
 
@@ -61,7 +49,5 @@
 
    $(".nav").find(".active").removeClass("active");
    $("#teacher").addClass("active");
-
-
 
 </script>

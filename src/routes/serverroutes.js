@@ -4,8 +4,11 @@ const multiCastserver = require('../classes/multicastserver.js')
 const uuid = require('uuid')
 
 
-
-
+/**
+ *  starts an exam server instance
+ * @param servername the chosen name (for example "mathe")
+ * @param pin the pin code used to authenticate
+ */
 router.get('/start/:servername/:pin', function (req, res, next) {
   console.log('Server: API request recieved')
 
@@ -20,6 +23,9 @@ router.get('/start/:servername/:pin', function (req, res, next) {
 
 
 
+/**
+ *  sends a list of all connected students { clientname: clientname, csrftoken: csrftoken, clientip: clientip }
+ */
 router.get('/studentlist', function (req, res, next) {
   res.send(multiCastserver.studentList)
 })
@@ -27,9 +33,12 @@ router.get('/studentlist', function (req, res, next) {
 
 
 /**
-*  checks pin code, creates csrf token for client, answeres with token
-*  @param clientinfo  the information the client needs in order to register (pin)
-*/
+ *  checks pin code, creates csrf token for client, answeres with token
+ *
+ *  @param pin  the pincode to connect to the serverinstance
+ *  @param clientname the name of the student
+ *  @param clientip the clients ip address for api calls
+ */
 router.get('/registerclient/:pin/:clientname/:clientip', function (req, res, next) {
   let status = false
   const clientname = req.params.clientname

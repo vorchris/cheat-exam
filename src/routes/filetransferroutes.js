@@ -10,8 +10,10 @@ const FormData = require('form-data');
 
 
 
-
-
+/**
+ * Sends file(s) to specified receipients 
+ * @param who who should we send the file(s) to? all students, specific student, server (get)
+ */
 router.post("/send/:who", (req, res) => {
     if (!req.files) { return res.send({status:"No files were uploaded."});  }
     //const file = req.files.file
@@ -42,7 +44,11 @@ router.post("/send/:who", (req, res) => {
 
 
 
-
+/**
+ * Stores file(s) to the receipients inbox
+ * @param token the students token - this has to be valid (coming from the registered server) in order to process the request
+ * TODO: what if the server wants to receive the students work ? tokencheck is still a good idea but differen - it should check if the token is registered
+ */
 router.post('/receive/:token', async (req, res, next) => {  //TODO: get md5 hash + do hashconfirmation 
     const token = req.params.token
 
@@ -64,14 +70,16 @@ router.post('/receive/:token', async (req, res, next) => {  //TODO: get md5 hash
   })
 
 
-
-
-  function checkToken(token){
+/**
+ * Checks if the token is valid in order to process api request
+ * TODO: tokencheck for server Attention: no all api requests check tokens atm!
+ */
+function checkToken(token){
     if (token === multiCastclient.clientinfo.token) {
-      return true
+        return true
     }
     return false
-  }
+}
   
 
   module.exports = router
