@@ -11,7 +11,7 @@
     <div id="content">
         <div class="btn btn-danger">Exam starten</div>
         <div class="btn btn-info" onclick="toggleUpload()">Datei senden</div>
-        <div class="btn btn-info">Abgabe holen</div>
+        <div class="btn btn-info" onclick="getFiles()">Abgabe holen</div>
         <div class="btn btn-info">Exam beenden</div>
         <div class="btn btn-info" onclick="task1()">Trigger Script</div>
         <div class="btn btn-light">  Name: <%= it.servername %> </div>
@@ -38,6 +38,8 @@
 
 <script>
     $(document).ready(function() {  
+        
+        //make upload div visisble
         $('#uploadform').submit(function(e) {  
             e.preventDefault(); // avoid to actual submit the form data
             $("#status").empty().text("File is uploading...");  
@@ -52,12 +54,22 @@
                     setTimeout(toggleUpload, 2000);
                 }  
             });  
-        });      
+        }); 
+
     });  
 
 
 
     let studentList = []
+
+    async function getFiles(){
+        await fetch("http://localhost:3000/filetransfer/abgabe/request/all")
+        .then( response => response.json() )
+        .then( async (data) => {
+               console.log(data);
+        });
+    }
+
 
     async function task1(){
         await fetch("http://localhost:3000/client/cmd")

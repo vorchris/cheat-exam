@@ -6,8 +6,9 @@ const multiCastclient = require('../classes/multicastclient.js')
 const path = require('path')
 const fetch = require('node-fetch')
 const FormData = require('form-data');
-
-
+const config = require('../config')
+const archiver = require('archiver');
+const fs = require('fs') 
 
 
 /**
@@ -16,7 +17,6 @@ const FormData = require('form-data');
  */
 router.post("/send/:who", (req, res) => {
     if (!req.files) { return res.send({status:"No files were uploaded."});  }
-    //const file = req.files.file
     const who = req.params.who
     const form = new FormData()
     
@@ -52,13 +52,12 @@ router.post("/send/:who", (req, res) => {
 router.post('/receive/:token', async (req, res, next) => {  //TODO: get md5 hash + do hashconfirmation 
     const token = req.params.token
 
-
     if ( !checkToken(token) ) { res.json({ status: "token is not valid" }) }
     else {
         console.log("Receiving File(s)...")
         let errors = 0
         for (const [key, file] of Object.entries( req.files)) {
-            let absoluteFilepath = path.join('public/files/inbox', file.name);
+            let absoluteFilepath = path.join(config.workdirectory, file.name);
             file.mv(absoluteFilepath, (err) => {  
                 if (err) { errors++; return {status: "client couldn't store file"} }
                 return {status: "success"}
@@ -66,8 +65,75 @@ router.post('/receive/:token', async (req, res, next) => {  //TODO: get md5 hash
         }
         res.json({ status: "done", errors: errors, client: multiCastclient.clientinfo  })
     }
-// 
-  })
+})
+
+
+
+router.get('/abgabe/request/:who', async (req, res, next) => {  //TODO: get md5 hash + do hashconfirmation 
+    const who = req.params.who
+    if (who == "all"){
+        if ( multiCastserver.studentList.length <= 0  ) { res.json({ status: "no clients connected"  }) }
+        else {  
+        console.log("Requesting Filetransfer from ALL Clients")
+        multiCastserver.studentList.forEach( (student) => {
+            fetch(`http://${student.clientip}:3000/filetransfer/abgabe/send/${student.csrftoken}`)
+            .then( response => response.json() )
+            .then( async (data) => {
+                res.json(data) 
+            });
+        });
+        }
+    }
+})
+
+
+
+router.get('/abgabe/send/:token', async (req, res, next) => {  //TODO: get md5 hash + do hashconfirmation 
+    const token = req.params.token
+    const serverip = multiCastclient.clientinfo.server  //this is set if you are registered on a server
+
+    if ( !checkToken(token) ) { res.json({ status: "token is not valid" }) }
+    else {
+        console.log(`token checked - preparing file to send to server: ${serverip}`)
+
+        //zip config.work directory
+        let zipfilepath = path.join(config.tempdirectory,multiCastclient.clientinfo.name.concat('.zip'));
+        await zipDirectory(config.workdirectory, zipfilepath)
+
+        //append file data to form
+
+        //send to server
+        res.json({ status: "file sent" })
+    }
+})
+
+
+
+
+
+
+/**
+ * @param {String} sourceDir: /some/folder/to/compress
+ * @param {String} outPath: /path/to/created.zip
+ * @returns {Promise}
+ */
+function zipDirectory(sourceDir, outPath) {
+  const archive = archiver('zip', { zlib: { level: 9 }});
+  const stream = fs.createWriteStream(outPath);
+
+  return new Promise((resolve, reject) => {
+    archive
+      .directory(sourceDir, false)
+      .on('error', err => reject(err))
+      .pipe(stream)
+    ;
+
+    stream.on('close', () => resolve());
+    archive.finalize();
+  });
+}
+
+
 
 
 /**

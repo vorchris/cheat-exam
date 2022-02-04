@@ -1,6 +1,7 @@
 const uuid = require('uuid')
 const dgram = require('dgram')
 const config = require('../config')
+const ip = require('ip')
 
 /**
  * Starts a dgram (udp) socket that broadcasts information about this server
@@ -11,7 +12,7 @@ class MulticastServer {
     this.PORT = 6024
     this.MULTICAST_ADDR = '239.255.255.250'
     this.server = dgram.createSocket('udp4')
-
+    this.serverinfo = ""
     this.address = '0.0.0.0'
     this.broadcastIntervall = null
     this.running = false
@@ -41,7 +42,8 @@ class MulticastServer {
       servername: servername,
       pin: pin,
       timestamp: 0,
-      id: uuid.v4()
+      id: uuid.v4(),
+      ip: ip.address()
     }
     return message
   }
