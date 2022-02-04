@@ -12,10 +12,14 @@ const fs = require('fs')
 
 
 /**
- * Sends file(s) to specified receipients 
+ * Sends file(s) from the server to specified receipients 
  * @param who who should we send the file(s) to? all students, specific student, server (get)
+ * ATTENTION: everybody could potentially send a post request to this api route and send files to students
+ * ATTENTION: the server is accesible over LAN - everybody is able to connect to a running exams UI and take over
+ * solutions: csrf token created on first start, sent to the UI (drawback: if you close the browser and open the view again you generate a new token and cant see your running exam anymore)
+ *            define a password when you start the server - log in to your exam dashboard with password
  */
-router.post("/send/:who", (req, res) => {
+router.post("/send/:who", (req, res) => {  
     if (!req.files) { return res.send({status:"No files were uploaded."});  }
     const who = req.params.who
     const form = new FormData()
@@ -32,7 +36,7 @@ router.post("/send/:who", (req, res) => {
         else {  
         console.log("Sending POST Form Data to Clients")
         multiCastserver.studentList.forEach( (student) => {
-            fetch(`http://${student.clientip}:3000/filetransfer/receive/${student.csrftoken}`, { method: 'POST', body: form })
+            fetch(`http://${student.clientip}:3000/filetransfer/receive/client/${student.csrftoken}`, { method: 'POST', body: form })
             .then( response => response.json() )
             .then( async (data) => {
                 res.json(data) 
@@ -45,14 +49,14 @@ router.post("/send/:who", (req, res) => {
 
 
 /**
- * Stores file(s) to the receipients inbox
- * @param token the students token - this has to be valid (coming from the registered server) in order to process the request
- * TODO: what if the server wants to receive the students work ? tokencheck is still a good idea but differen - it should check if the token is registered
+ * Stores file(s) to the receipients workdirectory (either files coming from the server or finished exams coming from students)
+ * @param token the students token - this has to be valid (coming from the examserver you registered or from a registered user) in order to process the request
  */
-router.post('/receive/:token', async (req, res, next) => {  //TODO: get md5 hash + do hashconfirmation 
+router.post('/receive/:receiver/:token', async (req, res, next) => {  
     const token = req.params.token
+    const receiver = req.params.receiver
 
-    if ( !checkToken(token) ) { res.json({ status: "token is not valid" }) }
+    if ( !checkToken(token, receiver) ) { res.json({ status: "token is not valid" }) }
     else {
         console.log("Receiving File(s)...")
         let errors = 0
@@ -69,41 +73,36 @@ router.post('/receive/:token', async (req, res, next) => {  //TODO: get md5 hash
 
 
 
-router.get('/abgabe/request/:who', async (req, res, next) => {  //TODO: get md5 hash + do hashconfirmation 
-    const who = req.params.who
-    if (who == "all"){
-        if ( multiCastserver.studentList.length <= 0  ) { res.json({ status: "no clients connected"  }) }
-        else {  
-        console.log("Requesting Filetransfer from ALL Clients")
-        multiCastserver.studentList.forEach( (student) => {
-            fetch(`http://${student.clientip}:3000/filetransfer/abgabe/send/${student.csrftoken}`)
-            .then( response => response.json() )
-            .then( async (data) => {
-                res.json(data) 
-            });
-        });
-        }
-    }
-})
-
-
-
-router.get('/abgabe/send/:token', async (req, res, next) => {  //TODO: get md5 hash + do hashconfirmation 
+/**
+ * ZIPs and sends all files from a students workdirectory to the registered exam server
+ * @param token the students token (needed to accept this "abgabe" request)
+ */
+router.get('/abgabe/send/:token', async (req, res, next) => {  
     const token = req.params.token
     const serverip = multiCastclient.clientinfo.server  //this is set if you are registered on a server
 
-    if ( !checkToken(token) ) { res.json({ status: "token is not valid" }) }
+    if ( !checkToken(token, "client") ) { res.json({ status: "token is not valid" }) }
     else {
         console.log(`token checked - preparing file to send to server: ${serverip}`)
 
         //zip config.work directory
-        let zipfilepath = path.join(config.tempdirectory,multiCastclient.clientinfo.name.concat('.zip'));
+        let zipfilename = multiCastclient.clientinfo.name.concat('.zip')
+        let zipfilepath = path.join(config.tempdirectory, zipfilename);
         await zipDirectory(config.workdirectory, zipfilepath)
 
         //append file data to form
+        const form = new FormData()
+        form.append(zipfilename, fs.createReadStream(zipfilepath), {
+            contentType: 'application/zip',
+            filename: zipfilename,
+        });
 
-        //send to server
-        res.json({ status: "file sent" })
+        //post to server  (send param token in order to authenticate - the server only accepts files from registered students)
+        fetch(`http://${serverip}:3000/filetransfer/receive/server/${multiCastclient.clientinfo.token}`, { method: 'POST', body: form })
+            .then( response => response.json() )
+            .then( async (data) => {
+                res.json(data)
+            });
     }
 })
 
@@ -138,13 +137,24 @@ function zipDirectory(sourceDir, outPath) {
 
 /**
  * Checks if the token is valid in order to process api request
- * TODO: tokencheck for server Attention: no all api requests check tokens atm!
+ * Attention: no all api requests check tokens atm!
  */
-function checkToken(token){
-    if (token === multiCastclient.clientinfo.token) {
-        return true
+function checkToken(token, receiver){
+    if (receiver === "server"){  //check if the student that wants to send a file is registered on this server
+        let tokenexists = false
+        multiCastserver.studentList.forEach( (student) => {
+            if (token === student.csrftoken) {
+                tokenexists = true
+            }
+        });
+        return tokenexists
     }
-    return false
+    else if (receiver === "client"){
+        if (token === multiCastclient.clientinfo.token) {
+            return true
+        }
+        return false
+    }
 }
   
 

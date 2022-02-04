@@ -62,10 +62,6 @@ async function getData(){
     await fetch("http://localhost:3000/client/")
        .then( response => response.json() )
        .then( data => {
-       
-         
-
-
             let html = "<div class='row g-2'>";
             data.serverlist.forEach( row => {
                 html += `<div class="col-9">
@@ -95,7 +91,6 @@ async function getData(){
                 let registerbuttons =  document.getElementsByName("register");
                 registerbuttons.forEach( button => {button.disabled = true; });
             }
-
     });
 }
 getData();
