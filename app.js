@@ -4,29 +4,29 @@ const fileUpload = require("express-fileupload");
 const path = require('path')
 const cookieParser = require('cookie-parser')
 const logger = require('morgan')
+const eta = require('eta')  //view engine
 
+// express router routes
 const webRoutes = require('./src/routes/webroutes')
 const clientRoutes = require('./src/routes/clientroutes')
 const serverRoutes = require('./src/routes/serverroutes')
 const filetransferRoutes = require('./src/routes/filetransferroutes')
 
-
-const eta = require('eta')
-
+ 
 // the Express web framework
 const app = express()
+
 
 // view engine setup,  https://eta.js.org/  
 app.engine('eta', eta.renderFile)
 app.set('view engine', 'eta')
 app.set('views', path.join(__dirname, 'src/views'))
 
-app.use(logger('dev'))
+app.use(logger('dev'))  //tiny, common, dev - logs all http requests to the terminal
 app.use(express.json())
-// Returns middleware that only parses urlencoded bodies
-app.use(express.urlencoded({ extended: false }))
+app.use(express.urlencoded({ extended: false }))   // Returns middleware that only parses urlencoded bodies
 app.use(cookieParser())
-app.use(express.static(path.join(__dirname, 'public')))
+app.use(express.static(path.join(__dirname, 'public')))  //serve static files for the webview
 app.use(fileUpload());  //When you upload a file, the file will be accessible from req.files
 
 app.use(function (req, res, next) {
@@ -34,7 +34,7 @@ app.use(function (req, res, next) {
   next()
 })
 
-// Routing part ----------------------------
+// Routing part 
 app.use('/', webRoutes)
 app.use('/client', clientRoutes)
 app.use('/server', serverRoutes)
@@ -48,12 +48,9 @@ app.use(function (req, res, next) {
 
 // error handler
 app.use(function (err, req, res, next) {
-  // set locals, only providing error in development
   res.locals.message = err.message
-  res.locals.error = req.app.get('env') === 'development' ? err : {}
-
-  // render the error page
-  res.status(err.status || 500)
+  res.locals.error = req.app.get('env') === 'development' ? err : {}   // set locals, only providing error in development
+  res.status(err.status || 500) // render the error page
   res.render('error')
 })
 
