@@ -2,21 +2,25 @@ const express = require('express')
 const router = express.Router()
 const multiCastserver = require('../classes/multicastserver.js')
 const uuid = require('uuid')
-
+const config = require('../config')
 
 /**
  *  starts an exam server instance
  * @param servername the chosen name (for example "mathe")
  * @param pin the pin code used to authenticate
  */
-router.get('/start/:servername/:pin', function (req, res, next) {
+router.get('/start/:servername/:pin/:passwd', function (req, res, next) {
   console.log('Server: API request recieved')
+  let servername = req.params.servername 
 
   if (multiCastserver.running) { // we could allow the creation of several exam servers ?
     console.log('server already running')
     res.json('server already running')
   } else {
-    multiCastserver.init(req.params.servername, req.params.pin)
+    multiCastserver.init(servername, req.params.pin, req.params.passwd)
+
+    
+    config.examServerList.push( multiCastserver )  // store all multicast servers (currently only one is possible) on this global accesible config object
     res.json('server started')
   }
 })
@@ -30,6 +34,16 @@ router.get('/studentlist', function (req, res, next) {
   res.send(multiCastserver.studentList)
 })
 
+/**
+ *  sends a list of all running exam servers (currently only one server is possible but i'm thinking of allowing multiple servers on the same machine)
+ */
+ router.get('/serverlist', function (req, res, next) {
+    let servernames = []
+    config.examServerList.forEach( server => {  // never send the whole serverinfo object to clients (contains password, uuid,...)
+      servernames.push({servername: server.serverinfo.servername, serverip: server.serverinfo.ip})
+    } )
+  res.json(servernames)
+})
 
 
 /**

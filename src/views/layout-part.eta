@@ -6,11 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Bootstrap CSS -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
 
 
     <!-- Custom CSS  -->
-    <link href="css/style-main.css" rel="stylesheet">
+    <link href="/css/style-main.css" rel="stylesheet">
 
 
     <title><%= it.title %></title>
@@ -18,12 +18,12 @@
   <body class="vh-100 ">
     
     <!-- jQuery -->
-    <script src="js/jquery-3.6.0.min.js"></script>
-    <script src="js/jquery.form.min.js"></script>
+    <script src="/js/jquery-3.6.0.min.js"></script>
+    <script src="/js/jquery.form.min.js"></script>
 
 
     <!-- Bootstrap JS -->
-    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
 
 
     <%~ it.body %>

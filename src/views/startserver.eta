@@ -1,0 +1,59 @@
+<% layout('./layout-part') %>
+<%~ includeFile('./topbar-part', it) %>
+
+<div id="wrapper" class="w-100 h-100 d-flex" >
+    <%~ includeFile('./sidebar-part', it) %>
+    <div id="content">
+        <div class="col-7">
+            <div class="input-group  mb-1">
+                <span class="input-group-text col-4" id="inputGroup-sizing-lg">Exam Name</span>
+                <div class="col-sm-7"> <input type="text" class="form-control" id="servername" placeholder="Mathematik-5a" value="Mathematik-5a"></div>
+            </div>   
+            <div class="input-group  mb-1"> 
+                <span class="input-group-text col-4" id="inputGroup-sizing-lg">Pincode</span>
+                <div class="col-sm-7"> <input type="text" class="form-control" id="pin" placeholder="1234" value="1234"></div>
+            </div>
+            <div class="input-group  mb-3"> 
+                <span class="input-group-text col-4" id="inputGroup-sizing-lg">Password</span>
+                <div class="col-sm-7"> <input type="text" class="form-control" id="password" placeholder="1111" value="1111"></div>
+            </div>
+            <div class="col mb-4">
+                <button id=examstart class="btn btn-success" value="start exam">Start New Exam Server</button>
+            </div>
+        </div>
+        <div id="list" class="placeholder"></div>
+
+    </div>
+</div>
+
+
+
+
+
+<script>
+    document.getElementById("examstart").onclick = startServer;
+
+
+
+    async function startServer(){
+        let servername =  document.getElementById("servername").value;
+        let pin = document.getElementById('pin').value;
+        let password = document.getElementById('password').value;
+
+        await fetch(`http://localhost:3000/server/start/${servername}/${pin}/${password}`)
+        .then( response => response.json() )
+        .then( async (data) => {
+                document.getElementById("list").innerHTML = data;
+                await sleep(2000);
+                window.location.replace(`http://localhost:3000/dashboard/${servername}/${password}`);
+        });
+    }
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+   $(".nav").find(".active").removeClass("active");
+   $("#startserver").addClass("active");
+
+</script>

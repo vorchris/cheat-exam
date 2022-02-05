@@ -1,24 +1,23 @@
 <% layout('./layout-part') %>
 <%~ includeFile('./topbar-part', it) %>
 
-
 <div id="wrapper" class="w-100 h-100 d-flex" >
-
     <%~ includeFile('./sidebar-part', it) %>
-
     <div id="content" class="">
-        <div class="input-group  mb-1">
-            <span class="input-group-text col-2" id="inputGroup-sizing-lg">Username</span>
-            <div class="col-sm-7"> <input type="text" class="form-control" id="user" placeholder="Thomas" value="thomas"></div>
-         </div>   
-        <div class="input-group  mb-3"> 
-            <span class="input-group-text col-2" id="inputGroup-sizing-lg">Pincode</span>
-            <div class="col-sm-7"> <input type="text" class="form-control" id="pin" placeholder="1234" value="1234"></div>
+        <div class="col-8">
+            <div class="input-group  mb-1">
+                <span class="input-group-text col-3" id="inputGroup-sizing-lg">Username</span>
+                <div class="col-sm-7"> <input type="text" class="form-control" id="user" placeholder="Thomas" value="thomas"></div>
+            </div>   
+            <div class="input-group  mb-3"> 
+                <span class="input-group-text col-3" id="inputGroup-sizing-lg">Pincode</span>
+                <div class="col-sm-7"> <input type="text" class="form-control" id="pin" placeholder="1234" value="1234"></div>
+            </div>
         </div>
+        <h4>Running Exams</h4>
         <div id="list" class="placeholder"></div>
+
     </div>
-
-
 </div>
 
 
@@ -50,21 +49,21 @@ async function registerClient(serverip){
 }
 
 
-//start Multicast Client
+//start MulticastClient
 fetch("http://localhost:3000/client/start")
 .then( response => response.json() )
 .then(data => {
   console.log(data);
 });
 
-// Update EXAM List
+// Update Examserver List
 async function getData(){
     await fetch("http://localhost:3000/client/")
        .then( response => response.json() )
        .then( data => {
             let html = "<div class='row g-2'>";
             data.serverlist.forEach( row => {
-                html += `<div class="col-9">
+                html += `<div class="col-6">
                             <div class="p-3 border bg-light">
                                 <dl class="row">
                                     <dt class="col-sm-4">Name</dt>

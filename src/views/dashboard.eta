@@ -107,7 +107,7 @@
                                 Name: ${row.clientname} <br>  
                                 Token: ${row.csrftoken}  <br>
                                 IP:  ${row.clientip}  <br> 
-                                <img src='img/icons/nouserscreenshot.png'>
+                                <img src='/img/icons/nouserscreenshot.png'>
                             </div>`;
                 });
                 document.getElementById("studentslist").innerHTML = html;

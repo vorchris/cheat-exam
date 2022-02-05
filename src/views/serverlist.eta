@@ -1,0 +1,63 @@
+<% layout('./layout-part') %>
+<%~ includeFile('./topbar-part', it) %>
+
+<div id="wrapper" class="w-100 h-100 d-flex" >
+    <%~ includeFile('./sidebar-part', it) %>
+    <div id="content">
+        <div id="list" class="container-fluid m-0 p-0"></div>
+    </div>
+</div>
+
+
+
+
+
+<script>
+     
+    // Update EXAM Server List
+    async function getRunningServers(){
+        await fetch("http://localhost:3000/server/serverlist")
+        .then( response => response.json() )
+        .then( serverlist => {
+                let html = "<div class='row g-2'>";
+                serverlist.forEach( server => {
+                    html += `<div class="col-6">
+                                <div class="p-3 border bg-light">
+                                    <dl class="row">
+                                        <dt class="col-sm-4 p-1">Name</dt>
+                                        <dd class="col-sm-8 p-1">${server.servername}</dd>
+                                        <dt class="col-sm-4 p-1">IP Address</dt>
+                                        <dd class="col-sm-8 p-1">${server.serverip}</dd>
+                                        <dt class="col-sm-4 p-1 pt-2">Password</dt>
+                                        <dd class="col-sm-8 p-1"> <input type="text" class="form-control" id="loginpassword" placeholder="1111" value="1111"></dd>
+                                        <dt class="col-sm-4"></dt>
+                                        <dd class="col-sm-8"><input type="button" name="login" class="btn btn-info" value="Log In" onclick="login('${server.servername}')"/></dd>
+                                    </dl>
+                                </div>
+                            </div>`;
+                });
+                html += '</div>';
+                document.getElementById("list").innerHTML = html;
+        });
+    }
+    getRunningServers();
+    setInterval(() => { getRunningServers() }, 2000)
+
+
+    function login(servername){
+        let loginpassword = document.getElementById('loginpassword').value;
+  
+        window.location.replace(`http://localhost:3000/dashboard/${servername}/${loginpassword}`);
+        
+    }
+
+
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+   $(".nav").find(".active").removeClass("active");
+   $("#serverlist").addClass("active");
+
+</script>
