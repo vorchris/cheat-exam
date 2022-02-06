@@ -5,7 +5,7 @@
 
     <%~ includeFile('./sidebar-part', it) %>
 
-    <div id="content" class="">
+    <div id="content" class="fadeinslow">
         <h3> Please chose your role </h3>
     </div>
     
