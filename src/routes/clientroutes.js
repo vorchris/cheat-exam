@@ -104,8 +104,8 @@ router.get('/register/:serverip/:pin/:clientname', async function (req, res, nex
       console.log(JSON.stringify(data))
       if (data) { // registration successfull otherwise data would be "false"
         multiCastclient.clientinfo.name = clientname
-        multiCastclient.clientinfo.server = serverip
-        multiCastclient.clientinfo.token = data.csrftoken // we need to store the client token in order to check against it before processing critical api calls
+        multiCastclient.clientinfo.serverip = serverip
+        multiCastclient.clientinfo.token = data.token // we need to store the client token in order to check against it before processing critical api calls
       }
       res.json(data)
     })

@@ -23,15 +23,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
 <script>
 
 const apiport = <%= it.apiport%>
@@ -63,6 +54,10 @@ async function getData(){
        .then( data => {
             let html = "<div class='row g-2'>";
             data.serverlist.forEach( row => {
+                let button = ""
+                if ( data.clientinfo.serverip === row.serverip ) {   button = `<input type="button" name="register" class="btn btn-success" value="registered"/>`  }
+                else {  button = `<input type="button" name="register" class="btn btn-info" value="register" onclick="registerClient('${row.serverip}')"/>`   }
+                        
                 html += `<div class="col-6">
                             <div class="p-3 border bg-light">
                                 <dl class="row">
@@ -78,14 +73,15 @@ async function getData(){
                                     <dt class="col-sm-4">IP Address</dt>
                                     <dd class="col-sm-8">${row.serverip}</dd>
                                 </dl>
-                                
-                                <input type="button" name="register" class="btn btn-info" value="register" onclick="registerClient('${row.serverip}')"/>
+                                ${button}
                             </div>
                         </div>`;
             });
+
             html += '</div>';
             document.getElementById("list").innerHTML = html;
 
+            //console.log(data.clientinfo)
             if (data.clientinfo.token){  // if client is already registered disable button (this is also handled on api level)
                 let registerbuttons =  document.getElementsByName("register");
                 registerbuttons.forEach( button => {button.disabled = true; });

@@ -4,7 +4,7 @@ const multiCastserver = require('../classes/multicastserver.js')
 const config = require('../config')
 
 router.get('/', function (req, res, next) {
-  res.render('index', { title: 'Welcome', mcast: multiCastserver })
+  res.render('index', { title: 'Welcome'})
 })
 
 router.get('/student/', function (req, res, next) {
@@ -26,22 +26,27 @@ router.get('/serverlist/', function (req, res, next) {
  * @param servername the name of the server you want to manage
  * @param password the password for this server.. what else
  */
-router.get('/dashboard/:servername/:passwd', function (req, res, next) {
+router.all('/dashboard/:servername', function (req, res, next) {
   let servername = req.params.servername 
-  let password = req.params.passwd
-
+  let password = req.body.loginpassword
   if (multiCastserver.running) { // we could allow the creation of several exam servers ?
-    console.log(config.examServerList)
-
-    let serverinfo = config.examServerList.find(x => x.serverinfo.servername === servername).serverinfo;
+    let serverinfo = config.examServerList.find(x => x.serverinfo.servername === servername).serverinfo; // find the server with the specified servername and get the serverinfo object
     if (serverinfo.password === password) {
-      res.render('dashboard', { title: 'Exam Dashboard', servername: multiCastserver.serverinfo.servername, pin: multiCastserver.serverinfo.pin, studentlist: multiCastserver.studentList })
+      console.log("Password OK!")
+      res.render('dashboard', { 
+        title: 'Exam Dashboard', 
+        servername: multiCastserver.serverinfo.servername, 
+        pin: multiCastserver.serverinfo.pin, 
+        studentlist: multiCastserver.studentList 
+      });
     }
     else {
+      console.log("Wrong Password!")
       res.render('serverlist', { title: 'Exam Teacher' })
     }
     
   } else {
+    console.log("No Exam Server available")
     res.render('serverlist', { title: 'Exam Teacher' })
   }
 })

@@ -1,6 +1,7 @@
 const config = {
   workdirectory : "/home/student/SHARE",
   tempdirectory : "/tmp",
+  publicdirectory: "/public/files/",
   debug: false,
   port: 3000,
   httpPort: 8000,

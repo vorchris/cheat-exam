@@ -38,6 +38,7 @@
 
 <script>
     let studentList = []
+    let lastStudentList = []
 
     $(document).ready(function() {  
         //make upload div visisble
@@ -48,7 +49,7 @@
             
             $(this).ajaxSubmit({  
                 error: function(xhr) {  
-                    status('Error: ' + xhr.status);  
+                    console.log('Error: ' + xhr.status);  
                 },  
                 success: function(response) {  
                     console.log(response)  
@@ -66,7 +67,7 @@
             else {  
                 console.log("Requesting Filetransfer from ALL Clients")
                 studentList.forEach( (student) => {
-                    fetch(`http://${student.clientip}:3000/filetransfer/abgabe/send/${student.csrftoken}`)
+                    fetch(`http://${student.clientip}:3000/filetransfer/abgabe/send/${student.token}`)
                     .then( response => response.json() )
                     .then( async (data) => {
                         console.log(data) 
@@ -101,16 +102,24 @@
         .then( response => response.json() )
         .then( data => {
                 studentList = data
-                let html = "";
-                data.forEach( row => {
-                    html += `<div class="studentwidget btn btn-info btn-block" onclick='task2("${row.csrftoken}","${row.clientip}" )'>
-                                Name: ${row.clientname} <br>  
-                                Token: ${row.csrftoken}  <br>
-                                IP:  ${row.clientip}  <br> 
-                                <img src='/img/icons/nouserscreenshot.png'>
-                            </div>`;
-                });
-                document.getElementById("studentslist").innerHTML = html;
+
+                if (  JSON.stringify(studentList) !== JSON.stringify(lastStudentList) ){  //only update studentlist if something changed
+                    let html = "";
+                    data.forEach( row => {
+                        html += `<div class="studentwidget btn btn-info btn-block" onclick='task2("${row.token}","${row.clientip}" )'>
+                                    Name: ${row.clientname} <br>  
+                                    Token: ${row.token}  <br>
+                                    IP:  ${row.clientip}  <br> 
+                                    Lastseen:  ${row.timestamp}  <br> 
+                                    <img src='/files/${row.token}.jpg'>
+                                </div>`;
+                    });
+                    document.getElementById("studentslist").innerHTML = html;
+                    lastStudentList = studentList
+                }
+               else {
+                    // just update all screenshots ??  newImage.src = "image.jpg?t=" + new Date().getTime();
+               }
         });
     }
     getStudentlist();

@@ -24,19 +24,37 @@ router.post("/send/:who", (req, res) => {
     const who = req.params.who
     const form = new FormData()
     
-    req.files.file.forEach( (file,index)=> {
-          form.append(index, file.data, {
+    console.log(req.files.file)
+
+    if (Array.isArray(req.files.file)){  //multiple files
+        console.log("sending multiple files")
+        req.files.file.forEach( (file, index) => {
+            form.append(index, file.data, {
+                contentType: file.mimetype,
+                filename: file.name,
+            });
+        });
+    }
+    else {
+        let file = req.files.file
+        form.append(file.name, file.data, {
             contentType: file.mimetype,
             filename: file.name,
         });
-     });
+    }
+
+
+
+
+
 
     if (who == "all"){
+        
         if ( multiCastserver.studentList.length <= 0  ) { res.json({ status: "no clients connected"  }) }
         else {  
         console.log("Sending POST Form Data to Clients")
         multiCastserver.studentList.forEach( (student) => {
-            fetch(`http://${student.clientip}:3000/filetransfer/receive/client/${student.csrftoken}`, { method: 'POST', body: form })
+            fetch(`http://${student.clientip}:3000/filetransfer/receive/client/${student.token}`, { method: 'POST', body: form })
             .then( response => response.json() )
             .then( async (data) => {
                 res.json(data) 
@@ -79,9 +97,9 @@ router.post('/receive/:receiver/:token', async (req, res, next) => {
  */
 router.get('/abgabe/send/:token', async (req, res, next) => {  
     const token = req.params.token
-    const serverip = multiCastclient.clientinfo.server  //this is set if you are registered on a server
+    const serverip = multiCastclient.clientinfo.serverip  //this is set if you are registered on a server
 
-    if ( !checkToken(token, "client") ) { res.json({ status: "token is not valid" }) }
+    if ( !checkToken(token, "client") ) { res.json({ status: "token is not valid" }); return }
     else {
         console.log(`token checked - preparing file to send to server: ${serverip}`)
 
@@ -143,7 +161,7 @@ function checkToken(token, receiver){
     if (receiver === "server"){  //check if the student that wants to send a file is registered on this server
         let tokenexists = false
         multiCastserver.studentList.forEach( (student) => {
-            if (token === student.csrftoken) {
+            if (token === student.token) {
                 tokenexists = true
             }
         });

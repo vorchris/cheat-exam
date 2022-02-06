@@ -6,11 +6,7 @@
     <%~ includeFile('./sidebar-part', it) %>
 
     <div id="content" class="">
-            <h3> Please chose your role </h3>
-
-
-
-
-
+        <h3> Please chose your role </h3>
     </div>
+    
 </div>
