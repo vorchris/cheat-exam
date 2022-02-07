@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const app = require('./app')
 const http = require('http')
-
+const ip = require('ip')
 
 // load Config
 const config = require('./src/config')
@@ -46,5 +46,6 @@ function onError (error) {
  */
 function onListening () {
   const addr = server.address()
+  config.hostip = ip.address()
   console.log(`Express Server Listening on locahost:${addr.port}`)
 }

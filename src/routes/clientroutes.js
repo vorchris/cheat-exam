@@ -66,9 +66,13 @@ router.get('/tokencheck/:token', function (req, res, next) {
 
 
 /**
- * Starts the Multicast Client that receives the broadcasts of an exam server instance
+ * Starts the Multicast Client that receives the broadcasts of an exam server instance 
+ * Block requests from remote Host
+ * on localhost you'll see 127.0.0.1 if you're using IPv4 or ::1, ::ffff:127.0.0.1 if you're using IPv6
  */ 
 router.get('/start', function (req, res, next) {
+  if (!requestSourceAllowed(req, res)) return
+ 
   console.log('Starting up: Multicast')
   if (multiCastclient.running) {
     console.log('Multicasting ist already running')
@@ -110,5 +114,18 @@ router.get('/register/:serverip/:pin/:clientname', async function (req, res, nex
       res.json(data)
     })
 })
+
+
+
+//do not allow requests from external hosts
+function requestSourceAllowed(req,res){
+  if (req.ip !== "::1" && req.ip !== "127.0.0.1"){ 
+    console.log("Blocked request from remote Host"); 
+    res.json('Request denied') 
+    return false
+  }   
+  return true
+}
+
 
 module.exports = router

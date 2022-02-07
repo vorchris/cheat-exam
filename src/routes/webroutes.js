@@ -8,7 +8,9 @@ router.get('/', function (req, res, next) {
 })
 
 router.get('/student/', function (req, res, next) {
-  res.render('student', { title: 'Exam Student', apiport: config.port })
+  let remoterequest = false;
+  if (!requestSourceAllowed(req, res)){ remoterequest = true; }
+  res.render('student', { title: 'Exam Student', apiport: config.port, remoterequest: remoterequest })
 })
 
 router.get('/startserver/', function (req, res, next) {
@@ -50,5 +52,16 @@ router.all('/dashboard/:servername', function (req, res, next) {
     res.render('serverlist', { title: 'Exam Teacher' })
   }
 })
+
+
+
+//do not allow requests from external hosts
+function requestSourceAllowed(req,res){
+  if (req.ip !== "::1" && req.ip !== "127.0.0.1"){ 
+    console.log("Blocked request from remote Host"); 
+    return false
+  }   
+  return true
+}
 
 module.exports = router
