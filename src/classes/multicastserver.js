@@ -45,7 +45,8 @@ class MulticastServer {
       password: password,
       timestamp: 0,
       id: uuid.v4(),
-      ip: ip.address()
+      ip: ip.address(),
+      token: `server-${uuid.v4()}`
     }
     return message
   }
@@ -56,7 +57,13 @@ class MulticastServer {
    */
   multicastNew () {
     this.serverinfo.timestamp = new Date().getTime()
-    const preparedMessage = JSON.stringify(this.serverinfo)
+    let message = {
+      servername: this.serverinfo.servername,
+      timestamp: this.serverinfo.timestamp,
+      id: this.serverinfo.id,
+      ip: this.serverinfo.ip
+    }
+    const preparedMessage = JSON.stringify(message)
     this.server.send(preparedMessage, 0, preparedMessage.length, this.PORT, this.MULTICAST_ADDR, function () {
       if (config.debug) { console.log(`Sent ${preparedMessage}`) }
     })
