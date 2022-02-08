@@ -4,6 +4,7 @@ const multiCastserver = require('../classes/multicastserver.js')
 const uuid = require('uuid')
 const config = require('../config')
 const path = require('path')
+const { param } = require('./webroutes.js')
 const rootpath = path.dirname(require.main.filename)
 
 
@@ -33,8 +34,10 @@ router.get('/start/:servername/:pin/:passwd', function (req, res, next) {
 /**
  *  sends a list of all connected students { clientname: clientname, token: token, clientip: clientip }
  */
-router.get('/studentlist', function (req, res, next) {
-  res.send(multiCastserver.studentList)
+router.get('/studentlist/:csrfservertoken', function (req, res, next) {
+  if (req.params.csrfservertoken === multiCastserver.serverinfo.token) {
+    res.send(multiCastserver.studentList)
+  }
 })
 
 
@@ -44,12 +47,14 @@ router.get('/studentlist', function (req, res, next) {
 
 /**
  * updates the specified students timestamp (used in dashboard to mark user as online)
+ * usually triggered by the clients
+ * POST Data contains a screenshot of the clients desktop !!
  * @param token the students token to search and update the entry in the list
  */
 router.post('/studentlist/update/:token', function (req, res, next) {
   let token = req.params.token
  
-  if ( !checkToken(token, "server") ) { return res.json({ status: "token is not valid" }) }
+  if ( !checkToken(token, "server") ) { return res.json({ status: "token is not valid" }) } //check if the student is registered on this server
   if ( !req.files ) { return res.json({status: "No files were uploaded." });  }
 
 

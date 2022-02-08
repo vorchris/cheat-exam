@@ -37,7 +37,9 @@
 
 
 <script>
-    let studentList = []
+   
+    const csrfservertoken = `<%= it.csrfservertoken%>`;
+    let studentList = [];
 
     $(document).ready(function() {  
         //make upload div visisble
@@ -97,7 +99,7 @@
     // Update Students List
     async function getStudentlist(){
         // TODO: do not refresh the whole widget list everytime.. just add new widgets and refresh the screenshots !
-        await fetch("http://localhost:3000/server/studentlist")
+        await fetch(`http://localhost:3000/server/studentlist/${csrfservertoken}`)
         .then( response => response.json() )
         .then( data => {
             studentList = data

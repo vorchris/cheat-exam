@@ -39,7 +39,8 @@ router.all('/dashboard/:servername', function (req, res, next) {
         title: 'Exam Dashboard', 
         servername: multiCastserver.serverinfo.servername, 
         pin: multiCastserver.serverinfo.pin, 
-        studentlist: multiCastserver.studentList 
+        studentlist: multiCastserver.studentList,
+        csrfservertoken: multiCastserver.serverinfo.token
       });
     }
     else {

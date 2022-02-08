@@ -1,11 +1,19 @@
 #!/usr/bin/env node
+const config = require('./src/config')
 const app = require('./app')
 const http = require('http')
 const ip = require('ip')
+const fsExtra = require('fs-extra')
+const path = require('path')
+const rootpath = path.dirname(require.main.filename)
+const publicdirectory = path.join(rootpath, config.publicdirectory);
 
-// load Config
-const config = require('./src/config')
 
+// clean public directory
+fsExtra.emptyDirSync(publicdirectory)
+
+
+// set port
 const port = config.port
 app.set('port', port)
 
@@ -16,8 +24,6 @@ const server = http.createServer(app)
 server.listen(port)
 server.on('error', onError)
 server.on('listening', onListening)
-
-
 
 
 /**
