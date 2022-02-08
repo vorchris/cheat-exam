@@ -12,20 +12,16 @@ const fs = require('fs')
 
 
 /**
- * Sends file(s) from the server to specified receipients 
+ * Sends MANUALLY SELECTED file(s) from the SERVER to specified CLIENTS (no single client supported right noch FIXME)
  * @param who who should we send the file(s) to? all students, specific student, server (get)
- * ATTENTION: everybody could potentially send a post request to this api route and send files to students
- * ATTENTION: the server is accesible over LAN - everybody is able to connect to a running exams UI and take over
- * solutions: csrf token created on first start, sent to the UI (drawback: if you close the browser and open the view again you generate a new token and cant see your running exam anymore)
- *            define a password when you start the server - log in to your exam dashboard with password
  */
 router.post("/send/:who", (req, res) => {  
+    if (!req.body.csrfservertoken === multiCastserver.serverinfo.token) { return res.send({status:"Access denied"})  }  // csrf check
     if (!req.files) { return res.send({status:"No files were uploaded."});  }
     const who = req.params.who
     const form = new FormData()
     
-    console.log(req.files.file)
-
+    
     if (Array.isArray(req.files.file)){  //multiple files
         console.log("sending multiple files")
         req.files.file.forEach( (file, index) => {
@@ -43,13 +39,7 @@ router.post("/send/:who", (req, res) => {
         });
     }
 
-
-
-
-
-
     if (who == "all"){
-        
         if ( multiCastserver.studentList.length <= 0  ) { res.json({ status: "no clients connected"  }) }
         else {  
         console.log("Sending POST Form Data to Clients")
@@ -67,8 +57,10 @@ router.post("/send/:who", (req, res) => {
 
 
 /**
- * Stores file(s) to the receipients workdirectory (either files coming from the server or finished exams coming from students)
- * @param token the students token - this has to be valid (coming from the examserver you registered or from a registered user) in order to process the request
+ * Stores file(s) to the workdirectory (files coming FROM the SERVER (Questions, tasks) or from CLIENTS (finished EXAMS) )
+ * @param token the students token - this has to be valid (coming from the examserver you registered or from a registered user) 
+ * in order to process the request - DO NOT STORE FILES COMING from anywhere.. always check if token belongs to a registered student (or server)
+ * TODO: if receiver is "server" it should unzip and store with files with timestamp and username
  */
 router.post('/receive/:receiver/:token', async (req, res, next) => {  
     const token = req.params.token
@@ -93,7 +85,7 @@ router.post('/receive/:receiver/:token', async (req, res, next) => {
 
 /**
  * ZIPs and sends all files from a students workdirectory to the registered exam server
- * @param token the students token (needed to accept this "abgabe" request)
+ * @param token the students token (needed to accept this "abgabe" request from the server)
  */
 router.get('/abgabe/send/:token', async (req, res, next) => {  
     const token = req.params.token

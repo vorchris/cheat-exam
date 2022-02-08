@@ -24,6 +24,8 @@
             <div class="mb-3">
                 <label for="formFileMultiple" class="form-label">Send Files to ALL Clients</label>
                 <input class="form-control" type="file" name="file" id="formFileMultiple" multiple>
+                <input class="form-control" type="hidden" name="csrfservertoken" id="csrfservertoken" value="<%= it.csrfservertoken%>">
+                
             </div>
             <input type="submit" name="submit" class="btn btn-info"/>
             <span id="status"></span> 
