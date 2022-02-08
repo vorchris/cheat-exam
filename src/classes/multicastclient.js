@@ -23,7 +23,8 @@ class MulticastClient {
       name: false,
       token: false,
       ip: false,
-      serverip: false
+      serverip: false,
+      servername: false
     }
   }
 
@@ -72,7 +73,7 @@ class MulticastClient {
         });
 
         //post to /studentlist/update/:token
-        fetch(`http://${this.clientinfo.serverip}:3000/server/studentlist/update/${this.clientinfo.token}`, { method: 'POST', body: form })
+        fetch(`http://${this.clientinfo.serverip}:3000/server/studentlist/update/${this.clientinfo.servername}/${this.clientinfo.token}`, { method: 'POST', body: form })
         .then( response => response.json() )
         .then( async (data) => {
             console.log(data)

@@ -66,6 +66,12 @@ router.post('/receive/:receiver/:token', async (req, res, next) => {
     const token = req.params.token
     const receiver = req.params.receiver
 
+        /// FIXME
+    const servername = req.params.servername
+    const mcServer = config.examServerList.find(x => x.serverinfo.servername === servername); // get the multicastserver object
+  
+
+
     if ( !checkToken(token, receiver) ) { res.json({ status: "token is not valid" }) }
     else {
         console.log("Receiving File(s)...")

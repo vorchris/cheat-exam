@@ -29,11 +29,11 @@
 
 const remoterequest = <%= it.remoterequest%>;
 
-async function registerClient(serverip){
+async function registerClient(serverip, servername){
     let username = $("#user").val();
     let pincode = $("#pin").val();
 
-    await fetch(`http://localhost:3000/client/register/${serverip}/${pincode}/${username}`)
+    await fetch(`http://localhost:3000/client/register/${serverip}/${servername}/${pincode}/${username}`)
        .then( response => response.json() )
        .then( data => {
             let html = "";
@@ -58,8 +58,8 @@ async function getData(){
             let html = "<div class='row g-2'>";
             data.serverlist.forEach( row => {
                 let button = ""
-                if ( data.clientinfo.serverip === row.serverip ) {   button = `<input type="button" name="register" class="btn btn-success" value="registered"/>`  }
-                else {  button = `<input type="button" name="register" class="btn btn-info" value="register" onclick="registerClient('${row.serverip}')"/>`   }
+                if ( data.clientinfo.servername === row.servername ) {   button = `<input type="button" name="register" class="btn btn-success" value="registered"/>`  }
+                else {  button = `<input type="button" name="register" class="btn btn-info" value="register" onclick="registerClient('${row.serverip}','${row.servername}' )"/>`   }
                         
                 html += `<div class="col-6">
                             <div class="p-3 border bg-light">

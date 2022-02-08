@@ -31,16 +31,19 @@ router.get('/serverlist/', function (req, res, next) {
 router.all('/dashboard/:servername', function (req, res, next) {
   let servername = req.params.servername 
   let password = req.body.loginpassword
-  if (multiCastserver.running) { // we could allow the creation of several exam servers ?
-    let serverinfo = config.examServerList.find(x => x.serverinfo.servername === servername).serverinfo; // find the server with the specified servername and get the serverinfo object
-    if (serverinfo.password === password) {
+
+  const mcServer = config.examServerList.find(x => x.serverinfo.servername === servername);
+
+  if (mcServer) { // we could allow the creation of several exam servers ?
+
+    if (mcServer.serverinfo.password === password) {
       console.log("Password OK!")
       res.render('dashboard', { 
         title: 'Exam Dashboard', 
-        servername: multiCastserver.serverinfo.servername, 
-        pin: multiCastserver.serverinfo.pin, 
-        studentlist: multiCastserver.studentList,
-        csrfservertoken: multiCastserver.serverinfo.token
+        servername: mcServer.serverinfo.servername, 
+        pin: mcServer.serverinfo.pin, 
+        studentlist: mcServer.studentList,
+        csrfservertoken: mcServer.serverinfo.token
       });
     }
     else {
@@ -48,7 +51,9 @@ router.all('/dashboard/:servername', function (req, res, next) {
       res.render('serverlist', { title: 'Exam Teacher' })
     }
     
-  } else {
+  } 
+  
+  else {
     console.log("No Exam Server available")
     res.render('serverlist', { title: 'Exam Teacher' })
   }

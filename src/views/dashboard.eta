@@ -41,6 +41,7 @@
 <script>
    
     const csrfservertoken = `<%= it.csrfservertoken%>`;
+    const servername =  `<%= it.servername%>`;
     let studentList = [];
 
     $(document).ready(function() {  
@@ -101,7 +102,7 @@
     // Update Students List
     async function getStudentlist(){
         // TODO: do not refresh the whole widget list everytime.. just add new widgets and refresh the screenshots !
-        await fetch(`http://localhost:3000/server/studentlist/${csrfservertoken}`)
+        await fetch(`http://localhost:3000/server/studentlist/${servername}/${csrfservertoken}`)
         .then( response => response.json() )
         .then( data => {
             studentList = data

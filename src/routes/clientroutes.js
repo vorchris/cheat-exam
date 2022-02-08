@@ -91,10 +91,11 @@ router.get('/start', function (req, res, next) {
  * @param pin the given pin code to authenticate on the server
  * @param clientname the given username of the student
  */
-router.get('/register/:serverip/:pin/:clientname', async function (req, res, next) {
+router.get('/register/:serverip/:servername/:pin/:clientname', async function (req, res, next) {
   const clientname = req.params.clientname
   const pin = req.params.pin
   const serverip = req.params.serverip
+  const servername = req.params.servername
  
   if (multiCastclient.clientinfo.token){
       res.json({status: "already registered on a server"})
@@ -102,13 +103,14 @@ router.get('/register/:serverip/:pin/:clientname', async function (req, res, nex
   }
 
   const clientip = multiCastclient.clientinfo.ip
-  await fetch(`http://${serverip}:3000/server/registerclient/${pin}/${clientname}/${clientip}`)
+  await fetch(`http://${serverip}:3000/server/registerclient/${servername}/${pin}/${clientname}/${clientip}`)
     .then(response => response.json())
     .then(data => {
       console.log(JSON.stringify(data))
       if (data) { // registration successfull otherwise data would be "false"
         multiCastclient.clientinfo.name = clientname
         multiCastclient.clientinfo.serverip = serverip
+        multiCastclient.clientinfo.servername = servername
         multiCastclient.clientinfo.token = data.token // we need to store the client token in order to check against it before processing critical api calls
       }
       res.json(data)

@@ -8,8 +8,8 @@ const ip = require('ip')
  */
 class MulticastServer {
   constructor () {
-    this.SRC_PORT = 6025  // in order to allow several multicast servers (more exams on the same machine) this port needs to be set dynamically
-    this.PORT = 6024
+    this.SRC_PORT = 0  // in order to allow several multicast servers (more exams on the same machine) this port needs to be set dynamically
+    this.ClientPORT = config.multicastClientPort
     this.MULTICAST_ADDR = '239.255.255.250'
     this.server = dgram.createSocket('udp4')
     this.serverinfo = null
@@ -28,10 +28,13 @@ class MulticastServer {
     this.serverinfo = this.initMessage(servername, pin, password)
     this.server.bind(this.SRC_PORT, () => { // Add the HOST_IP_ADDRESS for reliability
       this.broadcastIntervall = setInterval(() => { this.multicastNew() }, 2000)
+      let address = this.server.address()
+      console.log(`UDP Multicast Server Broadcasting on Port: ${address.port }` );
     })
-    this.running = true
+   
 
-    console.log('UDP Multicast Server broadcasting');
+    //this.running = true
+   
   }
 
 
@@ -64,10 +67,10 @@ class MulticastServer {
       ip: this.serverinfo.ip
     }
     const preparedMessage = JSON.stringify(message)
-    this.server.send(preparedMessage, 0, preparedMessage.length, this.PORT, this.MULTICAST_ADDR, function () {
+    this.server.send(preparedMessage, 0, preparedMessage.length, this.ClientPORT, this.MULTICAST_ADDR, function () {
       if (config.debug) { console.log(`Sent ${preparedMessage}`) }
     })
   }
 }
 
-module.exports = new MulticastServer()
+module.exports = MulticastServer
