@@ -33,7 +33,7 @@ async function registerClient(serverip, servername){
     let username = $("#user").val();
     let pincode = $("#pin").val();
 
-    await fetch(`http://localhost:3000/client/register/${serverip}/${servername}/${pincode}/${username}`)
+    await fetch(`http://localhost:3000/client/control/register/${serverip}/${servername}/${pincode}/${username}`)
        .then( response => response.json() )
        .then( data => {
             let html = "";
@@ -43,7 +43,7 @@ async function registerClient(serverip, servername){
 
 
 //start MulticastClient
-fetch("http://localhost:3000/client/start")
+fetch("http://localhost:3000/client/control/start")
 .then( response => response.json() )
 .then(data => {
   console.log(data);
@@ -52,7 +52,7 @@ fetch("http://localhost:3000/client/start")
 // Update Examserver List
 async function getData(){
     if (remoterequest){return}
-    await fetch("http://localhost:3000/client/")
+    await fetch("http://localhost:3000/client/control/")
        .then( response => response.json() )
        .then( data => {
             let html = "<div class='row g-2'>";

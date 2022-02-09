@@ -38,12 +38,12 @@
         let pin = document.getElementById('pin').value;
         let password = document.getElementById('password').value;
 
-        await fetch(`http://localhost:3000/server/start/${servername}/${pin}/${password}`)
+        await fetch(`http://localhost:3000/server/control/start/${servername}/${pin}/${password}`)
         .then( response => response.json() )
         .then( async (data) => {
             document.getElementById("list").innerHTML = data;
             await sleep(1000);
-            window.location.href = `http://localhost:3000/serverlist`;
+            window.location.href = `http://localhost:3000/server/ui/serverlist`;
         });
     }
 

@@ -20,7 +20,7 @@
     </div>
 
     <div id="uploaddiv" class="fadeinslow">
-        <form id="uploadform" method="POST" action="http://localhost:3000/filetransfer/send/all" enctype="multipart/form-data">
+        <form id="uploadform" method="POST" action="http://localhost:3000/server/data/send/all" enctype="multipart/form-data">
             <div class="mb-3">
                 <label for="formFileMultiple" class="form-label">Send Files to ALL Clients</label>
                 <input class="form-control" type="file" name="file" id="formFileMultiple" multiple>
@@ -71,7 +71,7 @@
             else {  
                 console.log("Requesting Filetransfer from ALL Clients")
                 studentList.forEach( (student) => {
-                    fetch(`http://${student.clientip}:3000/filetransfer/abgabe/send/${student.token}`)
+                    fetch(`http://${student.clientip}:3000/client/data/abgabe/send/${student.token}`)
                     .then( response => response.json() )
                     .then( async (data) => {
                         console.log(data) 
@@ -83,7 +83,7 @@
 
     // dummy task to show that scripts in other languages can be started on clients
     async function task1(){
-        await fetch("http://localhost:3000/client/cmd")
+        await fetch("http://localhost:3000/client/control/cmd")
         .then( response => response.json() )
         .then( async (data) => {
                console.log(data);
@@ -92,7 +92,7 @@
 
     //validate a specific token
     async function task2(token, ip){
-        await fetch(`http://${ip}:3000/client/tokencheck/${token}`)
+        await fetch(`http://${ip}:3000/client/control/tokencheck/${token}`)
         .then( response => response.json() )
         .then( async (data) => {
                console.log(data);
@@ -102,7 +102,7 @@
     // Update Students List
     async function getStudentlist(){
         // TODO: do not refresh the whole widget list everytime.. just add new widgets and refresh the screenshots !
-        await fetch(`http://localhost:3000/server/studentlist/${servername}/${csrfservertoken}`)
+        await fetch(`http://localhost:3000/server/control/studentlist/${servername}/${csrfservertoken}`)
         .then( response => response.json() )
         .then( data => {
             studentList = data
@@ -130,7 +130,10 @@
     // make upload div visible or hide it
     function toggleUpload(){
         let status =  $("#uploaddiv").css("display");
-        if (status == "none") {  $("#uploaddiv").css("display","block");}
+        if (status == "none") {  
+            $("#uploaddiv").css("display","block");
+            $("#formFileMultiple").val('') 
+        }
         else {  $("#uploaddiv").css("display","none"); }
     }
 

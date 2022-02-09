@@ -5,7 +5,7 @@
 
 <ul class="nav nav-pills flex-column mb-auto">
     <li class="nav-item">
-      <a href="student" id="student" class="nav-link active">
+      <a href="/client/ui/exams" id="exams" class="nav-link active">
         <img src="/img/svg/server.svg" class="white me-2"  width="16" height="16" >
         Running Exams
       </a>
@@ -27,13 +27,13 @@
 
   <ul class="nav nav-pills flex-column mb-auto">
     <li class="nav-item">
-      <a href="/startserver" id="startserver" class="nav-link active">
+      <a href="/server/ui/startserver" id="startserver" class="nav-link active">
         <img src="/img/svg/server.svg" class="white me-2"  width="16" height="16" >
         Start Exam Server
       </a>
     </li>
     <li>
-      <a href="/serverlist" id="serverlist" class="nav-link">
+      <a href="/server/ui/serverlist" id="serverlist" class="nav-link">
         <img src="/img/svg/person-lines-fill.svg" class="white me-2"  width="16" height="16" >
         Server List
       </a>
@@ -51,7 +51,7 @@
   <ul class="nav nav-pills flex-column mb-auto">
 
     <li>
-      <a href="student" id="student" class="nav-link">
+      <a href="/client/ui/exams" id="student" class="nav-link">
         <img src="/img/svg/speedometer.svg" class="white me-2"  width="16" height="16" >
         Student
       </a>
@@ -59,7 +59,7 @@
 
 
     <li>
-      <a href="startserver" id="teacher" class="nav-link">
+      <a href="/server/ui/startserver" id="teacher" class="nav-link">
         <img src="/img/svg/shield-lock.svg" class="white me-2"  width="16" height="16" >
         Teacher
       </a>

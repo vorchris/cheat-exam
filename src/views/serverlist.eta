@@ -16,7 +16,7 @@
      
     // Update EXAM Server List
     async function getRunningServers(){
-        await fetch("http://localhost:3000/server/serverlist")
+        await fetch("http://localhost:3000/server/control/serverlist")
         .then( response => response.json() )
         .then( serverlist => {
             let html = "<div class='row g-2'>";
@@ -30,7 +30,7 @@
                                     <dd class="col-sm-8 p-1">${server.serverip}</dd>
                                     <dt class="col-sm-4 p-1 pt-2">Password</dt>
                                     <dd class="col-sm-8 p-1">
-                                        <form method="POST" enctype="multipart/form-data" action='http://localhost:3000/dashboard/${server.servername}' id='${server.servername}'> 
+                                        <form method="POST" enctype="multipart/form-data" action='http://localhost:3000/server/ui/dashboard/${server.servername}' id='${server.servername}'> 
                                         <input type="text" class="form-control" name="loginpassword" id="loginpassword" placeholder="1111" value="1111">
                                         <input type="submit" name="login" class="btn btn-success mt-2" value="Log In"/> </form>
                                     </dd>

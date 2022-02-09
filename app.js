@@ -18,10 +18,9 @@ const limiter = rateLimit({
 
 
 // express router routes
-const webRoutes = require('./src/routes/webroutes')
+const baseRoutes = require('./src/routes/baseroutes')
 const clientRoutes = require('./src/routes/clientroutes')
 const serverRoutes = require('./src/routes/serverroutes')
-const filetransferRoutes = require('./src/routes/filetransferroutes')
 
  
 // the Express web framework
@@ -46,10 +45,9 @@ app.use(function (req, res, next) {
 })
 
 // Routing part 
-app.use('/', webRoutes)
+app.use('/', baseRoutes)
 app.use('/client', clientRoutes)
 app.use('/server', serverRoutes)
-app.use('/filetransfer', filetransferRoutes)
 
 
 // catch 404 and forward to error handler
