@@ -16,7 +16,7 @@ const rootpath = path.dirname(require.main.filename)
 router.get('/start/:servername/:pin/:passwd', function (req, res, next) {
   console.log('Server: API request recieved')
   const servername = req.params.servername 
-  const mcServer = config.examServerList.find(x => x.serverinfo.servername === servername);
+  const mcServer = config.examServerList[servername]
   if (mcServer) { 
     console.log('server already running')
     res.json('server already running')
@@ -24,7 +24,8 @@ router.get('/start/:servername/:pin/:passwd', function (req, res, next) {
     console.log('Initializing new Exam Server')
     let mcs = new multiCastserver();
     mcs.init(servername, req.params.pin, req.params.passwd)
-    config.examServerList.push( mcs )  // store all multicast servers (currently only one is possible) on this global accesible config object
+    config.examServerList[servername]=mcs
+    //config.examServerList.push( mcs )  // store all multicast servers (currently only one is possible) on this global accesible config object
     res.json('server started')
   }
 })
@@ -36,8 +37,7 @@ router.get('/start/:servername/:pin/:passwd', function (req, res, next) {
  */
 router.get('/studentlist/:servername/:csrfservertoken', function (req, res, next) {
   const servername = req.params.servername
-  const mcServer = config.examServerList.find(x => x.serverinfo.servername === servername);
-
+  const mcServer = config.examServerList[servername]
 
   if (req.params.csrfservertoken === mcServer.serverinfo.token) {
     res.send(mcServer.studentList)
@@ -58,7 +58,7 @@ router.get('/studentlist/:servername/:csrfservertoken', function (req, res, next
 router.post('/studentlist/update/:servername/:token', function (req, res, next) {
   const token = req.params.token
   const servername = req.params.servername
-  const mcServer = config.examServerList.find(x => x.serverinfo.servername === servername);
+  const mcServer = config.examServerList[servername]
 
   if ( !checkToken(token, "server", mcServer) ) { return res.json({ status: "token is not valid" }) } //check if the student is registered on this server
   if ( !req.files ) { return res.json({status: "No files were uploaded." });  }
@@ -94,9 +94,10 @@ router.post('/studentlist/update/:servername/:token', function (req, res, next) 
  */
  router.get('/serverlist', function (req, res, next) {
     let servernames = []
-    config.examServerList.forEach( server => {  // never send the whole serverinfo object to clients (contains password, uuid,...)
-      servernames.push({servername: server.serverinfo.servername, serverip: server.serverinfo.ip})
-    } )
+    Object.values(config.examServerList).forEach( server => {
+      servernames.push({servername: server.serverinfo.servername, serverip: server.serverinfo.ip}) 
+     });
+    
   res.json(servernames)
 })
 
@@ -116,7 +117,7 @@ router.get('/registerclient/:servername/:pin/:clientname/:clientip', function (r
   const servername = req.params.servername
   const token = `csrf-${uuid.v4()}`
 
-  const mcServer = config.examServerList.find(x => x.serverinfo.servername === servername); // get the multicastserver object
+  const mcServer = config.examServerList[servername] // get the multicastserver object
 
   if (pin === mcServer.serverinfo.pin) {
     let registeredClient = mcServer.studentList.find(element => element.clientname === clientname)

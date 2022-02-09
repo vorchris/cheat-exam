@@ -32,7 +32,7 @@ router.all('/dashboard/:servername', function (req, res, next) {
   let servername = req.params.servername 
   let password = req.body.loginpassword
 
-  const mcServer = config.examServerList.find(x => x.serverinfo.servername === servername);
+  const mcServer = config.examServerList[servername]
 
   if (mcServer) { // we could allow the creation of several exam servers ?
 

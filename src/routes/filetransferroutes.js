@@ -13,14 +13,18 @@ const fs = require('fs')
 
 /**
  * Sends MANUALLY SELECTED file(s) from the SERVER to specified CLIENTS (no single client supported right noch FIXME)
- * @param who who should we send the file(s) to? all students, specific student, server (get)
+ * @param destination who should we send the file(s) to? all students, specific student, server (get)
  */
-router.post("/send/:who", (req, res) => {  
-    if (!req.body.csrfservertoken === multiCastserver.serverinfo.token) { return res.send({status:"Access denied"})  }  // csrf check
-    if (!req.files) { return res.send({status:"No files were uploaded."});  }
-    const who = req.params.who
+router.post("/send/:destination", (req, res) => { 
+    const destination = req.params.destination
     const form = new FormData()
+    const servername = req.body.servername
+    const mcServer = config.examServerList[servername]
+
     
+    if (!req.body.csrfservertoken === mcServer.serverinfo.token) { return res.send({status:"Access denied"})  }  // csrf check
+    if (!req.files) { return res.send({status:"No files were uploaded."});  }
+ 
     
     if (Array.isArray(req.files.file)){  //multiple files
         console.log("sending multiple files")
@@ -39,11 +43,11 @@ router.post("/send/:who", (req, res) => {
         });
     }
 
-    if (who == "all"){
-        if ( multiCastserver.studentList.length <= 0  ) { res.json({ status: "no clients connected"  }) }
+    if (destination == "all"){
+        if ( mcServer.studentList.length <= 0  ) { res.json({ status: "no clients connected"  }) }
         else {  
         console.log("Sending POST Form Data to Clients")
-        multiCastserver.studentList.forEach( (student) => {
+        mcServer.studentList.forEach( (student) => {
             fetch(`http://${student.clientip}:3000/filetransfer/receive/client/${student.token}`, { method: 'POST', body: form })
             .then( response => response.json() )
             .then( async (data) => {
@@ -62,17 +66,14 @@ router.post("/send/:who", (req, res) => {
  * in order to process the request - DO NOT STORE FILES COMING from anywhere.. always check if token belongs to a registered student (or server)
  * TODO: if receiver is "server" it should unzip and store with files with timestamp and username
  */
-router.post('/receive/:receiver/:token', async (req, res, next) => {  
+router.post('/receive/server/:servername/:token', async (req, res, next) => {  
     const token = req.params.token
-    const receiver = req.params.receiver
-
-        /// FIXME
     const servername = req.params.servername
-    const mcServer = config.examServerList.find(x => x.serverinfo.servername === servername); // get the multicastserver object
+    const mcServer = config.examServerList[servername] // get the multicastserver object
   
 
 
-    if ( !checkToken(token, receiver) ) { res.json({ status: "token is not valid" }) }
+    if ( !checkToken(token, "server", mcServer ) ) { res.json({ status: "token is not valid" }) }
     else {
         console.log("Receiving File(s)...")
         let errors = 0
@@ -89,15 +90,48 @@ router.post('/receive/:receiver/:token', async (req, res, next) => {
 
 
 
+
+
+router.post('/receive/client/:token', async (req, res, next) => {  
+    const token = req.params.token
+   
+
+        /// FIXME
+    const servername = req.params.servername
+    const mcServer = config.examServerList[servername] // get the multicastserver object
+  
+
+
+    if ( !checkToken(token, "client") ) { res.json({ status: "token is not valid" }) }
+    else {
+        console.log("Receiving File(s)...")
+        let errors = 0
+        for (const [key, file] of Object.entries( req.files)) {
+            let absoluteFilepath = path.join(config.workdirectory, file.name);
+            file.mv(absoluteFilepath, (err) => {  
+                if (err) { errors++; return {status: "client couldn't store file"} }
+                return {status: "success"}
+            });
+        }
+        res.json({ status: "done", errors: errors, client: multiCastclient.clientinfo  })
+    }
+})
+
+
+
+
+
 /**
- * ZIPs and sends all files from a students workdirectory to the registered exam server
+ * ZIPs and sends all files from a CLIENTS workdirectory TO the registered exam SERVER
  * @param token the students token (needed to accept this "abgabe" request from the server)
  */
-router.get('/abgabe/send/:token', async (req, res, next) => {  
+router.get('/abgabe/send/:token', async (req, res, next) => {     
     const token = req.params.token
     const serverip = multiCastclient.clientinfo.serverip  //this is set if you are registered on a server
+    const servername = multiCastclient.clientinfo.servername
+    const mcServer = config.examServerList[servername] // get the multicastserver object
 
-    if ( !checkToken(token, "client") ) { res.json({ status: "token is not valid" }); return }
+    if ( !checkToken(token, "client", mcServer) ) { res.json({ status: "token is not valid" }); return }
     else {
         console.log(`token checked - preparing file to send to server: ${serverip}`)
 
@@ -114,7 +148,7 @@ router.get('/abgabe/send/:token', async (req, res, next) => {
         });
 
         //post to server  (send param token in order to authenticate - the server only accepts files from registered students)
-        fetch(`http://${serverip}:3000/filetransfer/receive/server/${multiCastclient.clientinfo.token}`, { method: 'POST', body: form })
+        fetch(`http://${serverip}:3000/filetransfer/receive/server/${servername}/${token}`, { method: 'POST', body: form })
             .then( response => response.json() )
             .then( async (data) => {
                 res.json(data)
@@ -155,10 +189,11 @@ function zipDirectory(sourceDir, outPath) {
  * Checks if the token is valid in order to process api request
  * Attention: no all api requests check tokens atm!
  */
-function checkToken(token, receiver){
+function checkToken(token, receiver, mcserver){
     if (receiver === "server"){  //check if the student that wants to send a file is registered on this server
         let tokenexists = false
-        multiCastserver.studentList.forEach( (student) => {
+        console.log("checking if student is already registered on this server")
+        mcserver.studentList.forEach( (student) => {
             if (token === student.token) {
                 tokenexists = true
             }

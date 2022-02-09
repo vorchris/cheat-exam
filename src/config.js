@@ -11,6 +11,7 @@ const config = {
   },
   production: {
   },
-  examServerList:[]
+  examServerList: {
+  }
 }
 module.exports = config

@@ -25,7 +25,7 @@
                 <label for="formFileMultiple" class="form-label">Send Files to ALL Clients</label>
                 <input class="form-control" type="file" name="file" id="formFileMultiple" multiple>
                 <input class="form-control" type="hidden" name="csrfservertoken" id="csrfservertoken" value="<%= it.csrfservertoken%>">
-                
+                <input class="form-control" type="hidden" name="servername" id="servername" value="<%= it.servername%>">
             </div>
             <input type="submit" name="submit" class="btn btn-info"/>
             <span id="status"></span> 
@@ -57,8 +57,8 @@
                 },  
                 success: function(response) {  
                     console.log(response)  
-                    $("#status").empty().text(response.status);  
-                    setTimeout(toggleUpload, 2000);
+                    $("#status").empty().text(response.status); 
+                    if (response.status === "done") {setTimeout(toggleUpload, 2000);  } 
                 }  
             });  
         }); 
