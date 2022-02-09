@@ -119,15 +119,9 @@ res.json(servernames)
   if (pin === mcServer.serverinfo.pin) {
     let registeredClient = mcServer.studentList.find(element => element.clientname === clientname)
 
-    if (!registeredClient) {
+    if (!registeredClient) {   // create client object
       console.log('adding new client')
-
-      status = {
-        registered: 'true',
-        token: token
-      }
-      // create client object
-      const client = {
+      const client = {   
         clientname: clientname,
         token: token,
         clientip: clientip,
@@ -136,8 +130,8 @@ res.json(servernames)
       mcServer.studentList.push(client)
     }
   }
-  console.log(mcServer.studentList)
-  res.json(status)
+  
+  res.json({ registered: 'true',  token: token })
 })
 
 

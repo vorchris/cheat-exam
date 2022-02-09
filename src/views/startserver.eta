@@ -6,15 +6,15 @@
     <div id="content" class="fadeinslow">
         <div class="col-7">
             <div class="input-group  mb-1">
-                <span class="input-group-text col-4" id="inputGroup-sizing-lg">Exam Name</span>
+                <span class="input-group-text col-4" style="min-width:120px;" id="inputGroup-sizing-lg">Exam Name</span>
                 <div class="col-sm-7"> <input type="text" class="form-control" id="servername" placeholder="Mathematik-5a" value="Mathematik-5a"></div>
             </div>   
             <div class="input-group  mb-1"> 
-                <span class="input-group-text col-4" id="inputGroup-sizing-lg">Pincode</span>
+                <span class="input-group-text col-4" style="min-width:120px;" id="inputGroup-sizing-lg">Pincode</span>
                 <div class="col-sm-7"> <input type="text" class="form-control" id="pin" placeholder="1234" value="1234"></div>
             </div>
             <div class="input-group  mb-3"> 
-                <span class="input-group-text col-4" id="inputGroup-sizing-lg">Password</span>
+                <span class="input-group-text col-4" style="min-width:120px;" id="inputGroup-sizing-lg">Password</span>
                 <div class="col-sm-7"> <input type="text" class="form-control" id="password" placeholder="1111" value="1111"></div>
             </div>
             <div class="col mb-4">

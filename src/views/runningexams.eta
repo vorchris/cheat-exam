@@ -5,14 +5,14 @@
     <%~ includeFile('./sidebar-part', it) %>
     <div id="content" class="fadeinslow">
 
-        <% if (it.remoterequest == false) { %>
+        <% if ( !it.remoterequest) { %>
         <div class="col-8">
             <div class="input-group  mb-1">
-                <span class="input-group-text col-3" id="inputGroup-sizing-lg">Username</span>
+                <span class="input-group-text col-3" style="min-width:120px;" id="inputGroup-sizing-lg">Username</span>
                 <div class="col-sm-7"> <input type="text" class="form-control" id="user" placeholder="Thomas" value="thomas"></div>
             </div>   
             <div class="input-group  mb-3"> 
-                <span class="input-group-text col-3" id="inputGroup-sizing-lg">Pincode</span>
+                <span class="input-group-text col-3" style="min-width:120px;" id="inputGroup-sizing-lg">Pincode</span>
                 <div class="col-sm-7"> <input type="text" class="form-control" id="pin" placeholder="1234" value="1234"></div>
             </div>
         </div>
@@ -23,8 +23,6 @@
 </div>
 
 
-
-
 <script>
 
 const remoterequest = <%= it.remoterequest%>;
@@ -32,13 +30,11 @@ const remoterequest = <%= it.remoterequest%>;
 async function registerClient(serverip, servername){
     let username = $("#user").val();
     let pincode = $("#pin").val();
+    $(`#${servername}`).val("registering...");
 
     await fetch(`http://localhost:3000/client/control/register/${serverip}/${servername}/${pincode}/${username}`)
        .then( response => response.json() )
-       .then( data => {
-            let html = "";
-            document.getElementById("list").innerHTML = JSON.stringify(data);
-    });
+       .then( data => {  });
 }
 
 
@@ -55,14 +51,14 @@ async function getData(){
     await fetch("http://localhost:3000/client/control/")
        .then( response => response.json() )
        .then( data => {
-            let html = "<div class='row g-2'>";
+            let html = "<div class='d-flex justify-content-start align-items-start flex-wrap'>";
             data.serverlist.forEach( row => {
                 let button = ""
-                if ( data.clientinfo.servername === row.servername ) {   button = `<input type="button" name="register" class="btn btn-success" value="registered"/>`  }
-                else {  button = `<input type="button" name="register" class="btn btn-info" value="register" onclick="registerClient('${row.serverip}','${row.servername}' )"/>`   }
+                if ( data.clientinfo.servername === row.servername ) {   button = `<input id="${row.servername}" type="button" name="register" class="btn btn-success" value="registered"/>`  }
+                else {  button = `<input id="${row.servername}" type="button" name="register" class="btn btn-info" value="register" onclick="registerClient('${row.serverip}','${row.servername}' )"/>`   }
                         
-                html += `<div class="col-6">
-                            <div class="p-3 border bg-light">
+                html += `
+                            <div class="row p-3 m-0 mb-2 border bg-light" style="margin-right: 10px !important; width: 400px; min-width:350px; ">
                                 <dl class="row">
                                     <dt class="col-sm-4">Name</dt>
                                     <dd class="col-sm-8">${row.servername}</dd>
@@ -78,7 +74,7 @@ async function getData(){
                                 </dl>
                                 ${button}
                             </div>
-                        </div>`;
+                        `;
             });
 
             html += '</div>';
