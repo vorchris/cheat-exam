@@ -81,7 +81,22 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
  */ 
 router.get('/tokencheck/:token', function (req, res, next) {
     const token = req.params.token
+    const filepath = path.join(rootpath, 'public/img/icons/success.png')
+  
+    
     if ( checkToken(token) ) {
+        console.log('Show Notification')
+        notifier.notify( {
+                title: 'OSD Notification Test',
+                message: `Hello from Next-Exam Server, ${multiCastclient.clientinfo.name}!`,
+                icon: filepath, // Absolute path (doesn't work on balloons)
+            },
+            function(err, response) {
+                console.log(err)
+                console.log(response)
+            }
+        );
+       
       res.json({ tokenisvalid: true })
     }
     else {
@@ -96,23 +111,10 @@ router.get('/tokencheck/:token', function (req, res, next) {
  * Runs a specific command in a child process
  */ 
  router.get('/cmd', function (req, res, next) {
-    // console.log('Server: API request recieved')
-    const filepath = path.join(rootpath, config.publicdirectory,'img/svg/server.svg')
+    const filepath = path.join(rootpath, 'public/img/icons/success.png')
   
-    console.log('Server: API request recieved')
-    notifier.notify(
-        {
-            title: 'OSD Notification Test',
-            message: `Hello from Next-Exam Server, ${multiCastclient.clientinfo.name}!`,
-           // icon: filepath, // Absolute path (doesn't work on balloons)
-        },
-        function(err, response) {
-            console.log(err)
-            console.log(response)
-            // Response is response from notification
-        }
-    );
 
+    // could  trigger a shellscript or a python script
     // childProcess.execFile('python3', [filepath], (error, stdout, stderr) => {
     //   if (stderr) {
     //     console.log(stderr)
@@ -124,9 +126,10 @@ router.get('/tokencheck/:token', function (req, res, next) {
     //     res.json(stdout)
     //   }
     // })
+
+    return res.json({ status: "doing nothing" })
   })
-
-
+  
 
 
 module.exports = router

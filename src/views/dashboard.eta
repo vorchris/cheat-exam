@@ -82,8 +82,8 @@
     }
 
     // dummy task to show that scripts in other languages can be started on clients
-    async function task1(){
-        await fetch("http://localhost:3000/client/control/cmd")
+    function task1(){
+        fetch("http://localhost:3000/client/control/cmd")
         .then( response => response.json() )
         .then( async (data) => {
                console.log(data);
