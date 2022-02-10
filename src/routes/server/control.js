@@ -37,7 +37,7 @@ const rootpath = path.dirname(require.main.filename)
 
 
 /**
- *  sends a list of all running exam servers (currently only one server is possible but i'm thinking of allowing multiple servers on the same machine)
+ *  sends a list of all running exam servers
  */
  router.get('/serverlist', function (req, res, next) {
   let servernames = []
@@ -51,6 +51,32 @@ res.json(servernames)
 
 
 /**
+ *  find client by token and remove it from the studentList (array)
+ * @param servename the server that wants to kick the client
+ * @param csrfservertoken the servers token to authenticate
+ * @param studenttoken the students token who should be kicked
+ */
+ router.get('/kick/:servername/:csrfservertoken/:studenttoken', function (req, res, next) {
+  
+  const servername = req.params.servername
+  const servertoken = req.params.csrfservertoken
+  const studenttoken = req.params.studenttoken
+  const mcServer = config.examServerList[servername]
+
+  //first check if csrf token is valid and server is allowed to trigger this api request
+  if (req.params.csrfservertoken === mcServer.serverinfo.token) {
+    let registeredClient = mcServer.studentList.find(element => element.token === studenttoken)
+    if (registeredClient) {
+      
+      mcServer.studentList = mcServer.studentList.filter( el => el.token !==  studenttoken);
+    }
+
+    res.send( {status: "student kicked"} )
+  }
+})
+
+
+/**
  *  sends a list of all connected students { clientname: clientname, token: token, clientip: clientip }
  */
  router.get('/studentlist/:servername/:csrfservertoken', function (req, res, next) {
@@ -61,9 +87,6 @@ res.json(servernames)
     res.send(mcServer.studentList)
   }
 })
-
-
-
 
 
 

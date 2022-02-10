@@ -75,6 +75,30 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
 
 
 
+
+/**
+ * Runs a tokencheck and removes the SERVER REGISTRATION
+ * @param token a csrf token for validation
+ */ 
+ router.get('/kick/:token', function (req, res, next) {
+  const token = req.params.token
+  if ( checkToken(token) ) {
+     
+    for (const [key, value] of Object.entries(multiCastclient.clientinfo)) {
+        multiCastclient.clientinfo[key] = false   
+    }
+    res.json({ status : "client unsubscribed" })
+  }
+  else {
+    res.json({ tokenisvalid: false })
+  }
+})
+
+
+
+
+
+
 /**
  * Runs a tokencheck and returns true or false
  * @param token a csrf token for validation

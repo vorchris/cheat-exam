@@ -10,13 +10,13 @@
 
     <div id="content" class="fadeinslow">
         <div class="btn btn-danger">Exam starten</div>
-        <div class="btn btn-info" onclick="toggleUpload()">Datei senden</div>
-        <div class="btn btn-info" onclick="getFiles('all')">Abgabe holen</div>
-        <div class="btn btn-info">Exam beenden</div>
-        <div class="btn btn-info" onclick="task1()">Trigger Script</div>
+        <div class="btn btn-success" onclick="toggleUpload()">Datei senden</div>
+        <div class="btn btn-success" onclick="getFiles('all')">Abgabe holen</div>
+        <div class="btn btn-success">Exam beenden</div>
+        <div class="btn btn-success" onclick="task1()">Trigger Script</div>
         <div class="btn btn-light">  Name: <%= it.servername %> </div>
         <div class="btn btn-light">  Pin: <%= it.pin %>  </div>
-        <div id="studentslist" class="placeholder p-1"> </div>
+        <div id="studentslist" class="placeholder pt-4"> </div>
     </div>
 
     <div id="uploaddiv" class="fadeinslow">
@@ -39,6 +39,10 @@
 
 
 <script>
+
+    /**
+    *     !!  TODO  replace localhost in all server centric calls with IP
+    */
    
     const csrfservertoken = `<%= it.csrfservertoken%>`;
     const servername =  `<%= it.servername%>`;
@@ -99,6 +103,26 @@
         });
     }
 
+    //remove student from exam
+    async function kick(studenttoken, studentip){
+
+        //unregister locally
+        await fetch(`http://localhost:3000/server/control/kick/${servername}/${csrfservertoken}/${studenttoken}`)
+        .then( response => response.json() )
+        .then( async (data) => {
+               console.log(data);
+        });
+
+        //inform student
+        await fetch(`http://${studentip}:3000/client/control/kick/${studenttoken}`)
+        .then( response => response.json() )
+        .then( async (data) => {
+               console.log(data);
+        });
+
+    }
+
+
     // Update Students List
     async function getStudentlist(){
         // TODO: do not refresh the whole widget list everytime.. just add new widgets and refresh the screenshots !
@@ -108,12 +132,19 @@
             studentList = data
             let html = "";
             data.forEach( row => {
-                html += `<div class="studentwidget btn btn-info btn-block" onclick='task2("${row.token}","${row.clientip}" )'>
-                                Name: ${row.clientname} <br>  
-                                Token: ${row.token}  <br>
-                                IP:  ${row.clientip}  <br> 
-                                Lastseen:  ${row.timestamp}  <br> 
-                                <img src='/files/${row.token}.jpg' onerror="this.src='/img/icons/nouserscreenshot.png'">
+                html += `<div class="studentwidget btn  btn-block shadow-sm border rounded-3">
+                                <% /* Name: ${row.clientname} <br>   */ %>
+                                <% /* Token: ${row.token}  <br> */ %>
+                                <% /* IP:  ${row.clientip}  <br>  */ %>
+                                <% /* Lastseen:  ${row.timestamp}  <br>  */ %>
+                                
+                                ${row.clientname}<br>
+                                <img src='/files/${row.token}.jpg' onerror="this.src='/img/icons/nouserscreenshot.png'" class="rounded-3 border"><br>
+                                <div class="btn-group p-2" role="group">
+                                    <button  onclick='task2("${row.token}","${row.clientip}" )' type="button" class="btn btn-outline-success btn-sm">send</button>
+                                    <button  onclick='task2("${row.token}","${row.clientip}" )' type="button" class="btn btn-outline-success btn-sm">get</button>
+                                    <button  onclick='kick("${row.token}","${row.clientip}" )' type="button" class="btn btn-outline-danger btn-sm">kick</button>
+                                </div>
                             </div>`;
             });
             document.getElementById("studentslist").innerHTML = html;
