@@ -1,4 +1,3 @@
-
 const express = require('express')
 const router = express.Router()
 const config = require('../../config')
@@ -8,6 +7,7 @@ const rootpath = path.dirname(require.main.filename)
 const childProcess = require('child_process')
 const fetch = require('node-fetch')
 const notifier = require('node-notifier');
+const ip = require('ip')
 
 /**
  * Returns all found Servers and the information about this client
@@ -49,13 +49,13 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
     const pin = req.params.pin
     const serverip = req.params.serverip
     const servername = req.params.servername
-   
+    const clientip = ip.address()
+
     if (multiCastclient.clientinfo.token){
         res.json({status: "already registered on a server"})
         return
     }
   
-    const clientip = multiCastclient.clientinfo.ip
     await fetch(`http://${serverip}:3000/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}`)
       .then(response => response.json())
       .then(data => {
@@ -64,6 +64,7 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
           multiCastclient.clientinfo.name = clientname
           multiCastclient.clientinfo.serverip = serverip
           multiCastclient.clientinfo.servername = servername
+          multiCastclient.clientinfo.ip = clientip
           multiCastclient.clientinfo.token = data.token // we need to store the client token in order to check against it before processing critical api calls
         }
         res.json(data)
@@ -83,14 +84,14 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
  router.get('/kick/:token', function (req, res, next) {
   const token = req.params.token
   if ( checkToken(token) ) {
-     
     for (const [key, value] of Object.entries(multiCastclient.clientinfo)) {
         multiCastclient.clientinfo[key] = false   
     }
-    res.json({ status : "client unsubscribed" })
+    showOSD("Kicked by Server!")
+    res.json({ sender: "client", status : "client unsubscribed" })
   }
   else {
-    res.json({ tokenisvalid: false })
+    res.json({ sender: "client", tokenisvalid: false })
   }
 })
 
@@ -107,7 +108,6 @@ router.get('/tokencheck/:token', function (req, res, next) {
     const token = req.params.token
     const filepath = path.join(rootpath, 'public/img/icons/success.png')
   
-    
     if ( checkToken(token) ) {
         console.log('Show Notification')
         notifier.notify( {
@@ -121,10 +121,10 @@ router.get('/tokencheck/:token', function (req, res, next) {
             }
         );
        
-      res.json({ tokenisvalid: true })
+      res.json({ sender: "client", tokenisvalid: true })
     }
     else {
-      res.json({ tokenisvalid: false })
+      res.json({ sender: "client", tokenisvalid: false })
     }
 })
 
@@ -177,4 +177,22 @@ function checkToken(token){
       return true
     }
     return false
+}
+
+
+
+function showOSD(notification){
+  const filepath = path.join(rootpath, 'public/img/icons/success.png')
+  notifier.notify( {
+              title: 'Next Exam',
+              message: notification,
+              icon: filepath, // Absolute path (doesn't work on balloons)
+          },
+          function(err, response) {
+              console.log(err)
+              console.log(response)
+          }
+  );
+
+
 }

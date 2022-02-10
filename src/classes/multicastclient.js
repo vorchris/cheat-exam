@@ -46,7 +46,7 @@ class MulticastClient {
   }
 
   async getAddress () {
-    this.clientinfo.ip = ip.address()
+   
     this.address = this.client.address()
     console.log(`UDP Multicast Client listening on localhost:${this.address.port}`)
   }
@@ -77,12 +77,13 @@ class MulticastClient {
         .then( response => response.json() )
         .then( async (data) => {
             console.log(data)
-        });
+        })
+        .catch(error => {console.log(error) });
 
       });
 
 
-    
+
 
     }
   }

@@ -71,7 +71,7 @@ res.json(servernames)
       mcServer.studentList = mcServer.studentList.filter( el => el.token !==  studenttoken);
     }
 
-    res.send( {status: "student kicked"} )
+    res.send( {sender: "server", status: "student kicked"} )
   }
 })
 
@@ -101,12 +101,11 @@ res.json(servernames)
   const servername = req.params.servername
   const mcServer = config.examServerList[servername]
 
-  if ( !checkToken(token, "server", mcServer) ) { return res.json({ status: "token is not valid" }) } //check if the student is registered on this server
+  if ( !checkToken(token, "server", mcServer) ) { return res.json({ sender: "server", status: "token is not valid" }) } //check if the student is registered on this server
   if ( !req.files ) { return res.json({status: "No files were uploaded." });  }
 
   for (const [key, file] of Object.entries( req.files)) {
     let absoluteFilepath = path.join(rootpath, config.publicdirectory, file.name);
-    console.log(absoluteFilepath)
     file.mv(absoluteFilepath, (err) => {  
         if (err) { return {status: "server couldn't store file"} }
         return {status: "success"}
@@ -115,8 +114,6 @@ res.json(servernames)
 
   let registeredClient = mcServer.studentList.find(element => element.token === token)
   registeredClient.timestamp = new Date().getTime()
-
-  console.log(mcServer.studentList)
   res.json({status: 'Student updated' })
 })
 
@@ -175,7 +172,6 @@ module.exports = router
       let tokenexists = false
       console.log("checking if student is already registered on this server")
       mcserver.studentList.forEach( (student) => {
-          console.log(student)
           if (token === student.token) {
               tokenexists = true
           }

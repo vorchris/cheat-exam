@@ -43,10 +43,10 @@
     /**
     *     !!  TODO  replace localhost in all server centric calls with IP
     */
-   
     const csrfservertoken = `<%= it.csrfservertoken%>`;
     const servername =  `<%= it.servername%>`;
     let studentList = [];
+   
 
     $(document).ready(function() {  
         //make upload div visisble
@@ -130,8 +130,11 @@
         .then( response => response.json() )
         .then( data => {
             studentList = data
+            console.log(studentList)
             let html = "";
+            let date = new Date();
             data.forEach( row => {
+                let time = date.getTime();
                 html += `<div class="studentwidget btn  btn-block shadow-sm border rounded-3">
                                 <% /* Name: ${row.clientname} <br>   */ %>
                                 <% /* Token: ${row.token}  <br> */ %>
@@ -139,7 +142,7 @@
                                 <% /* Lastseen:  ${row.timestamp}  <br>  */ %>
                                 
                                 ${row.clientname}<br>
-                                <img src='/files/${row.token}.jpg' onerror="this.src='/img/icons/nouserscreenshot.png'" class="rounded-3 border"><br>
+                                <img src='/files/${row.token}.jpg?ver=${time}' onerror="this.src='/img/icons/nouserscreenshot.png'" class="rounded-3 border"><br>
                                 <div class="btn-group p-2" role="group">
                                     <button  onclick='task2("${row.token}","${row.clientip}" )' type="button" class="btn btn-outline-success btn-sm">send</button>
                                     <button  onclick='task2("${row.token}","${row.clientip}" )' type="button" class="btn btn-outline-success btn-sm">get</button>
@@ -148,7 +151,7 @@
                             </div>`;
             });
             document.getElementById("studentslist").innerHTML = html;
-        });
+        }).catch(error => {console.log(error)});
     }
     getStudentlist();
     setInterval(() => { getStudentlist() }, 2000)
