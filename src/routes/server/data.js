@@ -85,7 +85,7 @@ const fs = require('fs')
                 return {status: "success"}
             });
         }
-        res.json({ status: "done", errors: errors, clienttoken: token  })
+        res.json({ status: "Files received", errors: errors, clienttoken: token  })
     }
 })
 

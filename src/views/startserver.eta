@@ -32,7 +32,7 @@
 
 <script>
     document.getElementById("examstart").onclick = startServer;
-
+    
     async function startServer(){
         let servername =  document.getElementById("servername").value;
         let pin = document.getElementById('pin').value;
@@ -41,7 +41,10 @@
         await fetch(`http://localhost:3000/server/control/start/${servername}/${pin}/${password}`)
         .then( response => response.json() )
         .then( async (data) => {
-            document.getElementById("list").innerHTML = data;
+            html = `<div class="btn btn-warning">${data}</div>`
+
+            document.getElementById("list").innerHTML = html;
+
             await sleep(1000);
             window.location.href = `http://localhost:3000/server/ui/serverlist`;
         });

@@ -130,7 +130,7 @@ router.get('/tokencheck/:token', function (req, res, next) {
 
 
 
-  
+
 /**
  * Runs a specific command in a child process
  */ 

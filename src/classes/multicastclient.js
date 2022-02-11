@@ -59,7 +59,7 @@ class MulticastClient {
   async sendBeacon(){
     //check if server connected - get ip
     if (this.clientinfo.serverip) {
-      
+    
       //create screenshot
       let screenshotfilename = this.clientinfo.token +".jpg"
       let screenshotfilepath = path.join(config.tempdirectory, screenshotfilename);
@@ -78,7 +78,7 @@ class MulticastClient {
         .then( async (data) => {
             console.log(data)
         })
-        .catch(error => {console.log(error) });
+        .catch(error => {console.log(`MulticastClient: ${error}`) });  //on kick there is a racecondition that leads to a failed fetch here because values are already "false"
 
       });
 

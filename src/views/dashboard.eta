@@ -9,20 +9,18 @@
     <%~ includeFile('./sidebar-part', it) %>
 
     <div id="content" class="fadeinslow">
-        <div class="btn btn-danger">Exam starten</div>
-        <div class="btn btn-success" onclick="toggleUpload()">Datei senden</div>
-        <div class="btn btn-success" onclick="getFiles('all')">Abgabe holen</div>
-        <div class="btn btn-success">Exam beenden</div>
-        <div class="btn btn-success" onclick="task1()">Trigger Script</div>
-        <div class="btn btn-light">  Name: <%= it.servername %> </div>
-        <div class="btn btn-light">  Pin: <%= it.pin %>  </div>
+        <div class="btn btn-danger m-1" style="width:100px;"  onclick="startExam()">Exam starten</div>
+        <div class="btn btn-success m-1" style="width:100px;" onclick="toggleUpload()">Datei senden</div>
+        <div class="btn btn-success m-1" style="width:100px;" onclick="getFiles('all')">Abgabe holen</div>
+        <div class="btn btn-success m-1" style="width:100px;" onclick="endExam()" >Exam beenden</div>
         <div id="studentslist" class="placeholder pt-4"> </div>
     </div>
 
     <div id="uploaddiv" class="fadeinslow">
         <form id="uploadform" method="POST" action="http://localhost:3000/server/data/send/all" enctype="multipart/form-data">
             <div class="mb-3">
-                <label for="formFileMultiple" class="form-label">Send Files to ALL Clients</label>
+                <label for="formFileMultiple" class="form-label">Send Files to ALL Clients</label> 
+                <div class="btn-close d-inline float-end" onclick="toggleUpload()"></div>
                 <input class="form-control" type="file" name="file" id="formFileMultiple" multiple>
                 <input class="form-control" type="hidden" name="csrfservertoken" id="csrfservertoken" value="<%= it.csrfservertoken%>">
                 <input class="form-control" type="hidden" name="servername" id="servername" value="<%= it.servername%>">
@@ -47,6 +45,13 @@
     const servername =  `<%= it.servername%>`;
     let studentList = [];
    
+    function startExam(){
+        status("doing nothing");
+    }
+    function endExam(){
+        status("doing nothing");
+    }
+
 
     $(document).ready(function() {  
         //make upload div visisble
@@ -62,13 +67,17 @@
                 success: function(response) {  
                     console.log(response)  
                     $("#status").empty().text(response.status); 
-                    if (response.status === "done") {setTimeout(toggleUpload, 2000);  } 
+                    if (response.status === "done") {
+                        status("Files sent");
+                        console.log(response);
+                        setTimeout(toggleUpload, 2000);  
+                    } 
                 }  
             });  
         }); 
     });  
 
-    // get finished exams from students
+    // get finished exams (ABGABE) from students
     async function getFiles(who){
         if (who == "all"){
             if ( studentList.length <= 0 ) { console.log("no clients connected") }
@@ -78,21 +87,15 @@
                     fetch(`http://${student.clientip}:3000/client/data/abgabe/send/${student.token}`)
                     .then( response => response.json() )
                     .then( async (data) => {
-                        console.log(data) 
-                    });
+                        status(data.status);
+                        console.log(data);
+                    })
+                    .catch(error => {console.log(error)});
                 });
             }
         }
     }
 
-    // dummy task to show that scripts in other languages can be started on clients
-    function task1(){
-        fetch("http://localhost:3000/client/control/cmd")
-        .then( response => response.json() )
-        .then( async (data) => {
-               console.log(data);
-        });
-    }
 
     //validate a specific token
     async function task2(token, ip){
@@ -103,23 +106,22 @@
         });
     }
 
+
     //remove student from exam
     async function kick(studenttoken, studentip){
-
         //unregister locally
         await fetch(`http://localhost:3000/server/control/kick/${servername}/${csrfservertoken}/${studenttoken}`)
         .then( response => response.json() )
         .then( async (data) => {
-               console.log(data);
+            console.log(data);
+            status(data.status);
         });
-
         //inform student
         await fetch(`http://${studentip}:3000/client/control/kick/${studenttoken}`)
         .then( response => response.json() )
         .then( async (data) => {
                console.log(data);
         });
-
     }
 
 
@@ -130,25 +132,31 @@
         .then( response => response.json() )
         .then( data => {
             studentList = data
-            console.log(studentList)
             let html = "";
-            let date = new Date();
             data.forEach( row => {
-                let time = date.getTime();
-                html += `<div class="studentwidget btn  btn-block shadow-sm border rounded-3">
-                                <% /* Name: ${row.clientname} <br>   */ %>
-                                <% /* Token: ${row.token}  <br> */ %>
-                                <% /* IP:  ${row.clientip}  <br>  */ %>
-                                <% /* Lastseen:  ${row.timestamp}  <br>  */ %>
-                                
+                let now = new Date().getTime();
+                if (now - 60000 > row.timestamp) { 
+                    html += `<div class="studentwidget btn  btn-block shadow-sm border rounded-3 m-1">
                                 ${row.clientname}<br>
-                                <img src='/files/${row.token}.jpg?ver=${time}' onerror="this.src='/img/icons/nouserscreenshot.png'" class="rounded-3 border"><br>
+                                <img src='/files/${row.token}.jpg?ver=${row.timestamp}' onerror="this.src='/img/icons/nouserscreenshot.png'" class="deactivated rounded-3 border"><br>
+                                <div class="btn-group p-2" role="group">
+                                    <button disabled onclick='task2("${row.token}","${row.clientip}" )' type="button" class="btn btn-outline-success btn-sm">send</button>
+                                    <button disabled onclick='task2("${row.token}","${row.clientip}" )' type="button" class="btn btn-outline-success btn-sm">get</button>
+                                    <button  onclick='kick("${row.token}","${row.clientip}" )' type="button" class="btn btn-outline-danger btn-sm">kick</button>
+                                </div>
+                            </div>`;
+                }
+                else {
+                    html += `<div class="studentwidget btn  btn-block shadow-sm border rounded-3 m-1">
+                                ${row.clientname}<br>
+                                <img src='/files/${row.token}.jpg?ver=${row.timestamp}' onerror="this.src='/img/icons/nouserscreenshot.png'" class="rounded-3 border"><br>
                                 <div class="btn-group p-2" role="group">
                                     <button  onclick='task2("${row.token}","${row.clientip}" )' type="button" class="btn btn-outline-success btn-sm">send</button>
                                     <button  onclick='task2("${row.token}","${row.clientip}" )' type="button" class="btn btn-outline-success btn-sm">get</button>
                                     <button  onclick='kick("${row.token}","${row.clientip}" )' type="button" class="btn btn-outline-danger btn-sm">kick</button>
                                 </div>
                             </div>`;
+                }
             });
             document.getElementById("studentslist").innerHTML = html;
         }).catch(error => {console.log(error)});
@@ -171,8 +179,18 @@
         else {  $("#uploaddiv").css("display","none"); }
     }
 
+    //show status message
+    async function status(text){
+        $("#statusdiv").text(text)
+
+        $("#statusdiv").fadeIn("slow")
+        await sleep(2000);
+        $("#statusdiv").fadeOut("slow")
+    }
+
     // manipulate css
     $(".nav").find(".active").removeClass("active");
-     $("#overview").addClass("active");
+    $("#overview").addClass("active");
+    $("#statusdiv").fadeOut("slow")
 
 </script>

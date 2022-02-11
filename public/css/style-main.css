@@ -50,7 +50,6 @@ a:hover {
 }
 
 
-
 #studentslist{
     border-radius: 5px;
     width: 100%;
@@ -98,7 +97,10 @@ a:hover {
     fill:#157347!important;
 }
 
+.deactivated {
+    filter: grayscale(100%) blur(1px) contrast(0.3) brightness(1.5) ;
 
+}
 
 
 .fadeinslow {

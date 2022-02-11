@@ -25,7 +25,7 @@
 <% } else if (it.title === "Exam Teacher" || it.title === "Exam Dashboard"){ %>
 
 
-  <ul class="nav nav-pills flex-column mb-auto">
+  <ul class="nav nav-pills flex-column mb-auto ">
     <li class="nav-item">
       <a href="/server/ui/startserver" id="startserver" class="nav-link active">
         <img src="/img/svg/server.svg" class="white me-2"  width="16" height="16" >
@@ -45,6 +45,15 @@
       </a>
     </li>
   </ul>
+  <br>
+  <% if (it.title === "Exam Dashboard") { %>
+    <div class="m-2">
+      <div class="btn btn-light m-2">Name <br><b> <%= it.servername %></b> </div>
+      <div class="btn btn-light m-2">Pin <br><b> <%= it.pin %> </b>  </div>
+      <br>
+      <div id="statusdiv" class="btn btn-warning m-2"> connected </div>
+    </div>
+  <% } %>
 
 <% } else { %>
 
