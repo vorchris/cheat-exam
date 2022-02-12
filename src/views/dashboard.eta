@@ -8,7 +8,7 @@
 
     <%~ includeFile('./sidebar-part', it) %>
 
-    <div id="content" class="fadeinslow">
+    <div id="content" class="fadeinslow p-3">
         <div class="btn btn-danger m-1" style="width:100px;"  onclick="startExam()">Exam starten</div>
         <div class="btn btn-success m-1" style="width:100px;" onclick="toggleUpload()">Datei senden</div>
         <div class="btn btn-success m-1" style="width:100px;" onclick="getFiles('all')">Abgabe holen</div>
@@ -43,6 +43,7 @@
     */
     const csrfservertoken = `<%= it.csrfservertoken%>`;
     const servername =  `<%= it.servername%>`;
+    const serverip =  `<%= it.serverip%>`;
     let studentList = [];
    
     function startExam(){
@@ -97,6 +98,20 @@
     }
 
 
+    //stop and clear this exam server instance
+    async function stopserver(){
+        await fetch(`http://${serverip}:3000/server/control/stopserver/${servername}/${csrfservertoken}`)
+        .then( response => response.json() )
+        .then( async (data) => {
+            status(data.message);
+            console.log(data);
+            await sleep(3000);
+            window.location.href = `http://localhost:3000/server/ui/serverlist`;
+        });
+    }
+
+
+
     //validate a specific token
     async function task2(token, ip){
         await fetch(`http://${ip}:3000/client/control/tokencheck/${token}`)
@@ -131,6 +146,7 @@
         await fetch(`http://localhost:3000/server/control/studentlist/${servername}/${csrfservertoken}`)
         .then( response => response.json() )
         .then( data => {
+            if (data && data.status === "error"){ console.log(data.message); return; }
             studentList = data
             let html = "";
             data.forEach( row => {

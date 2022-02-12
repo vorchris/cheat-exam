@@ -14,7 +14,7 @@ class MulticastServer {
     this.server = dgram.createSocket('udp4')
     this.serverinfo = null
     this.address = '0.0.0.0'
-    this.broadcastIntervall = null
+    this.broadcastInterval = null
     this.running = false
     this.studentList = []
   }
@@ -27,7 +27,7 @@ class MulticastServer {
   init (servername, pin, password) {
     this.serverinfo = this.initMessage(servername, pin, password)
     this.server.bind(this.SRC_PORT, () => { // Add the HOST_IP_ADDRESS for reliability
-      this.broadcastIntervall = setInterval(() => { this.multicastNew() }, 2000)
+      this.broadcastInterval = setInterval(() => { this.multicastNew() }, 2000)
       let address = this.server.address()
       console.log(`UDP Multicast Server Broadcasting on Port: ${address.port }` );
     })

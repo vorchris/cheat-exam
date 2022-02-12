@@ -10,7 +10,7 @@
             </div>
         
             <div class="row justify-content-md-center">
-                <div class="col col-lg-2">
+                <div class="col ">
                     <a href="/client/ui/exams" id="studentbutton" class="text-center btn btn-lg btn-success position-relative p-3 m-2 padding-lr-2"> 
                         <img src="/img/svg/speedometer.svg" class="white"  width="32" height="32" > 
                         <svg width="1.5em" height="1.5em" viewBox="0 0 16 14" class="arrow position-absolute top-100 start-50 translate-middle mt-1 bi bi-caret-down-fill" fill="#198754" xmlns="http://www.w3.org/2000/svg">
@@ -18,7 +18,7 @@
                         </svg>
                     </a>
                 </div>
-                <div class="col col-lg-2">
+                <div class="col ">
                     <a href="/server/ui/startserver" id="teacherbutton" class="text-center btn btn-lg btn-success position-relative p-3 m-2 padding-lr-2"> 
                         <img src="/img/svg/shield-lock.svg" class="white"  width="32" height="32" > 
                         <svg width="1.5em" height="1.5em" viewBox="0 0 16 14" class="arrow position-absolute top-100 start-50 translate-middle mt-1 bi bi-caret-down-fill" fill="#198754" xmlns="http://www.w3.org/2000/svg">
@@ -29,11 +29,11 @@
             </div>
 
             <div class="row">
-                <div class="col col-lg-2 m-1">
+                <div class="col m-1">
                     Student
                 </div>
                 
-                <div class="col col-lg-2 m-1">
+                <div class="col  m-1">
                     Teacher 
                 </div>
             </div>

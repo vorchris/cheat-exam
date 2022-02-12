@@ -39,7 +39,8 @@ router.get('/startserver/', function (req, res, next) {
           servername: mcServer.serverinfo.servername, 
           pin: mcServer.serverinfo.pin, 
           studentlist: mcServer.studentList,
-          csrfservertoken: mcServer.serverinfo.token
+          csrfservertoken: mcServer.serverinfo.token,
+          serverip:mcServer.serverinfo.ip
         });
       }
       else {

@@ -59,8 +59,9 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
     await fetch(`http://${serverip}:3000/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}`)
       .then(response => response.json())
       .then(data => {
+
         console.log(JSON.stringify(data))
-        if (data) { // registration successfull otherwise data would be "false"
+        if (data && data.status == "success") { // registration successfull otherwise data would be "false"
           multiCastclient.clientinfo.name = clientname
           multiCastclient.clientinfo.serverip = serverip
           multiCastclient.clientinfo.servername = servername
@@ -193,6 +194,4 @@ function showOSD(notification){
               console.log(response)
           }
   );
-
-
 }

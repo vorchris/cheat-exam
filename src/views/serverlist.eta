@@ -3,7 +3,7 @@
 
 <div id="wrapper" class="w-100 h-100 d-flex" >
     <%~ includeFile('./sidebar-part', it) %>
-    <div id="content" class="fadeinslow">
+    <div id="content" class="fadeinslow p-3">
         <div id="list" class="container-fluid m-0 p-0"></div>
     </div>
 </div>

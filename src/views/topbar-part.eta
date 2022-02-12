@@ -1,17 +1,34 @@
 <div class="w-100 p-3 text-white bg-dark shadow text-right">
 
 
-  <a href="/" class="text-white m-1" >
-    <img src="/img/svg/shield-lock-fill.svg" class="white me-2  " width="32" height="32" >
-    <span class="fs-4 align-middle me-4 ">Next-Exam</span>
-  </a>
 
 
 
 <% if (it.title === "Exam Student") { %>
+    <a href="/" class="text-white m-1" >
+      <img src="/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
+      <span class="fs-4 align-middle me-4 ">Next-Exam</span>
+    </a>
     <span class="fs-4 align-middle" style="float: right">Student</span>
-<% } else if  (it.title === "Exam Teacher" || it.title === "Exam Dashboard") { %>
+<% } else if  (it.title === "Exam Teacher" ) { %>
+    <a href="/" class="text-white m-1" >
+      <img src="/img/svg/shield-lock-fill.svg" class="white me-2  " width="32" height="32" >
+      <span class="fs-4 align-middle me-4 ">Next-Exam</span>
+    </a>
     <span class="fs-4 align-middle" style="float: right">Teacher</span>
+<% } else if  ( it.title === "Exam Dashboard") { %>
+    <a href="/" class="text-white m-1" >
+      <img src="/img/svg/eye-fill.svg" class="white me-2  " width="32" height="32" >
+      <span class="fs-4 align-middle me-4 ">Next-Exam</span>
+    </a>
+    <span class="fs-4 align-middle" style="float: right">Teacher</span>
+
+<% } else  { %>
+    <a href="/" class="text-white m-1" >
+      <img src="/img/svg/server.svg" class="white me-2  " width="32" height="32" >
+      <span class="fs-4 align-middle me-4 ">Next-Exam</span>
+    </a>
+
 <% } %>
 
 </div>

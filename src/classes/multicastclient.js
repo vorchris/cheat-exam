@@ -41,12 +41,11 @@ class MulticastClient {
     //start loops
     this.refreshExamsIntervall = setInterval(() => {  this.isDeprecatedInstance()  }, 5000)
     this.updateStudentIntervall = setInterval(() => { this.sendBeacon() }, 5000)
-
     this.running = true
   }
 
+  //sets IP for client and sends a message to console
   async getAddress () {
-   
     this.address = this.client.address()
     console.log(`UDP Multicast Client listening on localhost:${this.address.port}`)
   }
@@ -76,6 +75,14 @@ class MulticastClient {
         fetch(`http://${this.clientinfo.serverip}:3000/server/control/studentlist/update/${this.clientinfo.servername}/${this.clientinfo.token}`, { method: 'POST', body: form })
         .then( response => response.json() )
         .then( async (data) => {
+          if (data && data.status === "error") {
+            console.log(data.message)
+            //remove server registration
+            for (const [key, value] of Object.entries(this.clientinfo)) {
+                this.clientinfo[key] = false   
+            }
+          }
+
             console.log(data)
         })
         .catch(error => {console.log(`MulticastClient: ${error}`) });  //on kick there is a racecondition that leads to a failed fetch here because values are already "false"
