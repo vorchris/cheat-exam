@@ -99,6 +99,7 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
       });
       const page = await multiCastclient.browser.newPage();
       await page.goto(`http://localhost:3000/client/ui/exammode/${token}`);
+      multiCastclient.clientinfo.exammode = true
     })();
 
     res.json({ sender: "client",message:"exam initialized", status:"success" })
@@ -119,6 +120,8 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
   if ( checkToken(token) ) {
     multiCastclient.browser.close()
     console.log("browser closed")
+    multiCastclient.clientinfo.exammode = false
+
     res.json({ sender: "client",message:"exam stopped", status:"success" })
 
   }

@@ -53,6 +53,7 @@
             else {  
                 studentList.forEach( (student) => {
                     //check exam mode for students - dont initialize twice
+                    if (student.exammode){ return; }
                     fetch(`http://${student.clientip}:3000/client/control/exammode/start/${student.token}`)
                     .then( response => response.json() )
                     .then( async (data) => {
@@ -64,6 +65,9 @@
             }
         }
     }
+
+
+
     function endExam(who){
         status("stopping exam mode");
         if (who == "all"){

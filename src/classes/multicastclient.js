@@ -26,7 +26,8 @@ class MulticastClient {
       ip: false,
       serverip: false,
       servername: false,
-      focus: true
+      focus: true,
+      exammode: false
     }
   }
 
