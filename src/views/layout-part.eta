@@ -26,8 +26,14 @@
     <script src="/js/bootstrap.bundle.min.js"></script>
 
 
+    <!-- Hotkeys JS -->
+    <script src="/js/hotkeys.min.js"></script>
+
+
     <%~ it.body %>
-  
+
     <%~ includeFile('./footer-part', it) %>
-   
+
+
+
 </html>

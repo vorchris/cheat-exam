@@ -9,7 +9,7 @@
     <%~ includeFile('./sidebar-part', it) %>
 
     <div id="content" class="fadeinslow p-3">
-        <div class="btn btn-danger m-1" style="width:100px;"  onclick="startExam()">Exam starten</div>
+        <div class="btn btn-danger m-1" style="width:100px;"  onclick="startExam('all')">Exam starten</div>
         <div class="btn btn-success m-1" style="width:100px;" onclick="toggleUpload()">Datei senden</div>
         <div class="btn btn-success m-1" style="width:100px;" onclick="getFiles('all')">Abgabe holen</div>
         <div class="btn btn-success m-1" style="width:100px;" onclick="endExam()" >Exam beenden</div>
@@ -46,8 +46,22 @@
     const serverip =  `<%= it.serverip%>`;
     let studentList = [];
    
-    function startExam(){
-        status("doing nothing");
+    function startExam(who){
+        status("startin exam mode");
+        if (who == "all"){
+            if ( studentList.length <= 0 ) { console.log("no clients connected") }
+            else {  
+                studentList.forEach( (student) => {
+                    fetch(`http://${student.clientip}:3000/client/control/exammode/${student.token}`)
+                    .then( response => response.json() )
+                    .then( async (data) => {
+                        status(data.message);
+                        console.log(data);
+                    })
+                    .catch(error => {console.log(error)});
+                });
+            }
+        }
     }
     function endExam(){
         status("doing nothing");
@@ -151,7 +165,7 @@
             let html = "";
             data.forEach( row => {
                 let now = new Date().getTime();
-                if (now - 60000 > row.timestamp) { 
+                if (now - 60000 > row.timestamp) { //student connection lost ??
                     html += `<div class="studentwidget btn  btn-block shadow-sm border rounded-3 m-1">
                                 ${row.clientname}<br>
                                 <img src='/files/${row.token}.jpg?ver=${row.timestamp}' onerror="this.src='/img/icons/nouserscreenshot.png'" class="deactivated rounded-3 border"><br>
@@ -163,7 +177,12 @@
                             </div>`;
                 }
                 else {
-                    html += `<div class="studentwidget btn  btn-block shadow-sm border rounded-3 m-1">
+                    let focusclass = "focusok"
+                    if (row.focus === false) {
+                        focusclass = "focuswarn";
+                        status(`${row.clientname} has left exammode`);
+                    }
+                    html += `<div class="${focusclass} studentwidget btn  btn-block shadow-sm border rounded-3 m-1">
                                 ${row.clientname}<br>
                                 <img src='/files/${row.token}.jpg?ver=${row.timestamp}' onerror="this.src='/img/icons/nouserscreenshot.png'" class="rounded-3 border"><br>
                                 <div class="btn-group p-2" role="group">
@@ -198,7 +217,6 @@
     //show status message
     async function status(text){
         $("#statusdiv").text(text)
-
         $("#statusdiv").fadeIn("slow")
         await sleep(2000);
         $("#statusdiv").fadeOut("slow")

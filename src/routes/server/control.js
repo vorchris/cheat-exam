@@ -158,7 +158,36 @@ res.json(servernames)
 
 
 
+/**
+ * updates the studentlist entry
+ * sets FOCUS state 
+ * @param servername the name of the server at which the student is registered
+ * @param token the students token to search and update the entry in the list
+ * @param state focused or unfocused that is the question
+ */
+ router.get('/studentlist/statechange/:servername/:token/:state', function (req, res, next) {
+  const token = req.params.token
+  const servername = req.params.servername
+  const mcServer = config.examServerList[servername]
+  const state = req.params.state
 
+  if (!mcServer) {  return res.send({sender: "server", message:"server does not exist", status: "error"} )  }
+  if ( !checkToken(token, "server", mcServer) ) { return res.json({ sender: "server", message:"token is not valid", status: "error" }) } //check if the student is registered on this server
+
+
+
+  let registeredClient = mcServer.studentList.find(element => element.token === token)
+  
+  if (state === "false"){
+    registeredClient.focus = false;
+    return res.json({ sender: "server", message:"student left exam", status: "success" })
+  }
+  else if (state === "true"){
+    registeredClient.focus = true;
+    return res.json({ sender: "server", message:"student status restored", status: "success" })
+  }
+
+})
 
 
 

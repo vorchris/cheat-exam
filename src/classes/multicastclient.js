@@ -24,7 +24,8 @@ class MulticastClient {
       token: false,
       ip: false,
       serverip: false,
-      servername: false
+      servername: false,
+      focus: true
     }
   }
 

@@ -8,6 +8,8 @@ const childProcess = require('child_process')
 const fetch = require('node-fetch')
 const notifier = require('node-notifier');
 const ip = require('ip')
+const puppeteer = require('puppeteer');
+
 
 /**
  * Returns all found Servers and the information about this client
@@ -67,11 +69,46 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
           multiCastclient.clientinfo.servername = servername
           multiCastclient.clientinfo.ip = clientip
           multiCastclient.clientinfo.token = data.token // we need to store the client token in order to check against it before processing critical api calls
+          multiCastclient.clientinfo.focus = true
         }
         res.json(data)
       })
 })
 
+
+
+
+/**
+ * Runs a tokencheck and STARTS THE EXAM MODE
+ * @param token a csrf token for validation
+ */ 
+ router.get('/exammode/:token', function (req, res, next) {
+  const token = req.params.token
+  if ( checkToken(token) ) {
+    
+    //start chromium in kiosk mode on exam landing page here
+    (async () => {
+      const pathToExtension = require('path').join(__dirname, 'my-extension');
+      const browser = await puppeteer.launch({
+        headless: false,
+        defaultViewport: null,
+        args: [
+          ``,   // --kiosk
+          ``
+        ],
+        ignoreDefaultArgs: ["--enable-automation"]
+      });
+      const page = await browser.newPage();
+      await page.goto(`http://localhost:3000/client/ui/exammode/${token}`);
+    })();
+
+    res.json({ sender: "client",message:"exam initialized", status:"success" })
+
+  }
+  else {
+    res.json({ sender: "client", message:"token is not valid", status: "error" })
+  }
+})
 
 
 

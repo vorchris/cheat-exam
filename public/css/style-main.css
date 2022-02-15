@@ -101,6 +101,13 @@ a:hover {
 
 }
 
+.focusok {
+
+}
+.focuswarn {
+  
+    box-shadow: 0 0 18px inset #dc3545 !important;
+}
 
 .fadeinslow {
     -webkit-animation: fadein 1s; /* Safari, Chrome and Opera > 12.1 */
