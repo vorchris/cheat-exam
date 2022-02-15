@@ -19,6 +19,7 @@ class MulticastClient {
     this.address = '0.0.0.0'
     this.refreshExamsIntervall = null
     this.debug = config.debug
+    this.browser = null
     this.clientinfo = {
       name: false,
       token: false,

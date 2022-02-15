@@ -9,10 +9,10 @@
     <%~ includeFile('./sidebar-part', it) %>
 
     <div id="content" class="fadeinslow p-3">
-        <div class="btn btn-danger m-1" style="width:100px;"  onclick="startExam('all')">Exam starten</div>
-        <div class="btn btn-success m-1" style="width:100px;" onclick="toggleUpload()">Datei senden</div>
-        <div class="btn btn-success m-1" style="width:100px;" onclick="getFiles('all')">Abgabe holen</div>
-        <div class="btn btn-success m-1" style="width:100px;" onclick="endExam()" >Exam beenden</div>
+        <div class="btn btn-success m-1" style="width:100px;"  onclick="startExam('all')">Exam starten</div>
+        <div class="btn btn-info m-1" style="width:100px;" onclick="toggleUpload()">Datei senden</div>
+        <div class="btn btn-info m-1" style="width:100px;" onclick="getFiles('all')">Abgabe holen</div>
+        <div class="btn btn-danger m-1" style="width:100px;" onclick="endExam('all')" >Exam beenden</div>
         <div id="studentslist" class="placeholder pt-4"> </div>
     </div>
 
@@ -47,12 +47,13 @@
     let studentList = [];
    
     function startExam(who){
-        status("startin exam mode");
+        status("starting exam mode");
         if (who == "all"){
             if ( studentList.length <= 0 ) { console.log("no clients connected") }
             else {  
                 studentList.forEach( (student) => {
-                    fetch(`http://${student.clientip}:3000/client/control/exammode/${student.token}`)
+                    //check exam mode for students - dont initialize twice
+                    fetch(`http://${student.clientip}:3000/client/control/exammode/start/${student.token}`)
                     .then( response => response.json() )
                     .then( async (data) => {
                         status(data.message);
@@ -63,8 +64,23 @@
             }
         }
     }
-    function endExam(){
-        status("doing nothing");
+    function endExam(who){
+        status("stopping exam mode");
+        if (who == "all"){
+            if ( studentList.length <= 0 ) { console.log("no clients connected") }
+            else {  
+                studentList.forEach( (student) => {
+                    fetch(`http://${student.clientip}:3000/client/control/exammode/stop/${student.token}`)
+                    .then( response => response.json() )
+                    .then( async (data) => {
+                        status(data.message);
+                        console.log(data);
+                    })
+                    .catch(error => {console.log(error)});
+                });
+            }
+        }
+
     }
 
 

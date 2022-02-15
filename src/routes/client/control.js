@@ -82,14 +82,13 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
  * Runs a tokencheck and STARTS THE EXAM MODE
  * @param token a csrf token for validation
  */ 
- router.get('/exammode/:token', function (req, res, next) {
+ router.get('/exammode/start/:token', function (req, res, next) {
   const token = req.params.token
   if ( checkToken(token) ) {
     
     //start chromium in kiosk mode on exam landing page here
     (async () => {
-      const pathToExtension = require('path').join(__dirname, 'my-extension');
-      const browser = await puppeteer.launch({
+      multiCastclient.browser = await puppeteer.launch({
         headless: false,
         defaultViewport: null,
         args: [
@@ -98,7 +97,7 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
         ],
         ignoreDefaultArgs: ["--enable-automation"]
       });
-      const page = await browser.newPage();
+      const page = await multiCastclient.browser.newPage();
       await page.goto(`http://localhost:3000/client/ui/exammode/${token}`);
     })();
 
@@ -110,6 +109,23 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
   }
 })
 
+
+/**
+ * Runs a tokencheck and STOPS THE EXAM MODE
+ * @param token a csrf token for validation
+ */ 
+ router.get('/exammode/stop/:token', function (req, res, next) {
+  const token = req.params.token
+  if ( checkToken(token) ) {
+    multiCastclient.browser.close()
+    console.log("browser closed")
+    res.json({ sender: "client",message:"exam stopped", status:"success" })
+
+  }
+  else {
+    res.json({ sender: "client", message:"token is not valid", status: "error" })
+  }
+})
 
 
 
