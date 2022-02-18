@@ -86,14 +86,31 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
   const token = req.params.token
   if ( checkToken(token) ) {
     
-    //start chromium in kiosk mode on exam landing page here
+    //start chromium in kiosk mode on exam landing page here https://peter.sh/experiments/chromium-command-line-switches/
+    let kiosk = ""
+    if (config.development){ kiosk = "--kiosk" }
     (async () => {
       multiCastclient.browser = await puppeteer.launch({
         headless: false,
         defaultViewport: null,
         args: [
-          ``,   // --kiosk
-          ``
+          "--bwsi",
+          "--force-dark-mode",
+          "--disable-crash-reporter",
+          "--force-app-mode",
+          `${kiosk}`,
+          "--no-first-run",
+          "--noerrdialogs",
+          "--no-default-browser-check",
+          "--disable-popup-blocking",
+          "--suppress-message-center-popups",
+          "--disable-breakpad",
+          "--disable-component-update",
+          "--disable-default-apps",
+          "--disable-dinosaur-easter-egg",
+          "--disable-extensions",
+          "--disable-logging",
+          "--disable-notifications"
         ],
         ignoreDefaultArgs: ["--enable-automation"]
       });
