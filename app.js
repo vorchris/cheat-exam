@@ -41,6 +41,7 @@ app.use(limiter) // Apply the rate limiting middleware to all requests
 
 
 
+
 app.use(function (req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   next()
