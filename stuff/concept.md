@@ -14,9 +14,9 @@ File Upload
 ### server api (serverroutes)
 meldet sich ein client mit PIN an muss dieser überprüft werden und bei korrektem pin in eine lokale ClientList gelegt werden..
 
-    teacherinstanz sollte eine crfs token für den client erstellen und bei korrektem PIN dem client zurücksenden und dieses muss vorraussetzung sein für die verarbeitung an der #client api (sonst kann ja jeder xbeliebige call von irgendeinem webbrowser im netz den client in den exam mode schicken zb. oder sperren)
+teacherinstanz erstellt ein crfs token für den client und sendet dieses bei korrektem PIN dem client zurück. das token ist vorraussetzung für die verarbeitung an der #client api (sonst kann ja jeder xbeliebige call von irgendeinem webbrowser im netz den client in den exam mode schicken zb. oder sperren)
 
-bei der server api sollten wir aufpassen dass sie nicht missbraucht werden kann.. (siehe crfs token bei der client api)  - zu diesem zeitpunkt aber denke ich, dass zb. die route /start/  ja durchaus von überall her offen sein sollte.. dies würde es ermöglichen das ganze node programm am schulserver laufen zu lassen und jeder lehrer connected einfach von irgendeinem webbrowser aus (dadurch würde das teacher programm plattformübergreifend funktionieren)
+bei der server api sollten wir aufpassen dass sie nicht missbraucht werden kann.. (siehe crfs token bei der client api)  - zu diesem zeitpunkt aber denke ich, dass zb. die route /start/ durchaus von überall her offen sein sollte.. dies ermöglicht es das ganze node programm am schulserver laufen zu lassen und jeder lehrer connected einfach von irgendeinem webbrowser aus (dadurch würde das teacher programm plattformübergreifend funktionieren)
 
 ### multicastserver (broadcasting)
 
@@ -25,9 +25,13 @@ broadcastet exam object {name, timestamp} an alle
 
 ### teacher webfrontend
 
-formular um exam name zu wählen... startet über #teacher api den #multicastserver  (sollte exam name vom formular übertragen :-) )
+formular um exam name zu wählen... startet über #teacher api den #multicastserver (beliebig viele multicast server)
 
-(möglicherweise wäre es gut bei den broadcasts nachzusehen ob der exam name nicht schon im netz gebroadcastet wurde und vom localen #multicastclient bereits notiert)
+TODO: es wäre sinnvoll bei den broadcasts zuerst nachzusehen ob der exam name nicht schon im netz gebroadcastet wird um zu verhindern dass der selbe exam name 2fach im netz vorkommt (bei mehreren servern theoretisch möglich)
+
+
+
+
 
 
 
@@ -47,11 +51,14 @@ hört auf die broadcasts der multicastserver und trägt empfangene infos von exa
 ### student webfrontend
 fragt über die #client api ab ob der #multicastclient schon eine exam instanz gefunden hat und zeigt sie als button an
 
-auf klick sollte dann ein PIN abgefragt werden und dieser pin mit client name und client ID an die gewählte exam instanz #teacherapi gesandt werden
+auf klick wird ein PIN abgefragt und dieser pin mit client name und client ID an die gewählte exam instanz #teacherapi gesandt
 
 
 über die #teacherapi kann dann beim teacher der pin geprüft und der client bei korrektem pin in eine clientList aufgenommen werden... (ip, id, port)
+es wird ein einzigartiges token für den client generiert und dieses an den client zurück gesandt (auth für die client api)
 
-dadurch kann man dann über die client ip die ensprechende #clientapi ansprechen und zb. den start von "startexam.sh"  triggern.. oder die abgabe
+dadurch kann man dann über die client ip die ensprechende #clientapi sicher ansprechen
 
+
+eventuell können am client externe programme, skripte getriggert werden
 [child_process_execfile documentation](https://nodejs.org/api/child_process.html#child_process_child_process_execfile_file_args_options_callback)
