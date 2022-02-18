@@ -88,7 +88,7 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
     
     //start chromium in kiosk mode on exam landing page here https://peter.sh/experiments/chromium-command-line-switches/
     let kiosk = ""
-    if (config.development){ kiosk = "--kiosk" }
+    if (!config.development){ kiosk = "--kiosk" }
     (async () => {
       multiCastclient.browser = await puppeteer.launch({
         headless: false,
