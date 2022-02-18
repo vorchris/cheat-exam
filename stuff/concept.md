@@ -2,14 +2,9 @@
 * Bootstrap CSS Framework
 * JQuery
 
-template engine ETA
-[template engine ETA](https://github.com/eta-dev/eta) 
-[vscode Syntaxhighlighting](https://marketplace.visualstudio.com/items?itemName=shadowtime2000.eta-vscode) 
->> drag&drop the extension from /stuff
-
-
-### File Upload
-[[ https://github.com/richardgirges/express-fileupload ]]
+- template engine ETA [template engine ETA](https://github.com/eta-dev/eta) 
+- vscode Syntaxhighlighting [vscode Syntaxhighlighting](https://marketplace.visualstudio.com/items?itemName=shadowtime2000.eta-vscode) (drag&drop the extension from /stuff)
+- File Upload [File Upload ](https://github.com/richardgirges/express-fileupload)
 
 # teacher
 ## server api (serverroutes)
