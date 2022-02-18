@@ -71,7 +71,7 @@
     function endExam(who){
         status("stopping exam mode");
         if (who == "all"){
-            if ( studentList.length <= 0 ) { console.log("no clients connected") }
+            if ( studentList.length <= 0 ) { status("no clients connected"); console.log("no clients connected") }
             else {  
                 studentList.forEach( (student) => {
                     fetch(`http://${student.clientip}:3000/client/control/exammode/stop/${student.token}`)

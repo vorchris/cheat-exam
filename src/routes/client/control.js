@@ -118,10 +118,12 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
  router.get('/exammode/stop/:token', function (req, res, next) {
   const token = req.params.token
   if ( checkToken(token) ) {
+    if (!multiCastclient.browser){return res.json({ sender: "client",message:"exam not running", status:"error" })}
+
     multiCastclient.browser.close()
     console.log("browser closed")
     multiCastclient.clientinfo.exammode = false
-
+    multiCastclient.browser = false
     res.json({ sender: "client",message:"exam stopped", status:"success" })
 
   }
