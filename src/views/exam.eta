@@ -6,7 +6,7 @@
         <div class="position-absolute start-50 translate-middle text-center" style="top: 30vh; min-width:268px">
         
             EXAM MODE - Texteditor or Geogebra here
-
+            <div id="editor">  Good Luck!</div>
 
         
         </div>
@@ -15,12 +15,16 @@
 
 
 
-<script>
+<script type="module">
     //we need those globals for checkfocus api request
     const studenttoken = `<%= it.token%>`;
     const servername =  `<%= it.servername%>`;
     const serverip =  `<%= it.serverip%>`;
 </script>
+
+
+
+
 
 <!-- capture keyboard inputs and focus loss events -->
 <script src="/js/checkfocus.js"></script>

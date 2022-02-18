@@ -13,7 +13,9 @@
 
 
 <script>
-     
+    const dev = <%= it.dev%>;
+
+
     // Update EXAM Server List
     async function getRunningServers(){
         await fetch("http://localhost:3000/server/control/serverlist")
@@ -31,7 +33,7 @@
                                     <dt class="col-sm-4 p-1 pt-2">Password</dt>
                                     <dd class="col-sm-8 p-1">
                                         <form method="POST" enctype="multipart/form-data" action='http://localhost:3000/server/ui/dashboard/${server.servername}' id='${server.servername}'> 
-                                        <input type="text" class="form-control" name="loginpassword" id="loginpassword" placeholder="1111" value="1111">
+                                        <input type="password" class="form-control" name="loginpassword" id="loginpassword" placeholder="password" value="password">
                                         <input type="submit" name="login" class="btn btn-success mt-2" value="Log In"/> </form>
                                     </dd>
                                     <dt class="col-sm-4"></dt>
@@ -49,11 +51,29 @@
     //setInterval(() => { getRunningServers() }, 2000)   //not optimal because it deletes password field every 2 seconds 
 
 
+
+    // implementing a sleep (wait) function
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-   $(".nav").find(".active").removeClass("active");
-   $("#serverlist").addClass("active");
+    //show status message
+    async function status(text){
+        $("#statusdiv").text(text)
+        $("#statusdiv").fadeIn("slow")
+        await sleep(2000);
+        $("#statusdiv").fadeOut("slow")
+    }
+
+    $(".nav").find(".active").removeClass("active");
+    $("#serverlist").addClass("active");
+    $("#statusdiv").hide()
+
+
+    //clear input fields in production mode
+    if (!dev) {
+        $("#password").val("")
+    }
+
 
 </script>

@@ -15,7 +15,7 @@
             </div>
             <div class="input-group  mb-3"> 
                 <span class="input-group-text col-4" style="min-width:120px;" id="inputGroup-sizing-lg">Password</span>
-                <div class="col-sm-7"> <input type="text" class="form-control" id="password" placeholder="1111" value="1111"></div>
+                <div class="col-sm-7"> <input type="text" class="form-control" id="password" placeholder="password" value="password"></div>
             </div>
             <div class="col mb-4">
                 <button id=examstart class="btn btn-success" value="start exam">Start New Exam Server</button>
@@ -31,6 +31,9 @@
 
 
 <script>
+    const dev = <%= it.dev%>;
+    console.log(dev)
+
     document.getElementById("examstart").onclick = startServer;
     
     async function startServer(){
@@ -41,20 +44,35 @@
         await fetch(`http://localhost:3000/server/control/start/${servername}/${pin}/${password}`)
         .then( response => response.json() )
         .then( async (data) => {
-            html = `<div class="btn btn-warning">${data}</div>`
-
-            document.getElementById("list").innerHTML = html;
-
-            await sleep(1000);
+            status(data);
+            await sleep(2000);
             window.location.href = `http://localhost:3000/server/ui/serverlist`;
         });
     }
 
+
+    // implementing a sleep (wait) function
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-   $(".nav").find(".active").removeClass("active");
-   $("#startserver").addClass("active");
+    //show status message
+    async function status(text){
+        $("#statusdiv").text(text)
+        $("#statusdiv").fadeIn("slow")
+        await sleep(2000);
+        $("#statusdiv").fadeOut("slow")
+    }
+
+    $(".nav").find(".active").removeClass("active");
+    $("#startserver").addClass("active");
+    $("#statusdiv").hide()
+
+    //clear input fields in production mode
+    if (!dev) {
+        $("#servername").val("")
+        $("#pin").val("")
+        $("#password").val("")
+    }
 
 </script>

@@ -19,6 +19,11 @@ router.get('/exammode/:token', function (req, res, next) {
     let servername = multiCastclient.clientinfo.servername
     let serverip = multiCastclient.clientinfo.serverip
     
+  
+ 
+
+
+    return res.render('exam', { title: 'Exam', servername: servername, serverip: serverip, token: token})
 
     //render exam mode page - servername, serverip, studenttoken is needed in order to send api requests from there
     if ( checkToken(token) ) {

@@ -48,6 +48,10 @@
       </a>
     </li>
   </ul>
+  <div class="m-2">
+    <br>
+    <div id="statusdiv" class="btn btn-warning m-2"> </div>
+  </div>
   <br>
 
 <% } else if ( it.title === "Exam Dashboard"){ %>

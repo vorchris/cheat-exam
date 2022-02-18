@@ -10,11 +10,11 @@ const rootpath = path.dirname(require.main.filename)
 
 
 router.get('/startserver/', function (req, res, next) {
-    res.render('startserver', { title: 'Exam Teacher' })
+    res.render('startserver', { title: 'Exam Teacher', dev: config.development })
   })
   
   router.get('/serverlist/', function (req, res, next) {
-    res.render('serverlist', { title: 'Exam Teacher' })
+    res.render('serverlist', { title: 'Exam Teacher', dev: config.development  })
   })
   
 
@@ -40,19 +40,20 @@ router.get('/startserver/', function (req, res, next) {
           pin: mcServer.serverinfo.pin, 
           studentlist: mcServer.studentList,
           csrfservertoken: mcServer.serverinfo.token,
-          serverip:mcServer.serverinfo.ip
+          serverip:mcServer.serverinfo.ip,
+          dev: config.development 
         });
       }
       else {
         console.log("Wrong Password!")
-        res.render('serverlist', { title: 'Exam Teacher' })
+        res.render('serverlist', { title: 'Exam Teacher', dev: config.development  })
       }
       
     } 
     
     else {
       console.log("No Exam Server available")
-      res.render('serverlist', { title: 'Exam Teacher' })
+      res.render('serverlist', { title: 'Exam Teacher', dev: config.development  })
     }
   })
 

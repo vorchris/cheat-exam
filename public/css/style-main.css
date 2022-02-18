@@ -29,6 +29,9 @@ a:hover {
    
 }
 
+input:focus::placeholder {
+    color: transparent;
+}
 
 #uploaddiv {
     display: none;
@@ -96,14 +99,21 @@ a:hover {
     fill:#157347!important;
 }
 
-.deactivated {
+.disabled {
     filter: grayscale(100%) blur(1px) contrast(0.3) brightness(1.5) ;
 
 }
 
-.focusok {
-
+#editor{
+    position: relative;
+    top:100px;
+    width: 95vw;
+    height: 500px;
 }
+
+
+
+
 .focuswarn {
   
     box-shadow: 0 0 18px inset #dc3545 !important;
@@ -116,8 +126,6 @@ a:hover {
          -o-animation: fadein 1s; /* Opera < 12.1 */
             animation: fadein 1s;
 }
-
-
 .fadeinfast {
     -webkit-animation: fadein .2s; /* Safari, Chrome and Opera > 12.1 */
        -moz-animation: fadein .2s; /* Firefox < 16 */

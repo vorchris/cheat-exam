@@ -39,6 +39,8 @@ app.use(express.static(path.join(__dirname, 'public')))  //serve static files fo
 app.use(fileUpload())  //When you upload a file, the file will be accessible from req.files
 app.use(limiter) // Apply the rate limiting middleware to all requests
 
+
+
 app.use(function (req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   next()
