@@ -8,10 +8,29 @@ networking is moved from twisted to node express
 
 Node v16.14.0
 
-#install necessary modules 
+## install necessary modules 
 
-'''npm i'''
+```npm i```
 
-#run next-exam 
-'''npm run monitor'''
+## run next-exam 
+
+```npm run monitor```
+
+
+
+
+### update node
+```wget -q0- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash```
+
+```source ~/.bashrc```
+
+```nvm install v16.14.0```
+
+
+
+
+![screenshot](/stuff/screenshot.jpg)
+
+
+
 
