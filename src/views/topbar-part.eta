@@ -23,10 +23,10 @@
     </a>
     <span class="fs-4 align-middle" style="float: right">Teacher</span>
 <% } else if  ( it.title === "Exam") { %>
-      <a href="/" class="text-white m-1" >
+      
         <img src="/img/svg/shield-lock-fill.svg" class="white me-2  " width="32" height="32" >
         <span class="fs-4 align-middle me-4 ">Next-Exam</span>
-      </a>
+      
       <span class="fs-4 align-middle" style="float: right">Exam Mode</span>
 <% } else  { %>
     <a href="/" class="text-white m-1" >

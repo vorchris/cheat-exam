@@ -60,7 +60,7 @@ a:hover {
 
 .studentwidget {
     width: 220px;
-   
+    height: 190px;
     white-space: nowrap;
     /* text-overflow:    ellipsis;  */
     overflow: hidden; 

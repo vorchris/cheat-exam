@@ -174,6 +174,26 @@
     }
 
 
+
+
+    //remove student from exam
+    async function restore(studenttoken){
+
+        await fetch(`http://${serverip}:3000/server/control/studentlist/statechange/${servername}/${studenttoken}/true`)
+            .then( response => response.json() )
+            .then( async (data) => {
+                console.log(data);
+            });
+
+
+    }
+
+
+
+
+
+
+
     // Update Students List
     async function getStudentlist(){
         // TODO: do not refresh the whole widget list everytime.. just add new widgets and refresh the screenshots !
@@ -183,17 +203,12 @@
             if (data && data.status === "error"){ console.log(data.message); return; }
             studentList = data
             let html = "";
+            let now = new Date().getTime();
             data.forEach( row => {
-                let now = new Date().getTime();
-                if (now - 60000 > row.timestamp) { //student connection lost ??
+                if (now - 60000 > row.timestamp) { //student connection lost - DISABLE Widget !
                     html += `<div class="studentwidget btn  btn-block shadow-sm border rounded-3 m-1">
-                                ${row.clientname}<br>
-                                <img src='/files/${row.token}.jpg?ver=${row.timestamp}' onerror="this.src='/img/icons/nouserscreenshot.png'" class="deactivated rounded-3 border"><br>
-                                <div class="btn-group p-2" role="group">
-                                    <button disabled onclick='task2("${row.token}","${row.clientip}" )' type="button" class="btn btn-outline-success btn-sm">send</button>
-                                    <button disabled onclick='task2("${row.token}","${row.clientip}" )' type="button" class="btn btn-outline-success btn-sm">get</button>
-                                    <button  onclick='kick("${row.token}","${row.clientip}" )' type="button" class="btn btn-outline-danger btn-sm">kick</button>
-                                </div>
+                                ${row.clientname}<button onclick='kick("${row.token}","${row.clientip}" )' type="button" class="btn btn-outline-danger btn-sm btn-close float-end"></button><br>
+                                <img src='/files/${row.token}.jpg' onerror="this.src='/img/icons/nouserscreenshot.png'" class="deactivated rounded-3 border"><br>
                             </div>`;
                 }
                 else {
@@ -203,12 +218,13 @@
                         status(`${row.clientname} has left exammode`);
                     }
                     html += `<div class="${focusclass} studentwidget btn  btn-block shadow-sm border rounded-3 m-1">
-                                ${row.clientname}<br>
+                                ${row.clientname}<button  onclick='kick("${row.token}","${row.clientip}" )' type="button" class="btn btn-outline-danger btn-sm btn-close float-end"></button><br>
                                 <img src='/files/${row.token}.jpg?ver=${row.timestamp}' onerror="this.src='/img/icons/nouserscreenshot.png'" class="rounded-3 border"><br>
                                 <div class="btn-group p-2" role="group">
                                     <button  onclick='task2("${row.token}","${row.clientip}" )' type="button" class="btn btn-outline-success btn-sm">send</button>
                                     <button  onclick='task2("${row.token}","${row.clientip}" )' type="button" class="btn btn-outline-success btn-sm">get</button>
-                                    <button  onclick='kick("${row.token}","${row.clientip}" )' type="button" class="btn btn-outline-danger btn-sm">kick</button>
+                                    <button  onclick='restore("${row.token}")' type="button" class="btn btn-outline-success btn-sm">restore</button>
+                                   
                                 </div>
                             </div>`;
                 }
