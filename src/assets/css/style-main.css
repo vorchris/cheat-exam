@@ -2,6 +2,7 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+   
 }
 body {
     /* display: flex;
@@ -104,13 +105,18 @@ input:focus::placeholder {
 
 }
 
-#editor{
+#editorcontainer{
     position: relative;
-    top:100px;
-    width: 95vw;
-    height: 500px;
+    top: 14px;
+    width: 90vw;
+    margin: auto auto;
 }
-
+#editorcontainer{
+    position: relative;
+    top: 14px;
+    width: 90vw;
+    margin: auto auto;
+}
 
 
 

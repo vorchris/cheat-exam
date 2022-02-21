@@ -5,7 +5,8 @@ const multiCastclient = require('../../classes/multicastclient')
 const path = require('path')
 const rootpath = path.dirname(require.main.filename)
 const childProcess = require('child_process')
-const fetch = require('node-fetch')
+
+const axios = require('axios').default;
 const notifier = require('node-notifier');
 const ip = require('ip')
 const puppeteer = require('puppeteer');
@@ -58,7 +59,7 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
         return
     }
   
-    await fetch(`http://${serverip}:3000/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}`)
+    await axios.get(`http://${serverip}:3000/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}`)
       .then(response => response.json())
       .then(data => {
 

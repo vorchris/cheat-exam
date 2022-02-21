@@ -1,7 +1,8 @@
 const dgram = require('dgram')
 const config = require('../config')
 const ip = require('ip')
-const fetch = require('node-fetch')
+
+const axios = require('axios').default;
 const FormData = require('form-data');
 const fs = require('fs') 
 const screenshot = require('screenshot-desktop')
@@ -75,7 +76,7 @@ class MulticastClient {
         });
 
         //post to /studentlist/update/:token
-        fetch(`http://${this.clientinfo.serverip}:3000/server/control/studentlist/update/${this.clientinfo.servername}/${this.clientinfo.token}`, { method: 'POST', body: form })
+        axios.get(`http://${this.clientinfo.serverip}:3000/server/control/studentlist/update/${this.clientinfo.servername}/${this.clientinfo.token}`, { method: 'POST', body: form })
         .then( response => response.json() )
         .then( async (data) => {
           if (data && data.status === "error") {
