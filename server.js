@@ -7,7 +7,6 @@ const rateLimit = require('express-rate-limit')  //simple ddos protection
 
 
 // express router routes
-const baseRoutes = require('./src/routes/baseroutes')
 const clientRoutes = require('./src/routes/clientroutes')
 const serverRoutes = require('./src/routes/serverroutes')
 
@@ -15,7 +14,7 @@ const serverRoutes = require('./src/routes/serverroutes')
 
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minutes
-  max: 100, // Limit each IP to 100 requests per `window` 
+  max: 200, // Limit each IP to 100 requests per `window` 
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 })

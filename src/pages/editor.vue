@@ -1,77 +1,89 @@
  <template>
+  <div class="w-100 p-3 text-white bg-dark shadow text-right">
+      <router-link to="/" class="text-white m-1">
+          <img src="/src/assets/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
+          <span class="fs-4 align-middle me-4 ">Next-Exam</span>
+      </router-link>
+      <span class="fs-4 align-middle" style="float: right">Writer</span>
+  </div>
+
+
+
     <div id="editorcontainer">
-        <div v-if="editor" class="btn-group mb-2">
-            <button @click="editor.chain().focus().toggleBold().run()" :class="{ 'is-active': editor.isActive('bold') }" class="btn btn-outline-info ">
+        <div v-if="editor" class=" mb-3">
+            <button @click="editor.chain().focus().toggleBold().run()" :class="{ 'is-active': editor.isActive('bold') }" class="btn btn-outline-success p-1 me-1">
             bold
             </button>
-            <button @click="editor.chain().focus().toggleItalic().run()" :class="{ 'is-active': editor.isActive('italic') }" class="btn btn-outline-info ">
+            <button @click="editor.chain().focus().toggleItalic().run()" :class="{ 'is-active': editor.isActive('italic') }" class="btn btn-outline-success p-1 me-1">
             italic
             </button>
-            <button @click="editor.chain().focus().toggleStrike().run()" :class="{ 'is-active': editor.isActive('strike') }" class="btn btn-outline-info ">
+            <button @click="editor.chain().focus().toggleStrike().run()" :class="{ 'is-active': editor.isActive('strike') }" class="btn btn-outline-success p-1 me-1 ">
             strike
             </button>
-            <button @click="editor.chain().focus().toggleCode().run()" :class="{ 'is-active': editor.isActive('code') }" class="btn btn-outline-info ">
-            code
-            </button>
-            <button @click="editor.chain().focus().unsetAllMarks().run()" class="btn btn-outline-info ">
+  
+            <button @click="editor.chain().focus().unsetAllMarks().run()" class="btn btn-outline-warning p-1 me-1">
             clear marks
             </button>
-            <button @click="editor.chain().focus().clearNodes().run()" class="btn btn-outline-info ">
+            <button @click="editor.chain().focus().clearNodes().run()" class="btn btn-outline-warning p-1 me-1">
             clear nodes
             </button>
-            <button @click="editor.chain().focus().setParagraph().run()" :class="{ 'is-active': editor.isActive('paragraph') }" class="btn btn-outline-info ">
+            <button @click="editor.chain().focus().setParagraph().run()" :class="{ 'is-active': editor.isActive('paragraph') }" class="btn btn-outline-info p-1 me-1 ">
             paragraph
             </button>
-            <button @click="editor.chain().focus().toggleHeading({ level: 1 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 1 }) }" class="btn btn-outline-info">
+            <button @click="editor.chain().focus().toggleHeading({ level: 1 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 1 }) }" class="btn btn-outline-info p-1 me-1">
             h1
             </button>
-            <button @click="editor.chain().focus().toggleHeading({ level: 2 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 2 }) }" class="btn btn-outline-info">
+            <button @click="editor.chain().focus().toggleHeading({ level: 2 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 2 }) }" class="btn btn-outline-info p-1 me-1">
             h2
             </button>
-            <button @click="editor.chain().focus().toggleHeading({ level: 3 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }" class="btn btn-outline-info">
+            <button @click="editor.chain().focus().toggleHeading({ level: 3 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }" class="btn btn-outline-info p-1 me-1">
             h3
             </button>
-            <button @click="editor.chain().focus().toggleHeading({ level: 4 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 4 }) }" class="btn btn-outline-info">
+            <button @click="editor.chain().focus().toggleHeading({ level: 4 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 4 }) }" class="btn btn-outline-info p-1 me-1">
             h4
             </button>
-            <button @click="editor.chain().focus().toggleHeading({ level: 5 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 5 }) }" class="btn btn-outline-info">
+            <button @click="editor.chain().focus().toggleHeading({ level: 5 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 5 }) }" class="btn btn-outline-info p-1 me-1">
             h5
             </button>
-            <button @click="editor.chain().focus().toggleHeading({ level: 6 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 6 }) }" class="btn btn-outline-info">
+            <button @click="editor.chain().focus().toggleHeading({ level: 6 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 6 }) }" class="btn btn-outline-info p-1 me-1">
             h6
             </button>
-            <button @click="editor.chain().focus().toggleBulletList().run()" :class="{ 'is-active': editor.isActive('bulletList') }" class="btn btn-outline-info">
+            <button @click="editor.chain().focus().toggleBulletList().run()" :class="{ 'is-active': editor.isActive('bulletList') }" class="btn btn-outline-info p-1 me-1">
             bullet list
             </button>
-            <button @click="editor.chain().focus().toggleOrderedList().run()" :class="{ 'is-active': editor.isActive('orderedList') }" class="btn btn-outline-info">
+            <button @click="editor.chain().focus().toggleOrderedList().run()" :class="{ 'is-active': editor.isActive('orderedList') }" class="btn btn-outline-info p-1 me-1">
             ordered list
             </button>
-            <button @click="editor.chain().focus().toggleCodeBlock().run()" :class="{ 'is-active': editor.isActive('codeBlock') }" class="btn btn-outline-info">
+            <button @click="editor.chain().focus().toggleCodeBlock().run()" :class="{ 'is-active': editor.isActive('codeBlock') }" class="btn btn-outline-secondary p-1 me-1">
             code block
             </button>
-            <button @click="editor.chain().focus().toggleBlockquote().run()" :class="{ 'is-active': editor.isActive('blockquote') }" class="btn btn-outline-info">
-            blockquote
-            </button>
-            <button @click="editor.chain().focus().setHorizontalRule().run()" class="btn btn-outline-info">
-            horizontal rule
-            </button>
-            <button @click="editor.chain().focus().setHardBreak().run()" class="btn btn-outline-info">
-            hard break
-            </button>
-            <button @click="editor.chain().focus().setTextAlign('center').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'center' }) }" class="btn btn-outline-info ">
-            center
-            </button>
-            <button @click="editor.chain().focus().setTextAlign('right').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'right' }) }" class="btn btn-outline-info ">
-            right
-            </button>
-            <button @click="editor.chain().focus().setTextAlign('justify').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'justify' }) }" class="btn btn-outline-info ">
-            justify
+            <button @click="editor.chain().focus().toggleCode().run()" :class="{ 'is-active': editor.isActive('code') }" class="btn btn-outline-secondary p-1 me-1 ">
+            code
             </button>
 
-            <button @click="editor.chain().focus().undo().run()" class="btn btn-outline-info">
+            <button @click="editor.chain().focus().toggleBlockquote().run()" :class="{ 'is-active': editor.isActive('blockquote') }" class="btn btn-outline-info p-1 me-1">
+            blockquote
+            </button>
+            <button @click="editor.chain().focus().setHorizontalRule().run()" class="btn btn-outline-info p-1 me-1">
+            horizontal rule
+            </button>
+            <button @click="editor.chain().focus().setHardBreak().run()" class="btn btn-outline-info p-1 me-1">
+            hard break
+            </button>
+            <button @click="editor.chain().focus().setTextAlign('center').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'center' }) }" class="btn btn-outline-info p-1 me-1 ">
+            center
+            </button>
+            <button @click="editor.chain().focus().setTextAlign('right').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'right' }) }" class="btn btn-outline-info p-1 me-1 ">
+            right
+            </button>
+            <button @click="editor.chain().focus().setTextAlign('justify').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'justify' }) }" class="btn btn-outline-info  p-1 me-1">
+            justify
+            </button> 
+
+            <button @click="editor.chain().focus().undo().run()" class="btn btn-outline-dark p-1 me-1">
             undo
             </button>
-            <button @click="editor.chain().focus().redo().run()" class="btn btn-outline-info">
+            <button @click="editor.chain().focus().redo().run()" class="btn btn-outline-dark p-1 me-1">
             redo
             </button>
         </div>
@@ -89,7 +101,7 @@ import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
-import CodeBlockComponent from './CodeBlockComponent.vue'
+import CodeBlockComponent from '../components/CodeBlockComponent.vue'
 import Blockquote from '@tiptap/extension-blockquote'
 import BulletList from '@tiptap/extension-bullet-list'
 import HardBreak from '@tiptap/extension-hard-break'
