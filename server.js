@@ -16,7 +16,8 @@ const limiter = rateLimit({ windowMs: 1 * 60 * 1000,  max: 300, standardHeaders:
 multicastclient.init()
 config.multicastclient = multicastclient
 
-
+config.clientinfo = "test"
+console.log(config)
 
 async function createServer( root = process.cwd(), isProd = process.env.NODE_ENV === 'production') {
   let vitebuild
