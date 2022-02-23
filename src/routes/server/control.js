@@ -2,8 +2,8 @@ import { Router } from 'express'
 const router = Router()
 import multiCastserver from '../../classes/multicastserver.js'
 import { v4 } from 'uuid'
-import * as config from '../../config.js'
-import { dirname, join } from 'path'
+import config from '../../config.js'
+import path from 'path'
 
 
 
@@ -19,15 +19,14 @@ import { dirname, join } from 'path'
   const servername = req.params.servername 
   const mcServer = config.examServerList[servername]
   if (mcServer) { 
-    console.log('server already running')
-    res.json('server already running')
-  } else {
+    res.send( {sender: "server", message: "server already exists", status: "error"})
+  } 
+  else {
     console.log('Initializing new Exam Server')
     let mcs = new multiCastserver();
     mcs.init(servername, req.params.pin, req.params.passwd)
     config.examServerList[servername]=mcs
-    //config.examServerList.push( mcs )  // store all multicast servers (currently only one is possible) on this global accesible config object
-    res.json('server started')
+    res.send( {sender: "server", message: "server started", status: "success"})
   }
 })
 
@@ -142,7 +141,7 @@ res.json(servernames)
   if ( !req.files ) { return res.json({status: "No files were uploaded." });  }
 
   for (const [key, file] of Object.entries( req.files)) {
-    let absoluteFilepath = join(config.publicdirectory, file.name);
+    let absoluteFilepath = path.join(config.publicdirectory, file.name);
     file.mv(absoluteFilepath, (err) => {  
         if (err) { return {status: "server couldn't store file"} }
         return {status: "success"}

@@ -1,4 +1,5 @@
 import {  createMemoryHistory,  createRouter as _createRouter,  createWebHistory } from 'vue-router'
+import axios from 'axios'
 
 import home from '/src/pages/home.vue'
 import notfound from '/src/pages/notfound.vue'
@@ -7,24 +8,25 @@ import editor from '/src/pages/editor.vue'
 import startserver from '/src/pages/startserver.vue'
 import dashboard from '/src/pages/dashboard.vue'
 import serverlist from '/src/pages/serverlist.vue'
-import config from '/src/config.js';
-
 
 const routes = [
-  { path: '/',  component: home },
-  { path: '/student',  component: student },
-  { path: '/editor/:id',  component: editor,  beforeEnter: [checkId],},
-  { path: '/startserver',  component: startserver },
-  { path: '/serverlist',  component: serverlist },
-  { path: '/dashboard',  component: dashboard },
-  { path: '/:pathMatch(.*)*', name: 'NotFound', component: notfound },
+  { path: '/',                component: home },
+  { path: '/student',         component: student },
+  { path: '/editor/:token',   component: editor,  beforeEnter: [checkToken]},
+  { path: '/startserver',     component: startserver },
+  { path: '/serverlist',      component: serverlist },
+  { path: '/dashboard',       component: dashboard },
+  { path: '/:pathMatch(.*)*', component: notfound },
 ]
 
 
-function checkId(to){
-  console.log(config)
-  console.log(to.params.id)
-  return true
+ async function checkToken(to, from){
+   console.log(to)
+  let status = await axios.get(`http://localhost:3000/client/control/tokencheck/${to.params.token}`)
+  .then(response => {  return response.data.status  })
+  .catch( err => {console.log(err)})
+  if (status === "success") { console.log("token ok"); return true}
+  else {  console.log("token error"); return { path: '/student'} }
 }
 
 

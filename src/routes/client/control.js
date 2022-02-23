@@ -1,8 +1,8 @@
 import { Router } from 'express'
 const router = Router()
-import * as config from '../../config.js'
+import config from '../../config.js'
 import multiCastclient from '../../classes/multicastclient.js'
-import path  from 'path'
+import path from 'path'
 
 
 
@@ -17,29 +17,12 @@ import puppeteer from 'puppeteer'
 /**
  * Returns all found Servers and the information about this client
  */ 
-router.get('/', function (req, res, next) {
+router.get('/getinfo', function (req, res, next) {
+    if (!requestSourceAllowed(req, res)) return //this api route should not deliver if the requestsource is not the same as the api host
     res.send({serverlist:multiCastclient.examServerList, clientinfo: multiCastclient.clientinfo})
 })
   
 
-
-/**
- * Starts the Multicast Client that receives the broadcasts of an exam server instance 
- * Block requests from remote Host
- * on localhost you'll see 127.0.0.1 if you're using IPv4 or ::1, ::ffff:127.0.0.1 if you're using IPv6
- */ 
-router.get('/start', function (req, res, next) {
-    if (!requestSourceAllowed(req, res)) return
-   
-    console.log('Starting up: Multicast')
-    if (multiCastclient.running) {
-      console.log('Multicasting ist already running')
-      res.json('Multicasting Client running')
-    } else {
-      multiCastclient.init()
-      res.json('Multicasting Client started')
-    }
-})
 
 
 
@@ -54,7 +37,7 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
     const pin = req.params.pin
     const serverip = req.params.serverip
     const servername = req.params.servername
-    const clientip = address()
+    const clientip = ip.address()
 
     if (multiCastclient.clientinfo.token){
         res.json({status: "already registered on a server"})
@@ -62,19 +45,17 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
     }
   
     await axios.get(`http://${serverip}:3000/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}`)
-      .then(response => response.json())
-      .then(data => {
-
-        console.log(JSON.stringify(data))
-        if (data && data.status == "success") { // registration successfull otherwise data would be "false"
+    .then(response => {
+        console.log(response.data)
+        if (response.data && response.data.status == "success") { // registration successfull otherwise data would be "false"
           multiCastclient.clientinfo.name = clientname
           multiCastclient.clientinfo.serverip = serverip
           multiCastclient.clientinfo.servername = servername
           multiCastclient.clientinfo.ip = clientip
-          multiCastclient.clientinfo.token = data.token // we need to store the client token in order to check against it before processing critical api calls
+          multiCastclient.clientinfo.token = response.data.token // we need to store the client token in order to check against it before processing critical api calls
           multiCastclient.clientinfo.focus = true
         }
-        res.json(data)
+        res.json(response.data)
       })
 })
 
@@ -167,10 +148,10 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
         multiCastclient.clientinfo[key] = false   
     }
     showOSD("Kicked by Server!")
-    res.json({ sender: "client", status : "client unsubscribed" })
+    res.json({ sender: "client", message : "client unsubscribed", status: "success" })
   }
   else {
-    res.json({ sender: "client", tokenisvalid: false })
+    res.json({ sender: "client",  message:"token is not valid", status: "error" })
   }
 })
 
@@ -200,10 +181,10 @@ router.get('/tokencheck/:token', function (req, res, next) {
             }
         );
        
-      res.json({ sender: "client", tokenisvalid: true })
+      res.json({ sender: "client", message: "token is valid", status: "success" })
     }
     else {
-      res.json({ sender: "client", tokenisvalid: false })
+      res.json({ sender: "client", message: "token is not valid", status: "error" })
     }
 })
 
