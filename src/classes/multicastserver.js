@@ -1,7 +1,7 @@
-const uuid = require('uuid')
-const dgram = require('dgram')
-const config = require('../config')
-const ip = require('ip')
+import { v4 } from 'uuid'
+import { createSocket } from 'dgram'
+import * as config from '../config.js'
+import ip from 'ip'
 
 /**
  * Starts a dgram (udp) socket that broadcasts information about this server
@@ -11,7 +11,7 @@ class MulticastServer {
     this.SRC_PORT = 0  // in order to allow several multicast servers (more exams on the same machine) this port needs to be set dynamically
     this.ClientPORT = config.multicastClientPort
     this.MULTICAST_ADDR = '239.255.255.250'
-    this.server = dgram.createSocket('udp4')
+    this.server = createSocket('udp4')
     this.serverinfo = null
     this.address = '0.0.0.0'
     this.broadcastInterval = null
@@ -47,9 +47,9 @@ class MulticastServer {
       pin: pin,
       password: password,
       timestamp: 0,
-      id: uuid.v4(),
+      id: v4(),
       ip: ip.address(),
-      token: `server-${uuid.v4()}`
+      token: `server-${v4()}`
     }
     return message
   }
@@ -67,10 +67,8 @@ class MulticastServer {
       ip: this.serverinfo.ip
     }
     const preparedMessage = JSON.stringify(message)
-    this.server.send(preparedMessage, 0, preparedMessage.length, this.ClientPORT, this.MULTICAST_ADDR, function () {
-      if (config.debug) { console.log(`Sent ${preparedMessage}`) }
-    })
+    this.server.send(preparedMessage, 0, preparedMessage.length, this.ClientPORT, this.MULTICAST_ADDR, function () {   })
   }
 }
 
-module.exports = MulticastServer
+export default MulticastServer

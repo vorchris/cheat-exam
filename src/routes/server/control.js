@@ -1,11 +1,9 @@
-const express = require('express')
-const router = express.Router()
-const multiCastserver = require('../../classes/multicastserver')
-const uuid = require('uuid')
-const config = require('../../config')
-const path = require('path')
-const rootpath = path.dirname(require.main.filename)
-
+import { Router } from 'express'
+const router = Router()
+import multiCastserver from '../../classes/multicastserver.js'
+import { v4 } from 'uuid'
+import * as config from '../../config.js'
+import { dirname, join } from 'path'
 
 
 
@@ -48,7 +46,7 @@ const rootpath = path.dirname(require.main.filename)
   if (mcServer && req.params.csrfservertoken === mcServer.serverinfo.token) {
     clearInterval(mcServer.broadcastInterval)
     mcServer.server.close();
-    delete mcServer
+    //delete mcServer
     delete config.examServerList[servername]
     res.send( {sender: "server", message: "exam server stopped", status: "success"})
 
@@ -144,7 +142,7 @@ res.json(servernames)
   if ( !req.files ) { return res.json({status: "No files were uploaded." });  }
 
   for (const [key, file] of Object.entries( req.files)) {
-    let absoluteFilepath = path.join(rootpath, config.publicdirectory, file.name);
+    let absoluteFilepath = join(config.publicdirectory, file.name);
     file.mv(absoluteFilepath, (err) => {  
         if (err) { return {status: "server couldn't store file"} }
         return {status: "success"}
@@ -204,7 +202,7 @@ res.json(servernames)
   const clientip = req.params.clientip
   const pin = req.params.pin
   const servername = req.params.servername
-  const token = `csrf-${uuid.v4()}`
+  const token = `csrf-${v4()}`
 
   const mcServer = config.examServerList[servername] // get the multicastserver object
   if (!mcServer) {  return res.send({sender: "server", message:"server does not exist", status: "error"} )  }
@@ -238,7 +236,7 @@ res.json(servernames)
 
 
 
-module.exports = router
+export default router
 
 
 

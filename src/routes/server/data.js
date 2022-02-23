@@ -1,13 +1,13 @@
 
-const express = require('express')
-const router = express.Router()
+import { Router } from 'express'
+const router = Router()
 
-const path = require('path')
-const fetch = require('node-fetch')
-const FormData = require('form-data')
-const config = require('../../config')
-const archiver = require('archiver')
-const fs = require('fs') 
+import { join } from 'path'
+import fetch from 'node-fetch'
+import FormData from 'form-data'
+import * as config from '../../config.js'
+import archiver from 'archiver'
+import fs from 'fs' 
 
 
 
@@ -79,7 +79,7 @@ const fs = require('fs')
         console.log("Receiving File(s)...")
         let errors = 0
         for (const [key, file] of Object.entries( req.files)) {
-            let absoluteFilepath = path.join(config.workdirectory, file.name);
+            let absoluteFilepath = join(config.workdirectory, file.name);
             file.mv(absoluteFilepath, (err) => {  
                 if (err) { errors++; return {status: "client couldn't store file"} }
                 return {status: "success"}
@@ -92,7 +92,7 @@ const fs = require('fs')
 
 
 
-module.exports = router
+export default router
 
 
 
