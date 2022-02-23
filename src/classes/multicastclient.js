@@ -1,12 +1,11 @@
-const dgram = require('dgram')
-const config = require('../config')
-const ip = require('ip')
+import dgram from 'dgram';
+import config from '../config.js';  // node not vue (relative path needed)
+import axios from 'axios';
+import FormData from 'form-data';
+import fs from 'fs'; 
+import path from 'path';
+import screenshot from 'screenshot-desktop';
 
-const axios = require('axios').default;
-const FormData = require('form-data');
-const fs = require('fs') 
-const screenshot = require('screenshot-desktop')
-const path = require('path')
 
 /**
  * Starts a dgram (udp) socket that listens for mulitcast messages
@@ -19,7 +18,6 @@ class MulticastClient {
     this.examServerList = []
     this.address = '0.0.0.0'
     this.refreshExamsIntervall = null
-    this.debug = config.debug
     this.browser = false
     this.clientinfo = {
       name: false,
@@ -37,6 +35,7 @@ class MulticastClient {
    * starts an intervall to check server status by timestamp
    */
   init () {
+    config.clientinfo = this.clientinfo
     this.client.on('listening', () => { this.getAddress() })
     this.client.on('message', (message, rinfo) => { this.messageReceived(message, rinfo) })
     // Add the HOST_IP_ADDRESS for reliability
@@ -67,7 +66,7 @@ class MulticastClient {
       let screenshotfilename = this.clientinfo.token +".jpg"
       let screenshotfilepath = path.join(config.tempdirectory, screenshotfilename);
 
-      screenshot({ filename: screenshotfilepath }).then((imgPath) => {
+      screenshot({ filename: screenshotfilepath }).then(() => {
         //create formdata
         const form = new FormData()
         form.append(screenshotfilename, fs.createReadStream(screenshotfilepath), {
@@ -91,6 +90,8 @@ class MulticastClient {
         })
         .catch(error => {console.log(`MulticastClient: ${error}`) });  //on kick there is a racecondition that leads to a failed fetch here because values are already "false"
 
+      }).catch((err) => {
+        console.log(err)
       });
 
 
@@ -154,4 +155,4 @@ class MulticastClient {
   }
 }
 
-module.exports = new MulticastClient()
+export default new MulticastClient()

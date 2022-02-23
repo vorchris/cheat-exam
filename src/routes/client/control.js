@@ -1,15 +1,17 @@
-const express = require('express')
-const router = express.Router()
-const config = require('../../config')
-const multiCastclient = require('../../classes/multicastclient')
-const path = require('path')
-const rootpath = path.dirname(require.main.filename)
-const childProcess = require('child_process')
+import { Router } from 'express'
+const router = Router()
+import * as config from '../../config.js'
+import multiCastclient from '../../classes/multicastclient.js'
+import path  from 'path'
 
-const axios = require('axios').default;
-const notifier = require('node-notifier');
-const ip = require('ip')
-const puppeteer = require('puppeteer');
+
+
+import axios from 'axios'
+import nodenotify  from 'node-notifier'
+import ip from 'ip'
+import puppeteer from 'puppeteer'
+
+
 
 
 /**
@@ -52,7 +54,7 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
     const pin = req.params.pin
     const serverip = req.params.serverip
     const servername = req.params.servername
-    const clientip = ip.address()
+    const clientip = address()
 
     if (multiCastclient.clientinfo.token){
         res.json({status: "already registered on a server"})
@@ -89,7 +91,7 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
     
     //start chromium in kiosk mode on exam landing page here https://peter.sh/experiments/chromium-command-line-switches/
     let kiosk = ""
-    if (!config.development){ kiosk = "--kiosk" }
+    if (!development){ kiosk = "--kiosk" }
     (async () => {
       multiCastclient.browser = await puppeteer.launch({
         headless: false,
@@ -183,11 +185,11 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
  */ 
 router.get('/tokencheck/:token', function (req, res, next) {
     const token = req.params.token
-    const filepath = path.join(rootpath, 'public/img/icons/success.png')
+    const filepath = '/src/assets/img/icons/success.png'
   
     if ( checkToken(token) ) {
         console.log('Show Notification')
-        notifier.notify( {
+        nodenotify.notify( {
                 title: 'OSD Notification Test',
                 message: `Hello from Next-Exam Server, ${multiCastclient.clientinfo.name}!`,
                 icon: filepath, // Absolute path (doesn't work on balloons)
@@ -212,7 +214,7 @@ router.get('/tokencheck/:token', function (req, res, next) {
  * Runs a specific command in a child process
  */ 
  router.get('/cmd', function (req, res, next) {
-    const filepath = path.join(rootpath, 'public/img/icons/success.png')
+    const filepath = '/src/assets/img/icons/success.png'
   
 
     // could  trigger a shellscript or a python script
@@ -233,7 +235,7 @@ router.get('/tokencheck/:token', function (req, res, next) {
   
 
 
-module.exports = router
+export default router
 
 
 //do not allow requests from external hosts
@@ -259,8 +261,8 @@ function checkToken(token){
 
 
 function showOSD(notification){
-  const filepath = path.join(rootpath, 'public/img/icons/success.png')
-  notifier.notify( {
+  const filepath =  '/src/assets/img/icons/success.png'
+  nodenotify.notify( {
               title: 'Next Exam',
               message: notification,
               icon: filepath, // Absolute path (doesn't work on balloons)

@@ -1,18 +1,43 @@
 import {  createMemoryHistory,  createRouter as _createRouter,  createWebHistory } from 'vue-router'
 
+import home from '/src/pages/home.vue'
+import notfound from '/src/pages/notfound.vue'
+import student from '/src/pages/student.vue'
+import editor from '/src/pages/editor.vue'
+import startserver from '/src/pages/startserver.vue'
+import dashboard from '/src/pages/dashboard.vue'
+import serverlist from '/src/pages/serverlist.vue'
+import config from '/src/config.js';
 
 
-// Auto generates routes from vue files under ./pages
-// https://vitejs.dev/guide/features.html#glob-import
-const pages = import.meta.glob('./pages/*.vue')
+const routes = [
+  { path: '/',  component: home },
+  { path: '/student',  component: student },
+  { path: '/editor/:id',  component: editor,  beforeEnter: [checkId],},
+  { path: '/startserver',  component: startserver },
+  { path: '/serverlist',  component: serverlist },
+  { path: '/dashboard',  component: dashboard },
+  { path: '/:pathMatch(.*)*', name: 'NotFound', component: notfound },
+]
 
-const routes = Object.keys(pages).map((path) => {
-  const name = path.match(/\.\/pages(.*)\.vue$/)[1].toLowerCase()
-  return {
-    path: name === '/home' ? '/' : name,
-    component: pages[path] // () => import('./pages/*.vue')
-  }
-})
+
+function checkId(to){
+  console.log(config)
+  console.log(to.params.id)
+  return true
+}
+
+
+//do not allow requests from external hosts
+function requestSourceAllowed(req,res){
+  if (req.ip !== "::1" && req.ip !== "127.0.0.1"){ 
+    console.log("Blocked request from remote Host"); 
+    return false
+  }   
+  return true
+}
+
+
 
 export function createRouter() {
   return _createRouter({ history: import.meta.env.SSR ? createMemoryHistory() : createWebHistory(),  routes })   // use appropriate history implementation for server/client // import.meta.env.SSR is injected by Vite.

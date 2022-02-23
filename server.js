@@ -1,45 +1,42 @@
-// @ts-check
-const fs = require('fs')
-const path = require('path')
-const express = require('express')
-const fileUpload = require("express-fileupload");
-const rateLimit = require('express-rate-limit')  //simple ddos protection
+import fs from 'fs'
+import path from 'path'
+import express from "express"
+import fileUpload from "express-fileupload";
+import rateLimit  from 'express-rate-limit' //simple ddos protection
+import * as vite from 'vite'
+import config from './src/config.js';
+import multicastclient from './src/classes/multicastclient.js'
+
+import {clientRouter} from './src/routes/clientroutes.js'   // express router routes
+import {serverRouter} from './src/routes/serverroutes.js'
 
 
-// express router routes
-const clientRoutes = require('./src/routes/clientroutes')
-const serverRoutes = require('./src/routes/serverroutes')
-
- 
-
-const limiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minutes
-  max: 200, // Limit each IP to 100 requests per `window` 
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-})
+const __dirname = path.resolve();
+const limiter = rateLimit({ windowMs: 1 * 60 * 1000,  max: 300, standardHeaders: true, legacyHeaders: false,})
+multicastclient.init()
+config.multicastclient = multicastclient
 
 
 
 async function createServer( root = process.cwd(), isProd = process.env.NODE_ENV === 'production') {
+  let vitebuild
   const resolve = (p) => path.resolve(__dirname, p)
   const indexProd = isProd ? fs.readFileSync(resolve('dist/client/index.html'), 'utf-8') : ''
   const manifest = isProd ? require('./dist/client/ssr-manifest.json') : {}  // @ts-ignore
-
   const app = express()
+
   app.use(express.json())
   app.use(fileUpload())  //When you upload a file, the file will be accessible from req.files
   app.use(limiter) // Apply the rate limiting middleware to all requests
+  
   // Routing part 
-  app.use('/client', clientRoutes)
-  app.use('/server', serverRoutes)
+  app.use('/client', clientRouter)
+  app.use('/server', serverRouter)
 
-
-
-  let vite
+ 
   if (!isProd) {
-    vite = await require('vite').createServer({ root, logLevel: 'info',  server: { middlewareMode: 'ssr', watch: { usePolling: true, interval: 100 } } })
-    app.use(vite.middlewares)  // use vite's connect instance as middleware  
+    vitebuild = await vite.createServer({ root, logLevel: 'info',  server: { middlewareMode: 'ssr', watch: { usePolling: true, interval: 100 } } })
+    app.use(vitebuild.middlewares)  // use vite's connect instance as middleware  
   } 
   else {
     app.use( require('compression')())
@@ -47,32 +44,25 @@ async function createServer( root = process.cwd(), isProd = process.env.NODE_ENV
   }
 
 
-
   app.use('*', async (req, res) => {
     try {
       const url = req.originalUrl
       let template, render
-
       if (!isProd) {
-        // always read fresh template in dev
-        template = fs.readFileSync(resolve('index.html'), 'utf-8')
-        template = await vite.transformIndexHtml(url, template)
-        render = (await vite.ssrLoadModule('/src/entry-server.js')).render
+        template = fs.readFileSync(resolve('index.html'), 'utf-8')     // always read fresh template in dev
+        template = await vitebuild.transformIndexHtml(url, template)
+        render = (await vitebuild.ssrLoadModule('/src/entry-server.js')).render
       } 
       else {
         template = indexProd
         render = require('./dist/server/entry-server.js').render
       }
-
       const [appHtml, preloadLinks] = await render(url, manifest)
-      const html = template
-        .replace(`<!--preload-links-->`, preloadLinks)
-        .replace(`<!--app-html-->`, appHtml)
-
+      const html = template.replace(`<!--preload-links-->`, preloadLinks).replace(`<!--app-html-->`, appHtml)
       res.status(200).set({ 'Content-Type': 'text/html' }).end(html)
     } 
     catch (e) {
-      vite && vite.ssrFixStacktrace(e)
+      vitebuild && vitebuild.ssrFixStacktrace(e)
       console.log(e.stack)
       res.status(500).end(e.stack)
     }
@@ -85,8 +75,4 @@ createServer().then(({ app }) =>
     app.listen(3000, () => {
       console.log('http://localhost:3000')
     })
-)
-
-
-// for test use
-exports.createServer = createServer
+);

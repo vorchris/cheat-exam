@@ -18,22 +18,22 @@
 
   <ul class="nav nav-pills flex-column mb-auto ">
     <li class="nav-item">
-      <a href="/startserver" id="startserver" class="nav-link">
+       <router-link to="startserver" id="startserver" class="nav-link">
         <img src="/src/assets/img/svg/server.svg" class="white me-2"  width="16" height="16" >
         Start Exam Server
-      </a>
+      </router-link >
     </li>
     <li>
-      <a href="/serverlist" id="serverlist" class="nav-link active">
+       <router-link to="serverlist" id="serverlist" class="nav-link active">
         <img src="/src/assets/img/svg/person-lines-fill.svg" class="white me-2"  width="16" height="16" >
         Server List
-      </a>
+      </router-link>
     </li>
     <li>
-      <a href="#" class="nav-link">
+       <router-link to="#" class="nav-link">
         <img src="/src/assets/img/svg/question-square-fill.svg" class="white me-2"  width="16" height="16" >
         Help
-      </a>
+      </router-link>
     </li>
   </ul>
   <div class="m-2">

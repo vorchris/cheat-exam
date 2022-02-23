@@ -1,14 +1,11 @@
-const express = require('express')
-const router = express.Router()
+import { Router } from 'express';
+export const serverRouter = Router()
 
-const controlRoutes = require('./server/control');
-const uiRoutes = require('./server/ui');
-const dataRoutes = require('./server/data');
-
-
-router.use('/control/', controlRoutes);
-router.use('/ui/', uiRoutes);
-router.use('/data/', dataRoutes);
+import controlRoutes from './server/control.js';
+import dataRoutes from './server/data.js';
 
 
-module.exports = router
+serverRouter.use('/control/', controlRoutes);
+serverRouter.use('/data/', dataRoutes);
+
+

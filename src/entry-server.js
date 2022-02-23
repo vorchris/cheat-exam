@@ -1,10 +1,22 @@
-import { createApp } from './main'
+
 import { renderToString } from 'vue/server-renderer'
-import path, { basename } from 'path'
+import { basename } from 'path'
+
+import App from './App.vue'
+import { createSSRApp } from 'vue'
+import { createRouter } from './router'
+
+
+
+
 
 export async function render(url, manifest) {
-  const { app, router } = createApp()
 
+  const router = createRouter()
+  const app = createSSRApp(App)
+  app.config.unwrapInjectedRef = true  // should not be neccecary in future versions (suppress specific warning)
+  app.use(router)
+  
   // set the router to the desired URL before rendering
   router.push(url)
   await router.isReady()
