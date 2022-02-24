@@ -33,6 +33,10 @@ a:hover {
    
 }
 
+.hidden {
+    display: none;
+}
+
 input:focus::placeholder {
     color: transparent;
 }

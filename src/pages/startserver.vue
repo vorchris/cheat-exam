@@ -38,7 +38,7 @@
         </ul>
         <div class="m-2">
             <br>
-            <div id="statusdiv" class="btn btn-warning m-2"> connected </div>
+            <div id="statusdiv" class="btn btn-warning m-2 hidden"> connected </div>
         </div>
         <br>
     </div>
@@ -105,8 +105,10 @@ export default {
             .then( async (response) => {
                 this.status(response.data.message);
                 await this.sleep(2000);
+                
+                this.$router.push({ path: '/serverlist' })
 
-               // window.location.href = `http://localhost:3000/server/ui/serverlist`;
+               
             });
         },
 

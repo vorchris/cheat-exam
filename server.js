@@ -69,7 +69,6 @@ async function createServer( root = process.cwd(), isProd = process.env.NODE_ENV
       res.status(500).end(e.stack)
     }
   })
-
   return { app, vite }
 }
 

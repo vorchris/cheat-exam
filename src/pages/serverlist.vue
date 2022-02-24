@@ -12,40 +12,36 @@
 
 
 
+<div id="wrapper" class="w-100 h-100 d-flex" >
 
-<div class="p-3 text-white bg-dark h-100 " style="width: 240px; min-width: 240px;">
-
-
-  <ul class="nav nav-pills flex-column mb-auto ">
-    <li class="nav-item">
-       <router-link to="startserver" id="startserver" class="nav-link">
-        <img src="/src/assets/img/svg/server.svg" class="white me-2"  width="16" height="16" >
-        Start Exam Server
-      </router-link >
-    </li>
-    <li>
-       <router-link to="serverlist" id="serverlist" class="nav-link active">
-        <img src="/src/assets/img/svg/person-lines-fill.svg" class="white me-2"  width="16" height="16" >
-        Server List
-      </router-link>
-    </li>
-    <li>
-       <router-link to="#" class="nav-link">
-        <img src="/src/assets/img/svg/question-square-fill.svg" class="white me-2"  width="16" height="16" >
-        Help
-      </router-link>
-    </li>
-  </ul>
-  <div class="m-2">
-    <br>
-    <div id="statusdiv" class="btn btn-warning m-2"> </div>
-  </div>
-  <br>
-
-
-
+    <div class="p-3 text-white bg-dark h-100 " style="width: 240px; min-width: 240px;">
+        <ul class="nav nav-pills flex-column mb-auto ">
+        <li class="nav-item">
+            <router-link to="startserver" id="startserver" class="nav-link">
+            <img src="/src/assets/img/svg/server.svg" class="white me-2"  width="16" height="16" >
+            Start Exam Server
+            </router-link >
+        </li>
+        <li>
+            <router-link to="serverlist" id="serverlist" class="nav-link active">
+            <img src="/src/assets/img/svg/person-lines-fill.svg" class="white me-2"  width="16" height="16" >
+            Server List
+            </router-link>
+        </li>
+        <li>
+            <router-link to="#" class="nav-link">
+            <img src="/src/assets/img/svg/question-square-fill.svg" class="white me-2"  width="16" height="16" >
+            Help
+            </router-link>
+        </li>
+        </ul>
+        <div class="m-2">
+        <br>
+        <div id="statusdiv" class="btn btn-warning m-2 hidden"> </div>
+        </div>
+        <br>
+    </div>
 </div>
-
 
 
 
