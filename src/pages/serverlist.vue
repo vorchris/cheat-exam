@@ -59,9 +59,13 @@
                                     <dd class="col-sm-8 p-1">{{server.serverip}}</dd>
                                     <dt class="col-sm-4 p-1 pt-2">Password</dt>
                                     <dd class="col-sm-8 p-1">
-                                        <form method="POST" enctype="multipart/form-data" action='http://localhost:3000/server/ui/dashboard/${server.servername}' id='${server.servername}'> 
+
+                                        <form> 
                                         <input type="password" class="form-control" name="loginpassword" id="loginpassword" placeholder="password" value="password">
-                                        <input type="submit" name="login" class="btn btn-success mt-2" value="Log In"/> </form>
+                                        <input @click="login(server.servername)" type="button" name="login" class="btn btn-success mt-2" value="Log In"/> 
+                                        </form>
+
+
                                     </dd>
                                     <dt class="col-sm-4"></dt>
                                     <dd class="col-sm-8">
@@ -110,6 +114,9 @@ export default {
             .catch( err => {console.log(err)});
         },  
 
+        login(servername){
+            console.log(servername)
+        },
 
         //show status message
         async status(text){  
