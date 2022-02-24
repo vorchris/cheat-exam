@@ -128,8 +128,7 @@ export default {
 
     },
     mounted() {  // when ready
-        $("#statusdiv").fadeOut("slow")
-         
+      
         if (this.prod) {  //clear input fields in production mode
             $("#servername").val("")
             $("#pin").val("")

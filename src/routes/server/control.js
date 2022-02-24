@@ -64,12 +64,12 @@ import path from 'path'
  *  sends a list of all running exam servers
  */
  router.get('/serverlist', function (req, res, next) {
-  let servernames = []
+  let serverlist = []
   Object.values(config.examServerList).forEach( server => {
-    servernames.push({servername: server.serverinfo.servername, serverip: server.serverinfo.ip}) 
+    serverlist.push({servername: server.serverinfo.servername, serverip: server.serverinfo.ip}) 
    });
   
-res.json(servernames)
+  res.send({serverlist:serverlist})
 })
 
 

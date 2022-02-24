@@ -41,19 +41,98 @@
         </div>
         <br>
     </div>
+
+
+    <div id="content" class="fadeinslow p-3">
+        <div id="list" class="container-fluid m-0 p-0">
+
+
+
+            <div class='row g-2'>
+           
+                <div  v-for="server in serverlist" class="col-6" style="min-width:310px; max-width: 400px;">
+                            <div class="p-3 border bg-light">
+                                <dl class="row">
+                                    <dt class="col-sm-4 p-1">Name</dt>
+                                    <dd class="col-sm-8 p-1">{{server.servername}}</dd>
+                                    <dt class="col-sm-4 p-1">IP Address</dt>
+                                    <dd class="col-sm-8 p-1">{{server.serverip}}</dd>
+                                    <dt class="col-sm-4 p-1 pt-2">Password</dt>
+                                    <dd class="col-sm-8 p-1">
+                                        <form method="POST" enctype="multipart/form-data" action='http://localhost:3000/server/ui/dashboard/${server.servername}' id='${server.servername}'> 
+                                        <input type="password" class="form-control" name="loginpassword" id="loginpassword" placeholder="password" value="password">
+                                        <input type="submit" name="login" class="btn btn-success mt-2" value="Log In"/> </form>
+                                    </dd>
+                                    <dt class="col-sm-4"></dt>
+                                    <dd class="col-sm-8">
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+            
+            </div>
+
+
+
+
+
+
+        </div>
+    </div>
+
+
 </div>
-
-
-
-
 
 </template>
 
 
+<script>
+import $ from 'jquery'
+import axios from "axios";
+
+export default {
+    data() {
+        return {
+            fetchinterval: null,
+            serverlist: [],
+        };
+    },
+    components: {
+    
+    },
+    methods: {
+
+        fetchInfo() {
+            axios.get("/server/control/serverlist")
+            .then( response => {
+                this.serverlist = response.data.serverlist;
+            })
+            .catch( err => {console.log(err)});
+        },  
 
 
+        //show status message
+        async status(text){  
+            $("#statusdiv").text(text)
+            $("#statusdiv").fadeIn("slow")
+            await this.sleep(2000);
+            $("#statusdiv").fadeOut("slow")
+        },
 
-<script setup>
+        // implementing a sleep (wait) function
+        sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        },
+
+    },
+    mounted() {  // when ready
+        this.fetchInfo();
+        this.fetchinterval = setInterval(() => { this.fetchInfo() }, 2000)
+    },
+    beforeUnmount() {
+         clearInterval( this.fetchinterval )
+    },
+}
 
 
 </script>
