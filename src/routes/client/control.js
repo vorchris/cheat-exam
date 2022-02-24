@@ -55,7 +55,7 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
           multiCastclient.clientinfo.token = response.data.token // we need to store the client token in order to check against it before processing critical api calls
           multiCastclient.clientinfo.focus = true
         }
-        res.json(response.data)
+        res.send(response.data)
       })
 })
 

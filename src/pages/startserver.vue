@@ -104,7 +104,7 @@ export default {
             await axios.get(`http://localhost:3000/server/control/start/${this.servername}/${this.pincode}/${this.password}`)
             .then( async (response) => {
                 this.status(response.data.message);
-                await this.sleep(2000);
+                await this.sleep(1000);
                 
                 this.$router.push({ path: '/serverlist' })
 

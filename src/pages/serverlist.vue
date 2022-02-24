@@ -51,28 +51,20 @@
             <div class='row g-2'>
            
                 <div  v-for="server in serverlist" class="col-6" style="min-width:310px; max-width: 400px;">
-                            <div class="p-3 border bg-light">
-                                <dl class="row">
-                                    <dt class="col-sm-4 p-1">Name</dt>
-                                    <dd class="col-sm-8 p-1">{{server.servername}}</dd>
-                                    <dt class="col-sm-4 p-1">IP Address</dt>
-                                    <dd class="col-sm-8 p-1">{{server.serverip}}</dd>
-                                    <dt class="col-sm-4 p-1 pt-2">Password</dt>
-                                    <dd class="col-sm-8 p-1">
-
-                                        <form> 
-                                        <input type="password" class="form-control" name="loginpassword" id="loginpassword" placeholder="password" value="password">
-                                        <input @click="login(server.servername)" type="button" name="login" class="btn btn-success mt-2" value="Log In"/> 
-                                        </form>
-
-
-                                    </dd>
-                                    <dt class="col-sm-4"></dt>
-                                    <dd class="col-sm-8">
-                                    </dd>
-                                </dl>
-                            </div>
-                        </div>
+                    <div class="p-3 border bg-light">
+                        <dl class="row mb-0">
+                            <dt class="col-sm-4 p-1">Name</dt>
+                            <dd class="col-sm-8 p-1">{{server.servername}}</dd>
+                            <dt class="col-sm-4 p-1">IP Address</dt>
+                            <dd class="col-sm-8 p-1">{{server.serverip}}</dd>
+                            <dt class="col-sm-4 p-1 pt-2">Password</dt>
+                            <dd class="col-sm-8 p-1">
+                                <input v-bind:id="server.servername" type="password" class="form-control" placeholder="password" value="password">
+                                <input @click="login(server.servername)" type="button" name="login" class="btn btn-success mt-1" value="Log In"/> 
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
             
             </div>
 
@@ -115,7 +107,8 @@ export default {
         },  
 
         login(servername){
-            console.log(servername)
+            let password = $(`#${servername}`).val()
+            this.$router.push({ path: `/dashboard/${servername}/${password}` })
         },
 
         //show status message

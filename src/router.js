@@ -10,23 +10,41 @@ import dashboard from '/src/pages/dashboard.vue'
 import serverlist from '/src/pages/serverlist.vue'
 
 const routes = [
-  { path: '/',                component: home },
-  { path: '/student',         component: student },
-  { path: '/editor/:token',   component: editor,  beforeEnter: [checkToken]},
-  { path: '/startserver',     component: startserver },
-  { path: '/serverlist',      component: serverlist },
-  { path: '/dashboard',       component: dashboard },
-  { path: '/:pathMatch(.*)*', component: notfound },
+    { path: '/',                  component: home },
+    { path: '/student',           component: student },
+    { path: '/editor/:token',     component: editor,  beforeEnter: [checkToken]},
+    { path: '/startserver',       component: startserver },
+    { path: '/serverlist',        component: serverlist },
+    { path: '/dashboard/:servername/:passwd', component: dashboard, beforeEnter: [checkPasswd] },
+    { path: '/:pathMatch(.*)*',   component: notfound },
 ]
 
 
- async function checkToken(to, from){
-   console.log(to)
-  let status = await axios.get(`http://localhost:3000/client/control/tokencheck/${to.params.token}`)
-  .then(response => {  return response.data.status  })
-  .catch( err => {console.log(err)})
-  if (status === "success") { console.log("token ok"); return true}
-  else {  console.log("token error"); return { path: '/student'} }
+async function checkToken(to, from){
+    let status = await axios.get(`http://localhost:3000/client/control/tokencheck/${to.params.token}`)
+    .then(response => {  return response.data.status  })
+    .catch( err => {console.log(err)})
+
+    if (status === "success") { console.log("token ok"); return true}
+    else {  console.log("token error"); return { path: '/student'} }
+}
+
+
+
+async function checkPasswd(to){
+    let res = await axios.get(`http://localhost:3000/server/control/checkpasswd/${to.params.servername}/${to.params.passwd}`)
+    .then(response => {  return response.data  })
+    .catch( err => {console.log(err)})
+
+    if (res.status === "success") { 
+        to.params.pin = res.data.pin; 
+        to.params.servertoken = res.data.servertoken; 
+        console.log("password ok"); 
+        return true }
+    else {  
+        console.log("password error"); 
+        return { path: '/serverlist'}
+    }
 }
 
 

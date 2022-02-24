@@ -16,6 +16,7 @@
   </node-view-wrapper>
 </template>
 
+
 <script>
 import { NodeViewWrapper, NodeViewContent, nodeViewProps } from '@tiptap/vue-3'
 

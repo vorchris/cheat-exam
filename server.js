@@ -6,18 +6,22 @@ import rateLimit  from 'express-rate-limit' //simple ddos protection
 import * as vite from 'vite'
 import config from './src/config.js';
 import multicastclient from './src/classes/multicastclient.js'
-
+import fsExtra from "fs-extra"
 import {clientRouter} from './src/routes/clientroutes.js'   // express router routes
 import {serverRouter} from './src/routes/serverroutes.js'
-
+import cors from 'cors'
 
 const __dirname = path.resolve();
-const limiter = rateLimit({ windowMs: 1 * 60 * 1000,  max: 300, standardHeaders: true, legacyHeaders: false,})
+const publicdirectory = path.join(__dirname, config.publicdirectory);
+//const limiter = rateLimit({ windowMs: 1 * 60 * 1000,  max: 300, standardHeaders: true, legacyHeaders: false,})
 
 
+// start multicast client
 multicastclient.init()
-config.multicastclient = multicastclient
 
+
+// clean public directory
+fsExtra.emptyDirSync(publicdirectory)
 
 
 async function createServer( root = process.cwd(), isProd = process.env.NODE_ENV === 'production') {
@@ -27,9 +31,11 @@ async function createServer( root = process.cwd(), isProd = process.env.NODE_ENV
   const manifest = isProd ? require('./dist/client/ssr-manifest.json') : {}  // @ts-ignore
   const app = express()
 
+  app.use(cors())
   app.use(express.json())
+  app.use(express.static(publicdirectory));
   app.use(fileUpload())  //When you upload a file, the file will be accessible from req.files
-  app.use(limiter) // Apply the rate limiting middleware to all requests
+  //app.use(limiter) // Apply the rate limiting middleware to all requests
   
   // Routing part 
   app.use('/client', clientRouter)

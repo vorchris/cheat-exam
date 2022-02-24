@@ -75,18 +75,21 @@ class MulticastClient {
         });
 
         //post to /studentlist/update/:token
-        axios.get(`http://${this.clientinfo.serverip}:3000/server/control/studentlist/update/${this.clientinfo.servername}/${this.clientinfo.token}`, { method: 'POST', body: form })
-        .then( response => response.json() )
-        .then( async (data) => {
-          if (data && data.status === "error") {
-            console.log(data.message)
+        axios({
+          method: "post", 
+          url: `http://${this.clientinfo.serverip}:3000/server/control/studentlist/update/${this.clientinfo.servername}/${this.clientinfo.token}`, 
+          data: form, 
+          headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
+        })
+        .then( response => {
+          if (response.data && response.data.status === "error") {
+            console.log(response.data.message)
             //remove server registration
             for (const [key, value] of Object.entries(this.clientinfo)) {
                 this.clientinfo[key] = false   
             }
           }
 
-            console.log(data)
         })
         .catch(error => {console.log(`MulticastClient: ${error}`) });  //on kick there is a racecondition that leads to a failed fetch here because values are already "false"
 

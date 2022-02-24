@@ -49,7 +49,7 @@ class MulticastServer {
       timestamp: 0,
       id: v4(),
       ip: ip.address(),
-      token: `server-${v4()}`
+      servertoken: `server-${v4()}`
     }
     return message
   }

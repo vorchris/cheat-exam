@@ -31,6 +31,38 @@ import path from 'path'
 })
 
 
+/**
+ * checks serverpassword
+ * @param servername the chosen name (for example "mathe")
+ * @param passwd the password needed to enter the dashboard
+ **/
+ router.get('/checkpasswd/:servername/:passwd', function (req, res, next) {
+  const servername = req.params.servername 
+  const passwd = req.params.passwd
+  const mcServer = config.examServerList[servername]
+
+  if (mcServer) { 
+    if (passwd === mcServer.serverinfo.password){ 
+      return res.send( {
+        sender: "server", 
+        message: "password ok", 
+        status: "success", 
+        data: {
+          pin: mcServer.serverinfo.pin,
+          servertoken: mcServer.serverinfo.servertoken
+        } 
+      } )} 
+    else { return res.send( {sender: "server", message: "wrong password", status: "error"}) }
+  } 
+  else {
+    res.send( {sender: "server", message: "server not found", status: "error"})
+  }
+})
+
+
+
+
+
 
 
 /**
@@ -42,7 +74,7 @@ import path from 'path'
   const servername = req.params.servername
   const mcServer = config.examServerList[servername]
 
-  if (mcServer && req.params.csrfservertoken === mcServer.serverinfo.token) {
+  if (mcServer && req.params.csrfservertoken === mcServer.serverinfo.servertoken) {
     clearInterval(mcServer.broadcastInterval)
     mcServer.server.close();
     //delete mcServer
@@ -88,14 +120,18 @@ import path from 'path'
   const mcServer = config.examServerList[servername]
 
   //first check if csrf token is valid and server is allowed to trigger this api request
-  if (req.params.csrfservertoken === mcServer.serverinfo.token) {
+  if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {
     let registeredClient = mcServer.studentList.find(element => element.token === studenttoken)
     if (registeredClient) {
       
       mcServer.studentList = mcServer.studentList.filter( el => el.token !==  studenttoken);
     }
 
-    res.send( {sender: "server", status: "student kicked"} )
+    res.send( {sender: "server", message: "student removed", status: "success"} )
+  }
+  else {
+
+    res.send( {sender: "server", message: "action denied", status: "error"} )
   }
 })
 
@@ -113,8 +149,8 @@ import path from 'path'
   const servername = req.params.servername
   const mcServer = config.examServerList[servername]
 
-  if (mcServer && req.params.csrfservertoken === mcServer.serverinfo.token) {
-    res.send(mcServer.studentList)
+  if (mcServer && req.params.csrfservertoken === mcServer.serverinfo.servertoken) {
+    res.send({studentlist: mcServer.studentList})
   }
   else {
     res.send({sender: "server", message:"server does not exist", status: "error"} )
@@ -135,22 +171,20 @@ import path from 'path'
   const servername = req.params.servername
   const mcServer = config.examServerList[servername]
 
-
   if (!mcServer) {  return res.send({sender: "server", message:"server does not exist", status: "error"} )  }
-  if ( !checkToken(token, "server", mcServer) ) { return res.json({ sender: "server", message:"token is not valid", status: "error" }) } //check if the student is registered on this server
-  if ( !req.files ) { return res.json({status: "No files were uploaded." });  }
-
+  if ( !checkToken(token, "server", mcServer) ) {return res.send({ sender: "server", message:"token is not valid", status: "error" }) } //check if the student is registered on this server
+  if ( !req.files ) {return res.send({sender: "server", message:"No files were uploaded", status:"error"});  }
+   
   for (const [key, file] of Object.entries( req.files)) {
     let absoluteFilepath = path.join(config.publicdirectory, file.name);
     file.mv(absoluteFilepath, (err) => {  
-        if (err) { return {status: "server couldn't store file"} }
-        return {status: "success"}
+        if (err) {  console.log(err)  }
     });
   }
-
+ 
   let registeredClient = mcServer.studentList.find(element => element.token === token)
   registeredClient.timestamp = new Date().getTime()
-  res.json({status: 'Student updated' })
+  res.send({sender: "server", message:'Student updated', status:"success" })
 })
 
 
@@ -216,8 +250,10 @@ import path from 'path'
         clientname: clientname,
         token: token,
         clientip: clientip,
-        timestamp: new Date().getTime()
+        timestamp: new Date().getTime(),
+        focus: true,
       }
+
       mcServer.studentList.push(client)
       return res.json({sender: "server", message:"client registered on server", status: "success", token: token})  // on success return client token (auth needed for server api)
     }
@@ -248,7 +284,7 @@ export default router
  function checkToken(token, receiver, mcserver){
   if (receiver === "server"){  //check if the student that wants to send a file is registered on this server
       let tokenexists = false
-      console.log("checking if student is already registered on this server")
+    
       mcserver.studentList.forEach( (student) => {
           if (token === student.token) {
               tokenexists = true
