@@ -49,7 +49,8 @@ import path from 'path'
         status: "success", 
         data: {
           pin: mcServer.serverinfo.pin,
-          servertoken: mcServer.serverinfo.servertoken
+          servertoken: mcServer.serverinfo.servertoken,
+          serverip: mcServer.serverinfo.ip
         } 
       } )} 
     else { return res.send( {sender: "server", message: "wrong password", status: "error"}) }

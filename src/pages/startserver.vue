@@ -65,7 +65,7 @@
                 </div>
             </div>
             <div class="col mb-4">
-                <button @click="startServer" id=examstart class="btn btn-success" value="start exam">Start New Exam Server</button>
+                <button @click="startServer" id="examstart" class="btn btn-success" value="start exam">Start New Exam Server</button>
             </div>
         </div>
         <div id="list" class="placeholder"></div>

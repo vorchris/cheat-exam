@@ -49,11 +49,12 @@ input:focus::placeholder {
     margin-left: -200px;
     width: 400px;
     height: 150px;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 1);
     border: 1px solid rgba(255, 255, 255, 0.589);
     box-shadow: 0 0 15px rgba(22, 9, 9, 0.589);
     padding: 10px;
     border-radius: 12px;
+    z-index:9999;
 }
 #status {
     padding : 8px;
@@ -109,7 +110,6 @@ input:focus::placeholder {
 
 .disabled {
     filter: grayscale(100%) blur(1px) contrast(0.3) brightness(1.5) ;
-
 }
 
 #editorcontainer{

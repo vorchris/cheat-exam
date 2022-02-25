@@ -39,6 +39,7 @@ async function checkPasswd(to){
     if (res.status === "success") { 
         to.params.pin = res.data.pin; 
         to.params.servertoken = res.data.servertoken; 
+        to.params.serverip = res.data.serverip; 
         console.log("password ok"); 
         return true }
     else {  

@@ -27,7 +27,7 @@
                 <input class="form-control" type="hidden" name="csrfservertoken" id="csrfservertoken" value="<%= it.csrfservertoken%>">
                 <input class="form-control" type="hidden" name="servername" id="servername" value="<%= it.servername%>">
             </div>
-            <input type="submit" name="submit" class="btn btn-info"/>
+            <input  @click="login(servername)" type="buttom" name="submit" class="btn btn-info" value="senden"/>
             <span id="status"></span> 
         </form>
     </div>
@@ -45,15 +45,12 @@
             <div v-for="student in studentlist" class="studentwidget btn  btn-block shadow-sm border rounded-3 m-1">
                 {{student.clientname}}             
                 <button  @click='kick(student.token,student.clientip)' type="button" class="btn btn-outline-danger btn-sm btn-close float-end" title="kick user"></button><br>
-        
-                <img v-bind:src="'/files/'+student.token+'.jpg?ver='+student.timestamp"  onerror="this.src='/src/assets/img/icons/nouserscreenshot.png'" class=" rounded-3 border"><br>
+                <img class="rounded-3 border" v-bind:class="(now - 60000 > student.timestamp)?'disabled':'' "   v-bind:src="'/files/'+student.token+'.jpg?ver='+student.timestamp"  onerror="this.src='/src/assets/img/icons/nouserscreenshot.png'"><br>
                 
-                <div class="btn-group p-2 ${activeclass}" role="group">
-                    <button @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-success btn-sm">send</button>
-                    <button @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-success btn-sm">get</button>
-
-                       
-                    <button  v-if="student.focus"   @click='restore(student.token)' type="button" class="btn btn-outline-success btn-sm">restore</button>
+                <div class="btn-group p-2" role="group" >
+                    <button v-if="(now - 60000 < student.timestamp)" @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-success btn-sm">send</button>
+                    <button v-if="(now - 60000 < student.timestamp)"  @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-success btn-sm">get</button>
+                    <button  v-if="!student.focus && (now - 60000 < student.timestamp)"   @click='restore(student.token)' type="button" class="btn btn-outline-success btn-sm">restore</button>
                 </div>
             </div>
 
@@ -87,6 +84,8 @@ export default {
             studentlist: [],
             servername: this.$route.params.servername,
             servertoken: this.$route.params.servertoken,
+            serverip: this.$route.params.serverip,
+            now : null,
         };
     },
     components: {
@@ -95,13 +94,88 @@ export default {
     methods: {
 
         fetchInfo() {
+            this.now = new Date().getTime()
             axios.get(`/server/control/studentlist/${this.servername}/${this.servertoken}`)
             .then( response => {
                 this.studentlist = response.data.studentlist;
-               
             })
             .catch( err => {console.log(err)});
         },  
+
+
+        //stop and clear this exam server instance
+        stopserver(){
+             axios.get(`http://${this.serverip}:3000/server/control/stopserver/${this.servername}/${this.servertoken}`)
+                .then( async (response) => {
+                    this.status(response.data.message);
+                    console.log(response.data);
+                    await this.sleep(3000);
+                    this.$router.push({ path: '/serverlist' })
+                });
+        },
+
+
+        startExam(who){
+            status("starting exam mode");
+            if (who == "all"){
+                if ( studentList.length <= 0 ) { console.log("no clients connected") }
+                else {  
+                    studentList.forEach( (student) => {
+                        //check exam mode for students - dont initialize twice
+                        if (student.exammode){ return; }
+                        axios.get(`http://${student.clientip}:3000/client/control/exammode/start/${student.token}`)
+                            .then( response => {
+                                this.status(response.data.message);
+                                console.log(response.data);
+                            })
+                        .catch(error => {console.log(error)});
+                    });
+                }
+            }
+        },
+
+
+
+        endExam(who){
+            status("stopping exam mode");
+            if (who == "all"){
+                if ( studentList.length <= 0 ) { status("no clients connected"); console.log("no clients connected") }
+                else {  
+                    studentList.forEach( (student) => {
+                        axios.get(`http://${student.clientip}:3000/client/control/exammode/stop/${student.token}`)
+                        .then( async (response) => {
+                            this.status(response.data.message);
+                            console.log(response.data);
+                        })
+                        .catch(error => {console.log(error)});
+                    });
+                }
+            }
+
+        },
+
+
+
+
+        // get finished exams (ABGABE) from students
+        getFiles(who){
+            if (who == "all"){
+                if ( this.studentlist.length <= 0 ) { console.log("no clients connected") }
+                else {  
+                    console.log("Requesting Filetransfer from ALL Clients")
+                    studentlist.forEach( (student) => {
+                        axios.get(`http://${student.clientip}:3000/client/data/abgabe/send/${student.token}`)
+                        .then( response => {
+                            this.status(response.data.status);
+                            console.log(response.data);
+                        })
+                        .catch(error => {console.log(error)});
+                    });
+                }
+            }
+        },
+
+
 
 
         //remove student from exam
@@ -119,9 +193,34 @@ export default {
             });
         },
 
+          //remove student from exam
+        async restore(studenttoken){
+            await axios.get(`http://${this.serverip}:3000/server/control/studentlist/statechange/${this.servername}/${studenttoken}/true`)
+                .then( async (response) => {
+                    this.status(response.data.message);
+                    console.log(response.data);
+                });
+        },
 
 
+        // make upload div visible or hide it
+        toggleUpload(){
+            let status =  $("#uploaddiv").css("display");
+            if (status == "none") {  
+                $("#uploaddiv").css("display","block");
+                $("#formFileMultiple").val('') 
+            }
+            else {  $("#uploaddiv").css("display","none"); }
+        },
 
+
+        //validate a specific token
+        async task2(token, ip){
+             axios.get(`http://${ip}:3000/client/control/tokencheck/${token}`)
+            .then(  response => {
+                console.log(response.data);
+            });
+        },
 
         //show status message
         async status(text){  
