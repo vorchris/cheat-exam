@@ -5,7 +5,7 @@ const router = Router()
 import { join } from 'path'
 import fetch from 'node-fetch'
 import FormData from 'form-data'
-import * as config from '../../config.js'
+import config from '../../config.js'
 import archiver from 'archiver'
 import fs from 'fs' 
 

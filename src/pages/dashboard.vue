@@ -163,7 +163,7 @@ export default {
                 if ( this.studentlist.length <= 0 ) { console.log("no clients connected") }
                 else {  
                     console.log("Requesting Filetransfer from ALL Clients")
-                    studentlist.forEach( (student) => {
+                    this.studentlist.forEach( (student) => {
                         axios.get(`http://${student.clientip}:3000/client/data/abgabe/send/${student.token}`)
                         .then( response => {
                             this.status(response.data.status);
