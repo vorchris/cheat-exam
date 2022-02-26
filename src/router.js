@@ -44,7 +44,7 @@ async function checkPasswd(to){
         return true }
     else {  
         console.log("password error"); 
-        return { path: '/serverlist'}
+        return { path: '/startserver'}
     }
 }
 

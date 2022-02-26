@@ -68,13 +68,13 @@ import fs from 'fs'
         console.log("Receiving File(s)...")
         let errors = 0
         for (const [key, file] of Object.entries( req.files)) {
-            let absoluteFilepath = join(config.workdirectory, file.name);
+            let absoluteFilepath = path.join(config.workdirectory, file.name);
             file.mv(absoluteFilepath, (err) => {  
-                if (err) { errors++; return {status: "client couldn't store file"} }
-                return {status: "success"}
+                if (err) { errors++; console.log( "client couldn't store file") }
+                console.log( "file(s) received")
             });
         }
-        res.json({ status: "done", errors: errors, client: multiCastclient.clientinfo  })
+        res.json({sender: "client", message:"file(s) received", status: "success", errors: errors, client: multiCastclient.clientinfo  })
     }
 })
 

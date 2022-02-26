@@ -19,16 +19,15 @@
     </div>
 
     <div id="uploaddiv" class="fadeinslow">
-        <form id="uploadform" method="POST" action="http://localhost:3000/server/data/send/all" enctype="multipart/form-data">
+        <form id="uploadform" method="POST" enctype="multipart/form-data">
             <div class="mb-3">
                 <label for="formFileMultiple" class="form-label">Send Files to ALL Clients</label> 
                 <div class="btn-close d-inline float-end" @click="toggleUpload()"></div>
-                <input class="form-control" type="file" name="file" id="formFileMultiple" multiple>
-                <input class="form-control" type="hidden" name="csrfservertoken" id="csrfservertoken" value="<%= it.csrfservertoken%>">
-                <input class="form-control" type="hidden" name="servername" id="servername" value="<%= it.servername%>">
+                <input class="form-control" type="file" name="files" id="formFileMultiple" multiple @change="handleFileUpload($event)">
+                <input class="form-control" type="hidden" name="servertoken" id="servertoken" v-model="servertoken">
+                <input class="form-control" type="hidden" name="servername" id="servername" v-model="servername">
             </div>
-            <input  @click="login(servername)" type="buttom" name="submit" class="btn btn-info" value="senden"/>
-            <span id="status"></span> 
+            <input  @click="sendFiles('all')" type="buttom" name="submit" class="btn btn-info" value="senden"/>
         </form>
     </div>
 
@@ -76,6 +75,7 @@
 <script >
 import $ from 'jquery'
 import axios from "axios";
+import FormData from 'form-data';
 
 export default {
     data() {
@@ -86,6 +86,7 @@ export default {
             servertoken: this.$route.params.servertoken,
             serverip: this.$route.params.serverip,
             now : null,
+            files: null,
         };
     },
     components: {
@@ -98,10 +99,43 @@ export default {
             axios.get(`/server/control/studentlist/${this.servername}/${this.servertoken}`)
             .then( response => {
                 this.studentlist = response.data.studentlist;
-            })
-            .catch( err => {console.log(err)});
+            }).catch( err => {console.log(err)});
         },  
 
+        //upload files to all students
+        sendFiles(who) {
+
+            if (!this.files) { this.status("No Files selected"); return }
+            this.status("File(s) uploading...");
+
+            const formData = new FormData()
+            formData.append('servertoken', this.servertoken);
+            formData.append('servername', this.servername);
+            for (const i of Object.keys(this.files)) {
+                formData.append('files', this.files[i])
+            }
+
+            axios({
+                method: "post", 
+                url: `http://${this.serverip}:3000/server/data/send/${who}`, 
+                data: formData, 
+                headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
+                })
+                .then( response => {
+                    this.status(response.data.message);
+                    console.log(response.data);
+
+                    if (response.data.status === "success") {
+                        this.status("Files sent");
+                        setTimeout(this.toggleUpload, 2000);  
+                    } 
+
+                }).catch( err => {console.log(err)});
+        },  
+
+        handleFileUpload( event ){
+            this.files = event.target.files;
+        },
 
         //stop and clear this exam server instance
         stopserver(){
@@ -111,14 +145,14 @@ export default {
                     console.log(response.data);
                     await this.sleep(3000);
                     this.$router.push({ path: '/serverlist' })
-                });
+                }).catch( err => {console.log(err)});
         },
 
 
         startExam(who){
-            status("starting exam mode");
+            this.status("starting exam mode");
             if (who == "all"){
-                if ( studentList.length <= 0 ) { console.log("no clients connected") }
+                if ( studentList.length <= 0 ) { this.status("no clients connected"); console.log("no clients connected") }
                 else {  
                     studentList.forEach( (student) => {
                         //check exam mode for students - dont initialize twice
@@ -127,8 +161,7 @@ export default {
                             .then( response => {
                                 this.status(response.data.message);
                                 console.log(response.data);
-                            })
-                        .catch(error => {console.log(error)});
+                            }).catch(error => {console.log(error)});
                     });
                 }
             }
@@ -137,17 +170,16 @@ export default {
 
 
         endExam(who){
-            status("stopping exam mode");
+            this.status("stopping exam mode");
             if (who == "all"){
-                if ( studentList.length <= 0 ) { status("no clients connected"); console.log("no clients connected") }
+                if ( studentList.length <= 0 ) { this.status("no clients connected"); console.log("no clients connected") }
                 else {  
                     studentList.forEach( (student) => {
                         axios.get(`http://${student.clientip}:3000/client/control/exammode/stop/${student.token}`)
                         .then( async (response) => {
                             this.status(response.data.message);
                             console.log(response.data);
-                        })
-                        .catch(error => {console.log(error)});
+                        }).catch(error => {console.log(error)});
                     });
                 }
             }
@@ -160,16 +192,15 @@ export default {
         // get finished exams (ABGABE) from students
         getFiles(who){
             if (who == "all"){
-                if ( this.studentlist.length <= 0 ) { console.log("no clients connected") }
+                if ( this.studentlist.length <= 0 ) { this.status("no clients connected"); console.log("no clients connected") }
                 else {  
                     console.log("Requesting Filetransfer from ALL Clients")
                     this.studentlist.forEach( (student) => {
                         axios.get(`http://${student.clientip}:3000/client/data/abgabe/send/${student.token}`)
                         .then( response => {
                             this.status(response.data.status);
-                            console.log(response.data);
-                        })
-                        .catch(error => {console.log(error)});
+                            console.log(response.data.message);
+                        }).catch(error => {console.log(error)});
                     });
                 }
             }
@@ -185,12 +216,13 @@ export default {
             .then( response => {
                 console.log(response.data);
                 this.status(response.data.message);
-            });
+            }).catch(error => {console.log(error)});
+
             //inform student
             axios.get(`http://${studentip}:3000/client/control/kick/${studenttoken}`)
             .then( response => {
                 console.log(response.data);
-            });
+            }).catch(error => {console.log(error)});
         },
 
           //remove student from exam
@@ -199,7 +231,7 @@ export default {
                 .then( async (response) => {
                     this.status(response.data.message);
                     console.log(response.data);
-                });
+                }).catch(error => {console.log(error)});
         },
 
 
@@ -219,7 +251,7 @@ export default {
              axios.get(`http://${ip}:3000/client/control/tokencheck/${token}`)
             .then(  response => {
                 console.log(response.data);
-            });
+            }).catch(error => {console.log(error)});
         },
 
         //show status message
