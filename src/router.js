@@ -1,6 +1,8 @@
+/** 
+ * VUE.js Frontend - Routing 
+*/
 import {  createMemoryHistory,  createRouter as _createRouter,  createWebHistory } from 'vue-router'
 import axios from 'axios'
-
 import home from '/src/pages/home.vue'
 import notfound from '/src/pages/notfound.vue'
 import student from '/src/pages/student.vue'
@@ -25,12 +27,23 @@ async function checkToken(to, from){
     .then(response => {  return response.data.status  })
     .catch( err => {console.log(err)})
 
-    if (status === "success") { console.log("token ok"); return true}
+    if (status === "success") { 
+        let clientinfo = await axios.get(`http://localhost:3000/client/control/getinfo`)
+        .then(response => {  return response.data.clientinfo  })
+        .catch( err => {console.log(err)})
+        console.log(clientinfo)
+        to.params.serverip = clientinfo.serverip; 
+        to.params.servername = clientinfo.servername; 
+        to.params.servertoken = clientinfo.servertoken
+
+      console.log("token ok"); 
+      return true
+    }
     else {  console.log("token error"); return { path: '/student'} }
 }
 
 
-
+//ATTENTION!!! hier sollte statt localhost die serverIP genutzt werden.. aber woher nehmen?
 async function checkPasswd(to){
     let res = await axios.get(`http://localhost:3000/server/control/checkpasswd/${to.params.servername}/${to.params.passwd}`)
     .then(response => {  return response.data  })
@@ -41,7 +54,8 @@ async function checkPasswd(to){
         to.params.servertoken = res.data.servertoken; 
         to.params.serverip = res.data.serverip; 
         console.log("password ok"); 
-        return true }
+        return true 
+    }
     else {  
         console.log("password error"); 
         return { path: '/startserver'}
@@ -49,7 +63,7 @@ async function checkPasswd(to){
 }
 
 
-//do not allow requests from external hosts
+//do not allow requests from external hosts !!!!! DOESNT WORK IN VUE ROUTER
 function requestSourceAllowed(req,res){
   if (req.ip !== "::1" && req.ip !== "127.0.0.1"){ 
     console.log("Blocked request from remote Host"); 

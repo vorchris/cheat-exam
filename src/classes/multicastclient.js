@@ -26,7 +26,8 @@ class MulticastClient {
       serverip: false,
       servername: false,
       focus: true,
-      exammode: false
+      exammode: false,
+      timestamp: false
     }
   }
 
@@ -68,38 +69,37 @@ class MulticastClient {
 
       screenshot({ filename: screenshotfilepath }).then(() => {
         //create formdata
-        const form = new FormData()
-        form.append(screenshotfilename, fs.createReadStream(screenshotfilepath), {
+        const formData = new FormData()
+        formData.append(screenshotfilename, fs.createReadStream(screenshotfilepath), {
             contentType: 'image/jpeg',
             filename: screenshotfilename,
         });
 
+        //update timestamp
+        this.clientinfo.timestamp =  new Date().getTime()
+        formData.append('clientinfo', JSON.stringify(this.clientinfo) );
+
         //post to /studentlist/update/:token
         axios({
           method: "post", 
-          url: `http://${this.clientinfo.serverip}:3000/server/control/studentlist/update/${this.clientinfo.servername}/${this.clientinfo.token}`, 
-          data: form, 
-          headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
+          url: `http://${this.clientinfo.serverip}:3000/server/control/studentlist/update`, 
+          data: formData, 
+          headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
         })
         .then( response => {
           if (response.data && response.data.status === "error") {
-            console.log(response.data.message)
+            console.log(`MulticastClient: ${response.data.message}`)
             //remove server registration
             for (const [key, value] of Object.entries(this.clientinfo)) {
                 this.clientinfo[key] = false   
             }
           }
-
         })
         .catch(error => {console.log(`MulticastClient: ${error}`) });  //on kick there is a racecondition that leads to a failed fetch here because values are already "false"
 
       }).catch((err) => {
-        console.log(err)
+        console.log(`MulticastClient: ${err}`)
       });
-
-
-
-
     }
   }
 

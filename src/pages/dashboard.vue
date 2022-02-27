@@ -41,7 +41,7 @@
         <div id="studentslist" class="placeholder pt-4"> 
 
 
-            <div v-for="student in studentlist" class="studentwidget btn  btn-block shadow-sm border rounded-3 m-1">
+            <div v-for="student in studentlist" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn  btn-block shadow-sm border rounded-3 m-1">
                 {{student.clientname}}             
                 <button  @click='kick(student.token,student.clientip)' type="button" class="btn btn-outline-danger btn-sm btn-close float-end" title="kick user"></button><br>
                 <img class="rounded-3 border" v-bind:class="(now - 60000 > student.timestamp)?'disabled':'' "   v-bind:src="'/files/'+student.token+'.jpg?ver='+student.timestamp"  onerror="this.src='/src/assets/img/icons/nouserscreenshot.png'"><br>
@@ -49,7 +49,7 @@
                 <div class="btn-group p-2" role="group" >
                     <button v-if="(now - 60000 < student.timestamp)" @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-success btn-sm">send</button>
                     <button v-if="(now - 60000 < student.timestamp)"  @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-success btn-sm">get</button>
-                    <button  v-if="!student.focus && (now - 60000 < student.timestamp)"   @click='restore(student.token)' type="button" class="btn btn-outline-success btn-sm">restore</button>
+                    <button  v-if="!student.focus && (now - 60000 < student.timestamp)"   @click='restore(student.token)' type="button" class="btn btn-success btn-sm">restore</button>
                 </div>
             </div>
 
@@ -99,15 +99,20 @@ export default {
             axios.get(`/server/control/studentlist/${this.servername}/${this.servertoken}`)
             .then( response => {
                 this.studentlist = response.data.studentlist;
+                
+                this.studentlist.forEach(student =>{
+                    if (!student.focus){this.status(`${student.clientname} has left the exam`); }
+                });
+
             }).catch( err => {console.log(err)});
         },  
 
         //upload files to all students
         sendFiles(who) {
-
             if (!this.files) { this.status("No Files selected"); return }
             this.status("File(s) uploading...");
 
+            //create a new form
             const formData = new FormData()
             formData.append('servertoken', this.servertoken);
             formData.append('servername', this.servername);
@@ -121,18 +126,16 @@ export default {
                 data: formData, 
                 headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
                 })
-                .then( response => {
-                    this.status(response.data.message);
-                    console.log(response.data);
-
-                    if (response.data.status === "success") {
-                        this.status("Files sent");
-                        setTimeout(this.toggleUpload, 2000);  
-                    } 
-
-                }).catch( err => {console.log(err)});
+            .then( response => {
+                this.status(response.data.message);
+                if (response.data.status === "success") {
+                    this.status("Files sent");
+                    setTimeout(this.toggleUpload, 2000);  
+                } 
+            }).catch( err => {console.log(err)});
         },  
 
+        //sets reactive variable "files" onChange of the file input field
         handleFileUpload( event ){
             this.files = event.target.files;
         },
@@ -148,33 +151,35 @@ export default {
                 }).catch( err => {console.log(err)});
         },
 
-
+        //triggers exam mode on specified clients
         startExam(who){
-            this.status("starting exam mode");
+            
             if (who == "all"){
-                if ( studentList.length <= 0 ) { this.status("no clients connected"); console.log("no clients connected") }
+
+                if ( this.studentlist.length <= 0 ) { this.status("no clients connected"); console.log("no clients connected") }
                 else {  
-                    studentList.forEach( (student) => {
+                    this.status("starting exam mode for all clients");
+                    this.studentlist.forEach( (student) => {
                         //check exam mode for students - dont initialize twice
+                        console.log(student)
                         if (student.exammode){ return; }
                         axios.get(`http://${student.clientip}:3000/client/control/exammode/start/${student.token}`)
-                            .then( response => {
-                                this.status(response.data.message);
-                                console.log(response.data);
-                            }).catch(error => {console.log(error)});
+                        .then( response => {
+                            this.status(response.data.message);
+                            console.log(response.data);
+                        }).catch(error => {console.log(error)});
                     });
                 }
             }
         },
 
-
-
+        // exit exam mode on all specified cilents
         endExam(who){
             this.status("stopping exam mode");
             if (who == "all"){
-                if ( studentList.length <= 0 ) { this.status("no clients connected"); console.log("no clients connected") }
+                if ( this.studentlist.length <= 0 ) { this.status("no clients connected"); console.log("no clients connected") }
                 else {  
-                    studentList.forEach( (student) => {
+                    this.studentlist.forEach( (student) => {
                         axios.get(`http://${student.clientip}:3000/client/control/exammode/stop/${student.token}`)
                         .then( async (response) => {
                             this.status(response.data.message);
@@ -183,11 +188,7 @@ export default {
                     });
                 }
             }
-
         },
-
-
-
 
         // get finished exams (ABGABE) from students
         getFiles(who){
@@ -205,9 +206,6 @@ export default {
                 }
             }
         },
-
-
-
 
         //remove student from exam
         kick(studenttoken, studentip){
@@ -234,7 +232,6 @@ export default {
                 }).catch(error => {console.log(error)});
         },
 
-
         // make upload div visible or hide it
         toggleUpload(){
             let status =  $("#uploaddiv").css("display");
@@ -245,8 +242,7 @@ export default {
             else {  $("#uploaddiv").css("display","none"); }
         },
 
-
-        //validate a specific token
+        // (dummy function - validate a specific token - trigger notification on client)
         async task2(token, ip){
              axios.get(`http://${ip}:3000/client/control/tokencheck/${token}`)
             .then(  response => {
@@ -254,7 +250,7 @@ export default {
             }).catch(error => {console.log(error)});
         },
 
-        //show status message
+        // show status message
         async status(text){  
             $("#statusdiv").text(text)
             $("#statusdiv").fadeIn("slow")
@@ -271,9 +267,9 @@ export default {
     mounted() {  // when ready
         $("#statusdiv").fadeOut("slow")
         this.fetchInfo();
-        this.fetchinterval = setInterval(() => { this.fetchInfo() }, 2000)
+        this.fetchinterval = setInterval(() => { this.fetchInfo() }, 4000)
     },
-    beforeUnmount() {
+    beforeUnmount() {  //when leaving
          clearInterval( this.fetchinterval )
     },
 }

@@ -113,12 +113,10 @@ export default {
                 this.clientinfo = response.data.clientinfo;
                 this.serverlist = response.data.serverlist;
                 this.token = this.clientinfo.token;
-
                 if (this.clientinfo && this.clientinfo.token){  // if client is already registered disable button (this is also handled on api level)
                     let registerbuttons =  document.getElementsByName("register");
                     registerbuttons.forEach( button => {button.disabled = true; });
                 }
-
             })
             .catch( err => {console.log(err)});
         },      
@@ -130,10 +128,9 @@ export default {
             await axios.get(`http://localhost:3000/client/control/register/${serverip}/${servername}/${this.pincode}/${this.username}`)
             .then( response => { 
                 this.status(response.data.message);
-            });
+                console.log(response.data.message);
+            }).catch( err => console.log(err));
         },
-
-
 
         
         //show status message

@@ -11,7 +11,7 @@ import path from 'path'
 
 
 /**
- *  starts an exam server instance
+ * STARTS an exam server instance
  * @param servername the chosen name (for example "mathe")
  * @param pin the pin code used to authenticate
  */
@@ -31,8 +31,34 @@ import path from 'path'
 })
 
 
+
 /**
- * checks serverpassword
+ * STOPS an exam server instance
+ * @param servername the name of the exam server in question
+ * @param csrfservertoken the servers csrf token needed to process the request (generated and transferred to the webbrowser on login) 
+ */
+ router.get('/stopserver/:servername/:csrfservertoken', function (req, res, next) {
+  const servername = req.params.servername
+  const mcServer = config.examServerList[servername]
+
+  if (mcServer && req.params.csrfservertoken === mcServer.serverinfo.servertoken) {
+    clearInterval(mcServer.broadcastInterval)
+    mcServer.server.close();
+    //delete mcServer
+    delete config.examServerList[servername]
+    res.send( {sender: "server", message: "exam server stopped", status: "success"})
+
+    
+  }
+})
+
+
+
+
+
+
+/**
+ * checks serverpassword for login via VUE ROUTER
  * @param servername the chosen name (for example "mathe")
  * @param passwd the password needed to enter the dashboard
  **/
@@ -66,26 +92,6 @@ import path from 'path'
 
 
 
-/**
- *  sends a list of all connected students { clientname: clientname, token: token, clientip: clientip }
- * @param servername the name of the exam server in question
- * @param csrfservertoken the servers csrf token needed to process the request (generated and transferred to the webbrowser on login) 
- */
- router.get('/stopserver/:servername/:csrfservertoken', function (req, res, next) {
-  const servername = req.params.servername
-  const mcServer = config.examServerList[servername]
-
-  if (mcServer && req.params.csrfservertoken === mcServer.serverinfo.servertoken) {
-    clearInterval(mcServer.broadcastInterval)
-    mcServer.server.close();
-    //delete mcServer
-    delete config.examServerList[servername]
-    res.send( {sender: "server", message: "exam server stopped", status: "success"})
-
-    
-  }
-})
-
 
 
 
@@ -95,6 +101,8 @@ import path from 'path'
 
 /**
  *  sends a list of all running exam servers
+ *  TODO: serverlist should contain ALL servers in a local network
+ *  use multicastclient on serverside to fill serverlist too (not just for clients)
  */
  router.get('/serverlist', function (req, res, next) {
   let serverlist = []
@@ -104,6 +112,76 @@ import path from 'path'
   
   res.send({serverlist:serverlist})
 })
+
+
+
+/**
+ *  sends a list of all connected students { clientname: clientname, token: token, clientip: clientip }
+ * @param servername the name of the exam server in question
+ * @param csrfservertoken the servers csrf token needed to process the request (generated and transferred to the webbrowser on login) 
+ */
+ router.get('/studentlist/:servername/:csrfservertoken', function (req, res, next) {
+  const servername = req.params.servername
+  const mcServer = config.examServerList[servername]
+
+  if (mcServer && req.params.csrfservertoken === mcServer.serverinfo.servertoken) {
+    res.send({studentlist: mcServer.studentList})
+  }
+  else {
+    res.send({sender: "server", message:"server does not exist", status: "error"} )
+  }
+})
+
+
+
+
+/**
+ *  REGISTER CLIENT
+ *  checks pin code, creates csrf token for client, answeres with token
+ *
+ *  @param pin  the pincode to connect to the serverinstance
+ *  @param clientname the name of the student
+ *  @param clientip the clients ip address for api calls
+ */
+ router.get('/registerclient/:servername/:pin/:clientname/:clientip', function (req, res, next) {
+  let status = false
+  const clientname = req.params.clientname
+  const clientip = req.params.clientip
+  const pin = req.params.pin
+  const servername = req.params.servername
+  const token = `csrf-${v4()}`
+
+  const mcServer = config.examServerList[servername] // get the multicastserver object
+  if (!mcServer) {  return res.send({sender: "server", message:"server does not exist", status: "error"} )  }
+
+
+  if (pin === mcServer.serverinfo.pin) {
+    let registeredClient = mcServer.studentList.find(element => element.clientname === clientname)
+
+    if (!registeredClient) {   // create client object
+      console.log('adding new client')
+      const client = {   
+        clientname: clientname,
+        token: token,
+        clientip: clientip,
+        timestamp: new Date().getTime(),
+        focus: true,
+        exammode: false
+      }
+
+      mcServer.studentList.push(client)
+      return res.json({sender: "server", message:"client registered on server", status: "success", token: token})  // on success return client token (auth needed for server api)
+    }
+    else {
+      return res.json({sender: "server", message:"client already registered", status: "error"})
+    }
+   
+  }
+  else {
+    res.json({sender: "server", message:"wrong server pin", status: "error"})
+  }
+})
+
 
 
 
@@ -141,23 +219,6 @@ import path from 'path'
 
 
 
-/**
- *  sends a list of all connected students { clientname: clientname, token: token, clientip: clientip }
- * @param servername the name of the exam server in question
- * @param csrfservertoken the servers csrf token needed to process the request (generated and transferred to the webbrowser on login) 
- */
- router.get('/studentlist/:servername/:csrfservertoken', function (req, res, next) {
-  const servername = req.params.servername
-  const mcServer = config.examServerList[servername]
-
-  if (mcServer && req.params.csrfservertoken === mcServer.serverinfo.servertoken) {
-    res.send({studentlist: mcServer.studentList})
-  }
-  else {
-    res.send({sender: "server", message:"server does not exist", status: "error"} )
-  }
-})
-
 
 
 /**
@@ -167,10 +228,15 @@ import path from 'path'
  * @param servername the name of the server at which the student is registered
  * @param token the students token to search and update the entry in the list
  */
- router.post('/studentlist/update/:servername/:token', function (req, res, next) {
-  const token = req.params.token
-  const servername = req.params.servername
+ router.post('/studentlist/update', function (req, res, next) {
+  const clientinfo = JSON.parse(req.body.clientinfo)
+
+  const token = clientinfo.token
+  const exammode = clientinfo.exammode
+  const servername = clientinfo.servername
   const mcServer = config.examServerList[servername]
+
+
 
   if (!mcServer) {  return res.send({sender: "server", message:"server does not exist", status: "error"} )  }
   if ( !checkToken(token, "server", mcServer) ) {return res.send({ sender: "server", message:"token is not valid", status: "error" }) } //check if the student is registered on this server
@@ -184,7 +250,9 @@ import path from 'path'
   }
  
   let registeredClient = mcServer.studentList.find(element => element.token === token)
+  // do not update all of the clientinfo (leave some decisions to the server - like 'focus' for example)
   registeredClient.timestamp = new Date().getTime()
+  registeredClient.exammode = exammode  
   res.send({sender: "server", message:'Student updated', status:"success" })
 })
 
@@ -206,8 +274,6 @@ import path from 'path'
   if (!mcServer) {  return res.send({sender: "server", message:"server does not exist", status: "error"} )  }
   if ( !checkToken(token, "server", mcServer) ) { return res.json({ sender: "server", message:"token is not valid", status: "error" }) } //check if the student is registered on this server
 
-
-
   let registeredClient = mcServer.studentList.find(element => element.token === token)
   
   if (state === "false"){
@@ -219,54 +285,6 @@ import path from 'path'
     return res.json({ sender: "server", message:"student status restored", status: "success" })
   }
 
-})
-
-
-
-/**
- *  checks pin code, creates csrf token for client, answeres with token
- *
- *  @param pin  the pincode to connect to the serverinstance
- *  @param clientname the name of the student
- *  @param clientip the clients ip address for api calls
- */
- router.get('/registerclient/:servername/:pin/:clientname/:clientip', function (req, res, next) {
-  let status = false
-  const clientname = req.params.clientname
-  const clientip = req.params.clientip
-  const pin = req.params.pin
-  const servername = req.params.servername
-  const token = `csrf-${v4()}`
-
-  const mcServer = config.examServerList[servername] // get the multicastserver object
-  if (!mcServer) {  return res.send({sender: "server", message:"server does not exist", status: "error"} )  }
-
-
-  if (pin === mcServer.serverinfo.pin) {
-    let registeredClient = mcServer.studentList.find(element => element.clientname === clientname)
-
-    if (!registeredClient) {   // create client object
-      console.log('adding new client')
-      const client = {   
-        clientname: clientname,
-        token: token,
-        clientip: clientip,
-        timestamp: new Date().getTime(),
-        focus: true,
-      }
-
-      mcServer.studentList.push(client)
-      return res.json({sender: "server", message:"client registered on server", status: "success", token: token})  // on success return client token (auth needed for server api)
-    }
-    else {
-      return res.json({sender: "server", message:"client already registered", status: "error"})
-    }
-   
-  }
-  else {
-    res.json({sender: "server", message:"wrong server pin", status: "error"})
-  }
-  
 })
 
 

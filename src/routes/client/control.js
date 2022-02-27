@@ -3,9 +3,6 @@ const router = Router()
 import config from '../../config.js'
 import multiCastclient from '../../classes/multicastclient.js'
 import path from 'path'
-
-
-
 import axios from 'axios'
 import nodenotify  from 'node-notifier'
 import ip from 'ip'
@@ -70,9 +67,11 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
   const token = req.params.token
   if ( checkToken(token) ) {
     
+    multiCastclient.clientinfo.exammode = true
+
     //start chromium in kiosk mode on exam landing page here https://peter.sh/experiments/chromium-command-line-switches/
     let kiosk = ""
-    if (!development){ kiosk = "--kiosk" }
+    if (!config.development){ kiosk = "--kiosk" }
     (async () => {
       multiCastclient.browser = await puppeteer.launch({
         headless: false,
@@ -99,12 +98,9 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
         ignoreDefaultArgs: ["--enable-automation"]
       });
       const page = await multiCastclient.browser.newPage();
-      await page.goto(`http://localhost:3000/client/ui/exammode/${token}`);
-      multiCastclient.clientinfo.exammode = true
+      await page.goto(`http://localhost:3000/editor/${token}`);
     })();
-
     res.json({ sender: "client",message:"exam initialized", status:"success" })
-
   }
   else {
     res.json({ sender: "client", message:"token is not valid", status: "error" })
@@ -221,12 +217,12 @@ export default router
 
 //do not allow requests from external hosts
 function requestSourceAllowed(req,res){
-    if (req.ip !== "::1" && req.ip !== "127.0.0.1"){ 
-      console.log("Blocked request from remote Host"); 
-      res.json('Request denied') 
-      return false
-    }   
-    return true
+    if (req.ip == "::1"  || req.ip == "127.0.0.1" || req.ip.includes('127.0.0.1') ){ 
+      return true
+    }  
+    console.log(`Blocked request from remote Host: ${req.ip}`); 
+    res.json('Request denied') 
+    return false 
 }
 
 /**

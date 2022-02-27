@@ -7,9 +7,7 @@ const config = {
   multicastClientPort: 6024,
   hostip: "0.0.0.0",
   development: true,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
-  examServerList: {
-  },
-  multicastclient: null,
-  clientinfo: "test"
+  examServerList: {},
+  clientinfo: {}
 }
 export default config
