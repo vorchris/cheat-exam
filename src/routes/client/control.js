@@ -78,6 +78,7 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
         defaultViewport: null,
         args: [
           "--bwsi",
+          "--login-user=incognito",
           "--force-dark-mode",
           "--disable-crash-reporter",
           "--force-app-mode",
@@ -97,7 +98,8 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
         ],
         ignoreDefaultArgs: ["--enable-automation"]
       });
-      const page = await multiCastclient.browser.newPage();
+      const pages = await multiCastclient.browser.pages();
+      const page = pages[0]
       await page.goto(`http://localhost:3000/editor/${token}`);
     })();
     res.json({ sender: "client",message:"exam initialized", status:"success" })

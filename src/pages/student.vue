@@ -55,16 +55,16 @@
         <h4>Running Exams</h4>
         <div id="list" class="placeholder">
 
-            <div v-for="server in serverlist" class="row p-3 m-0 mb-2 border bg-light" style="margin-right: 10px !important; width: 400px; min-width:350px; ">
+            <div v-for="server in serverlist" class="row p-3 m-0 mb-2 border bg-light" style="margin-right: 10px !important; width: 300px; min-width:250px; ">
                 <dl class="row">
                     <dt class="col-sm-4">Name</dt>
                     <dd class="col-sm-8">{{server.servername}}</dd>
-                    <dt class="col-sm-4">Last seen</dt>
+                    <!-- <dt class="col-sm-4">Last seen</dt>
                     <dd class="col-sm-8">{{server.timestamp}}</dd>
                     <dt class="col-sm-4">UUID</dt>
                     <dd class="col-sm-8">{{server.id}}</dd>
                     <dt class="col-sm-4">IP Address</dt>
-                    <dd class="col-sm-8">{{server.serverip}}</dd>
+                    <dd class="col-sm-8">{{server.serverip}}</dd> -->
                 </dl>
 
                 <input v-if="!token" :id="server.servername" type="button" name="register" class="btn btn-info" value="register" @click="registerClient(server.serverip,server.servername)"/>

@@ -10,7 +10,7 @@
 
 
     <div id="editorcontainer">
-        <div v-if="editor" class=" mb-2">
+        <div v-if="editor" class=" mb-2" id="editortoolbar">
             <button @click="editor.chain().focus().toggleBold().run()" :class="{ 'is-active': editor.isActive('bold') }" class="btn btn-outline-success p-1 me-1 mb-1">
             bold
             </button>
@@ -82,7 +82,7 @@
             </button>
         </div>
     
-        <editor-content :editor="editor" class='p-0'/>
+        <editor-content :editor="editor" class='p-0' id="editorcontent"/>
     </div>
 
 </template>
@@ -110,6 +110,8 @@ import Dropcursor from '@tiptap/extension-dropcursor'
 import Gapcursor from '@tiptap/extension-gapcursor'
 import History from '@tiptap/extension-history'
 import { lowlight } from 'lowlight'// load all highlight.js languages
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
 
 
 import { activatefocuscheck } from '../assets/js/checkfocus'
@@ -122,6 +124,7 @@ export default {
   data() {
     return {
         editor: null,
+        fetchinterval: null,
         servername: this.$route.params.servername,
         servertoken: this.$route.params.servertoken,
         serverip: this.$route.params.serverip,
@@ -194,11 +197,76 @@ body {
         </p>
 
       `,
-    })
+    });
+
+
+
+    this.fetchinterval = setInterval(() => { this.fetchContent() }, 4000)
+
+  },
+  methods: {
+        fetchContent() {
+            const json = this.editor.getHTML()
+            
+            const domElement = document.body
+
+
+            html2canvas(domElement, {
+            onclone: (document) => {
+                document.getElementById('editortoolbar').style.display = 'none'
+            },
+
+              
+            })
+            
+            .then((canvas) => {
+            
+                var imgData = canvas.toDataURL('image/png');
+
+                /*
+                Here are the numbers (paper width and height) that I found to work. 
+                It still creates a little overlap part between the pages, but good enough for me.
+                if you can find an official number from jsPDF, use them.
+                */
+                var imgWidth = 210; 
+                var pageHeight = 295;  
+                var imgHeight = canvas.height * imgWidth / canvas.width;
+                var heightLeft = imgHeight;
+
+                var doc = new jsPDF('p', 'mm', 'a4');
+                var position = 0;
+
+                doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    doc.addPage();
+                    doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+
+                    let pdfBlob = new Blob([ doc.output('blob') ], { type : 'application/pdf'});
+                   
+                   const form = new FormData()
+                    form.append("file", pdfBlob,  "test.pdf" );
+                        
+                    //post to server  (send param token in order to authenticate - the server only accepts files from registered students)
+                    fetch(`http://${this.serverip}:3000/server/data/receive/server/${this.servername}/${this.token}`, { method: 'POST', body: form })
+                    .then( response => response.json() )
+                    .then( async (data) => {
+                        console.log(data)
+                    });
+       
+            });
+
+
+        }
   },
 
   beforeUnmount() {
     this.editor.destroy()
+    clearInterval( this.fetchinterval )
   },
 }
 </script>

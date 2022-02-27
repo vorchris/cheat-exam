@@ -199,7 +199,6 @@ export default {
                     this.studentlist.forEach( (student) => {
                         axios.get(`http://${student.clientip}:3000/client/data/abgabe/send/${student.token}`)
                         .then( response => {
-                            this.status(response.data.status);
                             console.log(response.data.message);
                         }).catch(error => {console.log(error)});
                     });

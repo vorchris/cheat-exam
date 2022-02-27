@@ -11,7 +11,6 @@ import fs from 'fs'
 
 
 
-
 /**
  * ZIPs and sends all files from a CLIENTS workdirectory TO the registered exam SERVER
  * @param token the students token (needed to accept this "abgabe" request from the server)
@@ -25,6 +24,18 @@ import fs from 'fs'
     else {
         console.log(`token checked - preparing file to send to server: ${serverip}`)
 
+        const browser = multiCastclient.browser
+        if (browser) {  // it may or may not be active
+            var pages = await browser.pages();
+            if (pages[0]) {
+                // evaluate will run the function in the page context
+                await pages[0].evaluate(_ => { 
+                    document.body.style.background = '#000';
+                });
+            }
+        }
+  
+       
         //zip config.work directory
         let zipfilename = multiCastclient.clientinfo.name.concat('.zip')
         let zipfilepath = path.join(config.tempdirectory, zipfilename);
@@ -41,8 +52,10 @@ import fs from 'fs'
         fetch(`http://${serverip}:3000/server/data/receive/server/${servername}/${token}`, { method: 'POST', body: form })
             .then( response => response.json() )
             .then( async (data) => {
-                res.json(data)
+                console.log(data)
             });
+        
+        
     }
 })
 

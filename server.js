@@ -11,6 +11,7 @@ import {clientRouter} from './src/routes/clientroutes.js'   // express router ro
 import {serverRouter} from './src/routes/serverroutes.js'
 import cors from 'cors'
 
+
 const __dirname = path.resolve();
 const publicdirectory = path.join(__dirname, config.publicdirectory);
 //const limiter = rateLimit({ windowMs: 1 * 60 * 1000,  max: 300, standardHeaders: true, legacyHeaders: false,})

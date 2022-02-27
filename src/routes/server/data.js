@@ -80,6 +80,7 @@ import fs from 'fs'
         console.log("Receiving File(s)...")
         let errors = 0
         for (const [key, file] of Object.entries( req.files)) {
+            console.log(file)
             let absoluteFilepath = join(config.workdirectory, file.name);
             file.mv(absoluteFilepath, (err) => {  
                 if (err) { errors++; return {status: "client couldn't store file"} }
@@ -106,7 +107,6 @@ export default router
         let tokenexists = false
         console.log("checking if student is already registered on this server")
         mcserver.studentList.forEach( (student) => {
-            console.log(student)
             if (token === student.token) {
                 tokenexists = true
             }

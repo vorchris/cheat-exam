@@ -31,19 +31,19 @@ async function checkToken(to, from){
         let clientinfo = await axios.get(`http://localhost:3000/client/control/getinfo`)
         .then(response => {  return response.data.clientinfo  })
         .catch( err => {console.log(err)})
-        console.log(clientinfo)
+       
         to.params.serverip = clientinfo.serverip; 
         to.params.servername = clientinfo.servername; 
         to.params.servertoken = clientinfo.servertoken
 
-      console.log("token ok"); 
-      return true
+        return true
     }
     else {  console.log("token error"); return { path: '/student'} }
 }
 
 
-//ATTENTION!!! hier sollte statt localhost die serverIP genutzt werden.. aber woher nehmen?
+//ATTENTION!!! checkpasswd wird eigentlich nur vom server aus genutzt.. das kann auch ein remote server sein
+// was machen wir hier mit "localhost" .. ist das ok wegs SSR ? serverIP ??
 async function checkPasswd(to){
     let res = await axios.get(`http://localhost:3000/server/control/checkpasswd/${to.params.servername}/${to.params.passwd}`)
     .then(response => {  return response.data  })
