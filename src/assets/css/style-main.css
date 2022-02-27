@@ -5,7 +5,6 @@
    
 }
 body {
-
     height: -webkit-fill-available;
     overflow-x: auto;
     overflow-y: hidden;
@@ -15,22 +14,28 @@ body {
     height: 100vh;
 }
 
-
 a {
   color: #2ccaa8;
   text-decoration: none;
   transition: .3s;
 }
+
 a:hover {
     color:#2ccaa8a6;
 }
+
 .white {
     filter: invert(100%) ;
 }
+
 #content {
     height: 100%;
     width: 100%;
    
+}
+
+.hidden {
+    display: none;
 }
 
 input:focus::placeholder {
@@ -45,11 +50,12 @@ input:focus::placeholder {
     margin-left: -200px;
     width: 400px;
     height: 150px;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 1);
     border: 1px solid rgba(255, 255, 255, 0.589);
     box-shadow: 0 0 15px rgba(22, 9, 9, 0.589);
     padding: 10px;
     border-radius: 12px;
+    z-index:9999;
 }
 #status {
     padding : 8px;
@@ -105,7 +111,6 @@ input:focus::placeholder {
 
 .disabled {
     filter: grayscale(100%) blur(1px) contrast(0.3) brightness(1.5) ;
-
 }
 
 #editorcontainer{
@@ -120,12 +125,10 @@ input:focus::placeholder {
     width: 90vw;
     margin: auto auto;
 }
-
-
 
 .focuswarn {
-  
-    box-shadow: 0 0 18px inset #dc3545 !important;
+    box-shadow: 0 0 18px inset #86121d !important;
+    background-color: rgba(255,141,141,0.6);
 }
 
 .fadeinslow {

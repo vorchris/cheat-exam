@@ -1,9 +1,9 @@
  <template>
   <div class="w-100 p-3 text-white bg-dark shadow text-right">
-      <router-link to="/" class="text-white m-1">
+      
           <img src="/src/assets/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
           <span class="fs-4 align-middle me-4 ">Next-Exam</span>
-      </router-link>
+      
       <span class="fs-4 align-middle" style="float: right">Writer</span>
   </div>
 
@@ -98,8 +98,6 @@ import CodeBlockComponent from '../components/CodeBlockComponent.vue'
 import Blockquote from '@tiptap/extension-blockquote'
 import BulletList from '@tiptap/extension-bullet-list'
 import HardBreak from '@tiptap/extension-hard-break'
-
-
 import ListItem from '@tiptap/extension-list-item'
 import HorizontalRule from '@tiptap/extension-horizontal-rule'
 import Heading from '@tiptap/extension-heading'
@@ -114,6 +112,8 @@ import History from '@tiptap/extension-history'
 import { lowlight } from 'lowlight'// load all highlight.js languages
 
 
+import { activatefocuscheck } from '../assets/js/checkfocus'
+
 export default {
   components: {
     EditorContent,
@@ -121,11 +121,18 @@ export default {
 
   data() {
     return {
-      editor: null,
+        editor: null,
+        servername: this.$route.params.servername,
+        servertoken: this.$route.params.servertoken,
+        serverip: this.$route.params.serverip,
+        token: this.$route.params.token,
     }
   },
 
   mounted() {
+    // run focuscheck function (give it 'this' in order to know about reactive vars from this view )
+    activatefocuscheck.call('', this)  // aus einem mir momentan nicht zugänglichen grund wird der erste parameter hier nicht wie erwartet als "this" an die funktion übergeben
+
     this.editor = new Editor({
         extensions: [
             Blockquote,
@@ -162,24 +169,28 @@ export default {
           Hi there,
         </h2>
         <p>
-          this is a <em>basic</em> example of <strong>tiptap</strong>. Sure, there are all kind of basic text styles you’d probably expect from a text editor. But wait until you see the lists:
+          this is a <em>basic</em> example of <strong>tiptap</strong>. 
+          <br>Next up: A bullet list:
         </p>
         <ul>
           <li>
-            That’s a bullet list with one …
+            Free Open Source Software
           </li>
           <li>
-            … or two list items.
+            Plattform independent
           </li>
         </ul>
         <p>
-          Isn’t that great? And all of that is editable. But wait, there’s more. Let’s try a code block:
+            Let’s try a code block:
         </p>
-        <pre><code class="language-css">body {
-  display: none;
-}</code></pre>
+        <pre><code class="language-css">
+body {
+    background-color: rgba(200,200,24,1);
+}
+</code></pre>
         <p>
-          I know, I know, this is impressive. It’s only the tip of the iceberg though. Give it a try and click a little bit around. Don’t forget to check the other examples too.
+        Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. 
+
         </p>
 
       `,

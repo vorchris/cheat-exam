@@ -1,13 +1,13 @@
 
 import { Router } from 'express'
 const router = Router()
-import * as config from '../../config.js'
+import config from '../../config.js'
 import multiCastclient from '../../classes/multicastclient.js'
-import { join } from 'path'
+import path from 'path'
 import fetch from 'node-fetch'
 import FormData from 'form-data'
 import archiver from 'archiver'
-import { createReadStream, createWriteStream } from 'fs' 
+import fs from 'fs' 
 
 
 
@@ -27,12 +27,12 @@ import { createReadStream, createWriteStream } from 'fs'
 
         //zip config.work directory
         let zipfilename = multiCastclient.clientinfo.name.concat('.zip')
-        let zipfilepath = join(config.tempdirectory, zipfilename);
+        let zipfilepath = path.join(config.tempdirectory, zipfilename);
         await zipDirectory(config.workdirectory, zipfilepath)
 
         //append file data to form
         const form = new FormData()
-        form.append(zipfilename, createReadStream(zipfilepath), {
+        form.append(zipfilename, fs.createReadStream(zipfilepath), {
             contentType: 'application/zip',
             filename: zipfilename,
         });
@@ -68,13 +68,13 @@ import { createReadStream, createWriteStream } from 'fs'
         console.log("Receiving File(s)...")
         let errors = 0
         for (const [key, file] of Object.entries( req.files)) {
-            let absoluteFilepath = join(config.workdirectory, file.name);
+            let absoluteFilepath = path.join(config.workdirectory, file.name);
             file.mv(absoluteFilepath, (err) => {  
-                if (err) { errors++; return {status: "client couldn't store file"} }
-                return {status: "success"}
+                if (err) { errors++; console.log( "client couldn't store file") }
+                console.log( "file(s) received")
             });
         }
-        res.json({ status: "done", errors: errors, client: multiCastclient.clientinfo  })
+        res.json({sender: "client", message:"file(s) received", status: "success", errors: errors, client: multiCastclient.clientinfo  })
     }
 })
 
@@ -97,7 +97,7 @@ export default router
  */
  function zipDirectory(sourceDir, outPath) {
     const archive = archiver('zip', { zlib: { level: 9 }});
-    const stream = createWriteStream(outPath);
+    const stream = fs.createWriteStream(outPath);
   
     return new Promise((resolve, reject) => {
       archive

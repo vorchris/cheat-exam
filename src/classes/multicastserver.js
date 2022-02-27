@@ -1,6 +1,6 @@
 import { v4 } from 'uuid'
 import { createSocket } from 'dgram'
-import * as config from '../config.js'
+import config from '../config.js'
 import ip from 'ip'
 
 /**
@@ -49,7 +49,7 @@ class MulticastServer {
       timestamp: 0,
       id: v4(),
       ip: ip.address(),
-      token: `server-${v4()}`
+      servertoken: `server-${v4()}`
     }
     return message
   }

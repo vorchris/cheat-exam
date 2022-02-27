@@ -5,7 +5,7 @@ const router = Router()
 import { join } from 'path'
 import fetch from 'node-fetch'
 import FormData from 'form-data'
-import * as config from '../../config.js'
+import config from '../../config.js'
 import archiver from 'archiver'
 import fs from 'fs' 
 
@@ -16,19 +16,19 @@ import fs from 'fs'
  * @param destination who should we send the file(s) to? all students, specific student, server (get)
  */
  router.post("/send/:destination", (req, res) => { 
+
     const destination = req.params.destination
     const form = new FormData()
     const servername = req.body.servername
     const mcServer = config.examServerList[servername]
-
-    
-    if (!req.body.csrfservertoken === mcServer.serverinfo.token) { return res.send({status:"Access denied"})  }  // csrf check
-    if (!req.files) { return res.send({status:"No files were uploaded."});  }
+        
+    if (!req.body.servertoken === mcServer.serverinfo.servertoken) { return res.send({status:"Access denied"})  }  // csrf check
+    if (!req.files) { return res.send({sender: "server", message:"No files were uploaded.", status:"error"});  }
  
-    
-    if (Array.isArray(req.files.file)){  //multiple files
-        console.log("sending multiple files")
-        req.files.file.forEach( (file, index) => {
+
+    if (Array.isArray(req.files.files)){  //multiple files
+        console.log("preparing multiple files")
+        req.files.files.forEach( (file, index) => {
             form.append(index, file.data, {
                 contentType: file.mimetype,
                 filename: file.name,
@@ -36,7 +36,8 @@ import fs from 'fs'
         });
     }
     else {
-        let file = req.files.file
+        console.log("preparing file")
+        let file = req.files.files
         form.append(file.name, file.data, {
             contentType: file.mimetype,
             filename: file.name,
@@ -44,7 +45,7 @@ import fs from 'fs'
     }
 
     if (destination == "all"){
-        if ( mcServer.studentList.length <= 0  ) { res.json({ status: "no clients connected"  }) }
+        if ( mcServer.studentList.length <= 0  ) { res.json({ sender: "server", message: "no clients connected", status:"error"  }) }
         else {  
         console.log("Sending POST Form Data to Clients")
         mcServer.studentList.forEach( (student) => {
