@@ -7,7 +7,7 @@
 body {
     height: -webkit-fill-available;
     overflow-x: auto;
-    overflow-y: hidden;
+    overflow-y: auto;
 }
 
 #app {

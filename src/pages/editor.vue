@@ -84,7 +84,7 @@
     
         <editor-content :editor="editor" class='p-0' id="editorcontent"/>
     </div>
-
+<div id="preview"></div>
 </template>
 
 <script>
@@ -115,6 +115,7 @@ import jsPDF from 'jspdf'
 
 
 import { activatefocuscheck } from '../assets/js/checkfocus'
+import $ from 'jquery'
 
 export default {
   components: {
@@ -134,7 +135,7 @@ export default {
 
   mounted() {
     // run focuscheck function (give it 'this' in order to know about reactive vars from this view )
-    activatefocuscheck.call('', this)  // aus einem mir momentan nicht zugänglichen grund wird der erste parameter hier nicht wie erwartet als "this" an die funktion übergeben
+    //activatefocuscheck.call('', this)  // aus einem mir momentan nicht zugänglichen grund wird der erste parameter hier nicht wie erwartet als "this" an die funktion übergeben
 
     this.editor = new Editor({
         extensions: [
@@ -192,76 +193,146 @@ body {
 }
 </code></pre>
         <p>
-        Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. 
+        1 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. 
 
         </p>
 
+ <p>2 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>3 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>4 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>5 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>6 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>7 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>8 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>9 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>10 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>11 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>12 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>13 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>14 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+        <p>
+            Let’s try a code block:
+        </p>
+        <pre><code class="language-css">
+body {
+    background-color: rgba(200,200,24,1);
+}
+</code></pre>
+        <p>
+        1 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. 
+
+        </p>
+
+ <p>2 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>3 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>4 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>5 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>6 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>7 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>8 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>9 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>10 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>11 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
+<p>12 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>13 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>14 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+
+UND AUS !!
       `,
     });
 
 
 
-    this.fetchinterval = setInterval(() => { this.fetchContent() }, 4000)
-
+    this.fetchinterval = setTimeout(() => { this.fetchContent() }, 1000)
+ 
   },
   methods: {
-        fetchContent() {
+
+
+        /** Converts the Editor View into a multipage PDF */
+        async fetchContent() {
             const json = this.editor.getHTML()
+                
+            let body = document.body;
+            let doc = new jsPDF('p', 'px','a4', true, true);   //orientation, unit for coordinates, format, onlyUsedFonts, compress
+            let pagenumber = 0;   // how many pdf pages can we get out of the total page height?
             
-            const domElement = document.body
-
-
-            html2canvas(domElement, {
-            onclone: (document) => {
-                document.getElementById('editortoolbar').style.display = 'none'
-            },
-
-              
-            })
-            
-            .then((canvas) => {
-            
-                var imgData = canvas.toDataURL('image/png');
-
-                /*
-                Here are the numbers (paper width and height) that I found to work. 
-                It still creates a little overlap part between the pages, but good enough for me.
-                if you can find an official number from jsPDF, use them.
-                */
-                var imgWidth = 210; 
-                var pageHeight = 295;  
-                var imgHeight = canvas.height * imgWidth / canvas.width;
-                var heightLeft = imgHeight;
-
-                var doc = new jsPDF('p', 'mm', 'a4');
-                var position = 0;
-
-                doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-
-                while (heightLeft >= 0) {
-                    position = heightLeft - imgHeight;
-                    doc.addPage();
-                    doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                    heightLeft -= pageHeight;
+            html2canvas(body, { scale: 1, x:0, y: 0,  scrollX: 0,  scrollY: 0,  windowWidth: 794,    //this sets the html body width for this canvas render testrun >> ATTENTION: windowHeight will change accordingly !!!
+                onclone: (document) => {
+                    document.getElementById('editortoolbar').style.display = 'none';   //hide toolbar
+                    let body = document.body;           
+                    let html = document.documentElement;
+                    // calculate NEW Height for rendering and set global variable
+                    this.windowHeight = Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight ); 
+                    pagenumber = Math.ceil(this.windowHeight / 1123);   // how many pdf pages can we get out of the total page height?
                 }
-
-                    let pdfBlob = new Blob([ doc.output('blob') ], { type : 'application/pdf'});
-                   
-                   const form = new FormData()
-                    form.append("file", pdfBlob,  "test.pdf" );
-                        
-                    //post to server  (send param token in order to authenticate - the server only accepts files from registered students)
-                    fetch(`http://${this.serverip}:3000/server/data/receive/server/${this.servername}/${this.token}`, { method: 'POST', body: form })
-                    .then( response => response.json() )
-                    .then( async (data) => {
-                        console.log(data)
+            }).then( async () => {
+                for (let i = 0; i < pagenumber; i++) {
+                    await new Promise( resolve => {
+                        html2canvas(body, {
+                            scale: 1,
+                            x:0,
+                            y: i * 1123,  // on every loop advance y-position by 1123 - why this number ? because gimp says the final pdf page in 96dpi has this height.. wtf ? jsPDF sucks hard!
+                            scrollX: 0,
+                            scrollY: 0,
+                            windowWidth: 794,    //this sets the html body width somehow
+                            windowHeight: this.windowHeight,  // we set the height for this rendering to the previously determined height
+                            onclone: (document) => {
+                                document.getElementById('editortoolbar').style.display = 'none'
+                            }
+                        }).then( canvas => {  // now we have a canvas that contains the whole website :-) !!
+                            let img = canvas.toDataURL('image/jpeg', 1);  // type, quality
+                            doc.addImage(img, 'JPG', 0, 0, 0, 0, i, 'FAST');    // imagedata, format if recognition fails, x, y ,w ,h, alias, compression, rotation
+                            if ( ( i + 1 ) == pagenumber) {  doc.save('menu.pdf');  } 
+                            else {                           doc.addPage();         }
+                            resolve();
+                        });
                     });
-       
+                }
             });
+        },
+    
 
-
-        }
   },
 
   beforeUnmount() {

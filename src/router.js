@@ -23,6 +23,7 @@ const routes = [
 
 
 async function checkToken(to, from){
+  return true
     let status = await axios.get(`http://localhost:3000/client/control/tokencheck/${to.params.token}`)
     .then(response => {  return response.data.status  })
     .catch( err => {console.log(err)})
