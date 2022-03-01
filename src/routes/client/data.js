@@ -73,9 +73,8 @@ import fs from 'fs'
  * @param token the students token - this has to be valid (coming from the examserver you registered) 
  * in order to process the request - DO NOT STORE FILES COMING from anywhere.. always check if token belongs to a registered student (or server)
  */
- router.post('/receive/client/:token', async (req, res, next) => {  
+ router.post('/receive/:token', async (req, res, next) => {  
     const token = req.params.token
-   
     if ( !checkToken(token) ) { res.json({ status: "token is not valid" }) }
     else {
         console.log("Receiving File(s)...")
@@ -95,7 +94,58 @@ import fs from 'fs'
 
 
 
+/**
+ * Stores file(s) to the workdirectory (files coming FROM the SERVER (Questions, tasks)  )
+ * @param token the students token - this has to be valid (coming from the examserver you registered) 
+ * in order to process the request - DO NOT STORE FILES COMING from anywhere.. always check if token belongs to a registered student (or server)
+ */
+ router.post('/store', async (req, res, next) => {  
+    if (!requestSourceAllowed(req, res)) return //only allow this api route on localhost (same machine)
+    
+    const htmlContent = req.body.editorcontent
+    const clientname = multiCastclient.clientinfo.name
+    const htmlfile = path.join(config.workdirectory, clientname+".html");
 
+    fs.writeFile(htmlfile, htmlContent, (err) => {if (err) console.log(err); });
+
+    console.log("saving students work to disk...")
+    let errors = 0
+    for (const [key, file] of Object.entries( req.files)) {
+        let absoluteFilepath = path.join(config.workdirectory, file.name);
+        file.mv(absoluteFilepath, (err) => {  
+        if (err) { errors++; console.log( "client couldn't store file") }
+                console.log( "file(s) received")
+        });
+    }
+    res.json({sender: "client", message:"file(s) saved", status: "success", errors: errors  })
+    
+})
+
+
+/**
+ * GET all files from workdirectory
+ */ 
+ router.post('/getfiles', function (req, res, next) {
+    const workdir = path.join(config.workdirectory,"/")
+    const filename = req.body.filename
+    if (filename) {
+        let filepath = path.join(workdir,filename)
+        fs.readFile(filepath, 'utf8' , (err, data) => {
+            if (err) {console.error(err);  return }
+            return res.json( data )
+        })
+    }
+    else {
+        let files=  fs.readdirSync(workdir, { withFileTypes: true })
+            .filter(dirent => dirent.isFile())
+            .map(dirent => dirent.name)
+            .filter( file => file.includes('html'))
+        return res.send( files )
+    }
+})
+  
+  
+  
 
 
 
@@ -135,6 +185,16 @@ function checkToken(token){
         return true
     }
     return false
+}
+
+//do not allow requests from external hosts
+function requestSourceAllowed(req,res){
+    if (req.ip == "::1"  || req.ip == "127.0.0.1" || req.ip.includes('127.0.0.1') ){ 
+      return true
+    }  
+    console.log(`Blocked request from remote Host: ${req.ip}`); 
+    res.json('Request denied') 
+    return false 
 }
   
   

@@ -49,7 +49,7 @@ import fs from 'fs'
         else {  
         console.log("Sending POST Form Data to Clients")
         mcServer.studentList.forEach( (student) => {
-            fetch(`http://${student.clientip}:3000/client/data/receive/client/${student.token}`, { method: 'POST', body: form })
+            fetch(`http://${student.clientip}:3000/client/data/receive/${student.token}`, { method: 'POST', body: form })
             .then( response => response.json() )
             .then( async (data) => {
                 res.json(data) 

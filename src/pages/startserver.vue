@@ -64,21 +64,14 @@
                     <input v-model="password" type="text" class="form-control" id="password" placeholder="password">
                 </div>
             </div>
-            <div class="col mb-4">
-                <button @click="startServer" id="examstart" class="btn btn-success" value="start exam">Start New Exam Server</button>
+            <div class="col mb-4" >
+                <button @click="startServer()" id="examstart" class="btn btn-success" value="start exam">Start New Exam Server</button>
             </div>
         </div>
         <div id="list" class="placeholder"></div>
-       
     </div>
-
 </div>
-
-
-
 </template>
-
-
 
 
 
@@ -99,17 +92,13 @@ export default {
     
     },
     methods: {
-
         async startServer(){
-            await axios.get(`http://localhost:3000/server/control/start/${this.servername}/${this.pincode}/${this.password}`)
+            await axios.get(`http://${window.location.host}/server/control/start/${this.servername}/${this.pincode}/${this.password}`)
             .then( async (response) => {
                 this.status(response.data.message);
                 await this.sleep(1000);
-                
                 this.$router.push({ path: '/serverlist' })
-
-               
-            });
+            }).catch(err => { this.status(err)});
         },
 
         //show status message
@@ -120,7 +109,6 @@ export default {
             $("#statusdiv").fadeOut("slow")
         },
 
-
         // implementing a sleep (wait) function
         sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
@@ -128,18 +116,17 @@ export default {
 
     },
     mounted() {  // when ready
-      
         if (this.prod) {  //clear input fields in production mode
             $("#servername").val("")
             $("#pin").val("")
             $("#password").val("")
         }
-       
     },
     beforeUnmount() {
          clearInterval( this.fetchinterval )
     },
 }
+
 
 
 </script>

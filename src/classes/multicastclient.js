@@ -20,7 +20,7 @@ class MulticastClient {
     this.refreshExamsIntervall = null
     this.browser = false
     this.clientinfo = {
-      name: false,
+      name: "Demouser",
       token: false,
       ip: false,
       serverip: false,

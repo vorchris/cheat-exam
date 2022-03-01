@@ -1,16 +1,19 @@
  <template>
   <div class="w-100 p-3 text-white bg-dark shadow text-right">
-      
-          <img src="/src/assets/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
-          <span class="fs-4 align-middle me-4 ">Next-Exam</span>
-      
-      <span class="fs-4 align-middle" style="float: right">Writer</span>
+        <img src="/src/assets/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
+        <span class="fs-4 align-middle me-4 ">{{clientname}}</span>
+        <span class="fs-4 align-middle" style="float: right">Next-Exam Writer</span>
   </div>
 
 
 
     <div id="editorcontainer">
-        <div v-if="editor" class=" mb-2" id="editortoolbar">
+        <div id="localfiles" class="mb-2">
+             <div v-for="file in localfiles" class="btn btn-info" @click="loadfile(file)">
+               {{file}}
+            </div>
+        </div>
+        <div v-if="editor" class="mb-2" id="editortoolbar">
             <button @click="editor.chain().focus().toggleBold().run()" :class="{ 'is-active': editor.isActive('bold') }" class="btn btn-outline-success p-1 me-1 mb-1">
             bold
             </button>
@@ -126,10 +129,13 @@ export default {
     return {
         editor: null,
         fetchinterval: null,
+        loadfilelistinterval: null,
         servername: this.$route.params.servername,
         servertoken: this.$route.params.servertoken,
         serverip: this.$route.params.serverip,
         token: this.$route.params.token,
+        clientname: this.$route.params.clientname,
+        localfiles: null
     }
   },
 
@@ -169,130 +175,94 @@ export default {
         ],
         content: `
      
-        <h2>
-          Hi there,
-        </h2>
-        <p>
-          this is a <em>basic</em> example of <strong>tiptap</strong>. 
-          <br>Next up: A bullet list:
-        </p>
-        <ul>
-          <li>
-            Free Open Source Software
-          </li>
-          <li>
-            Plattform independent
-          </li>
-        </ul>
-        <p>
-            Let’s try a code block:
-        </p>
-        <pre><code class="language-css">
+<h2>
+    Hi there,
+</h2>
+<p>
+    this is a <em>basic</em> example of <strong>tiptap</strong>. 
+    <br>Next up: A bullet list:
+</p>
+<ul>
+    <li>Free Open Source Software</li>
+    <li>Plattform independent</li>
+</ul>
+<p>Let’s try a code block:</p>
+<pre><code class="language-css">
 body {
     background-color: rgba(200,200,24,1);
 }
 </code></pre>
-        <p>
-        1 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. 
-
-        </p>
-
- <p>2 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p> 1 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>2 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
 <p>3 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
 <p>4 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
 <p>5 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
 <p>6 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
 <p>7 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
 <p>8 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
 <p>9 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
 <p>10 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
 <p>11 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
 <p>12 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
 <p>13 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
 <p>14 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-        <p>
-            Let’s try a code block:
-        </p>
-        <pre><code class="language-css">
+<p>Let’s try a code block: </p>
+<pre><code class="language-css">
 body {
     background-color: rgba(200,200,24,1);
 }
 </code></pre>
-        <p>
-        1 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. 
-
-        </p>
-
- <p>2 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>1 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>2 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
 <p>3 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
 <p>4 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
 <p>5 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
 <p>6 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
 <p>7 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
 <p>8 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
 <p>9 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
 <p>10 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
 <p>11 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
-<p>ENDEEEEEEEEEEEEEEEEEEEEE </p>
 <p>12 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
 <p>13 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
 <p>14 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
 
-UND AUS !!
-      `,
+ENDE !!`,
     });
 
 
-
-    this.fetchinterval = setTimeout(() => { this.fetchContent() }, 1000)
- 
+    this.fetchinterval = setInterval(() => { this.fetchContent() }, 60000)   //1*pro minute
+    this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 60000)   //1*pro minute
+    this.loadFilelist()
   },
   methods: {
 
+        loadFilelist(){
+            fetch(`http://localhost:3000/client/data/getfiles`, { method: 'POST' })
+            .then( response => response.json() )
+            .then( data => {
+                this.localfiles = data;
+            }).catch(err => { console.warn(err)});
+        },
+
+        // get file from local workdirectory and replace editor content with it
+        loadfile(file){
+            if(confirm(`This is going to replace the Editors content with the contents of ${file}!`)){
+                const form = new FormData()
+                form.append("filename", file)
+                //post to client (store pdf, store json, send to teacher)
+                fetch(`http://localhost:3000/client/data/getfiles`, { method: 'POST', body: form })
+                .then( response => response.json() )
+                .then( html => {
+                    this.editor.commands.clearContent(true)
+                    this.editor.commands.insertContent(html)
+                }).catch(err => { console.warn(err)});
+            }           
+        },
+
 
         /** Converts the Editor View into a multipage PDF */
-        async fetchContent() {
-            const json = this.editor.getHTML()
-                
+        async fetchContent() {              
             let body = document.body;
             let doc = new jsPDF('p', 'px','a4', true, true);   //orientation, unit for coordinates, format, onlyUsedFonts, compress
             let pagenumber = 0;   // how many pdf pages can we get out of the total page height?
@@ -301,6 +271,7 @@ UND AUS !!
             html2canvas(body, { scale: 1, x:0, y: 0,  scrollX: 0,  scrollY: 0,  windowWidth: 794,    //DRYRUN - this sets the html body width for this canvas render testrun >> ATTENTION: windowHeight will change accordingly !!!
                 onclone: (document) => {
                     document.getElementById('editortoolbar').style.display = 'none';   //hide toolbar
+                    document.getElementById('localfiles').style.display = 'none';   //hide filespicker
                     let body = document.body;           
                     let html = document.documentElement;
                     windowHeight = Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight );  // calculate NEW Height for rendering and set global variable
@@ -319,12 +290,28 @@ UND AUS !!
                             windowHeight: windowHeight,  // we set the height for this rendering to the previously determined height
                             onclone: (document) => {
                                 document.getElementById('editortoolbar').style.display = 'none'
+                                document.getElementById('localfiles').style.display = 'none';   //hide filespicker
                             }
                         }).then( canvas => {  // now we have a canvas that contains the whole website :-) !!
                             let img = canvas.toDataURL('image/jpeg', 1);  // type, quality
                             doc.addImage(img, 'JPG', 0, 0, 0, 0, i, 'FAST');    // imagedata, format if recognition fails, x, y ,w ,h, alias, compression, rotation
-                            if ( ( i + 1 ) == pagenumber) {  doc.save('menu.pdf');  } 
-                            else {                           doc.addPage();         }
+                            if ( ( i + 1 ) == pagenumber) {  // FINISHED
+                                const editorcontent = this.editor.getHTML();  //get content as JSON (für späteren re-import in den editor!?)
+                                const pdfBlob = new Blob([ doc.output('blob') ], { type : 'application/pdf'});
+
+                                const form = new FormData()
+                                form.append("file", pdfBlob,  `${this.clientname}.pdf` );
+                                form.append("editorcontent", editorcontent)
+
+                                //post to client (store pdf, store json, send to teacher)
+                                fetch(`http://localhost:3000/client/data/store`, { method: 'POST', body: form })
+                                .then( response => response.json() )
+                                .then( async (data) => {
+                                    console.log(data)
+                                }).catch(err => { console.warn(err)});
+                                
+                            } 
+                            else { doc.addPage(); }
                             resolve();
                         });
                     });
@@ -338,6 +325,7 @@ UND AUS !!
   beforeUnmount() {
     this.editor.destroy()
     clearInterval( this.fetchinterval )
+    clearInterval( this.loadfilelistinterval )
   },
 }
 </script>
