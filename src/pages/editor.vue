@@ -8,81 +8,53 @@
 
 
     <div id="editorcontainer">
+
+        <div id="uploaddiv" class="fadeinslow p-4">
+            <div class="mb-3 row">
+                <div class="mb-3 ">Wollen sie den Inhalt des Editors durch den Inhalt der Datei <b>{{selectedFile}}</b> ersetzen?</div>
+                <div class="col d-inlineblock btn btn-success m-1"  @click="toggleUpload()"        >cancel </div>
+                <div class="col d-inlineblock btn btn-danger m-1"  @click="loadfile(selectedFile)" >replace</div>
+            </div>
+        </div>
+
+
+
+
         <div id="localfiles" class="mb-2">
-             <div v-for="file in localfiles" class="btn btn-info" @click="loadfile(file)">
-               {{file}}
+             <div v-for="file in localfiles" class="btn btn-dark me-2" @click="selectedFile=file; toggleUpload()">
+              <img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file}} 
             </div>
         </div>
         <div v-if="editor" class="mb-2" id="editortoolbar">
-            <button @click="editor.chain().focus().toggleBold().run()" :class="{ 'is-active': editor.isActive('bold') }" class="btn btn-outline-success p-1 me-1 mb-1">
-            bold
-            </button>
-            <button @click="editor.chain().focus().toggleItalic().run()" :class="{ 'is-active': editor.isActive('italic') }" class="btn btn-outline-success p-1 me-1 mb-1">
-            italic
-            </button>
-            <button @click="editor.chain().focus().toggleStrike().run()" :class="{ 'is-active': editor.isActive('strike') }" class="btn btn-outline-success p-1 me-1 mb-1 ">
-            strike
-            </button>
-  
-            <button @click="editor.chain().focus().unsetAllMarks().run()" class="btn btn-outline-warning p-1 me-1 mb-1">
-            clear marks
-            </button>
-            <button @click="editor.chain().focus().clearNodes().run()" class="btn btn-outline-warning p-1 me-1 mb-1">
-            clear nodes
-            </button>
+            <button @click="editor.chain().focus().undo().run()" class="btn btn-outline-warning p-1 me-1 mb-1"><img src="/src/assets/img/svg/edit-undo.svg" class="white" width="22" height="22" ></button>
+            <button @click="editor.chain().focus().redo().run()" class="btn btn-outline-warning p-1 me-1 mb-1"><img src="/src/assets/img/svg/edit-redo.svg" class="white" width="22" height="22" > </button>
+            <button @click="editor.chain().focus().clearNodes().run()" class="btn btn-outline-warning p-1 me-3 mb-1"><img src="/src/assets/img/svg/format-remove-node.svg" class="white" width="22" height="22" ></button>
       
-     
-            <button @click="editor.chain().focus().toggleHeading({ level: 2 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 2 }) }" class="btn btn-outline-info p-1 me-1 mb-1">
-            h2
-            </button>
-            <button @click="editor.chain().focus().toggleHeading({ level: 3 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }" class="btn btn-outline-info p-1 me-1 mb-1">
-            h3
-            </button>
-            <button @click="editor.chain().focus().toggleHeading({ level: 4 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 4 }) }" class="btn btn-outline-info p-1 me-1 mb-1">
-            h4
-            </button>
-            <button @click="editor.chain().focus().toggleHeading({ level: 5 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 5 }) }" class="btn btn-outline-info p-1 me-1 mb-1">
-            h5
-            </button>
-    
-            <button @click="editor.chain().focus().toggleBulletList().run()" :class="{ 'is-active': editor.isActive('bulletList') }" class="btn btn-outline-info p-1 me-1 mb-1">
-            bullet list
-            </button>
-            <button @click="editor.chain().focus().toggleOrderedList().run()" :class="{ 'is-active': editor.isActive('orderedList') }" class="btn btn-outline-info p-1 me-1 mb-1">
-            ordered list
-            </button>
-            <button @click="editor.chain().focus().toggleCodeBlock().run()" :class="{ 'is-active': editor.isActive('codeBlock') }" class="btn btn-outline-secondary p-1 me-1 mb-1">
-            code block
-            </button>
-            <button @click="editor.chain().focus().toggleCode().run()" :class="{ 'is-active': editor.isActive('code') }" class="btn btn-outline-secondary p-1 me-1 mb-1 ">
-            code
-            </button>
+            <button @click="editor.chain().focus().toggleBold().run()" :class="{ 'is-active': editor.isActive('bold') }" class="btn btn-outline-success p-1 me-1 mb-1"><img src="/src/assets/img/svg/format-text-bold.svg" class="white" width="22" height="22" ></button>
+            <button @click="editor.chain().focus().toggleItalic().run()" :class="{ 'is-active': editor.isActive('italic') }" class="btn btn-outline-success p-1 me-1 mb-1"><img src="/src/assets/img/svg/format-text-italic.svg" class="white" width="22" height="22" ></button>
+            <button @click="editor.chain().focus().toggleUnderline().run()" :class="{ 'is-active': editor.isActive('underline') }" class="btn btn-outline-success p-1 me-1 mb-1 "> <img src="/src/assets/img/svg/format-text-underline.svg" class="white" width="22" height="22" ></button>
+  
+            <button @click="editor.chain().focus().toggleHeading({ level: 2 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 2 }) }" class="btn btn-outline-dark p-1 me-1 mb-1">h2</button>
+            <button @click="editor.chain().focus().toggleHeading({ level: 3 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }" class="btn btn-outline-dark p-1 me-1 mb-1">h3</button>
+            <button @click="editor.chain().focus().toggleHeading({ level: 4 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 4 }) }" class="btn btn-outline-dark p-1 me-1 mb-1">h4</button>
+            <button @click="editor.chain().focus().toggleHeading({ level: 5 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 5 }) }" class="btn btn-outline-dark p-1 me-1 mb-1">h5</button>
+            
+            <button @click="editor.chain().focus().toggleSubscript().run()" :class="{ 'is-active': editor.isActive('subscript') }" class="btn btn-outline-success p-1 me-1 mb-1"><img src="/src/assets/img/svg/format-text-subscript.svg" class="white" width="22" height="22" ></button>
+            <button @click="editor.chain().focus().toggleSuperscript().run()" :class="{ 'is-active': editor.isActive('superscript') }" class="btn btn-outline-success p-1 me-2 mb-1"><img src="/src/assets/img/svg/format-text-superscript.svg" class="white" width="22" height="22" ></button>
 
-            <button @click="editor.chain().focus().toggleBlockquote().run()" :class="{ 'is-active': editor.isActive('blockquote') }" class="btn btn-outline-info p-1 me-1 mb-1">
-            blockquote
-            </button>
-            <button @click="editor.chain().focus().setHorizontalRule().run()" class="btn btn-outline-info p-1 me-1 mb-1">
-            horizontal rule
-            </button>
-            <button @click="editor.chain().focus().setHardBreak().run()" class="btn btn-outline-info p-1 me-1 mb-1">
-            hard break
-            </button>
-            <button @click="editor.chain().focus().setTextAlign('center').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'center' }) }" class="btn btn-outline-info p-1 me-1 mb-1 ">
-            center
-            </button>
-            <button @click="editor.chain().focus().setTextAlign('right').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'right' }) }" class="btn btn-outline-info p-1 me-1 mb-1 ">
-            right
-            </button>
-            <button @click="editor.chain().focus().setTextAlign('justify').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'justify' }) }" class="btn btn-outline-info  p-1 me-1 mb-1">
-            justify
-            </button> 
+            <button @click="editor.chain().focus().toggleBulletList().run()" :class="{ 'is-active': editor.isActive('bulletList') }" class="btn btn-outline-info p-1 me-1 mb-1"><img src="/src/assets/img/svg/format-list-unordered.svg" class="white" width="22" height="22" > </button>
+            <button @click="editor.chain().focus().toggleOrderedList().run()" :class="{ 'is-active': editor.isActive('orderedList') }" class="btn btn-outline-info p-1 me-1 mb-1"><img src="/src/assets/img/svg/format-list-ordered.svg" class="white" width="22" height="22" ></button>
+            <button @click="editor.chain().focus().toggleCodeBlock().run()" :class="{ 'is-active': editor.isActive('codeBlock') }" class="btn btn-outline-secondary p-1 me-1 mb-1"><img src="/src/assets/img/svg/dialog-xml-editor.svg" class="white" width="22" height="22" ></button>
+            <button @click="editor.chain().focus().toggleCode().run()" :class="{ 'is-active': editor.isActive('code') }" class="btn btn-outline-secondary p-1 me-1 mb-1 "><img src="/src/assets/img/svg/code-context.svg" class="white" width="22" height="22" > </button>
 
-            <button @click="editor.chain().focus().undo().run()" class="btn btn-outline-dark p-1 me-1 mb-1">
-            undo
-            </button>
-            <button @click="editor.chain().focus().redo().run()" class="btn btn-outline-dark p-1 me-1 mb-1">
-            redo
-            </button>
+            <button @click="editor.chain().focus().toggleBlockquote().run()" :class="{ 'is-active': editor.isActive('blockquote') }" class="btn btn-outline-info p-1 me-1 mb-1"> <img src="/src/assets/img/svg/format-text-blockquote.svg" class="white" width="22" height="22" ></button>
+            <button @click="editor.chain().focus().setHorizontalRule().run()" class="btn btn-outline-info p-1 me-2 mb-1"><img src="/src/assets/img/svg/newline.svg" class="white" width="22" height="22" ></button>
+        
+            <button @click="editor.chain().focus().setTextAlign('left').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'left' }) }" class="btn btn-outline-info  p-1 me-1 mb-1"><img src="/src/assets/img/svg/format-justify-left.svg" class="white" width="22" height="22" ></button> 
+            <button @click="editor.chain().focus().setTextAlign('center').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'center' }) }" class="btn btn-outline-info p-1 me-1 mb-1 "><img src="/src/assets/img/svg/format-justify-center.svg" class="white" width="22" height="22" ></button>
+            <button @click="editor.chain().focus().setTextAlign('right').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'right' }) }" class="btn btn-outline-info p-1 me-2 mb-1 "><img src="/src/assets/img/svg/format-justify-right.svg" class="white" width="22" height="22" ></button>
+
+            <button @click="editor.chain().focus().setHardBreak().run()" class="btn btn-outline-info p-1 me-2 mb-1"><img src="/src/assets/img/svg/key-enter.svg" class="white" width="22" height="22" ></button>
         </div>
     
         <editor-content :editor="editor" class='p-0' id="editorcontent"/>
@@ -108,7 +80,9 @@ import OrderedList from '@tiptap/extension-ordered-list'
 import Bold from '@tiptap/extension-bold'
 import Code from '@tiptap/extension-code'
 import Italic from '@tiptap/extension-italic'
-import Strike from '@tiptap/extension-strike'
+import Underline from '@tiptap/extension-underline'
+import Subscript from '@tiptap/extension-subscript'
+import Superscript from '@tiptap/extension-superscript'
 import Dropcursor from '@tiptap/extension-dropcursor'
 import Gapcursor from '@tiptap/extension-gapcursor'
 import History from '@tiptap/extension-history'
@@ -127,6 +101,8 @@ export default {
 
   data() {
     return {
+        selectedFile:null,
+        currentFile:null,
         editor: null,
         fetchinterval: null,
         loadfilelistinterval: null,
@@ -141,7 +117,8 @@ export default {
 
   mounted() {
     // run focuscheck function (give it 'this' in order to know about reactive vars from this view )
-    //activatefocuscheck.call('', this)  // aus einem mir momentan nicht zugänglichen grund wird der erste parameter hier nicht wie erwartet als "this" an die funktion übergeben
+    activatefocuscheck.call('', this)  // aus einem mir momentan nicht zugänglichen grund wird der erste parameter hier nicht wie erwartet als "this" an die funktion übergeben
+
 
     this.editor = new Editor({
         extensions: [
@@ -158,7 +135,9 @@ export default {
             Bold,
             Code,
             Italic,
-            Strike,
+            Subscript,
+            Superscript,
+            Underline,
             Dropcursor,
             Gapcursor,
             History,
@@ -207,10 +186,8 @@ body {
 <p>13 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
 <p>14 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
 <p>Let’s try a code block: </p>
-<pre><code class="language-css">
-body {
-    background-color: rgba(200,200,24,1);
-}
+<pre><code class="language-javascript">
+const test = function ( data ) { console.log(data); }
 </code></pre>
 <p>1 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
 <p>2 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
@@ -230,9 +207,9 @@ body {
 ENDE !!`,
     });
 
-
-    this.fetchinterval = setInterval(() => { this.fetchContent() }, 60000)   //1*pro minute
-    this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 60000)   //1*pro minute
+    this.currentFile = this.clientname
+    this.fetchinterval = setInterval(() => { this.fetchContent() }, 6000)   //1*pro minute
+    this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 6000)   //1*pro minute
     this.loadFilelist()
   },
   methods: {
@@ -247,19 +224,28 @@ ENDE !!`,
 
         // get file from local workdirectory and replace editor content with it
         loadfile(file){
-            if(confirm(`This is going to replace the Editors content with the contents of ${file}!`)){
-                const form = new FormData()
-                form.append("filename", file)
-                //post to client (store pdf, store json, send to teacher)
-                fetch(`http://localhost:3000/client/data/getfiles`, { method: 'POST', body: form })
+            this.toggleUpload()
+            this.currentFile = file.replace(/\.[^/.]+$/, "")  // this is going to be the name of the file (without extension) when saved as html or pdf (never overwrite another file)
+            const form = new FormData()
+            form.append("filename", file)
+            // fetch file from disc - replace editor content
+            fetch(`http://localhost:3000/client/data/getfiles`, { method: 'POST', body: form })
                 .then( response => response.json() )
                 .then( html => {
                     this.editor.commands.clearContent(true)
                     this.editor.commands.insertContent(html)
-                }).catch(err => { console.warn(err)});
-            }           
+                }).catch(err => { console.warn(err)});     
         },
 
+        // make upload div visible or hide it
+        toggleUpload(){
+            let status =  $("#uploaddiv").css("display");
+            if (status == "none") {  
+                $("#uploaddiv").css("display","block");
+                $("#formFileMultiple").val('') 
+            }
+            else {  $("#uploaddiv").css("display","none"); }
+        },
 
         /** Converts the Editor View into a multipage PDF */
         async fetchContent() {              
@@ -300,8 +286,9 @@ ENDE !!`,
                                 const pdfBlob = new Blob([ doc.output('blob') ], { type : 'application/pdf'});
 
                                 const form = new FormData()
-                                form.append("file", pdfBlob,  `${this.clientname}.pdf` );
+                                form.append("file", pdfBlob,  `${this.currentFile}.pdf` );
                                 form.append("editorcontent", editorcontent)
+                                form.append("currentfilename", this.currentFile)
 
                                 //post to client (store pdf, store json, send to teacher)
                                 fetch(`http://localhost:3000/client/data/store`, { method: 'POST', body: form })

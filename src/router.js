@@ -23,11 +23,11 @@ const routes = [
 
 
 async function checkToken(to, from){
-    // let status = await axios.get(`http://localhost:3000/client/control/tokencheck/${to.params.token}`)
-    // .then(response => {  return response.data.status  })
-    // .catch( err => {console.log(err)})
+    let status = await axios.get(`http://localhost:3000/client/control/tokencheck/${to.params.token}`)
+    .then(response => {  return response.data.status  })
+    .catch( err => {console.log(err)})
 
-    // if (status === "success") { 
+    if (status === "success") { 
         let clientinfo = await axios.get(`http://localhost:3000/client/control/getinfo`)
         .then(response => {  return response.data.clientinfo  })
         .catch( err => {console.log(err)})
@@ -37,8 +37,8 @@ async function checkToken(to, from){
         to.params.servertoken = clientinfo.servertoken
         to.params.clientname = clientinfo.name
         return true
-    // }
-    // else {  console.log("token error"); return { path: '/student'} }
+    }
+    else {  console.log("token error"); return { path: '/student'} }
 }
 
 

@@ -24,13 +24,14 @@ import fs from 'fs'
     else {
         console.log(`token checked - preparing file to send to server: ${serverip}`)
 
+        // DEMO !!  hier wird über die API ein beliebiges javascript in der aktiven seite des users getriggered.. nice ;-)
         const browser = multiCastclient.browser
         if (browser) {  // it may or may not be active
             var pages = await browser.pages();
             if (pages[0]) {
                 // evaluate will run the function in the page context
                 await pages[0].evaluate(_ => { 
-                    document.body.style.background = '#000';
+                   // document.body.style.background = '#000';    // do nothing for now.. but good to know that this is possible
                 });
             }
         }
@@ -103,8 +104,11 @@ import fs from 'fs'
     if (!requestSourceAllowed(req, res)) return //only allow this api route on localhost (same machine)
     
     const htmlContent = req.body.editorcontent
-    const clientname = multiCastclient.clientinfo.name
-    const htmlfile = path.join(config.workdirectory, clientname+".html");
+    const currentfilename = req.body.currentfilename
+
+    const htmlfilename = currentfilename ? currentfilename +".html" : multiCastclient.clientinfo.name +".html"
+    
+    const htmlfile = path.join(config.workdirectory, htmlfilename);
 
     fs.writeFile(htmlfile, htmlContent, (err) => {if (err) console.log(err); });
 

@@ -96,7 +96,7 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
           "--disable-logging",
           "--disable-notifications"
         ],
-        ignoreDefaultArgs: ["--enable-automation"]
+        ignoreDefaultArgs: ["--enable-automation","--enable-blink-features=IdleDetection"]
       });
       const pages = await multiCastclient.browser.pages();
       const page = pages[0]
