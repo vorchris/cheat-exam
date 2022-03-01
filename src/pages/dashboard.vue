@@ -12,9 +12,9 @@
 
 <div id="wrapper" class="w-100 h-100 d-flex" >
     <div class="p-3 text-white bg-dark h-100 " style="width: 240px; min-width: 240px;">
-        <div class="btn btn-light m-1">Name <br><b> {{$route.params.servername}}</b> </div><br>
-        <div class="btn btn-danger m-1" @click="stopserver()">Stop Server</div><br>
-        <div class="btn btn-light m-1">Pin <br><b> {{ $route.params.pin }} </b>  </div><br><br>
+        <div class="btn btn-light m-1 text-start">Name <br><b> {{$route.params.servername}}</b> </div><br>
+        <div class="btn btn-danger m-1 text-start" @click="stopserver()">Stop Server</div><br>
+        <div class="btn btn-light m-1 text-start">Pin <br><b> {{ $route.params.pin }} </b>  </div><br><br>
         <div id="statusdiv" class="btn btn-warning m-2"> connected </div>
     </div>
 
@@ -34,19 +34,19 @@
 
 
     <div id="content" class="fadeinslow p-3">
-        <div class="btn btn-success m-1" style="width:100px;"  @click="startExam('all')">Exam starten</div>
-        <div class="btn btn-info m-1" style="width:100px;" @click="toggleUpload()">Datei senden</div>
-        <div class="btn btn-info m-1" style="width:100px;" @click="getFiles('all')">Abgabe holen</div>
-        <div class="btn btn-danger m-1" style="width:100px;" @click="endExam('all')" >Exam beenden</div>
+        <div class="btn btn-success m-1 text-start" style="width:100px;"  @click="startExam('all')">Exam starten</div>
+        <div class="btn btn-info m-1 text-start" style="width:100px;" @click="toggleUpload()">Datei senden</div>
+        <div class="btn btn-info m-1 text-start" style="width:100px;" @click="getFiles('all')">Abgabe holen</div>
+        <div class="btn btn-danger m-1 text-start" style="width:100px;" @click="endExam('all')" >Exam beenden</div>
         <div id="studentslist" class="placeholder pt-4"> 
 
 
             <div v-for="student in studentlist" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn  btn-block shadow-sm border rounded-3 m-1">
-                {{student.clientname}}             
-                <button  @click='kick(student.token,student.clientip)' type="button" class="btn btn-outline-danger btn-sm btn-close float-end" title="kick user"></button><br>
-                <img class="rounded-3 border" v-bind:class="(now - 60000 > student.timestamp)?'disabled':'' "   v-bind:src="'/files/'+student.token+'.jpg?ver='+student.timestamp"  onerror="this.src='/src/assets/img/icons/nouserscreenshot.png'"><br>
+                <span>{{student.clientname}}             </span>
+                <button  @click='kick(student.token,student.clientip)' type="button" class="btn btn-outline-danger btn-sm btn-close pt-2 pe-2 float-end" title="kick user"></button><br>
+                <img class="" v-bind:class="(now - 60000 > student.timestamp)?'disabled':'' "   v-bind:src="'/files/'+student.token+'.jpg?ver='+student.timestamp"  onerror="this.src='/src/assets/img/icons/nouserscreenshot.png'"><br>
                 
-                <div class="btn-group p-2" role="group" >
+                <div class="btn-group p-2  " role="group" >
                     <button v-if="(now - 60000 < student.timestamp)" @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-success btn-sm">send</button>
                     <button v-if="(now - 60000 < student.timestamp)"  @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-success btn-sm">get</button>
                     <button  v-if="!student.focus && (now - 60000 < student.timestamp)"   @click='restore(student.token)' type="button" class="btn btn-success btn-sm">restore</button>

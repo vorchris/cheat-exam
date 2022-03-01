@@ -73,20 +73,26 @@ input:focus::placeholder {
 
 .studentwidget {
     width: 220px;
-    height: 190px;
+    height: 200px;
     white-space: nowrap;
     /* text-overflow:    ellipsis;  */
     overflow: hidden; 
-   
+    padding: 0;
+    text-align: left;
     transition:0.1s;  
+    padding-top:2px;
 }
 .studentwidget img {
-    height: 100px;
-    text-overflow:    hidden; 
+    width: 220px;
+    height:120px;
+    text-overflow: hidden; 
     margin: 2px;    
     transition:0.1s;
 }
-
+.studentwidget span {
+    margin:0;
+    margin-left:6px;
+}
 
 #list {
     width: 100%;
