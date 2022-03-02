@@ -34,7 +34,7 @@ async function createServer( root = process.cwd(), isProd = process.env.NODE_ENV
 
   app.use(cors())
   app.use(express.json())
-  app.use(express.static(publicdirectory));
+  app.use(express.static("public"));
   app.use(fileUpload())  //When you upload a file, the file will be accessible from req.files
   //app.use(limiter) // Apply the rate limiting middleware to all requests
   

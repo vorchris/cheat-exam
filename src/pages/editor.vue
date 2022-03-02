@@ -59,7 +59,6 @@
     
         <editor-content :editor="editor" class='p-0' id="editorcontent"/>
     </div>
-<div id="preview"></div>
 </template>
 
 <script>
@@ -117,7 +116,7 @@ export default {
 
   mounted() {
     // run focuscheck function (give it 'this' in order to know about reactive vars from this view )
-    activatefocuscheck.call('', this)  // aus einem mir momentan nicht zugänglichen grund wird der erste parameter hier nicht wie erwartet als "this" an die funktion übergeben
+     if(this.token) { activatefocuscheck.call('', this) } // aus einem mir momentan nicht zugänglichen grund wird der erste parameter hier nicht wie erwartet als "this" an die funktion übergeben
 
 
     this.editor = new Editor({

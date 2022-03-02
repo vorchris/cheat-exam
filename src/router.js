@@ -6,22 +6,28 @@ import axios from 'axios'
 import home from '/src/pages/home.vue'
 import notfound from '/src/pages/notfound.vue'
 import student from '/src/pages/student.vue'
-import editor from '/src/pages/editor.vue'
 import startserver from '/src/pages/startserver.vue'
 import dashboard from '/src/pages/dashboard.vue'
 import serverlist from '/src/pages/serverlist.vue'
+import editor from '/src/pages/editor.vue'
+import geogebra from '/src/pages/geogebra.vue'
 
 const routes = [
     { path: '/',                  component: home },
     { path: '/student',           component: student },
-    { path: '/editor/:token',     component: editor,  beforeEnter: [checkToken]},
+    { path: '/editor/:token', name:"editor",     component: editor,  beforeEnter: [checkToken]},  
+    { path: '/math/:token', name:"math",  component: geogebra,  beforeEnter: [checkToken]},
+    
     { path: '/startserver',       component: startserver },
     { path: '/serverlist',        component: serverlist },
-    { path: '/dashboard/:servername/:passwd', component: dashboard, beforeEnter: [checkPasswd] },
+    { path: '/dashboard/:servername/:passwd', name:"dashboard", component: dashboard, beforeEnter: [checkPasswd] },
     { path: '/:pathMatch(.*)*',   component: notfound },
 ]
 
-
+/**
+ * der exammode benötigt für die focusCheck funktion 
+ * um rechtmässig am server den studentstatus updaten zu dürfen das student token
+ */
 async function checkToken(to, from){
     let status = await axios.get(`http://localhost:3000/client/control/tokencheck/${to.params.token}`)
     .then(response => {  return response.data.status  })

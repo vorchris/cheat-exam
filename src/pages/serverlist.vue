@@ -50,7 +50,7 @@
 
             <div class='row g-2'>
            
-                <div  v-for="server in serverlist" class="col-6" style="min-width:310px; max-width: 400px;">
+                <div  v-for="server in serverlist" class="col-6" style="min-width:280px; max-width: 320px;">
                     <div class="p-3 border bg-light">
                         <dl class="row mb-0">
                             <dt class="col-sm-4 p-1">Name</dt>
@@ -59,7 +59,7 @@
                             <dd class="col-sm-8 p-1">{{server.serverip}}</dd>
                             <dt class="col-sm-4 p-1 pt-2">Password</dt>
                             <dd class="col-sm-8 p-1">
-                                <input v-bind:id="server.servername" type="password" class="form-control" placeholder="password" value="password">
+                                <input v-bind:id="server.servername" type="password" class="form-control" placeholder="password" :value="password">
                                 <input @click="login(server.servername)" type="button" name="login" class="btn btn-success mt-1" value="Log In"/> 
                             </dd>
                         </dl>
@@ -91,6 +91,7 @@ export default {
         return {
             fetchinterval: null,
             serverlist: [],
+            password: 'password'
         };
     },
     components: {
@@ -108,7 +109,22 @@ export default {
 
         login(servername){
             let password = $(`#${servername}`).val()
-            this.$router.push({ path: `/dashboard/${servername}/${password}` })
+            window.location.href = `/dashboard/${servername}/${password}`
+
+            // this.$router.push({
+           
+            //     name: 'dashboard', 
+            //     params:{
+            //         servername: servername, 
+            //         passwd: password
+            //         }
+
+            // })
+            // this.$router.push({
+            //     path: `/dashboard/${servername}/${password}`,
+              
+            // });
+           
         },
 
         //show status message

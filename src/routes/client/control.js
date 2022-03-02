@@ -63,11 +63,12 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
  * Runs a tokencheck and STARTS THE EXAM MODE
  * @param token a csrf token for validation
  */ 
- router.get('/exammode/start/:token', function (req, res, next) {
+ router.get('/exammode/start/:token/:examtype', function (req, res, next) {
   const token = req.params.token
-  if ( checkToken(token) ) {
-    
-    multiCastclient.clientinfo.exammode = true
+  const examtype = req.params.examtype
+
+  if ( checkToken(token) ) {  
+    multiCastclient.clientinfo.exammode = true  // mark this client as active exam 
 
     //start chromium in kiosk mode on exam landing page here https://peter.sh/experiments/chromium-command-line-switches/
     let kiosk = ""
@@ -77,12 +78,12 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
         headless: false,
         defaultViewport: null,
         args: [
+          `${kiosk}`,
           "--bwsi",
           "--login-user=incognito",
           "--force-dark-mode",
           "--disable-crash-reporter",
           "--force-app-mode",
-          `${kiosk}`,
           "--no-first-run",
           "--noerrdialogs",
           "--no-default-browser-check",
@@ -100,7 +101,8 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
       });
       const pages = await multiCastclient.browser.pages();
       const page = pages[0]
-      await page.goto(`http://localhost:3000/editor/${token}`);
+      if (examtype === "math"){  await page.goto(`http://localhost:3000/math/${token}`); }
+      else {  await page.goto(`http://localhost:3000/editor/${token}`); }
     })();
     res.json({ sender: "client",message:"exam initialized", status:"success" })
   }

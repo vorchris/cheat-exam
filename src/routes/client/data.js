@@ -76,7 +76,7 @@ import fs from 'fs'
  */
  router.post('/receive/:token', async (req, res, next) => {  
     const token = req.params.token
-    if ( !checkToken(token) ) { res.json({ status: "token is not valid" }) }
+    if ( !checkToken(token) ) { res.json({ status: "token is not valid" }) }  //only accept files with valid token (coming from the server)
     else {
         console.log("Receiving File(s)...")
         let errors = 0
@@ -110,7 +110,7 @@ import fs from 'fs'
     
     const htmlfile = path.join(config.workdirectory, htmlfilename);
 
-    fs.writeFile(htmlfile, htmlContent, (err) => {if (err) console.log(err); });
+    if (htmlContent) { fs.writeFile(htmlfile, htmlContent, (err) => {if (err) console.log(err); });  }
 
     console.log("saving students work to disk...")
     let errors = 0
@@ -130,6 +130,8 @@ import fs from 'fs'
  * GET all files from workdirectory
  */ 
  router.post('/getfiles', function (req, res, next) {
+    if (!requestSourceAllowed(req, res)) return //only allow this api route on localhost (same machine)
+
     const workdir = path.join(config.workdirectory,"/")
     const filename = req.body.filename
     if (filename) {
@@ -149,7 +151,29 @@ import fs from 'fs'
 })
   
   
-  
+  /**
+ * GET GeoGebra HTML
+ */ 
+ router.get('/geogebra/:component', function (req, res, next) {
+    if (!requestSourceAllowed(req, res)) return //only allow this api route on localhost (same machine)
+
+    const workdir = path.join(config.workdirectory,"/")
+
+    const component = req.params.component
+
+    const __dirname = path.resolve();
+    const geogebrafilename = path.join(__dirname, "/src/geogebra/geometry.html");
+
+ 
+    console.log("loading geogebra")
+    return res.sendFile( geogebrafilename )
+    // fs.readFile(geogebrafilename, 'utf8' , (err, data) => {
+       
+    //         if (err) {console.error(err);  return }
+    //         return res.send( data )
+    // })
+
+})
 
 
 

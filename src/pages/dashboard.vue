@@ -12,10 +12,31 @@
 
 <div id="wrapper" class="w-100 h-100 d-flex" >
     <div class="p-3 text-white bg-dark h-100 " style="width: 240px; min-width: 240px;">
+       
         <div class="btn btn-light m-1 text-start">Name <br><b> {{$route.params.servername}}</b> </div><br>
-        <div class="btn btn-danger m-1 text-start" @click="stopserver()">Stop Server</div><br>
-        <div class="btn btn-light m-1 text-start">Pin <br><b> {{ $route.params.pin }} </b>  </div><br><br>
-        <div id="statusdiv" class="btn btn-warning m-2"> connected </div>
+        <div class="btn btn-light m-1 mb-1 text-start">Pin <br><b> {{ $route.params.pin }} </b>  </div><br>
+        <div class="btn btn-danger m-1 mb-3 text-start" @click="stopserver()">Stop Server</div><br>
+
+
+        <div class="form-check m-1">
+            <input v-model="examtype" value="language" class="form-check-input" type="radio" name="examtype" id="examtype1" checked>
+            <label class="form-check-label" for="examtype1">
+                Texteditor
+            </label>
+        </div>
+        <div class="form-check m-1 mb-2">
+            <input v-model="examtype" value="math" class="form-check-input" type="radio" name="examtype" id="examtype2">
+            <label class="form-check-label" for="examtype2">
+                Geogebra
+            </label>
+        </div>
+        <div class="form-check form-switch  m-1 mb-4">
+            <input @change="toggleAutoabgabe()"  v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
+            <label class="form-check-label" for="flexSwitchCheckDefault">Auto Abgabe</label>
+        </div>
+
+
+        <div id="statusdiv" class="btn btn-warning m-1"> connected </div>
     </div>
 
     <div id="uploaddiv" class="fadeinslow">
@@ -39,36 +60,23 @@
         <div class="btn btn-info m-1 text-start" style="width:100px;" @click="getFiles('all')">Abgabe holen</div>
         <div class="btn btn-danger m-1 text-start" style="width:100px;" @click="endExam('all')" >Exam beenden</div>
         <div id="studentslist" class="placeholder pt-4"> 
-
-
-            <div v-for="student in studentlist" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn  btn-block shadow-sm border rounded-3 m-1">
-                <span>{{student.clientname}}             </span>
-                <button  @click='kick(student.token,student.clientip)' type="button" class="btn btn-outline-danger btn-sm btn-close pt-2 pe-2 float-end" title="kick user"></button><br>
-                <img class="" v-bind:class="(now - 60000 > student.timestamp)?'disabled':'' "   v-bind:src="'/files/'+student.token+'.jpg?ver='+student.timestamp"  onerror="this.src='/src/assets/img/icons/nouserscreenshot.png'"><br>
-                
-                <div class="btn-group p-2  " role="group" >
-                    <button v-if="(now - 60000 < student.timestamp)" @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-success btn-sm">send</button>
-                    <button v-if="(now - 60000 < student.timestamp)"  @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-success btn-sm">get</button>
-                    <button  v-if="!student.focus && (now - 60000 < student.timestamp)"   @click='restore(student.token)' type="button" class="btn btn-success btn-sm">restore</button>
+            <div v-for="student in studentlist" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn border-0 rounded-3 btn-block m-1 ">
+                <div id="image" class="rounded" :style="'background-image:url(/files/'+student.token+'.jpg?ver='+student.timestamp+')'" style="position: relative; height:75%; background-size:cover;">
+                    <span style="">{{student.clientname}}            
+                    <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-2 pe-2 float-end" title="kick user"></button> </span>
+                </div>
+                <div class="btn-group pt-0" role="group">
+                    <button v-if="(now - 60000 < student.timestamp)" @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-success btn-sm " style="border-top-left-radius:0px; border-top-right-radius:0px; ">send</button>
+                    <button v-if="(now - 60000 < student.timestamp)"  @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-success btn-sm " style="border-top-left-radius:0px; border-top-right-radius:0px;">get</button>
+                    <button  v-if="!student.focus && (now - 60000 < student.timestamp)"   @click='restore(student.token)' type="button" class="btn btn-danger btn-sm" style="border-top-left-radius:0px; border-top-right-radius:0px;">restore</button>
                 </div>
             </div>
-
-
-
-
-
         </div>
     </div>
 
 
-
-
 </div>
-
-
 </template>
-
-
 
 
 
@@ -81,31 +89,38 @@ export default {
     data() {
         return {
             fetchinterval: null,
+            abgabeinterval: null,
             studentlist: [],
             servername: this.$route.params.servername,
             servertoken: this.$route.params.servertoken,
             serverip: this.$route.params.serverip,
             now : null,
             files: null,
+            examtype: 'language',
+            autoabgabe: false,
         };
     },
     components: {
     
     },
     methods: {
-
+        // get all information about students status
         fetchInfo() {
             this.now = new Date().getTime()
-            axios.get(`/server/control/studentlist/${this.servername}/${this.servertoken}`)
+            axios.get(`http://${this.serverip}:3000/server/control/studentlist/${this.servername}/${this.servertoken}`)
             .then( response => {
                 this.studentlist = response.data.studentlist;
                 
                 this.studentlist.forEach(student =>{
                     if (!student.focus){this.status(`${student.clientname} has left the exam`); }
                 });
-
             }).catch( err => {console.log(err)});
-        },  
+        }, 
+
+        toggleAutoabgabe(){
+            if (this.autoabgabe) { this.abgabeinterval = setInterval(() => { this.getFiles('all') }, 60000) }   //trigger getFiles('all') every other minute
+            else { clearInterval( this.abgabeinterval )} 
+        },
 
         //upload files to all students
         sendFiles(who) {
@@ -153,7 +168,7 @@ export default {
 
         //triggers exam mode on specified clients
         startExam(who){
-            
+            console.log(this.examtype)
             if (who == "all"){
 
                 if ( this.studentlist.length <= 0 ) { this.status("no clients connected"); console.log("no clients connected") }
@@ -163,7 +178,7 @@ export default {
                         //check exam mode for students - dont initialize twice
                         console.log(student)
                         if (student.exammode){ return; }
-                        axios.get(`http://${student.clientip}:3000/client/control/exammode/start/${student.token}`)
+                        axios.get(`http://${student.clientip}:3000/client/control/exammode/start/${student.token}/${this.examtype}`)
                         .then( response => {
                             this.status(response.data.message);
                             console.log(response.data);
@@ -209,7 +224,7 @@ export default {
         //remove student from exam
         kick(studenttoken, studentip){
             //unregister locally
-            axios.get(`http://localhost:3000/server/control/kick/${this.servername}/${this.servertoken}/${studenttoken}`)
+            axios.get(`http://${this.serverip}:3000/server/control/kick/${this.servername}/${this.servertoken}/${studenttoken}`)
             .then( response => {
                 console.log(response.data);
                 this.status(response.data.message);
@@ -269,7 +284,8 @@ export default {
         this.fetchinterval = setInterval(() => { this.fetchInfo() }, 4000)
     },
     beforeUnmount() {  //when leaving
-         clearInterval( this.fetchinterval )
+        clearInterval( this.fetchinterval )
+        clearInterval( this.abgabeinterval )
     },
 }
 
