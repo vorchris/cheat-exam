@@ -4,6 +4,8 @@ dist
 dist-ssr
 *.local
 
+csrf*
+
 tmp
 **/.tmp
 release
