@@ -4,7 +4,7 @@ dist
 dist-ssr
 *.local
 
-csrf*
+csrf*.jpg
 
 tmp
 **/.tmp
