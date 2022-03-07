@@ -166,7 +166,7 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
  */ 
 router.get('/tokencheck/:token', function (req, res, next) {
     const token = req.params.token
-    const filepath = '/public/img/icons/success.png'
+    const filepath = '/src/assets/img/icons/success.png'
   
     if ( checkToken(token) ) {
         console.log('Show Notification')
@@ -195,7 +195,7 @@ router.get('/tokencheck/:token', function (req, res, next) {
  * Runs a specific command in a child process
  */ 
  router.get('/cmd', function (req, res, next) {
-    const filepath = '/public/img/icons/success.png'
+    const filepath = '/src/assets/img/icons/success.png'
   
 
     // could  trigger a shellscript or a python script
@@ -248,7 +248,7 @@ function checkToken(token){
 
 
 function showOSD(notification){
-  const filepath =  '/public/img/icons/success.png'
+  const filepath =  '/src/assets/img/icons/success.png'
   nodenotify.notify( {
               title: 'Next Exam',
               message: notification,

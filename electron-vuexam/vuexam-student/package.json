@@ -26,7 +26,7 @@
     "linux": {
       "target": "AppImage",
       "category": "Utility",
-      "icon": "packages/renderer/public/favicon.svg"
+      "icon": "packages/renderer/src/assets/favicon.svg"
     },
     "mac": {
       "artifactName": "${productName}_${version}.${ext}",
@@ -110,6 +110,7 @@
     "ip": "^1.1.5",
     "jquery": "^3.6.0",
     "jspdf": "^2.5.1",
+    "lowlight": "^2.5.0",
     "node-notifier": "^10.0.1",
     "puppeteer": "^13.4.1",
     "sass": "^1.49.9",

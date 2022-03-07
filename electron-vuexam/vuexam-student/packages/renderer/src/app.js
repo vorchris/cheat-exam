@@ -8,24 +8,14 @@ const router = createRouter()
 const app = createApp(App)
 
 app.use(router)
-
+app.config.unwrapInjectedRef = true  // should not be neccecary in future versions (suppress specific warning)
 
 
 
 // wait until router is ready before mounting to ensure hydration match
 router.isReady().then(() => {
-
-  // app.created() {
-  //   // Prevent blank screen in Electron builds
-  //   this.$router.push('/')
-  // }
-
   app.mount('#app')
 })
-
-
-
-
 
 
 

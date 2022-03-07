@@ -1,6 +1,6 @@
  <template>
   <div class="w-100 p-3 text-white bg-dark shadow text-right">
-        <img src="/public/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
+        <img src="/src/assets/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
         <span class="fs-4 align-middle me-4 ">{{clientname}}</span>
         <span class="fs-4 align-middle" style="float: right">Next-Exam Writer</span>
   </div>
@@ -22,39 +22,39 @@
 
         <div id="localfiles" class="mb-2">
              <div v-for="file in localfiles" class="btn btn-dark me-2" @click="selectedFile=file; toggleUpload()">
-              <img src="/public/img/svg/document-replace.svg" class="" width="22" height="22" > {{file}} 
+              <img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file}} 
             </div>
         </div>
         <div v-if="editor" class="mb-2" id="editortoolbar">
-            <button @click="editor.chain().focus().undo().run()" class="btn btn-outline-warning p-1 me-1 mb-1"><img src="/public/img/svg/edit-undo.svg" class="white" width="22" height="22" ></button>
-            <button @click="editor.chain().focus().redo().run()" class="btn btn-outline-warning p-1 me-1 mb-1"><img src="/public/img/svg/edit-redo.svg" class="white" width="22" height="22" > </button>
-            <button @click="editor.chain().focus().clearNodes().run()" class="btn btn-outline-warning p-1 me-3 mb-1"><img src="/public/img/svg/format-remove-node.svg" class="white" width="22" height="22" ></button>
+            <button @click="editor.chain().focus().undo().run()" class="btn btn-outline-warning p-1 me-1 mb-1"><img src="/src/assets/img/svg/edit-undo.svg" class="white" width="22" height="22" ></button>
+            <button @click="editor.chain().focus().redo().run()" class="btn btn-outline-warning p-1 me-1 mb-1"><img src="/src/assets/img/svg/edit-redo.svg" class="white" width="22" height="22" > </button>
+            <button @click="editor.chain().focus().clearNodes().run()" class="btn btn-outline-warning p-1 me-3 mb-1"><img src="/src/assets/img/svg/format-remove-node.svg" class="white" width="22" height="22" ></button>
       
-            <button @click="editor.chain().focus().toggleBold().run()" :class="{ 'is-active': editor.isActive('bold') }" class="btn btn-outline-success p-1 me-1 mb-1"><img src="/public/img/svg/format-text-bold.svg" class="white" width="22" height="22" ></button>
-            <button @click="editor.chain().focus().toggleItalic().run()" :class="{ 'is-active': editor.isActive('italic') }" class="btn btn-outline-success p-1 me-1 mb-1"><img src="/public/img/svg/format-text-italic.svg" class="white" width="22" height="22" ></button>
-            <button @click="editor.chain().focus().toggleUnderline().run()" :class="{ 'is-active': editor.isActive('underline') }" class="btn btn-outline-success p-1 me-1 mb-1 "> <img src="/public/img/svg/format-text-underline.svg" class="white" width="22" height="22" ></button>
+            <button @click="editor.chain().focus().toggleBold().run()" :class="{ 'is-active': editor.isActive('bold') }" class="btn btn-outline-success p-1 me-1 mb-1"><img src="/src/assets/img/svg/format-text-bold.svg" class="white" width="22" height="22" ></button>
+            <button @click="editor.chain().focus().toggleItalic().run()" :class="{ 'is-active': editor.isActive('italic') }" class="btn btn-outline-success p-1 me-1 mb-1"><img src="/src/assets/img/svg/format-text-italic.svg" class="white" width="22" height="22" ></button>
+            <button @click="editor.chain().focus().toggleUnderline().run()" :class="{ 'is-active': editor.isActive('underline') }" class="btn btn-outline-success p-1 me-1 mb-1 "> <img src="/src/assets/img/svg/format-text-underline.svg" class="white" width="22" height="22" ></button>
   
             <button @click="editor.chain().focus().toggleHeading({ level: 2 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 2 }) }" class="btn btn-outline-dark p-1 me-1 mb-1">h2</button>
             <button @click="editor.chain().focus().toggleHeading({ level: 3 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }" class="btn btn-outline-dark p-1 me-1 mb-1">h3</button>
             <button @click="editor.chain().focus().toggleHeading({ level: 4 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 4 }) }" class="btn btn-outline-dark p-1 me-1 mb-1">h4</button>
             <button @click="editor.chain().focus().toggleHeading({ level: 5 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 5 }) }" class="btn btn-outline-dark p-1 me-1 mb-1">h5</button>
             
-            <button @click="editor.chain().focus().toggleSubscript().run()" :class="{ 'is-active': editor.isActive('subscript') }" class="btn btn-outline-success p-1 me-1 mb-1"><img src="/public/img/svg/format-text-subscript.svg" class="white" width="22" height="22" ></button>
-            <button @click="editor.chain().focus().toggleSuperscript().run()" :class="{ 'is-active': editor.isActive('superscript') }" class="btn btn-outline-success p-1 me-2 mb-1"><img src="/public/img/svg/format-text-superscript.svg" class="white" width="22" height="22" ></button>
+            <button @click="editor.chain().focus().toggleSubscript().run()" :class="{ 'is-active': editor.isActive('subscript') }" class="btn btn-outline-success p-1 me-1 mb-1"><img src="/src/assets/img/svg/format-text-subscript.svg" class="white" width="22" height="22" ></button>
+            <button @click="editor.chain().focus().toggleSuperscript().run()" :class="{ 'is-active': editor.isActive('superscript') }" class="btn btn-outline-success p-1 me-2 mb-1"><img src="/src/assets/img/svg/format-text-superscript.svg" class="white" width="22" height="22" ></button>
 
-            <button @click="editor.chain().focus().toggleBulletList().run()" :class="{ 'is-active': editor.isActive('bulletList') }" class="btn btn-outline-info p-1 me-1 mb-1"><img src="/public/img/svg/format-list-unordered.svg" class="white" width="22" height="22" > </button>
-            <button @click="editor.chain().focus().toggleOrderedList().run()" :class="{ 'is-active': editor.isActive('orderedList') }" class="btn btn-outline-info p-1 me-1 mb-1"><img src="/public/img/svg/format-list-ordered.svg" class="white" width="22" height="22" ></button>
-            <button @click="editor.chain().focus().toggleCodeBlock().run()" :class="{ 'is-active': editor.isActive('codeBlock') }" class="btn btn-outline-secondary p-1 me-1 mb-1"><img src="/public/img/svg/dialog-xml-editor.svg" class="white" width="22" height="22" ></button>
-            <button @click="editor.chain().focus().toggleCode().run()" :class="{ 'is-active': editor.isActive('code') }" class="btn btn-outline-secondary p-1 me-1 mb-1 "><img src="/public/img/svg/code-context.svg" class="white" width="22" height="22" > </button>
+            <button @click="editor.chain().focus().toggleBulletList().run()" :class="{ 'is-active': editor.isActive('bulletList') }" class="btn btn-outline-info p-1 me-1 mb-1"><img src="/src/assets/img/svg/format-list-unordered.svg" class="white" width="22" height="22" > </button>
+            <button @click="editor.chain().focus().toggleOrderedList().run()" :class="{ 'is-active': editor.isActive('orderedList') }" class="btn btn-outline-info p-1 me-1 mb-1"><img src="/src/assets/img/svg/format-list-ordered.svg" class="white" width="22" height="22" ></button>
+            <button @click="editor.chain().focus().toggleCodeBlock().run()" :class="{ 'is-active': editor.isActive('codeBlock') }" class="btn btn-outline-secondary p-1 me-1 mb-1"><img src="/src/assets/img/svg/dialog-xml-editor.svg" class="white" width="22" height="22" ></button>
+            <button @click="editor.chain().focus().toggleCode().run()" :class="{ 'is-active': editor.isActive('code') }" class="btn btn-outline-secondary p-1 me-1 mb-1 "><img src="/src/assets/img/svg/code-context.svg" class="white" width="22" height="22" > </button>
 
-            <button @click="editor.chain().focus().toggleBlockquote().run()" :class="{ 'is-active': editor.isActive('blockquote') }" class="btn btn-outline-info p-1 me-1 mb-1"> <img src="/public/img/svg/format-text-blockquote.svg" class="white" width="22" height="22" ></button>
-            <button @click="editor.chain().focus().setHorizontalRule().run()" class="btn btn-outline-info p-1 me-2 mb-1"><img src="/public/img/svg/newline.svg" class="white" width="22" height="22" ></button>
+            <button @click="editor.chain().focus().toggleBlockquote().run()" :class="{ 'is-active': editor.isActive('blockquote') }" class="btn btn-outline-info p-1 me-1 mb-1"> <img src="/src/assets/img/svg/format-text-blockquote.svg" class="white" width="22" height="22" ></button>
+            <button @click="editor.chain().focus().setHorizontalRule().run()" class="btn btn-outline-info p-1 me-2 mb-1"><img src="/src/assets/img/svg/newline.svg" class="white" width="22" height="22" ></button>
         
-            <button @click="editor.chain().focus().setTextAlign('left').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'left' }) }" class="btn btn-outline-info  p-1 me-1 mb-1"><img src="/public/img/svg/format-justify-left.svg" class="white" width="22" height="22" ></button> 
-            <button @click="editor.chain().focus().setTextAlign('center').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'center' }) }" class="btn btn-outline-info p-1 me-1 mb-1 "><img src="/public/img/svg/format-justify-center.svg" class="white" width="22" height="22" ></button>
-            <button @click="editor.chain().focus().setTextAlign('right').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'right' }) }" class="btn btn-outline-info p-1 me-2 mb-1 "><img src="/public/img/svg/format-justify-right.svg" class="white" width="22" height="22" ></button>
+            <button @click="editor.chain().focus().setTextAlign('left').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'left' }) }" class="btn btn-outline-info  p-1 me-1 mb-1"><img src="/src/assets/img/svg/format-justify-left.svg" class="white" width="22" height="22" ></button> 
+            <button @click="editor.chain().focus().setTextAlign('center').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'center' }) }" class="btn btn-outline-info p-1 me-1 mb-1 "><img src="/src/assets/img/svg/format-justify-center.svg" class="white" width="22" height="22" ></button>
+            <button @click="editor.chain().focus().setTextAlign('right').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'right' }) }" class="btn btn-outline-info p-1 me-2 mb-1 "><img src="/src/assets/img/svg/format-justify-right.svg" class="white" width="22" height="22" ></button>
 
-            <button @click="editor.chain().focus().setHardBreak().run()" class="btn btn-outline-info p-1 me-2 mb-1"><img src="/public/img/svg/key-enter.svg" class="white" width="22" height="22" ></button>
+            <button @click="editor.chain().focus().setHardBreak().run()" class="btn btn-outline-info p-1 me-2 mb-1"><img src="/src/assets/img/svg/key-enter.svg" class="white" width="22" height="22" ></button>
         </div>
     
         <editor-content :editor="editor" class='p-0' id="editorcontent"/>
@@ -89,7 +89,8 @@ import { lowlight } from 'lowlight'// load all highlight.js languages
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 
-
+import FormData from 'form-data';
+import axios from "axios";
 import $ from 'jquery'
 
 export default {
@@ -283,18 +284,25 @@ ENDE !!`,
                                 const editorcontent = this.editor.getHTML();  //get content as JSON (für späteren re-import in den editor!?)
                                 const pdfBlob = new Blob([ doc.output('blob') ], { type : 'application/pdf'});
 
-                                const form = new FormData()
+                                let form = new FormData()
                                 form.append("file", pdfBlob,  `${this.currentFile}.pdf` );
                                 form.append("editorcontent", editorcontent)
                                 form.append("currentfilename", this.currentFile)
 
-                                //post to client (store pdf, store json, send to teacher)
-                                fetch(`http://localhost:3000/client/data/store`, { method: 'POST', body: form })
-                                .then( response => response.json() )
-                                .then( async (data) => {
-                                    console.log(data)
+
+
+                        
+                                axios({
+                                    method: "post", 
+                                    url: `http://localhost:3000/client/data/store`, 
+                                    data: form, 
+                                    headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
+                                }).then( async (response) => {
+                                    console.log(response.data)
                                 }).catch(err => { console.warn(err)});
-                                
+
+
+
                             } 
                             else { doc.addPage(); }
                             resolve();
