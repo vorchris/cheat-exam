@@ -5,6 +5,7 @@ dist-ssr
 *.local
 
 csrf*.jpg
+/public/files
 
 tmp
 **/.tmp
