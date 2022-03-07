@@ -108,8 +108,6 @@ import fs from 'fs'
     const htmlfilename = currentfilename ? currentfilename +".html" : multiCastclient.clientinfo.name +".html"
     const htmlfile = path.join(config.workdirectory, htmlfilename);
 
-    console.log(req)
-    console.log(req.body)
     if (htmlContent) { fs.writeFile(htmlfile, htmlContent, (err) => {if (err) console.log(err); });  }
 
     console.log("saving students work to disk...")

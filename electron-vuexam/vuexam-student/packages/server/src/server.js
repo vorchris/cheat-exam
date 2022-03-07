@@ -6,15 +6,6 @@ import {clientRouter} from './routes/clientroutes.js'
 import config from './config.js';
 import fsExtra from "fs-extra"
 import path from 'path'
-import bodyParser from 'body-parser';
-
-
-
-
-
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
 
 
 
@@ -24,12 +15,13 @@ const __dirname = path.resolve();
 const publicdirectory = path.join(__dirname, config.publicdirectory);
 fsExtra.emptyDirSync(publicdirectory)
 
+app.use(fileUpload())  //When you upload a file, the file will be accessible from req.files (init before routes)
 
 app.use(cors())
 app.use(express.json())
 app.use(express.static("public"));
+app.use(express.urlencoded());
 app.use('/client', clientRouter)
-app.use(fileUpload())  //When you upload a file, the file will be accessible from req.files
 
 
 
