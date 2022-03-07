@@ -13,7 +13,7 @@ const routes = [
     { path: '/',                  component: home },
     { path: '/student',           component: student },
     { path: '/editor/:token', name:"editor",     component: editor,  beforeEnter: [checkToken]},  
-    { path: '/edit',           component: editor },
+    { path: '/edit',           component:  editor},
     { path: '/math/:token', name:"math",  component: geogebra,  beforeEnter: [checkToken]},
     
     { path: '/:pathMatch(.*)*',   component: notfound },

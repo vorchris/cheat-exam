@@ -9,18 +9,16 @@ import path from 'path'
 
 
 
-
 // clean public directory
 const __dirname = path.resolve();
 const publicdirectory = path.join(__dirname, config.publicdirectory);
 fsExtra.emptyDirSync(publicdirectory)
 
 app.use(fileUpload())  //When you upload a file, the file will be accessible from req.files (init before routes)
-
 app.use(cors())
 app.use(express.json())
 app.use(express.static("public"));
-app.use(express.urlencoded());
+app.use(express.urlencoded({extended: true}));
 app.use('/client', clientRouter)
 
 

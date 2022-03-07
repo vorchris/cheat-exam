@@ -113,7 +113,7 @@ export default {
                 this.clientinfo = response.data.clientinfo;
                 this.serverlist = response.data.serverlist;
                 this.token = this.clientinfo.token;
-                console.log(this.clientinfo.name)
+                //console.log(this.clientinfo.name)
                 if (this.clientinfo && this.clientinfo.token){  // if client is already registered disable button (this is also handled on api level)
                     let registerbuttons =  document.getElementsByName("register");
                     registerbuttons.forEach( button => {button.disabled = true; });
