@@ -11,29 +11,37 @@ import serverlist from '/src/pages/serverlist.vue'
 import config from '../../server/src/config'
 
 
+// check if we run this app in electron (host is always "localhost" then)
+let electron = false
+const userAgent = navigator.userAgent.toLowerCase();
+if (userAgent.indexOf(' electron/') > -1) {
+    electron = true
+}
+
+ // console.log(apiconfig)   // running in electron this is the very same config object as it's used in server.js via contextbridge (preload) in electron - just in case
 
 const routes = [
     { path: '/',                  component: home },
     { path: '/startserver',       component: startserver, beforeEnter: [addParams] },
-    { path: '/serverlist',        component: serverlist   },
-    { path: '/dashboard/:servername/:passwd', name:"dashboard", component: dashboard, beforeEnter: [checkPasswd] },
-
+    { path: '/serverlist',        component: serverlist,   beforeEnter: [addParams]},
+    { path: '/dashboard/:servername/:passwd', name:"dashboard", component: dashboard, beforeEnter: [addParams, checkPasswd] },
     { path: '/:pathMatch(.*)*',   component: notfound },
 ]
 
 function addParams(to){
-   // console.log(apiconfig)   // this is the same config object as it's used in server.js via contextbridge (preload) in electron
-    to.params.port = config.hostip  //how to get the SAME config object in plain node + vue
-
+    to.params.serverApiPort = config.serverApiPort 
+    to.params.clientApiPort = config.clientApiPort
+    to.params.electron = electron
 }
 
 
 
 
-//ATTENTION!!! das kann auch ein remote server sein
-// was machen wir hier mit "localhost"
+
 async function checkPasswd(to){
-    let res = await axios.get(`http://localhost:3000/server/control/checkpasswd/${to.params.servername}/${to.params.passwd}`)
+    let hostname = electron ? "localhost" : window.location.hostname
+
+    let res = await axios.get(`http://${hostname}:${config.serverApiPort}/server/control/checkpasswd/${to.params.servername}/${to.params.passwd}`)
     .then(response => {  return response.data  })
     .catch( err => {console.log(err)})
 

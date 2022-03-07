@@ -93,6 +93,7 @@ import FormData from 'form-data';
 import axios from "axios";
 import $ from 'jquery'
 
+
 export default {
   components: {
     EditorContent,
@@ -110,15 +111,16 @@ export default {
         serverip: this.$route.params.serverip,
         token: this.$route.params.token,
         clientname: this.$route.params.clientname,
-        localfiles: null
+        localfiles: null,
+        serverApiPort: this.$route.params.serverApiPort,
+        clientApiPort: this.$route.params.clientApiPort,
     }
   },
 
   mounted() {
     // run focuscheck function (give it 'this' in order to know about reactive vars from this view )
-     if(this.token) { activatefocuscheck.call('', this) } // aus einem mir momentan nicht zugänglichen grund wird der erste parameter hier nicht wie erwartet als "this" an die funktion übergeben
-
-
+     if(this.token) { this.focuscheck() } // aus einem mir momentan nicht zugänglichen grund wird der erste parameter hier nicht wie erwartet als "this" an die funktion übergeben
+   
     this.editor = new Editor({
         extensions: [
             Blockquote,
@@ -214,7 +216,7 @@ ENDE !!`,
   methods: {
 
         loadFilelist(){
-            fetch(`http://localhost:3000/client/data/getfiles`, { method: 'POST' })
+            fetch(`http://localhost:${this.clientApiPort}/client/data/getfiles`, { method: 'POST' })
             .then( response => response.json() )
             .then( data => {
                 this.localfiles = data;
@@ -228,7 +230,7 @@ ENDE !!`,
             const form = new FormData()
             form.append("filename", file)
             // fetch file from disc - replace editor content
-            fetch(`http://localhost:3000/client/data/getfiles`, { method: 'POST', body: form })
+            fetch(`http://localhost:${this.clientApiPort}/client/data/getfiles`, { method: 'POST', body: form })
                 .then( response => response.json() )
                 .then( html => {
                     this.editor.commands.clearContent(true)
@@ -294,7 +296,7 @@ ENDE !!`,
                         
                                 axios({
                                     method: "post", 
-                                    url: `http://localhost:3000/client/data/store`, 
+                                    url: `http://localhost:${this.clientApiPort}/client/data/store`, 
                                     data: form, 
                                     headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
                                 }).then( async (response) => {
@@ -311,6 +313,60 @@ ENDE !!`,
                 }
             });
         },
+        focuscheck() {
+            let hidden, visibilityChange;
+            const focusevent = new Event('focuslost');  //create a new custom event
+            let vue = this
+            // Listen for the focuslost event and trigger an action
+            window.addEventListener('focuslost', async function (e) {
+                console.log("houston we have a problem")
+
+                /** inform the teacher immediately */
+                // send API request to the exam server and highlight the student
+                await fetch(`http://${vue.serverip}:${vue.serverApiPort}/server/control/studentlist/statechange/${vue.servername}/${vue.token}/false`)
+                    .then( response => response.json() )
+                    .then( async (data) => {
+                        console.log(data);
+                    });
+            }, false);
+
+            window.addEventListener('beforeunload', (e) => {
+                e.preventDefault(); // If you prevent default behavior in Mozilla Firefox prompt will always be shown
+                e.returnValue = '';  // Chrome requires returnValue to be set
+                window.dispatchEvent(focusevent);
+            });
+
+            window.addEventListener('blur', (e) => {
+                window.dispatchEvent(focusevent);
+            });
+
+            if (typeof document.hidden !== "undefined") { // Opera 12.10 and Firefox 18 and later support
+                hidden = "hidden";
+                visibilityChange = "visibilitychange";
+            } 
+            else if (typeof document.msHidden !== "undefined") {
+                hidden = "msHidden";
+                visibilityChange = "msvisibilitychange";
+            } 
+            else if (typeof document.webkitHidden !== "undefined") {
+                hidden = "webkitHidden";
+                visibilityChange = "webkitvisibilitychange";
+            }
+            
+            // Warn if the browser doesn't support addEventListener or the Page Visibility API
+            if (typeof document.addEventListener === "undefined" || hidden === undefined) {
+                console.log("This app requires a browser, such as Google Chrome or Firefox, that supports the Page Visibility API.");
+            } 
+            else {
+                document.addEventListener(visibilityChange, (e) => {
+                    if (document[hidden]) {   window.dispatchEvent(focusevent);} 
+                }, false);
+            }
+        }
+
+
+
+
     
 
   },

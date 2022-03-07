@@ -4,7 +4,7 @@
 <div class="w-100 p-3 text-white bg-dark shadow text-right">
     <router-link to="/" class="text-white m-1">
         <img src="/src/assets/img/svg/shield-lock-fill.svg" class="white me-2  " width="32" height="32" >
-        <span class="fs-4 align-middle me-4 ">Next-Exam</span>
+        <span class="fs-4 align-middle me-4 ">{{title}}</span>
     </router-link>
     <span class="fs-4 align-middle" style="float: right">Teacher</span>
 </div>
@@ -83,19 +83,20 @@ import axios from "axios";
 export default {
     data() {
         return {
+            title: document.title,
             servername : "Mathe5A",
             pincode: "1337",
             password: "password",
             prod : false,
-            apiport: this.$route.params.port
+            serverApiPort: this.$route.params.serverApiPort,
+            electron: this.$route.params.electron,
+            hostname: window.location.hostname
         };
     },
-    components: {
-    
-    },
+    components: {},
     methods: {
         async startServer(){
-            await axios.get(`http://${window.location.host}/server/control/start/${this.servername}/${this.pincode}/${this.password}`)
+            await axios.get(`http://${this.hostname}:${this.serverApiPort}/server/control/start/${this.servername}/${this.pincode}/${this.password}`)
             .then( async (response) => {
                 this.status(response.data.message);
                 await this.sleep(1000);
@@ -123,10 +124,12 @@ export default {
             $("#pin").val("")
             $("#password").val("")
         }
-        console.log(this.apiport)
+        if (this.electron){
+            this.hostname = "localhost"
+        }
     },
     beforeUnmount() {
-         clearInterval( this.fetchinterval )
+        clearInterval( this.fetchinterval )
     },
 }
 

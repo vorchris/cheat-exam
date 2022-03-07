@@ -1,13 +1,15 @@
 const config = {
-  workdirectory : "/home/student/SHARE",
-  tempdirectory : "/tmp",
-  publicdirectory: "public/files/",
-  port: 3000,
-  httpPort: 8000,
-  multicastClientPort: 6024,
-  hostip: "0.0.0.0",
-  development: true,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
-  examServerList: {},
-  clientinfo: {}
+    workdirectory : "/home/student/SHARE",
+    tempdirectory : "/tmp",
+    publicdirectory: "public/files/",
+    serverApiPort:22422,
+    clientApiPort:11411,  // according to wikipedia and IANA no other service uses this port.. so this is ours ;)
+    clientVitePort:3001,
+    serverVitePort:3002,
+    multicastClientPort: 6024,
+    hostip: "0.0.0.0",
+    development: true,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
+    examServerList: {},
+    clientinfo: {}
 }
 export default config

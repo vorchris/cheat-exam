@@ -8,28 +8,45 @@ import notfound from '/src/pages/notfound.vue'
 import student from '/src/pages/student.vue'
 import editor from '/src/pages/editor.vue'
 import geogebra from '/src/pages/geogebra.vue'
+import config from '../../server/src/config'
+
+// check if we run this app in electron (host is always "localhost" then)
+let electron = false
+const userAgent = navigator.userAgent.toLowerCase();
+if (userAgent.indexOf(' electron/') > -1) {
+    electron = true
+}
 
 const routes = [
     { path: '/',                  component: home },
-    { path: '/student',           component: student },
-    { path: '/editor/:token', name:"editor",     component: editor,  beforeEnter: [checkToken]},  
-    { path: '/edit',           component:  editor},
-    { path: '/math/:token', name:"math",  component: geogebra,  beforeEnter: [checkToken]},
-    
+    { path: '/student',           component: student, beforeEnter: [addParams]  },
+    { path: '/editor/:token', name:"editor",     component: editor,  beforeEnter: [addParams, checkToken]},  
+    { path: '/math/:token', name:"math",  component: geogebra,  beforeEnter: [addParams, checkToken]},
     { path: '/:pathMatch(.*)*',   component: notfound },
+
+
+    { path: '/test',           component:  editor, beforeEnter: [addParams] },  // just for testing
 ]
+
+
+function addParams(to){
+    to.params.serverApiPort = config.serverApiPort 
+    to.params.clientApiPort = config.clientApiPort
+    to.params.electron = electron
+}
+
 
 /**
  * der exammode benötigt für die focusCheck funktion 
  * um rechtmässig am server den studentstatus updaten zu dürfen das student token
  */
 async function checkToken(to, from){
-    let status = await axios.get(`http://localhost:3000/client/control/tokencheck/${to.params.token}`)
+    let status = await axios.get(`http://localhost:${config.clientApiPort}/client/control/tokencheck/${to.params.token}`)
     .then(response => {  return response.data.status  })
     .catch( err => {console.log(err)})
 
     if (status === "success") { 
-        let clientinfo = await axios.get(`http://localhost:3000/client/control/getinfo`)
+        let clientinfo = await axios.get(`http://localhost:${config.clientApiPort}/client/control/getinfo`)
         .then(response => {  return response.data.clientinfo  })
         .catch( err => {console.log(err)})
        
@@ -42,36 +59,6 @@ async function checkToken(to, from){
     else {  console.log("token error"); return { path: '/student'} }
 }
 
-
-//ATTENTION!!! checkpasswd wird eigentlich nur vom server aus genutzt.. das kann auch ein remote server sein
-// was machen wir hier mit "localhost" .. ist das ok wegs SSR ? serverIP ??
-async function checkPasswd(to){
-    let res = await axios.get(`http://localhost:3000/server/control/checkpasswd/${to.params.servername}/${to.params.passwd}`)
-    .then(response => {  return response.data  })
-    .catch( err => {console.log(err)})
-
-    if (res.status === "success") { 
-        to.params.pin = res.data.pin; 
-        to.params.servertoken = res.data.servertoken; 
-        to.params.serverip = res.data.serverip; 
-        console.log("password ok"); 
-        return true 
-    }
-    else {  
-        console.log("password error"); 
-        return { path: '/startserver'}
-    }
-}
-
-
-//do not allow requests from external hosts !!!!! DOESNT WORK IN VUE ROUTER
-function requestSourceAllowed(req,res){
-  if (req.ip !== "::1" && req.ip !== "127.0.0.1"){ 
-    console.log("Blocked request from remote Host"); 
-    return false
-  }   
-  return true
-}
 
 
 

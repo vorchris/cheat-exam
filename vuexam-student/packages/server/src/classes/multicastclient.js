@@ -12,7 +12,7 @@ import screenshot from 'screenshot-desktop';
  */
 class MulticastClient {
   constructor () {
-    this.PORT = 6024
+    this.PORT = config.multicastClientPort
     this.MULTICAST_ADDR = '239.255.255.250'
     this.client = dgram.createSocket('udp4')
     this.examServerList = []
@@ -82,7 +82,7 @@ class MulticastClient {
         //post to /studentlist/update/:token
         axios({
           method: "post", 
-          url: `http://${this.clientinfo.serverip}:3000/server/control/studentlist/update`, 
+          url: `http://${this.clientinfo.serverip}:${config.serverApiPort}/server/control/studentlist/update`, 
           data: formData, 
           headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
         })

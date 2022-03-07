@@ -4,7 +4,7 @@
 <div class="w-100 p-3 text-white bg-dark shadow text-right">
     <router-link to="/" class="text-white m-1">
         <img src="/src/assets/img/svg/shield-lock-fill.svg" class="white me-2  " width="32" height="32" >
-        <span class="fs-4 align-middle me-4 ">Next-Exam</span>
+        <span class="fs-4 align-middle me-4 ">{{title}}</span>
     </router-link>
     <span class="fs-4 align-middle" style="float: right">Teacher</span>
 </div>
@@ -42,14 +42,9 @@
         <br>
     </div>
 
-
     <div id="content" class="fadeinslow p-3">
         <div id="list" class="container-fluid m-0 p-0">
-
-
-
             <div class='row g-2'>
-           
                 <div  v-for="server in serverlist" class="col-6" style="min-width:280px; max-width: 320px;">
                     <div class="p-3 border bg-light">
                         <dl class="row mb-0">
@@ -65,18 +60,9 @@
                         </dl>
                     </div>
                 </div>
-            
             </div>
-
-
-
-
-
-
         </div>
     </div>
-
-
 </div>
 
 </template>
@@ -89,18 +75,19 @@ import axios from "axios";
 export default {
     data() {
         return {
+            title: document.title,
             fetchinterval: null,
             serverlist: [],
-            password: 'password'
+            password: 'password',
+            serverApiPort: this.$route.params.serverApiPort,
+            electron: this.$route.params.electron,
+            hostname: window.location.hostname
         };
     },
-    components: {
-    
-    },
+    components: { },
     methods: {
-
         fetchInfo() {
-            axios.get("/server/control/serverlist")
+            axios.get(`http://${this.hostname}:${this.serverApiPort}/server/control/serverlist`)
             .then( response => {
                 this.serverlist = response.data.serverlist;
             })
@@ -109,22 +96,18 @@ export default {
 
         login(servername){
             let password = $(`#${servername}`).val()
-            window.location.href = `/dashboard/${servername}/${password}`
-
-            // this.$router.push({
-           
-            //     name: 'dashboard', 
-            //     params:{
-            //         servername: servername, 
-            //         passwd: password
-            //         }
-
-            // })
-            // this.$router.push({
-            //     path: `/dashboard/${servername}/${password}`,
-              
-            // });
-           
+            if (this.electron){
+                this.$router.push({  // for some reason this doesn't work on mobile
+                name: 'dashboard', 
+                params:{
+                    servername: servername, 
+                    passwd: password
+                }
+            })
+            }
+            else {
+                window.location.href = `#/dashboard/${servername}/${password}`
+            }
         },
 
         //show status message
@@ -142,8 +125,14 @@ export default {
 
     },
     mounted() {  // when ready
-        this.fetchInfo();
-        this.fetchinterval = setInterval(() => { this.fetchInfo() }, 2000)
+        this.$nextTick(function () { // Code that will run only after the entire view has been rendered
+            this.fetchInfo();
+            this.fetchinterval = setInterval(() => { this.fetchInfo() }, 2000)
+        })
+        
+        if (this.electron){
+            this.hostname = "localhost"
+        }
     },
     beforeUnmount() {
          clearInterval( this.fetchinterval )

@@ -41,7 +41,7 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
         return
     }
   
-    await axios.get(`http://${serverip}:3000/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}`)
+    await axios.get(`http://${serverip}:${config.serverApiPort}/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}`)
     .then(response => {
         console.log(response.data)
         if (response.data && response.data.status == "success") { // registration successfull otherwise data would be "false"
@@ -101,8 +101,8 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
       });
       const pages = await multiCastclient.browser.pages();
       const page = pages[0]
-      if (examtype === "math"){  await page.goto(`http://localhost:3000/math/${token}`); }
-      else {  await page.goto(`http://localhost:3000/editor/${token}`); }
+      if (examtype === "math"){  await page.goto(`http://localhost:${config.clientVitePort}/#/math/${token}`); }   //FIXME::: HOW IS THIS Going tho work with ELECTRON ??
+      else {  await page.goto(`http://localhost:${config.clientVitePort}/#/editor/${token}`); }
     })();
     res.json({ sender: "client",message:"exam initialized", status:"success" })
   }

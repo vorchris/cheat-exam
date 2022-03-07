@@ -4,7 +4,7 @@
 <div class="w-100 p-3 text-white bg-dark shadow text-right">
     <router-link to="/" class="text-white m-1">
         <img src="/src/assets/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
-        <span class="fs-4 align-middle me-4 ">Next-Exam</span>
+        <span class="fs-4 align-middle me-4 ">{{title}}</span>
     </router-link>
     <span class="fs-4 align-middle" style="float: right">Dashboard</span>
 </div>
@@ -61,7 +61,7 @@
         <div class="btn btn-danger m-1 text-start" style="width:100px;" @click="endExam('all')" >Exam beenden</div>
         <div id="studentslist" class="placeholder pt-4"> 
             <div v-for="student in studentlist" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn border-0 rounded-3 btn-block m-1 ">
-                <div id="image" class="rounded" :style="'background-image:url(/files/'+student.token+'.jpg?ver='+student.timestamp+')'" style="position: relative; height:75%; background-size:cover;">
+                <div id="image" class="rounded" :style="`background-image:url(http://${serverip}:${serverApiPort}/files/${student.token}.jpg?ver=${student.timestamp})  `" style="position: relative; height:75%; background-size:cover;">
                     <span style="">{{student.clientname}}            
                     <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-2 pe-2 float-end" title="kick user"></button> </span>
                 </div>
@@ -88,32 +88,37 @@ import FormData from 'form-data';
 export default {
     data() {
         return {
+            title: document.title,
             fetchinterval: null,
             abgabeinterval: null,
             studentlist: [],
             servername: this.$route.params.servername,
             servertoken: this.$route.params.servertoken,
             serverip: this.$route.params.serverip,
+            serverApiPort: this.$route.params.serverApiPort,
+            clientApiPort: this.$route.params.clientApiPort,
+            electron: this.$route.params.electron,
+            hostname: window.location.hostname,
             now : null,
             files: null,
             examtype: 'language',
             autoabgabe: false,
         };
     },
-    components: {
-    
-    },
+    components: { },
     methods: {
         // get all information about students status
         fetchInfo() {
             this.now = new Date().getTime()
-            axios.get(`http://${this.serverip}:3000/server/control/studentlist/${this.servername}/${this.servertoken}`)
+            axios.get(`http://${this.serverip}:${this.serverApiPort}/server/control/studentlist/${this.servername}/${this.servertoken}`)
             .then( response => {
                 this.studentlist = response.data.studentlist;
-                
-                this.studentlist.forEach(student =>{
-                    if (!student.focus){this.status(`${student.clientname} has left the exam`); }
-                });
+                //console.log(response.data)
+                if (this.studentlist){
+                    this.studentlist.forEach(student =>{
+                        if (!student.focus){this.status(`${student.clientname} has left the exam`); }
+                    });
+                }
             }).catch( err => {console.log(err)});
         }, 
 
@@ -137,7 +142,7 @@ export default {
 
             axios({
                 method: "post", 
-                url: `http://${this.serverip}:3000/server/data/send/${who}`, 
+                url: `http://${this.serverip}:${this.serverApiPort}/server/data/send/${who}`, 
                 data: formData, 
                 headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
                 })
@@ -157,7 +162,7 @@ export default {
 
         //stop and clear this exam server instance
         stopserver(){
-             axios.get(`http://${this.serverip}:3000/server/control/stopserver/${this.servername}/${this.servertoken}`)
+             axios.get(`http://${this.serverip}:${this.serverApiPort}/server/control/stopserver/${this.servername}/${this.servertoken}`)
                 .then( async (response) => {
                     this.status(response.data.message);
                     console.log(response.data);
@@ -178,7 +183,7 @@ export default {
                         //check exam mode for students - dont initialize twice
                         console.log(student)
                         if (student.exammode){ return; }
-                        axios.get(`http://${student.clientip}:3000/client/control/exammode/start/${student.token}/${this.examtype}`)
+                        axios.get(`http://${student.clientip}:${this.clientApiPort}/client/control/exammode/start/${student.token}/${this.examtype}`)
                         .then( response => {
                             this.status(response.data.message);
                             console.log(response.data);
@@ -195,7 +200,7 @@ export default {
                 if ( this.studentlist.length <= 0 ) { this.status("no clients connected"); console.log("no clients connected") }
                 else {  
                     this.studentlist.forEach( (student) => {
-                        axios.get(`http://${student.clientip}:3000/client/control/exammode/stop/${student.token}`)
+                        axios.get(`http://${student.clientip}:${this.clientApiPort}/client/control/exammode/stop/${student.token}`)
                         .then( async (response) => {
                             this.status(response.data.message);
                             console.log(response.data);
@@ -212,7 +217,7 @@ export default {
                 else {  
                     console.log("Requesting Filetransfer from ALL Clients")
                     this.studentlist.forEach( (student) => {
-                        axios.get(`http://${student.clientip}:3000/client/data/abgabe/send/${student.token}`)
+                        axios.get(`http://${student.clientip}:${this.clientApiPort}/client/data/abgabe/send/${student.token}`)
                         .then( response => {
                             console.log(response.data.message);
                         }).catch(error => {console.log(error)});
@@ -224,14 +229,14 @@ export default {
         //remove student from exam
         kick(studenttoken, studentip){
             //unregister locally
-            axios.get(`http://${this.serverip}:3000/server/control/kick/${this.servername}/${this.servertoken}/${studenttoken}`)
+            axios.get(`http://${this.serverip}:${this.serverApiPort}/server/control/kick/${this.servername}/${this.servertoken}/${studenttoken}`)
             .then( response => {
                 console.log(response.data);
                 this.status(response.data.message);
             }).catch(error => {console.log(error)});
 
             //inform student
-            axios.get(`http://${studentip}:3000/client/control/kick/${studenttoken}`)
+            axios.get(`http://${studentip}:${this.clientApiPort}/client/control/kick/${studenttoken}`)
             .then( response => {
                 console.log(response.data);
             }).catch(error => {console.log(error)});
@@ -239,7 +244,7 @@ export default {
 
           //remove student from exam
         async restore(studenttoken){
-            await axios.get(`http://${this.serverip}:3000/server/control/studentlist/statechange/${this.servername}/${studenttoken}/true`)
+            await axios.get(`http://${this.serverip}:${this.serverApiPort}/server/control/studentlist/statechange/${this.servername}/${studenttoken}/true`)
                 .then( async (response) => {
                     this.status(response.data.message);
                     console.log(response.data);
@@ -258,7 +263,7 @@ export default {
 
         // (dummy function - validate a specific token - trigger notification on client)
         async task2(token, ip){
-             axios.get(`http://${ip}:3000/client/control/tokencheck/${token}`)
+             axios.get(`http://${ip}:${this.clientApiPort}/client/control/tokencheck/${token}`)
             .then(  response => {
                 console.log(response.data);
             }).catch(error => {console.log(error)});
@@ -279,9 +284,14 @@ export default {
 
     },
     mounted() {  // when ready
-        $("#statusdiv").fadeOut("slow")
-        this.fetchInfo();
-        this.fetchinterval = setInterval(() => { this.fetchInfo() }, 4000)
+        this.$nextTick(function () { // Code that will run only after the entire view has been rendered
+            $("#statusdiv").fadeOut("slow")
+            this.fetchInfo();
+            this.fetchinterval = setInterval(() => { this.fetchInfo() }, 4000)
+        })
+        if (this.electron){
+            this.hostname = "localhost"
+        }
     },
     beforeUnmount() {  //when leaving
         clearInterval( this.fetchinterval )

@@ -50,7 +50,7 @@ import fs from 'fs'
         });
 
         //post to server  (send param token in order to authenticate - the server only accepts files from registered students)
-        fetch(`http://${serverip}:3000/server/data/receive/server/${servername}/${token}`, { method: 'POST', body: form })
+        fetch(`http://${serverip}:${config.serverApiPort}/server/data/receive/server/${servername}/${token}`, { method: 'POST', body: form })
             .then( response => response.json() )
             .then( async (data) => {
                 console.log(data)
@@ -148,30 +148,7 @@ import fs from 'fs'
     }
 })
   
-  
-  /**
- * GET GeoGebra HTML
- */ 
- router.get('/geogebra/:component', function (req, res, next) {
-    if (!requestSourceAllowed(req, res)) return //only allow this api route on localhost (same machine)
 
-    const workdir = path.join(config.workdirectory,"/")
-
-    const component = req.params.component
-
-    const __dirname = path.resolve();
-    const geogebrafilename = path.join(__dirname, "/src/geogebra/geometry.html");
-
- 
-    console.log("loading geogebra")
-    return res.sendFile( geogebrafilename )
-    // fs.readFile(geogebrafilename, 'utf8' , (err, data) => {
-       
-    //         if (err) {console.error(err);  return }
-    //         return res.send( data )
-    // })
-
-})
 
 
 

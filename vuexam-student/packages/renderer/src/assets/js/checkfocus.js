@@ -1,5 +1,5 @@
 
-export const activatefocuscheck = (vue) => {
+export const focuscheck = (vue) => {
     let hidden, visibilityChange;
     const focusevent = new Event('focuslost');  //create a new custom event
   
@@ -8,7 +8,7 @@ export const activatefocuscheck = (vue) => {
         console.log("houston we have a problem")
         /** inform the teacher immediately */
         // send API request to the exam server and highlight the student
-        await fetch(`http://${vue.serverip}:3000/server/control/studentlist/statechange/${vue.servername}/${vue.token}/false`)
+        await fetch(`http://${vue.serverip}:${vue.serverApiPort}/server/control/studentlist/statechange/${vue.servername}/${vue.token}/false`)
             .then( response => response.json() )
             .then( async (data) => {
                 console.log(data);
@@ -49,5 +49,4 @@ export const activatefocuscheck = (vue) => {
     }
 
 }
-
 

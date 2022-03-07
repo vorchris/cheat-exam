@@ -5,7 +5,7 @@
         <span class="fs-4 align-middle" style="float: right">GeoGebra</span>
   </div>
   <div id=content>
-    <iframe id="geogebraframe" src="http://localhost:3000/geogebra/geometry.html"></iframe>
+    <iframe id="geogebraframe" :src="geogebrasource"></iframe>
  </div>
 </template>
 
@@ -14,7 +14,6 @@ import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 
 import $ from 'jquery'
-
 
 export default {
     data() {
@@ -26,9 +25,14 @@ export default {
             serverip: this.$route.params.serverip,
             token: this.$route.params.token,
             clientname: this.$route.params.clientname,
+            serverApiPort: this.$route.params.serverApiPort,
+            clientApiPort: this.$route.params.clientApiPort,
+            geogebrasource: ""
         }
     },    
     mounted() {
+        console.log(this.clientApiPort)
+        this.geogebrasource = `http://localhost:${this.clientApiPort}/geogebra/geometry.html`
         this.currentFile = this.clientname
         // run focuscheck function (give it 'this' in order to know about reactive vars from this view )
         if(this.token) { activatefocuscheck.call('', this) }  // aus einem mir momentan nicht zugänglichen grund wird der erste parameter hier nicht wie erwartet als "this" an die funktion übergeben
@@ -80,7 +84,7 @@ export default {
                                 form.append("currentfilename", this.currentFile)
 
                                 //post to client (store pdf, store json, send to teacher)
-                                fetch(`http://localhost:3000/client/data/store`, { method: 'POST', body: form })
+                                fetch(`http://localhost:${this.clientApiPort}/client/data/store`, { method: 'POST', body: form })
                                 .then( response => response.json() )
                                 .then( async (data) => {
                                     console.log(data)

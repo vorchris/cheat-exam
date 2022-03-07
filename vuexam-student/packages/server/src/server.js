@@ -6,7 +6,13 @@ import {clientRouter} from './routes/clientroutes.js'
 import config from './config.js';
 import fsExtra from "fs-extra"
 import path from 'path'
+import ip from 'ip'
+import multicastClient from './classes/multicastclient.js'
 
+
+multicastClient.init()
+
+config.hostip = ip.address()  // config is exposed to electron-vue app via context bridge so we can use it in the frontend
 
 
 // clean public directory
@@ -25,8 +31,9 @@ app.use('/client', clientRouter)
 
 
 
-app.listen(3000, () => {  
-    console.log('Express listening on: http://localhost:3000')
+app.listen(config.clientApiPort, () => {  
+    console.log(`Express listening on: http://${config.hostip}:${config.clientApiPort}`)
+    console.log("Vite-vue on Port 3001")
 })
 
 

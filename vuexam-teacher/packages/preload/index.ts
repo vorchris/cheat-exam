@@ -10,21 +10,22 @@ import config from "../server/src/config.js"
 
 /** document ready */
 function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {
-  return new Promise(resolve => {
-    if (condition.includes(document.readyState)) {
-      resolve(true)
-    } else {
-      document.addEventListener('readystatechange', () => {
+    return new Promise(resolve => {
         if (condition.includes(document.readyState)) {
-          resolve(true)
+            resolve(true)
+        } 
+        else {
+            document.addEventListener('readystatechange', () => {
+                if (condition.includes(document.readyState)) {
+                resolve(true)
+                }
+            })
         }
-      })
-    }
-  })
+    })
 }
 
 ;(async () => {
-  await domReady()
+    await domReady()
 })()
 
 
@@ -36,19 +37,20 @@ contextBridge.exposeInMainWorld('apiconfig', config)
 
 // `exposeInMainWorld` can't detect attributes and methods of `prototype`, manually patching it.
 function withPrototype(obj: Record<string, any>) {
-  const protos = Object.getPrototypeOf(obj)
+    const protos = Object.getPrototypeOf(obj)
 
-  for (const [key, value] of Object.entries(protos)) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) continue
+    for (const [key, value] of Object.entries(protos)) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) continue
 
-    if (typeof value === 'function') {
-      // Some native APIs, like `NodeJS.EventEmitter['on']`, don't work in the Renderer process. Wrapping them into a function.
-      obj[key] = function (...args: any) {
-        return value.call(obj, ...args)
-      }
-    } else {
-      obj[key] = value
+        if (typeof value === 'function') {
+            // Some native APIs, like `NodeJS.EventEmitter['on']`, don't work in the Renderer process. Wrapping them into a function.
+            obj[key] = function (...args: any) {
+                return value.call(obj, ...args)
+            }
+        } 
+        else {
+            obj[key] = value
+        }
     }
-  }
-  return obj
+    return obj
 }

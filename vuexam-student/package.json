@@ -68,7 +68,7 @@
   },
   "env": {
     "//": "Used in build scripts",
-    "PORT": 3344
+    "PORT": 3001
   },
   "keywords": [
     "vite",

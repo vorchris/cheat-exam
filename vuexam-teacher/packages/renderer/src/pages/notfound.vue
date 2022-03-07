@@ -4,9 +4,9 @@
 <div class="w-100 p-3 text-white bg-dark shadow text-right">
     <router-link to="/" class="text-white m-1">
         <img src="/img/svg/server.svg" class="white me-2  " width="32" height="32" >
-        <span class="fs-4 align-middle me-4 ">VUExam</span>
+        <span class="fs-4 align-middle me-4 ">{{title}}</span>
     </router-link>
-    <span class="fs-4 align-middle" style="float: right">404</span>
+    <span class="fs-4 align-middle" style="float: right">Error 404</span>
 </div>
  
 
@@ -16,7 +16,7 @@
         <div class="position-absolute start-50 translate-middle text-center" style="top: 30vh; min-width:268px">
         
             <div class="row position-relative text-center p-3" >  
-                <h4> Error 404 </h4>
+                <h4> Page not found</h4>
             </div>
         
             <div class="row justify-content-md-center">
@@ -45,9 +45,14 @@
 
 
 
-<script setup>
-
-
+<script>
+export default {
+    data() {
+        return {
+            title: document.title,
+        };
+    },
+}
 </script>
 
 

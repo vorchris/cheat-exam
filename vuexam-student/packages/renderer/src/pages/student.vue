@@ -100,6 +100,8 @@ export default {
             serverlist: [],
             remoterequest: false,
             fetchinterval: null,
+            serverApiPort: this.$route.params.serverApiPort,
+            clientApiPort: this.$route.params.clientApiPort,
         };
     },
 
@@ -108,7 +110,7 @@ export default {
     },
     methods: {
         fetchInfo() {
-            axios.get("http://localhost:3000/client/control/getinfo")
+            axios.get(`http://localhost:${this.clientApiPort}/client/control/getinfo`)
             .then( response => {
                 this.clientinfo = response.data.clientinfo;
                 this.serverlist = response.data.serverlist;
@@ -126,7 +128,7 @@ export default {
         /** register client on the server **/
         async registerClient(serverip, servername){
             $(`#${servername}`).val("registering...");   //well be overwritten by fetchInfo()
-            await axios.get(`http://localhost:3000/client/control/register/${serverip}/${servername}/${this.pincode}/${this.username}`)
+            await axios.get(`http://localhost:${this.clientApiPort}/client/control/register/${serverip}/${servername}/${this.pincode}/${this.username}`)
             .then( response => { 
                 this.status(response.data.message);
                 console.log(response.data.message);
