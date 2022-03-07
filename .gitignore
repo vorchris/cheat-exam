@@ -5,7 +5,7 @@ dist-ssr
 *.local
 
 csrf*.jpg
-/public/files
+vuexam-teacher/public/files/*
 
 tmp
 **/.tmp
