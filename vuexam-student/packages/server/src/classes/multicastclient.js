@@ -6,7 +6,6 @@ import fs from 'fs';
 import path from 'path';
 import screenshot from 'screenshot-desktop';
 
-
 /**
  * Starts a dgram (udp) socket that listens for mulitcast messages
  */
@@ -55,7 +54,6 @@ class MulticastClient {
   }
 
 
-
   /** 
    * sends heartbeat to registered server and updates screenshot on server 
    */
@@ -67,14 +65,17 @@ class MulticastClient {
       let screenshotfilename = this.clientinfo.token +".jpg"
       let screenshotfilepath = path.join(config.tempdirectory, screenshotfilename);
 
-      screenshot({ filename: screenshotfilepath }).then(() => {
+      screenshot().then(async (img) => {
         //create formdata
         const formData = new FormData()
-        formData.append(screenshotfilename, fs.createReadStream(screenshotfilepath), {
-            contentType: 'image/jpeg',
-            filename: screenshotfilename,
-        });
-
+        
+        if (config.electron){
+            let blob =  new Blob( [ new Uint8Array(img).buffer], { type: 'image/jpeg' })
+            formData.append(screenshotfilename, blob, screenshotfilename );
+        }
+        else {
+            formData.append(screenshotfilename, img, screenshotfilename );
+        }
         //update timestamp
         this.clientinfo.timestamp =  new Date().getTime()
         formData.append('clientinfo', JSON.stringify(this.clientinfo) );

@@ -1,6 +1,6 @@
 {
-  "name": "vuexam",
-  "version": "0.0.1",
+  "name": "vuexam-student",
+  "version": "0.0.2",
   "main": "dist/main/index.cjs",
   "author": "Thomas Michael Weissel",
   "license": "GPL",
@@ -14,9 +14,10 @@
     "serve": "nodemon packages/server/src/server"
   },
   "build": {
-    "productName": "VuExam",
-    "appId": "com.vuexam.app",
+    "productName": "VuExam-Student",
+    "appId": "com.vuexam-student.app",
     "asar": true,
+    "asarUnpack": "node_modules/puppeteer/.local-chromium/**/*",
     "directories": {
       "output": "release/${version}"
     },
@@ -26,7 +27,8 @@
     "linux": {
       "target": "AppImage",
       "category": "Utility",
-      "icon": "dist/renderer/favicon.svg"
+      "icon": "dist/renderer/favicon.svg",
+      "artifactName": "${productName}_${version}.${ext}"
     },
     "mac": {
       "artifactName": "${productName}_${version}.${ext}",
@@ -77,6 +79,7 @@
     "rollup"
   ],
   "dependencies": {
+    "@tiptap/extension-blockquote": "^2.0.0-beta.26",
     "@tiptap/extension-bold": "^2.0.0-beta.26",
     "@tiptap/extension-bullet-list": "^2.0.0-beta.26",
     "@tiptap/extension-code": "^2.0.0-beta.26",
@@ -98,7 +101,6 @@
     "@tiptap/extension-text": "^2.0.0-beta.15",
     "@tiptap/extension-text-align": "^2.0.0-beta.29",
     "@tiptap/extension-underline": "^2.0.0-beta.23",
-    "@tiptap/starter-kit": "^2.0.0-beta.183",
     "@tiptap/vue-3": "^2.0.0-beta.90",
     "@types/screenshot-desktop": "^1.12.0",
     "archiver": "^5.3.0",
@@ -112,7 +114,6 @@
     "jspdf": "^2.5.1",
     "lowlight": "^2.5.0",
     "node-notifier": "^10.0.1",
-    "puppeteer": "^13.4.1",
     "sass": "^1.49.9",
     "screenshot-desktop": "^1.12.7",
     "vue-router": "^4.0.13"

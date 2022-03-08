@@ -4,12 +4,10 @@ const router = Router()
 import config from '../../config.js'
 import multiCastclient from '../../classes/multicastclient.js'
 import path from 'path'
-import fetch from 'node-fetch'
 import FormData from 'form-data'
 import archiver from 'archiver'
 import fs from 'fs' 
-
-
+import axios from "axios"
 
 /**
  * ZIPs and sends all files from a CLIENTS workdirectory TO the registered exam SERVER
@@ -41,20 +39,33 @@ import fs from 'fs'
         let zipfilename = multiCastclient.clientinfo.name.concat('.zip')
         let zipfilepath = path.join(config.tempdirectory, zipfilename);
         await zipDirectory(config.workdirectory, zipfilepath)
-
-        //append file data to form
+        
+        let file = await fs.readFileSync(zipfilepath);
         const form = new FormData()
-        form.append(zipfilename, fs.createReadStream(zipfilepath), {
-            contentType: 'application/zip',
-            filename: zipfilename,
-        });
 
-        //post to server  (send param token in order to authenticate - the server only accepts files from registered students)
-        fetch(`http://${serverip}:${config.serverApiPort}/server/data/receive/server/${servername}/${token}`, { method: 'POST', body: form })
-            .then( response => response.json() )
-            .then( async (data) => {
-                console.log(data)
+        if (config.electron){
+
+            let blob =  new Blob( [ new Uint8Array(file).buffer], { type: 'application/zip' })
+            console.log(blob)
+            form.append(zipfilename, blob, zipfilename );
+        } 
+        else {
+            form.append(zipfilename, file, {
+                contentType: 'application/zip',
+                filename: zipfilename,
             });
+        }
+
+        axios({
+            method: "post", 
+            url: `http://${serverip}:${config.serverApiPort}/server/data/receive/server/${servername}/${token}`, 
+            data: form, 
+            headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
+          }).catch( err =>{
+              console.log(`ClientData API: ${err}`)
+          })
+
+    
         
         
     }
@@ -80,6 +91,8 @@ import fs from 'fs'
     else {
         console.log("Receiving File(s)...")
         let errors = 0
+        console.log(req.files)
+
         for (const [key, file] of Object.entries( req.files)) {
             let absoluteFilepath = path.join(config.workdirectory, file.name);
             file.mv(absoluteFilepath, (err) => {  
@@ -108,6 +121,7 @@ import fs from 'fs'
     const htmlfilename = currentfilename ? currentfilename +".html" : multiCastclient.clientinfo.name +".html"
     const htmlfile = path.join(config.workdirectory, htmlfilename);
 
+    
     if (htmlContent) { fs.writeFile(htmlfile, htmlContent, (err) => {if (err) console.log(err); });  }
 
     console.log("saving students work to disk...")

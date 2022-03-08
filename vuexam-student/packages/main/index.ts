@@ -3,9 +3,10 @@
  */
 
 
-import { app, BrowserWindow, shell } from 'electron'
+import { app, BrowserWindow, shell, ipcMain } from 'electron'
 import { release } from 'os'
 import { join } from 'path'
+import url  from 'url';
 
 
 // Disable GPU Acceleration for Windows 7
@@ -27,9 +28,11 @@ async function createWindow() {
     width: 1400,
     height: 800,
     webPreferences: {
-      preload: join(__dirname, '../preload/index.cjs')
+        //nodeIntegration: true,
+        preload: join(__dirname, '../preload/index.cjs')
     },
   })
+
 
   if (app.isPackaged || process.env["DEBUG"]) {
     win.removeMenu() 
@@ -38,11 +41,35 @@ async function createWindow() {
   } else {
     // 🚧 Use ['ENV_NAME'] avoid vite:define plugin
     const url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}`
-
     win.removeMenu() 
     win.loadURL(url)
     win.webContents.openDevTools()
   }
+
+
+
+
+  /**
+   * we create custom listeners here
+   * in electron frontend OR express api (import) ipcRenderer is exposed and usable to send or receive messages (see preload/index.ts)
+   * we can call ipcRenderer.send('signal') to send and ipcMain to reveive in mainprocess
+   */
+    ipcMain.on("kiosk", () => win.setKiosk(true)  );
+    ipcMain.on("nokiosk", () => win.setKiosk(false)  );
+
+
+    // if we receive "exam" from the express API - we inform our renderer (view) to switch to the right page
+    ipcMain.on("exam", (event, token, examtype) =>  {
+        win?.setKiosk(true)
+        win?.webContents.send('exam', token, examtype);
+    }); 
+
+    ipcMain.on("endexam", (event, token, examtype) =>  {
+        win?.setKiosk(false)
+        win?.webContents.send('endexam', token, examtype);
+    }); 
+
+
 
   // Test active push message to Renderer-process
   win.webContents.on('did-finish-load', () => {

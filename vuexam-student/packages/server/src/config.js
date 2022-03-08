@@ -10,6 +10,7 @@ const config = {
   hostip: "0.0.0.0",
   development: true,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
   examServerList: {},
-  clientinfo: {}
+  clientinfo: {},
+  electron: false
 }
 export default config

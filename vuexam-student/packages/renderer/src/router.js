@@ -10,6 +10,9 @@ import editor from '/src/pages/editor.vue'
 import geogebra from '/src/pages/geogebra.vue'
 import config from '../../server/src/config'
 
+//console.log(ipcRenderer)
+
+
 // check if we run this app in electron (host is always "localhost" then)
 let electron = false
 const userAgent = navigator.userAgent.toLowerCase();
@@ -19,13 +22,13 @@ if (userAgent.indexOf(' electron/') > -1) {
 
 const routes = [
     { path: '/',                  component: home },
-    { path: '/student',           component: student, beforeEnter: [addParams]  },
-    { path: '/editor/:token', name:"editor",     component: editor,  beforeEnter: [addParams, checkToken]},  
-    { path: '/math/:token', name:"math",  component: geogebra,  beforeEnter: [addParams, checkToken]},
-    { path: '/:pathMatch(.*)*',   component: notfound },
+    { path: '/student',         name:"student",     component: student,     beforeEnter: [addParams]             },
+    { path: '/editor/:token',   name:"editor",      component: editor,      beforeEnter: [addParams, checkToken] },  
+    { path: '/math/:token',     name:"math",        component: geogebra,    beforeEnter: [addParams, checkToken] },
+    { path: '/:pathMatch(.*)*', name:"404",         component: notfound },
 
-
-    { path: '/test',           component:  editor, beforeEnter: [addParams] },  // just for testing
+    { path: '/mtest',           component:  geogebra, beforeEnter: [addParams] },  // just for testing
+    { path: '/ltest',           component:  editor,   beforeEnter: [addParams] },  // just for testing
 ]
 
 

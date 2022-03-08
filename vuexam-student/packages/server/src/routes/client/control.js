@@ -6,7 +6,8 @@ import path from 'path'
 import axios from 'axios'
 import nodenotify  from 'node-notifier'
 import ip from 'ip'
-import puppeteer from 'puppeteer'
+//import puppeteer from 'puppeteer'
+import { ipcRenderer } from 'electron'  // we use this to talk to the electron ipcMain process (send signals)
 
 
 
@@ -30,6 +31,7 @@ router.get('/getinfo', function (req, res, next) {
  * @param clientname the given username of the student
  */
 router.get('/register/:serverip/:servername/:pin/:clientname', async function (req, res, next) {
+    console.log(config)
     const clientname = req.params.clientname
     const pin = req.params.pin
     const serverip = req.params.serverip
@@ -57,58 +59,23 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
 })
 
 
-
-
 /**
  * Runs a tokencheck and STARTS THE EXAM MODE
  * @param token a csrf token for validation
  */ 
  router.get('/exammode/start/:token/:examtype', function (req, res, next) {
-  const token = req.params.token
-  const examtype = req.params.examtype
+    const token = req.params.token
+    const examtype = req.params.examtype
+    
+    if ( checkToken(token) ) {  
+        ipcRenderer.send('exam', token, examtype)
 
-  if ( checkToken(token) ) {  
-    multiCastclient.clientinfo.exammode = true  // mark this client as active exam 
-
-    //start chromium in kiosk mode on exam landing page here https://peter.sh/experiments/chromium-command-line-switches/
-    let kiosk = ""
-    if (!config.development){ kiosk = "--kiosk" }
-    (async () => {
-      multiCastclient.browser = await puppeteer.launch({
-        headless: false,
-        defaultViewport: null,
-        args: [
-          `${kiosk}`,
-          "--bwsi",
-          "--login-user=incognito",
-          "--force-dark-mode",
-          "--disable-crash-reporter",
-          "--force-app-mode",
-          "--no-first-run",
-          "--noerrdialogs",
-          "--no-default-browser-check",
-          "--disable-popup-blocking",
-          "--suppress-message-center-popups",
-          "--disable-breakpad",
-          "--disable-component-update",
-          "--disable-default-apps",
-          "--disable-dinosaur-easter-egg",
-          "--disable-extensions",
-          "--disable-logging",
-          "--disable-notifications"
-        ],
-        ignoreDefaultArgs: ["--enable-automation","--enable-blink-features=IdleDetection"]
-      });
-      const pages = await multiCastclient.browser.pages();
-      const page = pages[0]
-      if (examtype === "math"){  await page.goto(`http://localhost:${config.clientVitePort}/#/math/${token}`); }   //FIXME::: HOW IS THIS Going tho work with ELECTRON ??
-      else {  await page.goto(`http://localhost:${config.clientVitePort}/#/editor/${token}`); }
-    })();
-    res.json({ sender: "client",message:"exam initialized", status:"success" })
-  }
-  else {
-    res.json({ sender: "client", message:"token is not valid", status: "error" })
-  }
+        multiCastclient.clientinfo.exammode = true  // mark this client as active exam 
+        res.json({ sender: "client",message:"exam initialized", status:"success" })
+    }
+    else {
+        res.json({ sender: "client", message:"token is not valid", status: "error" })
+    }
 })
 
 
@@ -119,14 +86,12 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
  router.get('/exammode/stop/:token', function (req, res, next) {
   const token = req.params.token
   if ( checkToken(token) ) {
-    if (!multiCastclient.browser){return res.json({ sender: "client",message:"exam not running", status:"error" })}
-
-    multiCastclient.browser.close()
-    console.log("browser closed")
+    if (!multiCastclient.clientinfo.exammode){return res.json({ sender: "client",message:"exam not running", status:"error" })}
+   
+    ipcRenderer.send('endexam')
+   
     multiCastclient.clientinfo.exammode = false
-    multiCastclient.browser = false
     res.json({ sender: "client",message:"exam stopped", status:"success" })
-
   }
   else {
     res.json({ sender: "client", message:"token is not valid", status: "error" })

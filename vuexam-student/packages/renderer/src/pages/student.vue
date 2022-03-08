@@ -22,9 +22,15 @@
                 </router-link>
             </li>
             <li>
-                <router-link v-bind:to="'/editor/' + clientinfo.token" class="nav-link">
+                <router-link to="/mtest/" class="nav-link">
                     <img src='/src/assets/img/svg/question-square-fill.svg' class="white me-2"  width="16" height="16" >
-                    Editor
+                    Test G
+                </router-link>
+            </li>
+              <li>
+                <router-link to="/ltest/" class="nav-link">
+                    <img src='/src/assets/img/svg/question-square-fill.svg' class="white me-2"  width="16" height="16" >
+                    Test L
                 </router-link>
             </li>
         </ul>
@@ -87,6 +93,8 @@
 
 import $ from 'jquery'
 import axios from "axios";
+//import remote from  "electron";
+//import { BrowserWindow } from "electron";
 
 
 
@@ -102,6 +110,7 @@ export default {
             fetchinterval: null,
             serverApiPort: this.$route.params.serverApiPort,
             clientApiPort: this.$route.params.clientApiPort,
+            electron: this.$route.params.electron
         };
     },
 
@@ -127,13 +136,20 @@ export default {
 
         /** register client on the server **/
         async registerClient(serverip, servername){
+            
             $(`#${servername}`).val("registering...");   //well be overwritten by fetchInfo()
             await axios.get(`http://localhost:${this.clientApiPort}/client/control/register/${serverip}/${servername}/${this.pincode}/${this.username}`)
             .then( response => { 
                 this.status(response.data.message);
                 console.log(response.data.message);
-            }).catch( err => console.log(err));
+                this.token = response.data.token  // set token immediately for further use (editor , geogebra)
+            })
+            .then( () =>{
+                if (!this.token){ $(`#${servername}`).val("register"); }
+            })
+            .catch( err => console.log(err));
         },
+
 
         
         //show status message
@@ -153,6 +169,19 @@ export default {
         $("#statusdiv").fadeOut("slow")
         this.fetchInfo();
         this.fetchinterval = setInterval(() => { this.fetchInfo() }, 2000)
+
+        if (this.electron){
+            ipcRenderer.on('exam', (event, token, examtype) => {
+                if (examtype === "language") {
+                    this.$router.push({ name: 'editor', params:{ token: token } });
+                }
+                else {
+                    this.$router.push({ name: 'math', params:{ token: token } });
+                }
+            });
+        }
+
+
     },
 
     beforeUnmount() {

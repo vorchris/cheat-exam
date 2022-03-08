@@ -20,7 +20,7 @@
 
 
 
-        <div id="localfiles" class="mb-2">
+        <div id="localfiles" class="mb-2" style="top:0px;">
              <div v-for="file in localfiles" class="btn btn-dark me-2" @click="selectedFile=file; toggleUpload()">
               <img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file}} 
             </div>
@@ -114,13 +114,24 @@ export default {
         localfiles: null,
         serverApiPort: this.$route.params.serverApiPort,
         clientApiPort: this.$route.params.clientApiPort,
+        focusevent: new Event('focuslost'),
+        electron: this.$route.params.electron
     }
   },
 
   mounted() {
-    // run focuscheck function (give it 'this' in order to know about reactive vars from this view )
-     if(this.token) { this.focuscheck() } // aus einem mir momentan nicht zugänglichen grund wird der erste parameter hier nicht wie erwartet als "this" an die funktion übergeben
-   
+    // run focuscheck function 
+    if(this.token) { this.focuscheck() } 
+    if (this.electron){
+        ipcRenderer.on('endexam', (event, token, examtype) => {
+                window.removeEventListener("beforeunload", this.beforeunload,false);
+                window.removeEventListener("focuslost",this.focuslost,false);
+                window.removeEventListener("onblur",this.focuslost,false);
+                this.$router.push({ name: 'student'});
+        });
+    }
+
+
     this.editor = new Editor({
         extensions: [
             Blockquote,
@@ -291,9 +302,6 @@ ENDE !!`,
                                 form.append("editorcontent", editorcontent)
                                 form.append("currentfilename", this.currentFile)
 
-
-
-                        
                                 axios({
                                     method: "post", 
                                     url: `http://localhost:${this.clientApiPort}/client/data/store`, 
@@ -302,8 +310,6 @@ ENDE !!`,
                                 }).then( async (response) => {
                                     console.log(response.data)
                                 }).catch(err => { console.warn(err)});
-
-
 
                             } 
                             else { doc.addPage(); }
@@ -315,30 +321,11 @@ ENDE !!`,
         },
         focuscheck() {
             let hidden, visibilityChange;
-            const focusevent = new Event('focuslost');  //create a new custom event
-            let vue = this
-            // Listen for the focuslost event and trigger an action
-            window.addEventListener('focuslost', async function (e) {
-                console.log("houston we have a problem")
+        
+            window.addEventListener('focuslost', this.focuslost, false);
+            window.addEventListener('beforeunload', this.beforeunload);
+            window.addEventListener('blur', this.onblur);
 
-                /** inform the teacher immediately */
-                // send API request to the exam server and highlight the student
-                await fetch(`http://${vue.serverip}:${vue.serverApiPort}/server/control/studentlist/statechange/${vue.servername}/${vue.token}/false`)
-                    .then( response => response.json() )
-                    .then( async (data) => {
-                        console.log(data);
-                    });
-            }, false);
-
-            window.addEventListener('beforeunload', (e) => {
-                e.preventDefault(); // If you prevent default behavior in Mozilla Firefox prompt will always be shown
-                e.returnValue = '';  // Chrome requires returnValue to be set
-                window.dispatchEvent(focusevent);
-            });
-
-            window.addEventListener('blur', (e) => {
-                window.dispatchEvent(focusevent);
-            });
 
             if (typeof document.hidden !== "undefined") { // Opera 12.10 and Firefox 18 and later support
                 hidden = "hidden";
@@ -359,23 +346,38 @@ ENDE !!`,
             } 
             else {
                 document.addEventListener(visibilityChange, (e) => {
-                    if (document[hidden]) {   window.dispatchEvent(focusevent);} 
+                    if (document[hidden]) {   window.dispatchEvent(this.focusevent);} 
                 }, false);
             }
+        },
+        focuslost(e){   /** inform the teacher immediately */
+            let vue = this
+            console.log("houston we have a problem")
+            fetch(`http://${vue.serverip}:${vue.serverApiPort}/server/control/studentlist/statechange/${vue.servername}/${vue.token}/false`)
+                .then( response => response.json() )
+                .then( async (data) => {
+                    console.log(data);
+                });
+        },
+        beforeunload(e){
+            e.preventDefault(); // If you prevent default behavior in Mozilla Firefox prompt will always be shown
+            e.returnValue = '';  // Chrome requires returnValue to be set
+            window.dispatchEvent(this.focusevent);
+        },
+        onblur(){
+            window.dispatchEvent(this.focusevent);
         }
 
+    },
+    beforeUnmount() {
+            window.removeEventListener("beforeunload", this.beforeunload,false);
+            window.removeEventListener("focuslost",this.focuslost,false);
+            window.removeEventListener("onblur",this.focuslost,false);
+            this.editor.destroy()
+            clearInterval( this.fetchinterval )
+            clearInterval( this.loadfilelistinterval )
 
-
-
-    
-
-  },
-
-  beforeUnmount() {
-    this.editor.destroy()
-    clearInterval( this.fetchinterval )
-    clearInterval( this.loadfilelistinterval )
-  },
+    },
 }
 </script>
 

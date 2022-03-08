@@ -5,7 +5,7 @@
 
 import fs from 'fs'
 import { contextBridge, ipcRenderer } from 'electron'
-import app from "../server/src/server.js"
+import api from "../server/src/server.js"
 
 /** document ready */
 function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {
@@ -29,8 +29,10 @@ function domReady(condition: DocumentReadyState[] = ['complete', 'interactive'])
 
 // --------- Expose some API to the Renderer process. ---------
 contextBridge.exposeInMainWorld('fs', fs)
-contextBridge.exposeInMainWorld('ipcRenderer', withPrototype(ipcRenderer))
-contextBridge.exposeInMainWorld('app', app)
+contextBridge.exposeInMainWorld('ipcRenderer', withPrototype(ipcRenderer))   // this gives us an option to access the electron mainwindow with an ipc call
+contextBridge.exposeInMainWorld('api', api)   // this runs the express API in electron 
+
+
 
 
 // `exposeInMainWorld` can't detect attributes and methods of `prototype`, manually patching it.

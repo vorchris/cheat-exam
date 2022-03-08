@@ -10,6 +10,9 @@ import morgan from 'morgan'
 import ip from 'ip'
 
 config.hostip = ip.address()  // config is exposed to electron-vue app via context bridge so we can use it in the frontend
+if (typeof window !== 'undefined'){
+    if (window.process.type == "renderer") config.electron = true
+}
 
 const limiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minutes
@@ -27,7 +30,7 @@ fsExtra.emptyDirSync(publicdirectory)
 
 // init express API
 const api = express()
-api.use(morgan('tiny'));
+//api.use(morgan('tiny'));
 api.use(fileUpload())  //When you upload a file, the file will be accessible from req.files (init before routes)
 api.use(cors())
 api.use(express.json())

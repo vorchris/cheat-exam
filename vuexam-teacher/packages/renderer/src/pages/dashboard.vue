@@ -136,6 +136,7 @@ export default {
             const formData = new FormData()
             formData.append('servertoken', this.servertoken);
             formData.append('servername', this.servername);
+
             for (const i of Object.keys(this.files)) {
                 formData.append('files', this.files[i])
             }
@@ -239,7 +240,10 @@ export default {
             axios.get(`http://${studentip}:${this.clientApiPort}/client/control/kick/${studenttoken}`)
             .then( response => {
                 console.log(response.data);
-            }).catch(error => {console.log(error)});
+            }).catch(error => {
+                console.info("Client not reachable")
+                //console.log(error)
+            });
         },
 
           //remove student from exam

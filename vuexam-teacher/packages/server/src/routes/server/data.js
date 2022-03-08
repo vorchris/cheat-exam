@@ -8,7 +8,7 @@ import FormData from 'form-data'
 import config from '../../config.js'
 import archiver from 'archiver'
 import fs from 'fs' 
-
+import axios from 'axios'
 
 
 /**
@@ -26,34 +26,66 @@ import fs from 'fs'
     if (!req.files) { return res.send({sender: "server", message:"No files were uploaded.", status:"error"});  }
  
 
-    if (Array.isArray(req.files.files)){  //multiple files
-        console.log("preparing multiple files")
-        req.files.files.forEach( (file, index) => {
-            form.append(index, file.data, {
+    if (config.electron){
+     
+        if (Array.isArray(req.files.files)){  //multiple files
+            console.log("preparing multiple files for electron transfer")
+            req.files.files.forEach( (file, index) => {
+                let blob =  new Blob( [ new Uint8Array(file.data).buffer], { type: file.mimetype })
+                form.append(file.name, blob, file.name );
+            });
+        }
+        else {
+            console.log("preparing file for electron transfer")
+            let file = req.files.files
+            let blob =  new Blob( [ new Uint8Array(file.data).buffer], { type: file.mimetype })
+            form.append(file.name, blob, file.name);
+        }
+
+    }
+    else {
+        if (Array.isArray(req.files.files)){  //multiple files
+            console.log("preparing multiple files")
+            req.files.files.forEach( (file, index) => {
+                form.append(index, file.data, {
+                    contentType: file.mimetype,
+                    filename: file.name,
+                });
+            });
+        }
+        else {
+            console.log("preparing file")
+            let file = req.files.files
+            form.append(file.name, file.data, {
                 contentType: file.mimetype,
                 filename: file.name,
             });
-        });
+        }
     }
-    else {
-        console.log("preparing file")
-        let file = req.files.files
-        form.append(file.name, file.data, {
-            contentType: file.mimetype,
-            filename: file.name,
-        });
-    }
+
+
+
 
     if (destination == "all"){
         if ( mcServer.studentList.length <= 0  ) { res.json({ sender: "server", message: "no clients connected", status:"error"  }) }
         else {  
         console.log("Sending POST Form Data to Clients")
         mcServer.studentList.forEach( (student) => {
-            fetch(`http://${student.clientip}:${config.clientApiPort}/client/data/receive/${student.token}`, { method: 'POST', body: form })
-            .then( response => response.json() )
-            .then( async (data) => {
-                res.json(data) 
-            });
+
+         
+            axios({
+                method: "post", 
+                url: `http://${student.clientip}:${config.clientApiPort}/client/data/receive/${student.token}`, 
+                data: form, 
+                headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
+              }).catch( err =>{
+                  console.log(`Server Data API: ${err}`)
+              })
+
+
+
+
+
         });
         }
     }
@@ -79,15 +111,23 @@ import fs from 'fs'
     else {
         console.log("Receiving File(s)...")
         let errors = 0
-        for (const [key, file] of Object.entries( req.files)) {
-            console.log(file)
-            let absoluteFilepath = join(config.workdirectory, file.name);
-            file.mv(absoluteFilepath, (err) => {  
-                if (err) { errors++; return {status: "client couldn't store file"} }
-                return {status: "success"}
-            });
+        console.log(req.files)
+        if (req.files){
+            for (const [key, file] of Object.entries( req.files)) {
+                //console.log(file)
+                let absoluteFilepath = join(config.workdirectory, file.name);
+                file.mv(absoluteFilepath, (err) => {  
+                    if (err) { errors++; return {status: "client couldn't store file"} }
+                    return {status: "success"}
+                });
+            }
+            res.json({ status: "Files received", errors: errors, clienttoken: token  })
         }
-        res.json({ status: "Files received", errors: errors, clienttoken: token  })
+        else {
+            res.json({ status: "NO Files received", errors: errors, clienttoken: token  })
+        }
+
+
     }
 })
 

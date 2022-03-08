@@ -2,6 +2,7 @@
   <div id="apphead" class="w-100 p-3 text-white bg-dark shadow text-right">
         <img src="/src/assets/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
         <span class="fs-4 align-middle me-4 ">{{clientname}}</span>
+        
         <span class="fs-4 align-middle" style="float: right">GeoGebra</span>
   </div>
   <div id=content>
@@ -27,32 +28,43 @@ export default {
             clientname: this.$route.params.clientname,
             serverApiPort: this.$route.params.serverApiPort,
             clientApiPort: this.$route.params.clientApiPort,
-            geogebrasource: ""
+            geogebrasource: "",
+            focusevent: new Event('focuslost'),
+            electron: this.$route.params.electron,
+          
         }
-    },    
+    }, 
+    components: {  },  
     mounted() {
-        console.log(this.clientApiPort)
-        this.geogebrasource = `http://localhost:${this.clientApiPort}/geogebra/geometry.html`
+        this.geogebrasource = `./geogebra/geometry.html`
         this.currentFile = this.clientname
-        // run focuscheck function (give it 'this' in order to know about reactive vars from this view )
-        if(this.token) { activatefocuscheck.call('', this) }  // aus einem mir momentan nicht zugänglichen grund wird der erste parameter hier nicht wie erwartet als "this" an die funktion übergeben
-        //this.fetchinterval = setInterval(() => { this.fetchContent() }, 6000)   //1*pro minute
+
+        if (this.electron){
+            ipcRenderer.on('endexam', (event, token, examtype) => {
+                    window.removeEventListener("beforeunload", this.beforeunload,false);
+                    window.removeEventListener("focuslost",this.focuslost,false);
+                    window.removeEventListener('blur', this.onblur,false);
+                    $('iframe').each(function() { $(this.contentWindow).unbind(); });
+                    this.$router.push({ name: 'student'});
+            });
+        }
+    
+        this.$nextTick(function () { // Code that will run only after the entire view has been rendered
+            this.fetchinterval = setInterval(() => { this.fetchContent() }, 6000)   //1*pro minute
+            if(this.token) { this.focuscheck() } 
+        })
     },
     methods: {
-
         /** Converts the Editor View into a multipage PDF */
-        async fetchContent() {              
-            let body = document.body;
+        async fetchContent() {  
+            let body = $("#geogebraframe").contents().find('body')[0];
+            let html = document.documentElement;
             let doc = new jsPDF('p', 'px','a4', true, true);   //orientation, unit for coordinates, format, onlyUsedFonts, compress
             let pagenumber = 0;   // how many pdf pages can we get out of the total page height?
             let windowHeight = 0;  // the dryrun will set the windowheight of the editor at a given width of 794px (final pdf x resolution)
 
             html2canvas(body, { scale: 1, x:0, y: 0,  scrollX: 0,  scrollY: 0,  windowWidth: 794,    //DRYRUN - this sets the html body width for this canvas render testrun >> ATTENTION: windowHeight will change accordingly !!!
                 onclone: (document) => {
-                    //document.getElementById('editortoolbar').style.display = 'none';   //hide toolbar
-                    //document.getElementById('localfiles').style.display = 'none';   //hide filespicker
-                    let body = document.body;           
-                    let html = document.documentElement;
                     windowHeight = Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight );  // calculate NEW Height for rendering and set global variable
                     pagenumber = Math.ceil(windowHeight / 1123);   // how many pdf pages can we get out of the total page height?
                 }
@@ -80,7 +92,7 @@ export default {
 
                                 const form = new FormData()
                                 form.append("file", pdfBlob,  `${this.currentFile}.pdf` );
-                                form.append("editorcontent", false)
+                                
                                 form.append("currentfilename", this.currentFile)
 
                                 //post to client (store pdf, store json, send to teacher)
@@ -88,8 +100,7 @@ export default {
                                 .then( response => response.json() )
                                 .then( async (data) => {
                                     console.log(data)
-                                }).catch(err => { console.warn(err)});
-                                
+                                }).catch(err => { console.warn(err)}); 
                             } 
                             else { doc.addPage(); }
                             resolve();
@@ -98,12 +109,91 @@ export default {
                 }
             });
         },
+        focuscheck() {
+            let hidden, visibilityChange;
+            window.addEventListener('focuslost', this.focuslost, false);
+            window.addEventListener('beforeunload', this.beforeunload, false);
+            window.addEventListener('blur', this.onblur, false);
+            
+            //FIXME Doesnt work on iframe in Electron KIOSK MODE
+            $('iframe').each(function() {
+                console.log( $(this.contentWindow))
+                $(this.contentWindow).bind({
+                    blur  : function() { 
+                        var focused =document.activeElement.id
+                         console.log(focused);
+                        if (focused !== "vuexam"){  window.dispatchEvent(new Event('focuslost')); }
+                    }
+                }); 
+                 $(this.contentWindow).on("blur", function() { 
+                        var focused =document.activeElement.id
+                         console.log(focused);
+                        if (focused !== "vuexam"){  window.dispatchEvent(new Event('focuslost')); }
+                    }
+                ); 
+            });
+
+            if (typeof document.hidden !== "undefined") { // Opera 12.10 and Firefox 18 and later support
+                hidden = "hidden";
+                visibilityChange = "visibilitychange";
+            } 
+            else if (typeof document.msHidden !== "undefined") {
+                hidden = "msHidden";
+                visibilityChange = "msvisibilitychange";
+            } 
+            else if (typeof document.webkitHidden !== "undefined") {
+                hidden = "webkitHidden";
+                visibilityChange = "webkitvisibilitychange";
+            }
+            
+            // Warn if the browser doesn't support addEventListener or the Page Visibility API
+            if (typeof document.addEventListener === "undefined" || hidden === undefined) {
+                console.log("This app requires a browser, such as Google Chrome or Firefox, that supports the Page Visibility API.");
+            } 
+            else {
+                document.addEventListener(visibilityChange, (e) => { if (document[hidden]) { 
+                     
+                       var focused =document.activeElement.id
+                         console.log(focused);
+                        if (focused !== "geogebraframe"){
+                            window.dispatchEvent(this.focusevent);
+                        }
+                                
+                      } }, false);
+            }
+        },
+        focuslost(e){   /** inform the teacher immediately */
+            let vue = this
+            console.log("houston we have a problem")
+            fetch(`http://${vue.serverip}:${vue.serverApiPort}/server/control/studentlist/statechange/${vue.servername}/${vue.token}/false`)
+                .then( response => response.json() )
+                .then( async (data) => {
+                    console.log(data);
+                });
+        },
+        beforeunload(e){
+            e.preventDefault(); // If you prevent default behavior in Mozilla Firefox prompt will always be shown
+            e.returnValue = '';  // Chrome requires returnValue to be set
+            window.dispatchEvent(this.focusevent);
+        },
+        onblur(e){
+            var focused =document.activeElement.id
+            console.log(focused);
+            if (focused !== "geogebraframe"){
+                 window.dispatchEvent(this.focusevent);
+            }
+        }
+
     },
 
     beforeUnmount() {
-        this.editor.destroy()
         clearInterval( this.fetchinterval )
         clearInterval( this.loadfilelistinterval )
+        window.removeEventListener("beforeunload", this.beforeunload,false);
+        window.removeEventListener("focuslost",this.focuslost,false);
+        window.removeEventListener('blur', this.onblur,false);
+        $('iframe').each(function() { $(this.contentWindow).unbind(); });
+
     },
 }
 </script>

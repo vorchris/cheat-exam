@@ -1,6 +1,6 @@
 {
-  "name": "vuexam",
-  "version": "0.0.1",
+  "name": "vuexam-teacher",
+  "version": "0.0.2",
   "main": "dist/main/index.cjs",
   "author": "Thomas Michael Weissel",
   "license": "GPL",
@@ -14,8 +14,8 @@
     "serve": "nodemon packages/server/src/server"
   },
   "build": {
-    "productName": "VuExam",
-    "appId": "com.vuexam.app",
+    "productName": "VuExam-Teacher",
+    "appId": "com.vuexam-teacher.app",
     "asar": true,
     "directories": {
       "output": "release/${version}"
@@ -26,7 +26,8 @@
     "linux": {
       "target": "AppImage",
       "category": "Utility",
-      "icon": "dist/renderer/favicon.svg"
+      "icon": "dist/renderer/favicon.svg",
+      "artifactName": "${productName}_${version}.${ext}"
     },
     "mac": {
       "artifactName": "${productName}_${version}.${ext}",
@@ -114,7 +115,6 @@
     "jspdf": "^2.5.1",
     "lowlight": "^2.5.0",
     "node-notifier": "^10.0.1",
-    "puppeteer": "^13.4.1",
     "sass": "^1.49.9",
     "screenshot-desktop": "^1.12.7",
     "vue-router": "^4.0.13"
