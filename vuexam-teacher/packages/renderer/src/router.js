@@ -21,7 +21,7 @@ if (userAgent.indexOf(' electron/') > -1) {
  // console.log(apiconfig)   // running in electron this is the very same config object as it's used in server.js via contextbridge (preload) in electron - just in case
 
 const routes = [
-    { path: '/',                  component: home },
+    { path: '/',                  component: startserver, beforeEnter: [addParams] },
     { path: '/startserver',       component: startserver, beforeEnter: [addParams] },
     { path: '/serverlist',        component: serverlist,   beforeEnter: [addParams]},
     { path: '/dashboard/:servername/:passwd', name:"dashboard", component: dashboard, beforeEnter: [addParams, checkPasswd] },

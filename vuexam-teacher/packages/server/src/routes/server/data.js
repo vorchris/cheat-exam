@@ -1,15 +1,12 @@
 
 import { Router } from 'express'
 const router = Router()
-
 import { join } from 'path'
-import fetch from 'node-fetch'
 import FormData from 'form-data'
 import config from '../../config.js'
 import archiver from 'archiver'
 import fs from 'fs' 
 import axios from 'axios'
-
 
 /**
  * Sends MANUALLY SELECTED file(s) from the SERVER to specified CLIENTS (no single client supported right noch FIXME)
@@ -25,9 +22,7 @@ import axios from 'axios'
     if (!req.body.servertoken === mcServer.serverinfo.servertoken) { return res.send({status:"Access denied"})  }  // csrf check
     if (!req.files) { return res.send({sender: "server", message:"No files were uploaded.", status:"error"});  }
  
-
-    if (config.electron){
-     
+    if (config.electron){  //electron wants to send BLOBs instead of array buffers via formData
         if (Array.isArray(req.files.files)){  //multiple files
             console.log("preparing multiple files for electron transfer")
             req.files.files.forEach( (file, index) => {
@@ -41,7 +36,6 @@ import axios from 'axios'
             let blob =  new Blob( [ new Uint8Array(file.data).buffer], { type: file.mimetype })
             form.append(file.name, blob, file.name);
         }
-
     }
     else {
         if (Array.isArray(req.files.files)){  //multiple files
@@ -63,16 +57,11 @@ import axios from 'axios'
         }
     }
 
-
-
-
     if (destination == "all"){
         if ( mcServer.studentList.length <= 0  ) { res.json({ sender: "server", message: "no clients connected", status:"error"  }) }
         else {  
         console.log("Sending POST Form Data to Clients")
         mcServer.studentList.forEach( (student) => {
-
-         
             axios({
                 method: "post", 
                 url: `http://${student.clientip}:${config.clientApiPort}/client/data/receive/${student.token}`, 
@@ -81,13 +70,9 @@ import axios from 'axios'
               }).catch( err =>{
                   console.log(`Server Data API: ${err}`)
               })
-
-
-
-
-
         });
         }
+        res.send({sender: "server", message:"File(s) sent", status:"success"});
     }
 });
 

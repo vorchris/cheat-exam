@@ -1,8 +1,10 @@
  <template> 
   <div id="apphead" class="w-100 p-3 text-white bg-dark shadow text-right">
-        <img src="/src/assets/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
-        <span class="fs-4 align-middle me-4 ">{{clientname}}</span>
-        
+         <router-link :to="(clientname == 'DemoUser')?'/':''" class="text-white m-1">
+            <img src="/src/assets/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
+            <span class="fs-4 align-middle me-4 ">{{clientname}}</span>
+        </router-link>
+
         <span class="fs-4 align-middle" style="float: right">GeoGebra</span>
   </div>
   <div id=content>
@@ -29,9 +31,9 @@ export default {
             serverApiPort: this.$route.params.serverApiPort,
             clientApiPort: this.$route.params.clientApiPort,
             geogebrasource: "",
-            focusevent: new Event('focuslost'),
             electron: this.$route.params.electron,
-          
+            blurEvent : null,
+            endExamEvent: null,
         }
     }, 
     components: {  },  
@@ -40,21 +42,48 @@ export default {
         this.currentFile = this.clientname
 
         if (this.electron){
-            ipcRenderer.on('endexam', (event, token, examtype) => {
-                    window.removeEventListener("beforeunload", this.beforeunload,false);
-                    window.removeEventListener("focuslost",this.focuslost,false);
-                    window.removeEventListener('blur', this.onblur,false);
-                    $('iframe').each(function() { $(this.contentWindow).unbind(); });
-                    this.$router.push({ name: 'student'});
-            });
+            this.blurEvent = ipcRenderer.on('blurevent', this.focuslost, false);  //ipcRenderer seems to be of type nodeEventTarget (on/addlistener returns a reference to the eventTarget)
+            this.endExamEvent = ipcRenderer.on('endexam', () => { this.$router.push({ name: 'student'}); }); //redirect to home view // right before we leave vue.js will run beforeUnmount() which removes all listeners this view attached to the window and the ipcrenderer
         }
     
         this.$nextTick(function () { // Code that will run only after the entire view has been rendered
-            this.fetchinterval = setInterval(() => { this.fetchContent() }, 6000)   //1*pro minute
-            if(this.token) { this.focuscheck() } 
+           this.fetchinterval = setInterval(() => { this.fetchContent() }, 6000)   //1*pro minute
+           if (this.token) { this.focuscheck() } 
         })
     },
     methods: {
+        focuscheck() {
+            window.addEventListener('beforeunload',         this.focuslost);  // keeps the window open (displays "are you sure in browser")
+            window.addEventListener('blur',                 this.focuslost);  // fires only from vue componend not iframe.. check if focus is now on geogebraframe if so > do not inform teacher 
+            document.addEventListener("visibilityChange",   this.focuslost);  
+        },
+        focuslost(e){   /** inform the teacher immediately */
+            console.log(e)
+            if (e && e.type === "blur") {  
+                let elementInFocus = document.activeElement.id
+                console.log(elementInFocus);
+                if (elementInFocus !== "geogebraframe" && elementInFocus !== "vuexambody" ){
+                   this.informTeacher()
+                }
+            }
+            else if (e && e.type === "beforeunload") {
+                e.preventDefault(); 
+                e.returnValue = ''; 
+                this.informTeacher()
+            }
+            else {
+                this.informTeacher()
+            }
+        },
+        informTeacher(){
+            console.log("HOUSTON WE HAVE A CHEATER!")
+            fetch(`http://${this.serverip}:${this.serverApiPort}/server/control/studentlist/statechange/${this.servername}/${this.token}/false`)
+            .then( response => response.json() )
+            .then( (data) => { console.log(data); });  
+        },
+  
+
+
         /** Converts the Editor View into a multipage PDF */
         async fetchContent() {  
             let body = $("#geogebraframe").contents().find('body')[0];
@@ -87,12 +116,9 @@ export default {
                             let img = canvas.toDataURL('image/jpeg', 1);  // type, quality
                             doc.addImage(img, 'JPG', 0, 0, 0, 0, i, 'FAST');    // imagedata, format if recognition fails, x, y ,w ,h, alias, compression, rotation
                             if ( ( i + 1 ) == pagenumber) {  // FINISHED
-                               
                                 const pdfBlob = new Blob([ doc.output('blob') ], { type : 'application/pdf'});
-
                                 const form = new FormData()
                                 form.append("file", pdfBlob,  `${this.currentFile}.pdf` );
-                                
                                 form.append("currentfilename", this.currentFile)
 
                                 //post to client (store pdf, store json, send to teacher)
@@ -109,91 +135,17 @@ export default {
                 }
             });
         },
-        focuscheck() {
-            let hidden, visibilityChange;
-            window.addEventListener('focuslost', this.focuslost, false);
-            window.addEventListener('beforeunload', this.beforeunload, false);
-            window.addEventListener('blur', this.onblur, false);
-            
-            //FIXME Doesnt work on iframe in Electron KIOSK MODE
-            $('iframe').each(function() {
-                console.log( $(this.contentWindow))
-                $(this.contentWindow).bind({
-                    blur  : function() { 
-                        var focused =document.activeElement.id
-                         console.log(focused);
-                        if (focused !== "vuexam"){  window.dispatchEvent(new Event('focuslost')); }
-                    }
-                }); 
-                 $(this.contentWindow).on("blur", function() { 
-                        var focused =document.activeElement.id
-                         console.log(focused);
-                        if (focused !== "vuexam"){  window.dispatchEvent(new Event('focuslost')); }
-                    }
-                ); 
-            });
-
-            if (typeof document.hidden !== "undefined") { // Opera 12.10 and Firefox 18 and later support
-                hidden = "hidden";
-                visibilityChange = "visibilitychange";
-            } 
-            else if (typeof document.msHidden !== "undefined") {
-                hidden = "msHidden";
-                visibilityChange = "msvisibilitychange";
-            } 
-            else if (typeof document.webkitHidden !== "undefined") {
-                hidden = "webkitHidden";
-                visibilityChange = "webkitvisibilitychange";
-            }
-            
-            // Warn if the browser doesn't support addEventListener or the Page Visibility API
-            if (typeof document.addEventListener === "undefined" || hidden === undefined) {
-                console.log("This app requires a browser, such as Google Chrome or Firefox, that supports the Page Visibility API.");
-            } 
-            else {
-                document.addEventListener(visibilityChange, (e) => { if (document[hidden]) { 
-                     
-                       var focused =document.activeElement.id
-                         console.log(focused);
-                        if (focused !== "geogebraframe"){
-                            window.dispatchEvent(this.focusevent);
-                        }
-                                
-                      } }, false);
-            }
-        },
-        focuslost(e){   /** inform the teacher immediately */
-            let vue = this
-            console.log("houston we have a problem")
-            fetch(`http://${vue.serverip}:${vue.serverApiPort}/server/control/studentlist/statechange/${vue.servername}/${vue.token}/false`)
-                .then( response => response.json() )
-                .then( async (data) => {
-                    console.log(data);
-                });
-        },
-        beforeunload(e){
-            e.preventDefault(); // If you prevent default behavior in Mozilla Firefox prompt will always be shown
-            e.returnValue = '';  // Chrome requires returnValue to be set
-            window.dispatchEvent(this.focusevent);
-        },
-        onblur(e){
-            var focused =document.activeElement.id
-            console.log(focused);
-            if (focused !== "geogebraframe"){
-                 window.dispatchEvent(this.focusevent);
-            }
-        }
-
     },
-
     beforeUnmount() {
         clearInterval( this.fetchinterval )
         clearInterval( this.loadfilelistinterval )
-        window.removeEventListener("beforeunload", this.beforeunload,false);
-        window.removeEventListener("focuslost",this.focuslost,false);
-        window.removeEventListener('blur', this.onblur,false);
-        $('iframe').each(function() { $(this.contentWindow).unbind(); });
-
+        //remove electron ipcRender events
+        this.endExamEvent.removeAllListeners('endexam')   //remove endExam listener from window
+        this.blurEvent.removeAllListeners('blurevent')  //Node.js-specific extension to the EventTarget class. If type is specified, removes all registered listeners for type, otherwise removes all registered listeners.
+        //remove window/document events
+        window.removeEventListener("beforeunload",  this.focuslost);
+        window.removeEventListener('blur',          this.focuslost);
+        document.removeEventListener("visibilityChange", this.focuslost); 
     },
 }
 </script>

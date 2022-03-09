@@ -2,11 +2,9 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-
-import { app, BrowserWindow, shell, ipcMain } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, screen } from 'electron'
 import { release } from 'os'
 import { join } from 'path'
-import url  from 'url';
 
 
 // Disable GPU Acceleration for Windows 7
@@ -23,64 +21,78 @@ if (!app.requestSingleInstanceLock()) {
 let win: BrowserWindow | null = null
 
 async function createWindow() {
-  win = new BrowserWindow({
-    title: 'Main window',
-    width: 1400,
-    height: 800,
-    webPreferences: {
-        //nodeIntegration: true,
-        preload: join(__dirname, '../preload/index.cjs')
-    },
-  })
+    const display = screen.getPrimaryDisplay();
+    const dimensions = display.workAreaSize;
 
 
-  if (app.isPackaged || process.env["DEBUG"]) {
-    win.removeMenu() 
-    win.loadFile(join(__dirname, '../renderer/index.html'))
-    win.webContents.openDevTools()
-  } else {
-    // 🚧 Use ['ENV_NAME'] avoid vite:define plugin
-    const url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}`
-    win.removeMenu() 
-    win.loadURL(url)
-    win.webContents.openDevTools()
-  }
+    win = new BrowserWindow({
+        title: 'Main window',
+        icon: join(__dirname, '../renderer/public/favicon.svg'),
+        width: 1000,
+        height: 600,
+        minWidth: 760,
+        minHeight: 600,
+        webPreferences: {
+            preload: join(__dirname, '../preload/index.cjs')
+        },
+    })
+
+
+    if (app.isPackaged || process.env["DEBUG"]) {
+        win.removeMenu() 
+        win.loadFile(join(__dirname, '../renderer/index.html'))
+        //win.webContents.openDevTools()  // you don't want this in the final build
+    } 
+    else {
+        const url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}`
+        win.removeMenu() 
+        win.loadURL(url)
+       // win.webContents.openDevTools()
+    }
 
 
 
 
-  /**
-   * we create custom listeners here
-   * in electron frontend OR express api (import) ipcRenderer is exposed and usable to send or receive messages (see preload/index.ts)
-   * we can call ipcRenderer.send('signal') to send and ipcMain to reveive in mainprocess
-   */
-    ipcMain.on("kiosk", () => win.setKiosk(true)  );
-    ipcMain.on("nokiosk", () => win.setKiosk(false)  );
+    /**
+     * we create custom listeners here
+     * in electron frontend OR express api (import) ipcRenderer is exposed and usable to send or receive messages (see preload/index.ts)
+     * we can call ipcRenderer.send('signal') to send and ipcMain to reveive in mainprocess
+     */
+    
+    ipcMain.on("kiosk", () => win?.setKiosk(true)  );  //just for testing purposes
+    ipcMain.on("nokiosk", () => win?.setKiosk(false)  );
 
+    const blurevent = () => { win?.webContents. send('blurevent'); }
 
-    // if we receive "exam" from the express API - we inform our renderer (view) to switch to the right page
+    /** 
+     * if we receive "exam" from the express API (via ipcRenderer.send() ) - we inform our renderer (view) 
+     * which sets a ipcRenderer listener for the "exam" signal to switch to the correct page (read examtype)  
+     */
     ipcMain.on("exam", (event, token, examtype) =>  {
         win?.setKiosk(true)
+        win?.addListener('blur', blurevent)  // send blurevent on blur
         win?.webContents.send('exam', token, examtype);
     }); 
 
     ipcMain.on("endexam", (event, token, examtype) =>  {
         win?.setKiosk(false)
+        win?.removeListener('blur', blurevent) // stop sending blurevent on blur
         win?.webContents.send('endexam', token, examtype);
     }); 
 
+   
 
 
-  // Test active push message to Renderer-process
-  win.webContents.on('did-finish-load', () => {
-    win?.webContents.send('main-process-message', (new Date).toLocaleString())
-  })
+    // Test active push message to Renderer-process
+    win.webContents.on('did-finish-load', () => {
+        win?.webContents.send('main-process-message', (new Date).toLocaleString())
+    })
 
-  // Make all links open with the browser, not with the application
-  win.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith('https:')) shell.openExternal(url)
-    return { action: 'deny' }
-  })
+    // Make all links open with the browser, not with the application
+    win.webContents.setWindowOpenHandler(({ url }) => {
+        if (url.startsWith('https:')) shell.openExternal(url)
+        return { action: 'deny' }
+    })
 }
 
 app.whenReady().then(createWindow)

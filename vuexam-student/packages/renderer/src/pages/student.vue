@@ -1,7 +1,7 @@
 <template>
 
 
-<div  id="apphead" class="w-100 p-3 text-white bg-dark shadow text-right">
+<div  id="apphead" class="w-100 p-3 text-white bg-dark shadow text-right ">
     <router-link to="/" class="text-white m-1">
         <img src='/src/assets/img/svg/speedometer.svg' class="white me-2  " width="32" height="32" >
         <span class="fs-4 align-middle me-4 ">VUExam</span>
@@ -13,7 +13,7 @@
 <div id="wrapper" class="w-100 h-100 d-flex" >
 
     <!-- SIDEBAR -->
-    <div class="p-3 text-white bg-dark h-100 " style="width: 240px; min-width: 240px;">
+    <div class="p-3 text-white bg-dark h-100" style="width: 240px; min-width: 240px;">
         <ul class="nav nav-pills flex-column mb-auto">
             <li class="nav-item">
                 <router-link to="student" id="exams" class="nav-link active">
@@ -42,8 +42,6 @@
 
     <!-- CONTENT -->
     <div id="content" class="fadeinslow p-3">
-
-       
         <div class="col-8" v-if="!remoterequest">
             <div class="input-group  mb-1">
                 <span class="input-group-text col-3" style="min-width:120px;" id="inputGroup-sizing-lg">Username</span>
@@ -59,43 +57,27 @@
             </div>
         </div>
         <h4>Running Exams</h4>
-        <div id="list" class="placeholder">
+        <div id="list" class="placeholder" style="overflow-y:auto; height: 369px; display:flex; flex-wrap: wrap; flex-direction: row;">
 
-            <div v-for="server in serverlist" class="row p-3 m-0 mb-2 border bg-light" style="margin-right: 10px !important; width: 300px; min-width:250px; ">
+            <div v-for="server in serverlist" class="row p-3 m-0 mb-2 border bg-light" style="margin-right: 10px !important; height:120px; width: 300px; min-width:250px; max-width: 300px;">
                 <dl class="row">
                     <dt class="col-sm-4">Name</dt>
                     <dd class="col-sm-8">{{server.servername}}</dd>
-                    <!-- <dt class="col-sm-4">Last seen</dt>
-                    <dd class="col-sm-8">{{server.timestamp}}</dd>
-                    <dt class="col-sm-4">UUID</dt>
-                    <dd class="col-sm-8">{{server.id}}</dd>
-                    <dt class="col-sm-4">IP Address</dt>
-                    <dd class="col-sm-8">{{server.serverip}}</dd> -->
                 </dl>
-
                 <input v-if="!token" :id="server.servername" type="button" name="register" class="btn btn-info" value="register" @click="registerClient(server.serverip,server.servername)"/>
                 <input v-if="token && clientinfo.servername !== server.servername" :id="server.servername" type="button" name="register" class="btn btn-secondary" value="register" />
                 <input v-if="token && clientinfo.servername === server.servername" :id="server.servername" type="button" name="register" class="btn btn-success" value="registered" />
-
             </div>
 
         </div>
     </div>
 </div>
-
 </template>
-
-
-
-
 
 <script>
 
 import $ from 'jquery'
 import axios from "axios";
-//import remote from  "electron";
-//import { BrowserWindow } from "electron";
-
 
 
 export default {
@@ -110,7 +92,8 @@ export default {
             fetchinterval: null,
             serverApiPort: this.$route.params.serverApiPort,
             clientApiPort: this.$route.params.clientApiPort,
-            electron: this.$route.params.electron
+            electron: this.$route.params.electron,
+            startExamEvent: null
         };
     },
 
@@ -151,7 +134,6 @@ export default {
         },
 
 
-        
         //show status message
         async status(text){  
             $("#statusdiv").text(text)
@@ -162,16 +144,17 @@ export default {
         // implementing a sleep (wait) function
         sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
-        },
+        }
     },
 
-    mounted() {
+    mounted() {   
+  
         $("#statusdiv").fadeOut("slow")
         this.fetchInfo();
         this.fetchinterval = setInterval(() => { this.fetchInfo() }, 2000)
 
         if (this.electron){
-            ipcRenderer.on('exam', (event, token, examtype) => {
+             this.startExamEvent = ipcRenderer.on('exam', (event, token, examtype) => {
                 if (examtype === "language") {
                     this.$router.push({ name: 'editor', params:{ token: token } });
                 }
@@ -185,7 +168,8 @@ export default {
     },
 
     beforeUnmount() {
-         clearInterval( this.fetchinterval )
+        clearInterval( this.fetchinterval )
+        this.startExamEvent.removeAllListeners('endexam')   //remove  self
     },
 }
 

@@ -53,8 +53,11 @@ a:hover {
     filter: invert(100%) ;
 }
 
+.examlist {
+    overflow-y: hidden;
+}
 
-
+.fixed {display: fixed;}
 
 
 

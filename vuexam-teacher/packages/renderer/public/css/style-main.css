@@ -99,7 +99,7 @@ input:focus::placeholder {
     width: 220px;
     height: 200px;
     white-space: nowrap;
-    /* text-overflow:    ellipsis;  */
+    text-overflow:    ellipsis; 
     overflow: hidden; 
     padding: 0;
     text-align: left;

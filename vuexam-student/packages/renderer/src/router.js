@@ -21,7 +21,7 @@ if (userAgent.indexOf(' electron/') > -1) {
 }
 
 const routes = [
-    { path: '/',                  component: home },
+    { path: '/',                name:"index",     component: student,     beforeEnter: [addParams]             },
     { path: '/student',         name:"student",     component: student,     beforeEnter: [addParams]             },
     { path: '/editor/:token',   name:"editor",      component: editor,      beforeEnter: [addParams, checkToken] },  
     { path: '/math/:token',     name:"math",        component: geogebra,    beforeEnter: [addParams, checkToken] },
@@ -36,6 +36,7 @@ function addParams(to){
     to.params.serverApiPort = config.serverApiPort 
     to.params.clientApiPort = config.clientApiPort
     to.params.electron = electron
+    to.params.clientname = "DemoUser"
 }
 
 

@@ -4,7 +4,7 @@
 <div class="w-100 p-3 text-white bg-dark shadow text-right">
     <router-link to="/" class="text-white m-1">
         <img src="/src/assets/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
-        <span class="fs-4 align-middle me-4 ">{{title}}</span>
+        <span class="fs-4 align-middle me-4 ">VUExam</span>
     </router-link>
     <span class="fs-4 align-middle" style="float: right">Dashboard</span>
 </div>
@@ -66,9 +66,9 @@
                     <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-2 pe-2 float-end" title="kick user"></button> </span>
                 </div>
                 <div class="btn-group pt-0" role="group">
-                    <button v-if="(now - 60000 < student.timestamp)" @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-success btn-sm " style="border-top-left-radius:0px; border-top-right-radius:0px; ">send</button>
-                    <button v-if="(now - 60000 < student.timestamp)"  @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-success btn-sm " style="border-top-left-radius:0px; border-top-right-radius:0px;">get</button>
-                    <button  v-if="!student.focus && (now - 60000 < student.timestamp)"   @click='restore(student.token)' type="button" class="btn btn-danger btn-sm" style="border-top-left-radius:0px; border-top-right-radius:0px;">restore</button>
+                    <button v-if="(now - 20000 < student.timestamp)" @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-success btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">send</button>
+                    <button v-if="(now - 20000 < student.timestamp)"  @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-success btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;">get</button>
+                    <button v-if="!student.focus && (now - 20000 < student.timestamp)"   @click='restore(student.token)' type="button" class="btn btn-danger btn-sm" style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;">restore</button>
                 </div>
             </div>
         </div>
@@ -167,7 +167,7 @@ export default {
                 .then( async (response) => {
                     this.status(response.data.message);
                     console.log(response.data);
-                    await this.sleep(3000);
+                    await this.sleep(2000);
                     this.$router.push({ path: '/serverlist' })
                 }).catch( err => {console.log(err)});
         },
