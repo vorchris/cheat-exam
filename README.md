@@ -25,6 +25,15 @@ Node v16.14.0
 
 ```npm run dev:electron```
 
+## run next-exam webversion
+
+```npm run dev```
+
+## build next-exam 
+
+```npm run build:electron```
+
+
 
 ## more information
 

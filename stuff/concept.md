@@ -1,9 +1,9 @@
-# webfrontend generell
+# webfrontend
 * Bootstrap CSS Framework
 * JQuery
+* Vue.js
 
-- template engine ETA [template engine ETA](https://github.com/eta-dev/eta) 
-- vscode Syntaxhighlighting [vscode Syntaxhighlighting](https://marketplace.visualstudio.com/items?itemName=shadowtime2000.eta-vscode) (drag&drop the extension from /stuff)
+
 
 ---
 
@@ -26,7 +26,7 @@ formular um exam name zu wählen... startet über #teacher api den #multicastser
 TODO: es wäre sinnvoll bei den broadcasts zuerst nachzusehen ob der exam name nicht schon im netz gebroadcastet wird um zu verhindern dass der selbe exam name 2fach im netz vorkommt (bei mehreren servern theoretisch möglich)
 
 - File Upload [File Upload ](https://github.com/richardgirges/express-fileupload)
-
+  achtung: electron erwartet beim file upload formdata einen BLOB
 
 
 
@@ -57,5 +57,7 @@ es wird ein einzigartiges token für den client generiert und dieses an den clie
 dadurch kann man dann über die client ip die ensprechende #clientapi sicher ansprechen
 
 
-eventuell können am client externe programme, skripte getriggert werden
+eventuell können am client externe programme, skripte getriggert werden um das system noch weiter abzusperren 
+auch wenn ich zu diesem zeitpunkt gar nicht denke dass das notwendig ist, da der teacher sowieso immer verständigt wird wenn ein schüler es schafft den exam mode irgendwie zu verlassen
+
 [child_process_execfile documentation](https://nodejs.org/api/child_process.html#child_process_child_process_execfile_file_args_options_callback)
