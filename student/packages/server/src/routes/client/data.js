@@ -130,7 +130,7 @@ import axios from "axios"
         let absoluteFilepath = path.join(config.workdirectory, file.name);
         file.mv(absoluteFilepath, (err) => {  
         if (err) { errors++; console.log( "client couldn't store file") }
-                console.log( "file(s) received")
+               // console.log( "file(s) received")
         });
     }
     res.json({sender: "client", message:"file(s) saved", status: "success", errors: errors  })

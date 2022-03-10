@@ -1,5 +1,5 @@
 {
-  "name": "vuexam-student",
+  "name": "next-exam-student",
   "version": "0.0.2",
   "main": "dist/main/index.cjs",
   "author": "Thomas Michael Weissel",
@@ -14,8 +14,8 @@
     "serve": "nodemon packages/server/src/server"
   },
   "build": {
-    "productName": "VuExam-Student",
-    "appId": "com.vuexam-student.app",
+    "productName": "Next-Exam-Student",
+    "appId": "com.nextexam-student.app",
     "asar": true,
     "asarUnpack": "node_modules/puppeteer/.local-chromium/**/*",
     "directories": {

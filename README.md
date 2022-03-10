@@ -5,6 +5,15 @@ the next iteration of the life-exam project
 basic communication between teacher and client instances is reduced to simple API calls over http
 networking is moved from twisted to node express
 
+# technologies used
+* electron
+* vite
+* node.js
+* node-express
+* vue.js
+* bootstrap.css
+* jquery
+
 
 Node v16.14.0
 
@@ -14,7 +23,7 @@ Node v16.14.0
 
 ## run next-exam 
 
-```npm run monitor```
+```npm run dev:electron```
 
 
 ## more information
@@ -22,13 +31,6 @@ Node v16.14.0
 read /stuff/concept.md !!
 
 
-
-### update node
-```wget -q0- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash```
-
-```source ~/.bashrc```
-
-```nvm install v16.14.0```
 
 
 

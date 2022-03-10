@@ -90,7 +90,8 @@ import Superscript from '@tiptap/extension-superscript'
 import Dropcursor from '@tiptap/extension-dropcursor'
 import Gapcursor from '@tiptap/extension-gapcursor'
 import History from '@tiptap/extension-history'
-import { lowlight } from 'lowlight'// load all highlight.js languages
+//import { lowlight } from 'lowlight'// load all highlight.js languages // doesnt work in electron build 
+import { lowlight } from "lowlight/lib/common.js";
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 
@@ -312,7 +313,7 @@ ENDE !!`,
                                     data: form, 
                                     headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
                                 }).then( async (response) => {
-                                    console.log(response.data)
+                                    //console.log(response.data)
                                 }).catch(err => { console.warn(err)});
 
                             } 

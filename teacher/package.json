@@ -1,5 +1,5 @@
 {
-  "name": "vuexam-teacher",
+  "name": "next-exam-teacher",
   "version": "0.0.2",
   "main": "dist/main/index.cjs",
   "author": "Thomas Michael Weissel",
@@ -14,8 +14,8 @@
     "serve": "nodemon packages/server/src/server"
   },
   "build": {
-    "productName": "VuExam-Teacher",
-    "appId": "com.vuexam-teacher.app",
+    "productName": "Next-Exam-Teacher",
+    "appId": "com.nextexam-teacher.app",
     "asar": true,
     "directories": {
       "output": "release/${version}"
