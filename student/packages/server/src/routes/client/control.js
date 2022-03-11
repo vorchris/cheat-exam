@@ -7,8 +7,10 @@ import axios from 'axios'
 import nodenotify  from 'node-notifier'
 import ip from 'ip'
 //import puppeteer from 'puppeteer'
-import { ipcRenderer } from 'electron'  // we use this to talk to the electron ipcMain process (send signals)
 
+if (config.electron){
+    import { ipcRenderer } from 'electron'  // we use this to talk to the electron ipcMain process (send signals)
+}
 
 
 
@@ -67,9 +69,10 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
     const token = req.params.token
     const examtype = req.params.examtype
     
-    if ( checkToken(token) ) {  
-        ipcRenderer.send('exam', token, examtype)
-
+    if ( checkToken(token)) {  
+        if (config.electron){
+          ipcRenderer.send('exam', token, examtype)  //this only works in electron app..switches electron to kiosk and send a signal to the renderer to load given exam page (writer or geogebra)
+        }
         multiCastclient.clientinfo.exammode = true  // mark this client as active exam 
         res.json({ sender: "client",message:"exam initialized", status:"success" })
     }
