@@ -21,7 +21,8 @@ import axios from 'axios'
         
     if (!req.body.servertoken === mcServer.serverinfo.servertoken) { return res.send({status:"Access denied"})  }  // csrf check
     if (!req.files) { return res.send({sender: "server", message:"No files were uploaded.", status:"error"});  }
- 
+    if ( mcServer.studentList.length <= 0  ) { res.json({ sender: "server", message: "no clients connected", status:"error"  }) }
+
     if (config.electron){  //electron wants to send BLOBs instead of array buffers via formData
         if (Array.isArray(req.files.files)){  //multiple files
             console.log("preparing multiple files for electron transfer")
@@ -33,7 +34,7 @@ import axios from 'axios'
         else {
             console.log("preparing file for electron transfer")
             let file = req.files.files
-            let blob =  new Blob( [ new Uint8Array(file.data).buffer], { type: file.mimetype })
+            let blob =  new Blob( [ new Uint8Array(file.data).buffer.alloc], { type: file.mimetype })
             form.append(file.name, blob, file.name);
         }
     }
@@ -58,8 +59,6 @@ import axios from 'axios'
     }
 
     if (destination == "all"){
-        if ( mcServer.studentList.length <= 0  ) { res.json({ sender: "server", message: "no clients connected", status:"error"  }) }
-        else {  
         console.log("Sending POST Form Data to Clients")
         mcServer.studentList.forEach( (student) => {
             axios({
@@ -71,7 +70,6 @@ import axios from 'axios'
                   console.log(`Server Data API: ${err}`)
               })
         });
-        }
         res.send({sender: "server", message:"File(s) sent", status:"success"});
     }
 });
