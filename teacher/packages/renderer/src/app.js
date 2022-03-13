@@ -16,17 +16,3 @@ app.config.unwrapInjectedRef = true  // should not be neccecary in future versio
 router.isReady().then(() => {
   app.mount('#app')
 })
-
-
-
-
-
-// console.log('fs', window.fs)
-// console.log('ipcRenderer', window.ipcRenderer)
-
-// Usage of ipcRenderer.on
-if (window.ipcRenderer ) {
-  window.ipcRenderer.on('main-process-message', (_event, ...args) => {
-    console.log('[Receive Main-process message]:', ...args)
-  })
-}

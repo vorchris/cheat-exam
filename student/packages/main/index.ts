@@ -41,13 +41,13 @@ async function createWindow() {
     if (app.isPackaged || process.env["DEBUG"]) {
         win.removeMenu() 
         win.loadFile(join(__dirname, '../renderer/index.html'))
-        //win.webContents.openDevTools()  // you don't want this in the final build
+        win.webContents.openDevTools()  // you don't want this in the final build
     } 
     else {
         const url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}`
         win.removeMenu() 
         win.loadURL(url)
-       // win.webContents.openDevTools()
+        win.webContents.openDevTools()
     }
 
 
@@ -83,10 +83,7 @@ async function createWindow() {
    
 
 
-    // Test active push message to Renderer-process
-    win.webContents.on('did-finish-load', () => {
-        win?.webContents.send('main-process-message', (new Date).toLocaleString())
-    })
+    
 
     // Make all links open with the browser, not with the application
     win.webContents.setWindowOpenHandler(({ url }) => {

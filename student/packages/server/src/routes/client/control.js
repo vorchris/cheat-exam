@@ -6,11 +6,8 @@ import path from 'path'
 import axios from 'axios'
 import nodenotify  from 'node-notifier'
 import ip from 'ip'
-//import puppeteer from 'puppeteer'
+import { ipcRenderer } from 'electron'  // we use this to talk to the electron ipcMain process (send signals)
 
-if (config.electron){
-    import { ipcRenderer } from 'electron'  // we use this to talk to the electron ipcMain process (send signals)
-}
 
 
 

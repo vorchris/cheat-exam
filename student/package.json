@@ -2,8 +2,13 @@
   "name": "next-exam-student",
   "version": "0.0.2",
   "main": "dist/main/index.cjs",
-  "author": "Thomas Michael Weissel",
-  "license": "GPL",
+  "author":{
+    "name" : "Thomas Michael Weissel",
+    "email" : "valueerror@gmail.com",
+    "url" : "https://life-edu.eu"
+  },
+  "homepage": "https://life-edu.eu",
+  "license": "GPL-3.0",
   "description": "An exam managment tool for digital exams",
   "type": "module",
   "scripts": {
@@ -39,7 +44,7 @@
     "win": {
       "target": [
         {
-          "target": "nsis",
+          "target": "portable",
           "arch": [
             "x64"
           ]

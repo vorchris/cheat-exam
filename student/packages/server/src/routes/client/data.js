@@ -9,6 +9,10 @@ import archiver from 'archiver'
 import fs from 'fs' 
 import axios from "axios"
 
+console.log("------------------------------------")
+console.log(__dirname)
+
+
 /**
  * ZIPs and sends all files from a CLIENTS workdirectory TO the registered exam SERVER
  * @param token the students token (needed to accept this "abgabe" request from the server)
@@ -21,19 +25,7 @@ import axios from "axios"
     if ( !checkToken(token) ) { res.json({ status: "token is not valid" }); return }
     else {
         console.log(`token checked - preparing file to send to server: ${serverip}`)
-
-        // DEMO !!  hier wird über die API ein beliebiges javascript in der aktiven seite des users getriggered.. nice ;-)
-        const browser = multiCastclient.browser
-        if (browser) {  // it may or may not be active
-            var pages = await browser.pages();
-            if (pages[0]) {
-                // evaluate will run the function in the page context
-                await pages[0].evaluate(_ => { 
-                   // document.body.style.background = '#000';    // do nothing for now.. but good to know that this is possible
-                });
-            }
-        }
-  
+ 
        
         //zip config.work directory
         let zipfilename = multiCastclient.clientinfo.name.concat('.zip')
@@ -44,7 +36,6 @@ import axios from "axios"
         const form = new FormData()
 
         if (config.electron){
-
             let blob =  new Blob( [ new Uint8Array(file).buffer], { type: 'application/zip' })
             console.log(blob)
             form.append(zipfilename, blob, zipfilename );
@@ -61,13 +52,9 @@ import axios from "axios"
             url: `http://${serverip}:${config.serverApiPort}/server/data/receive/server/${servername}/${token}`, 
             data: form, 
             headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
-          }).catch( err =>{
-              console.log(`ClientData API: ${err}`)
-          })
-
-    
-        
-        
+        }).catch( err =>{
+            console.log(`ClientData API: ${err}`)
+        })  
     }
 })
 
