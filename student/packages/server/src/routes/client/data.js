@@ -9,9 +9,6 @@ import archiver from 'archiver'
 import fs from 'fs' 
 import axios from "axios"
 
-console.log("------------------------------------")
-console.log(__dirname)
-
 
 /**
  * ZIPs and sends all files from a CLIENTS workdirectory TO the registered exam SERVER

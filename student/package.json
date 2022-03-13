@@ -1,7 +1,7 @@
 {
   "name": "next-exam-student",
   "version": "0.0.2",
-  "main": "dist/main/index.cjs",
+  "main": "dist/main/main.cjs",
   "author":{
     "name" : "Thomas Michael Weissel",
     "email" : "valueerror@gmail.com",

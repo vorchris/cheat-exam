@@ -7,6 +7,7 @@ import { release } from 'os'
 import { join } from 'path'
 
 
+
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
 
@@ -33,10 +34,9 @@ async function createWindow() {
         minWidth: 760,
         minHeight: 600,
         webPreferences: {
-            preload: join(__dirname, '../preload/index.cjs')
-        },
+            preload: join(__dirname, '../preload/preload.cjs')
+        }
     })
-
 
     if (app.isPackaged || process.env["DEBUG"]) {
         win.removeMenu() 
@@ -49,7 +49,6 @@ async function createWindow() {
         win.loadURL(url)
         win.webContents.openDevTools()
     }
-
 
 
 
@@ -82,8 +81,16 @@ async function createWindow() {
 
    
 
-
+    const home = app.getPath('home')
+    const desktop = app.getPath('desktop')
+    const temp  = app.getPath('temp')
+    const workdirectory = join(desktop, 'EXAM')
     
+    ipcMain.on('env-request', function (event) {
+        event.sender.send('env-reply', home, desktop, temp, workdirectory);
+    });
+
+
 
     // Make all links open with the browser, not with the application
     win.webContents.setWindowOpenHandler(({ url }) => {
@@ -93,6 +100,7 @@ async function createWindow() {
 }
 
 app.whenReady().then(createWindow)
+
 
 app.on('window-all-closed', () => {
   win = null

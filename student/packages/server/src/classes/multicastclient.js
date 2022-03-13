@@ -50,7 +50,7 @@ class MulticastClient {
   //sets IP for client and sends a message to console
   async getAddress () {
     this.address = this.client.address()
-    console.log(`UDP Multicast Client listening on localhost:${this.address.port}`)
+    console.log(`UDP MC Client listening on http://${config.hostip}:${this.address.port}`)
   }
 
 

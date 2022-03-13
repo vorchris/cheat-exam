@@ -8,7 +8,9 @@ import notfound from '/src/pages/notfound.vue'
 import startserver from '/src/pages/startserver.vue'
 import dashboard from '/src/pages/dashboard.vue'
 import serverlist from '/src/pages/serverlist.vue'
-import config from '../../server/src/config'
+
+
+console.log(config)  // config is exposed to the renderer (frontend) in preload.js (it's readonly here!)
 
 
 // check if we run this app in electron (host is always "localhost" then)

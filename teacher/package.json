@@ -1,7 +1,7 @@
 {
   "name": "next-exam-teacher",
   "version": "0.0.2",
-  "main": "dist/main/index.cjs",
+  "main": "dist/main/main.cjs",
   "author": "Thomas Michael Weissel",
   "license": "GPL",
   "description": "An exam managment tool for digital exams",

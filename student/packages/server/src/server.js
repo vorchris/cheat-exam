@@ -17,11 +17,6 @@ if (typeof window !== 'undefined'){
     if (window.process.type == "renderer") config.electron = true
 }
 
-// clean public directory
-const __dirname = path.resolve();
-const publicdirectory = path.join(__dirname, config.publicdirectory);
-fsExtra.emptyDirSync(publicdirectory)
-
 
 const api = express()
 api.use(fileUpload())  //When you upload a file, the file will be accessible from req.files (init before routes)
@@ -33,11 +28,9 @@ api.use('/client', clientRouter)
 
 
 
-
-
 api.listen(config.clientApiPort, () => {  
-    console.log(`Express listening on: http://${config.hostip}:${config.clientApiPort}`)
-    console.log("Vite-vue on Port 3001")
+    console.log(`Express listening on http://${config.hostip}:${config.clientApiPort}`)
+    console.log(`Vite-vue listening on http://${config.hostip}:${config.clientVitePort}`)
 })
 
 

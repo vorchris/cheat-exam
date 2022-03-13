@@ -42,10 +42,13 @@ api.use('/server', serverRouter)
 
 
 
+
 api.listen(config.serverApiPort, () => {  
-    console.log(`Express listening on: http://${config.hostip}:${config.serverApiPort}`)
-    console.log("Vite-vue on Port 3002")
+    console.log(`Express listening on http://${config.hostip}:${config.serverApiPort}`)
+    console.log(`Vite-vue listening on http://${config.hostip}:${config.serverVitePort}`)
 })
+
+
 
 
 export default api;

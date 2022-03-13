@@ -3,15 +3,13 @@
 */
 import {  createMemoryHistory,  createRouter as _createRouter,  createWebHistory ,createWebHashHistory } from 'vue-router'
 import axios from 'axios'
-import home from '/src/pages/home.vue'
+
 import notfound from '/src/pages/notfound.vue'
 import student from '/src/pages/student.vue'
 import editor from '/src/pages/editor.vue'
 import geogebra from '/src/pages/geogebra.vue'
-import config from '../../server/src/config'
 
-//console.log(ipcRenderer)
-
+console.log(config)  // config is exposed to the renderer (frontend) in preload.js (it's readonly here!)
 
 // check if we run this app in electron (host is always "localhost" then)
 let electron = false
