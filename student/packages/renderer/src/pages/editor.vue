@@ -1,5 +1,5 @@
  <template>
-  <div class="w-100 p-3 text-white bg-dark shadow text-center">
+  <div class="w-100 p-3 text-white bg-dark  text-center" style="position: fixed !important; z-index: 10000 !important">
  
         <router-link v-if="online" :to="(clientname == 'DemoUser')?'/':''" class="text-white m-1">
             <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style="float: left;" />
@@ -17,31 +17,9 @@
         <span class="fs-4 align-middle" style="">{{servername}}</span>
         <span class="fs-4 align-middle" style="float: right">Writer</span>
         <span class="fs-4 align-middle me-2" style="float: right">{{timesinceentry}}</span>
-  </div>
-
-
-
-    <div id="editorcontainer">
-
-        <div v-if="!focus" id="" class="infodiv p-4 d-block focuswarning" >
-            <div class="mb-3 row">
-                <div class="mb-3 ">Sie haben den gesicherten Exam Modus verlassen!</div>
-                <img src="/src/assets/img/svg/eye-slash-fill.svg" class=" me-2" width="32" height="32" >
-            </div>
-        </div>
-
-
-        <div id="uploaddiv" class="fadeinslow p-4">
-            <div class="mb-3 row">
-                <div class="mb-3 ">Wollen sie den Inhalt des Editors durch den Inhalt der Datei <b>{{selectedFile}}</b> ersetzen?</div>
-                <div class="col d-inlineblock btn btn-success m-1"  @click="toggleUpload()"        >cancel </div>
-                <div class="col d-inlineblock btn btn-danger m-1"  @click="loadfile(selectedFile)" >replace</div>
-            </div>
-        </div>
-
-
-
-
+    </div>
+    
+    <div class="w-100 p-2 m-0 text-white shadow-sm text-center" style="position: fixed !important; top: 66px; z-index: 10001 !important; background-color: white;">
         <div id="localfiles" class="mb-2" style="top:0px;">
              <div v-for="file in localfiles" class="btn btn-dark me-2" @click="selectedFile=file; toggleUpload()">
               <img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file}} 
@@ -78,6 +56,35 @@
 
             <button @click="editor.chain().focus().setHardBreak().run()" class="btn btn-outline-info p-1 me-2 mb-1"><img src="/src/assets/img/svg/key-enter.svg" class="white" width="22" height="22" ></button>
         </div>
+
+
+
+  </div>
+
+
+
+    <div id="editorcontainer" style="position: relative !important; top: 190px; ">
+
+        <div v-if="!focus" id="" class="infodiv p-4 d-block focuswarning" >
+            <div class="mb-3 row">
+                <div class="mb-3 ">Sie haben den gesicherten Exam Modus verlassen!</div>
+                <img src="/src/assets/img/svg/eye-slash-fill.svg" class=" me-2" width="32" height="32" >
+            </div>
+        </div>
+
+
+        <div id="uploaddiv" class="fadeinslow p-4">
+            <div class="mb-3 row">
+                <div class="mb-3 ">Wollen sie den Inhalt des Editors durch den Inhalt der Datei <b>{{selectedFile}}</b> ersetzen?</div>
+                <div class="col d-inlineblock btn btn-success m-1"  @click="toggleUpload()"        >cancel </div>
+                <div class="col d-inlineblock btn btn-danger m-1"  @click="loadfile(selectedFile)" >replace</div>
+            </div>
+        </div>
+
+
+
+
+        
     
         <editor-content :editor="editor" class='p-0' id="editorcontent"/>
     </div>
