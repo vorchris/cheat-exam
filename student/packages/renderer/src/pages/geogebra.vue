@@ -1,10 +1,15 @@
  <template> 
   <div id="apphead" class="w-100 p-3 text-white bg-dark shadow text-right">
-         <router-link :to="(clientname == 'DemoUser')?'/':''" class="text-white m-1">
-            <img src="/src/assets/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
-            <span class="fs-4 align-middle me-4 ">{{clientname}}</span>
+         <router-link v-if="online" :to="(clientname == 'DemoUser')?'/':''" class="text-white m-1">
+            <img src="/src/assets/img/svg/speedometer.svg" class="green me-2  " width="32" height="32" >
+            <span class="fs-4 align-middle me-4 green"  >{{clientname}}</span>
         </router-link>
 
+        <router-link v-if="!online" :to="(clientname == 'DemoUser')?'/':'/'" class="text-white m-1">
+            <img src="/src/assets/img/svg/speedometer.svg" class="red me-2  " width="32" height="32" >
+            <span class="fs-4 align-middle me-4 red" >{{clientname}}</span>
+        </router-link>
+        
         <span class="fs-4 align-middle" style="float: right">GeoGebra</span>
   </div>
   <div id=content>
@@ -15,14 +20,16 @@
 <script>
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
-
 import $ from 'jquery'
+import axios from "axios";
 
 export default {
     data() {
         return {
+            online: true,
             currentFile:null,
             fetchinterval: null,
+            fetchinfointerval: null,
             servername: this.$route.params.servername,
             servertoken: this.$route.params.servertoken,
             serverip: this.$route.params.serverip,
@@ -34,6 +41,7 @@ export default {
             electron: this.$route.params.electron,
             blurEvent : null,
             endExamEvent: null,
+            clientinfo: null,
         }
     }, 
     components: {  },  
@@ -48,10 +56,25 @@ export default {
     
         this.$nextTick(function () { // Code that will run only after the entire view has been rendered
            this.fetchinterval = setInterval(() => { this.fetchContent() }, 6000)   //1*pro minute
+           this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 6000)   //1*pro minute
            if (this.token) { this.focuscheck() } 
         })
     },
-    methods: {
+    methods: {    
+        fetchInfo() {
+            axios.get(`http://localhost:${this.clientApiPort}/client/control/getinfo`)
+            .then( response => {
+                this.clientinfo = response.data.clientinfo;
+                this.token = this.clientinfo.token;
+                if (this.clientinfo && this.clientinfo.token){  // if client is already registered disable button (this is also handled on api level)
+                    this.online = true
+                }
+                else {
+                    this.online = false
+                }
+            })
+            .catch( err => {console.log(err)});
+        }, 
         focuscheck() {
             window.addEventListener('beforeunload',         this.focuslost);  // keeps the window open (displays "are you sure in browser")
             window.addEventListener('blur',                 this.focuslost);  // fires only from vue componend not iframe.. check if focus is now on geogebraframe if so > do not inform teacher 
@@ -151,5 +174,17 @@ export default {
 </script>
 
 <style>
+
+.green {
+    color: #198754;
+    fill: #198754;
+    filter: invert(48%) sepia(22%) saturate(800%) hue-rotate(86deg) brightness(100%) contrast(140%);
+}
+
+.red {
+    color: #198754;
+    fill: #198754;
+    filter: invert(48%) sepia(22%) saturate(800%) hue-rotate(86deg) brightness(100%) contrast(140%);
+}
 
 </style>

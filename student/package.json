@@ -2,10 +2,10 @@
   "name": "next-exam-student",
   "version": "0.0.2",
   "main": "dist/main/main.cjs",
-  "author":{
-    "name" : "Thomas Michael Weissel",
-    "email" : "valueerror@gmail.com",
-    "url" : "https://life-edu.eu"
+  "author": {
+    "name": "Thomas Michael Weissel",
+    "email": "valueerror@gmail.com",
+    "url": "https://life-edu.eu"
   },
   "homepage": "https://life-edu.eu",
   "license": "GPL-3.0",
@@ -64,10 +64,10 @@
   },
   "devDependencies": {
     "@types/jquery": "^3.5.14",
+    "@types/screenshot-desktop": "^1.12.0",
     "@vitejs/plugin-vue": "^2.1.0",
     "electron": "16.0.8",
     "electron-builder": "^22.14.5",
-    "ionic": "^5.4.16",
     "nodemon": "^2.0.15",
     "typescript": "^4.5.5",
     "vite": "^2.7.13",
@@ -108,7 +108,6 @@
     "@tiptap/extension-text-align": "^2.0.0-beta.29",
     "@tiptap/extension-underline": "^2.0.0-beta.23",
     "@tiptap/vue-3": "^2.0.0-beta.90",
-    "@types/screenshot-desktop": "^1.12.0",
     "archiver": "^5.3.0",
     "axios": "^0.26.0",
     "cors": "^2.8.5",

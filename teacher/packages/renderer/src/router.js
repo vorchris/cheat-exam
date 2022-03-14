@@ -3,7 +3,6 @@
 */
 import {  createMemoryHistory,  createRouter as _createRouter,  createWebHistory ,createWebHashHistory } from 'vue-router'
 import axios from 'axios'
-import home from '/src/pages/home.vue'
 import notfound from '/src/pages/notfound.vue'
 import startserver from '/src/pages/startserver.vue'
 import dashboard from '/src/pages/dashboard.vue'

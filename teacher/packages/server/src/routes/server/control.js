@@ -238,7 +238,7 @@ router.get('/serverlist', function (req, res, next) {
 
 
 
-    if (!mcServer) {  return res.send({sender: "server", message:"server does not exist", status: "error"} )  }
+    if ( !mcServer) {  return res.send({sender: "server", message:"server does not exist", status: "error"} )  }
     if ( !checkToken(token, "server", mcServer) ) {return res.send({ sender: "server", message:"token is not valid", status: "error" }) } //check if the student is registered on this server
     if ( !req.files ) {return res.send({sender: "server", message:"No files were uploaded", status:"error"});  }
     
