@@ -215,6 +215,7 @@ export default {
                 else {  
                     console.log("Requesting Filetransfer from ALL Clients")
                     this.studentlist.forEach( (student) => {
+
                         axios.get(`http://${student.clientip}:${this.clientApiPort}/client/data/abgabe/send/${student.token}`)
                         .then( response => {
                             console.log(response.data.message);
