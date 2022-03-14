@@ -1,10 +1,15 @@
  <template>
   <div class="w-100 p-3 text-white bg-dark shadow text-right">
-        <router-link :to="(clientname == 'DemoUser')?'/':''" class="text-white m-1">
+ 
+        <router-link v-if="online" :to="(clientname == 'DemoUser')?'/':''" class="text-white m-1">
             <img src="/src/assets/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
-            <span class="fs-4 align-middle me-4 ">{{clientname}}</span>
+            <span class="fs-4 align-middle me-1 ">{{clientname}}</span><span class="fs-4 align-middle me-4 green"  >| online</span>
         </router-link>
-        
+
+        <router-link v-if="!online" :to="(clientname == 'DemoUser')?'/':'/'" class="text-white m-1">
+            <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" >
+             <span class="fs-4 align-middle me-1 ">{{clientname}}</span><span class="fs-4 align-middle me-4 red"  >| offline</span>
+        </router-link>
 
 
         <span class="fs-4 align-middle" style="float: right">Writer</span>
@@ -13,6 +18,13 @@
 
 
     <div id="editorcontainer">
+
+        <div v-if="!focus" id="" class="infodiv p-4 d-block focuswarning" >
+            <div class="mb-3 row">
+                <div class="mb-3 ">Sie haben den gesicherten Exam Modus verlassen!</div>
+            </div>
+        </div>
+
 
         <div id="uploaddiv" class="fadeinslow p-4">
             <div class="mb-3 row">
@@ -107,10 +119,14 @@ export default {
 
   data() {
     return {
+        online: true,
+        focus: true,
+        exammode: false,
         selectedFile:null,
         currentFile:null,
         editor: null,
         fetchinterval: null,
+        fetchinfointerval: null,
         loadfilelistinterval: null,
         servername: this.$route.params.servername,
         servertoken: this.$route.params.servertoken,
@@ -123,6 +139,8 @@ export default {
         electron: this.$route.params.electron,
         blurEvent : null,
         endExamEvent: null,
+        clientinfo: null,
+       
     }
   },
 
@@ -225,12 +243,29 @@ ENDE !!`,
     });
 
     this.currentFile = this.clientname
-    this.fetchinterval = setInterval(() => { this.fetchContent() }, 6000)   //1*pro minute
-    this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 6000)   //1*pro minute
+    this.fetchinterval = setInterval(() => { this.fetchContent() }, 6000)   
+    this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 6000)   
+    this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 6000)   
     this.loadFilelist()
   },
   methods: {
-
+        fetchInfo() {
+            axios.get(`http://localhost:${this.clientApiPort}/client/control/getinfo`)
+            .then( response => {
+                this.clientinfo = response.data.clientinfo;
+                this.token = this.clientinfo.token;
+                this.focus = this.clientinfo.focus;
+                this.clientname = this.clientinfo.name;
+                this.exammode = this.clientinfo.exammode
+                if (this.clientinfo && this.clientinfo.token){  // if client is already registered disable button (this is also handled on api level)
+                    this.online = true
+                }
+                else {
+                    this.online = false
+                }
+            })
+            .catch( err => {console.log(err)});
+        }, 
         loadFilelist(){
             fetch(`http://localhost:${this.clientApiPort}/client/data/getfiles`, { method: 'POST' })
             .then( response => response.json() )
@@ -352,6 +387,11 @@ ENDE !!`,
             fetch(`http://${this.serverip}:${this.serverApiPort}/server/control/studentlist/statechange/${this.servername}/${this.token}/false`)
             .then( response => response.json() )
             .then( (data) => { console.log(data); });  
+
+
+            axios.get(`http://localhost:${this.clientApiPort}/client/control/focus/${this.token}/false`)
+            .then( response => { this.focus = false; console.log(response.data);  })
+            .catch( err => {console.log(err)});
         },
 
     },

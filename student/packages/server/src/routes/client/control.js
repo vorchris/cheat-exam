@@ -21,6 +21,32 @@ router.get('/getinfo', function (req, res, next) {
   
 
 
+/**
+ * Stores focus state of client (only the teachers focus state counts but the client also gets informed)
+ */ 
+router.get('/focus/:token/:state', function (req, res, next) {
+    const token = req.params.token
+    const state = req.params.state
+  
+    if ( checkToken(token)) {  
+        if (state === "false"){
+            multiCastclient.clientinfo.focus = false
+        }  
+        else {
+          multiCastclient.clientinfo.focus = true
+        }
+        res.json({ sender: "client",message:"state changed", status:"success" })
+    }
+    else {
+        res.json({ sender: "client", message:"token is not valid", status: "error" })
+    }
+
+
+ 
+  
+  
+})
+
 
 
 /**

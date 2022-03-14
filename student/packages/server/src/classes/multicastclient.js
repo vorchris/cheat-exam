@@ -19,7 +19,7 @@ class MulticastClient {
         this.refreshExamsIntervall = null
         this.browser = false
         this.clientinfo = {
-            name: "Demouser",
+            name: "DemoUser",
             token: false,
             ip: false,
             serverip: false,
@@ -62,47 +62,54 @@ class MulticastClient {
         //check if server connected - get ip
         if (this.clientinfo.serverip) {
         
-        //create screenshot
-        screenshot().then(async (img) => {
-            let screenshotfilename = this.clientinfo.token +".jpg"
-            //create formdata
-            const formData = new FormData()
-            
-            if (config.electron){
-                let blob =  new Blob( [ new Uint8Array(img).buffer], { type: 'image/jpeg' })
-                formData.append(screenshotfilename, blob, screenshotfilename );
-            }
-            else {
-                formData.append(screenshotfilename, img, screenshotfilename );
-            }
-            //update timestamp
-            this.clientinfo.timestamp =  new Date().getTime()
-            formData.append('clientinfo', JSON.stringify(this.clientinfo) );
+            //create screenshot
+            screenshot().then(async (img) => {
+                let screenshotfilename = this.clientinfo.token +".jpg"
+                //create formdata
+                const formData = new FormData()
+                
+                if (config.electron){
+                    let blob =  new Blob( [ new Uint8Array(img).buffer], { type: 'image/jpeg' })
+                    formData.append(screenshotfilename, blob, screenshotfilename );
+                }
+                else {
+                    formData.append(screenshotfilename, img, screenshotfilename );
+                }
+                //update timestamp
+                this.clientinfo.timestamp =  new Date().getTime()
+                formData.append('clientinfo', JSON.stringify(this.clientinfo) );
 
-            //post to /studentlist/update/:token
-            axios({
-                method: "post", 
-                url: `http://${this.clientinfo.serverip}:${config.serverApiPort}/server/control/studentlist/update`, 
-                data: formData, 
-                headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
-            })
-            .then( response => {
-                console.log(`MulticastClient: ${response.data.message}`)
+                //post to /studentlist/update/:token
+                axios({
+                    method: "post", 
+                    url: `http://${this.clientinfo.serverip}:${config.serverApiPort}/server/control/studentlist/update`, 
+                    data: formData, 
+                    headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
+                })
+                .then( response => {
+                    console.log(`MulticastClient: ${response.data.message}`)
+                    if (response.data && response.data.status === "success") { this.beaconsLost = 0 }
+                    if (response.data && response.data.status === "error") { this.beaconsLost += 1; console.log("beacon lost..") }
+                })
+                .catch(error => {
+                    console.log(`MulticastClient: ${error}`) 
+                    this.beaconsLost += 1; console.log("beacon lost..")
+                });  //on kick there is a racecondition that leads to a failed fetch here because values are already "false"
 
-                if (response.data && response.data.status === "success") { this.beaconsLost = 0 }
-                if (response.data && response.data.status === "error") { this.beaconsLost += 1 }
 
                 if (this.beaconsLost >= 4){ //remove server registration
+                    console.log("Connection to Teacher lost! Removing registration.")
                     this.beaconsLost = 0
-                    for (const [key, value] of Object.entries(this.clientinfo)) {
-                        this.clientinfo[key] = false   
-                    }
+                    this.clientinfo.serverip = false
+                    this.clientinfo.servername = false
+                    this.clientinfo.token = false
+                    // for (const [key, value] of Object.entries(this.clientinfo)) {
+                    //     this.clientinfo[key] = false   
+                    // }
                 }
 
             })
-            .catch(error => {console.log(`MulticastClient: ${error}`) });  //on kick there is a racecondition that leads to a failed fetch here because values are already "false"
-
-            }).catch((err) => {
+            .catch((err) => {
                 console.log(`MulticastClient: ${err}`)
             });
         }

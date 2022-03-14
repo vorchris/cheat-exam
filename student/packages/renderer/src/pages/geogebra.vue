@@ -1,20 +1,29 @@
  <template> 
-  <div id="apphead" class="w-100 p-3 text-white bg-dark shadow text-right">
-         <router-link v-if="online" :to="(clientname == 'DemoUser')?'/':''" class="text-white m-1">
-            <img src="/src/assets/img/svg/speedometer.svg" class="green me-2  " width="32" height="32" >
-            <span class="fs-4 align-middle me-4 green"  >{{clientname}}</span>
+    <div id="apphead" class="w-100 p-3 text-white bg-dark shadow text-right">
+        <router-link v-if="online" :to="(clientname == 'DemoUser')?'/':''" class="text-white m-1">
+            <img src="/src/assets/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
+            <span class="fs-4 align-middle me-1 ">{{clientname}}</span><span class="fs-4 align-middle me-4 green"  >| online</span>
         </router-link>
 
         <router-link v-if="!online" :to="(clientname == 'DemoUser')?'/':'/'" class="text-white m-1">
-            <img src="/src/assets/img/svg/speedometer.svg" class="red me-2  " width="32" height="32" >
-            <span class="fs-4 align-middle me-4 red" >{{clientname}}</span>
+            <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" >
+             <span class="fs-4 align-middle me-1 ">{{clientname}}</span><span class="fs-4 align-middle me-4 red"  >| offline</span>
         </router-link>
-        
+    
         <span class="fs-4 align-middle" style="float: right">GeoGebra</span>
-  </div>
-  <div id=content>
-    <iframe id="geogebraframe" :src="geogebrasource"></iframe>
- </div>
+    </div>
+    <div id="content">
+
+         <div v-if="!focus" id="" class="infodiv p-4 d-block focuswarning" >
+            <div class="mb-3 row">
+                <div class="mb-3 ">Sie haben den gesicherten Exam Modus verlassen!</div>
+            </div>
+        </div>
+
+
+
+        <iframe id="geogebraframe" :src="geogebrasource"></iframe>
+    </div>
 </template>
 
 <script>
@@ -27,6 +36,8 @@ export default {
     data() {
         return {
             online: true,
+            focus: true,
+            exammode: false,
             currentFile:null,
             fetchinterval: null,
             fetchinfointerval: null,
@@ -55,8 +66,8 @@ export default {
         }
     
         this.$nextTick(function () { // Code that will run only after the entire view has been rendered
-           this.fetchinterval = setInterval(() => { this.fetchContent() }, 6000)   //1*pro minute
-           this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 6000)   //1*pro minute
+           this.fetchinterval = setInterval(() => { this.fetchContent() }, 6000)   
+           this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 6000)   
            if (this.token) { this.focuscheck() } 
         })
     },
@@ -64,8 +75,11 @@ export default {
         fetchInfo() {
             axios.get(`http://localhost:${this.clientApiPort}/client/control/getinfo`)
             .then( response => {
-                this.clientinfo = response.data.clientinfo;
-                this.token = this.clientinfo.token;
+                this.clientinfo = response.data.clientinfo
+                this.token = this.clientinfo.token
+                this.focus = this.clientinfo.focus
+                this.clientname = this.clientinfo.name
+                this.exammode = this.clientinfo.exammode
                 if (this.clientinfo && this.clientinfo.token){  // if client is already registered disable button (this is also handled on api level)
                     this.online = true
                 }
@@ -103,6 +117,10 @@ export default {
             fetch(`http://${this.serverip}:${this.serverApiPort}/server/control/studentlist/statechange/${this.servername}/${this.token}/false`)
             .then( response => response.json() )
             .then( (data) => { console.log(data); });  
+
+            axios.get(`http://localhost:${this.clientApiPort}/client/control/focus/${this.token}/false`)
+            .then( response => { this.focus = false; console.log(response.data);  })
+            .catch( err => {console.log(err)});
         },
   
 
@@ -175,16 +193,5 @@ export default {
 
 <style>
 
-.green {
-    color: #198754;
-    fill: #198754;
-    filter: invert(48%) sepia(22%) saturate(800%) hue-rotate(86deg) brightness(100%) contrast(140%);
-}
-
-.red {
-    color: #198754;
-    fill: #198754;
-    filter: invert(48%) sepia(22%) saturate(800%) hue-rotate(86deg) brightness(100%) contrast(140%);
-}
 
 </style>

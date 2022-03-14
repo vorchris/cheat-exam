@@ -68,7 +68,7 @@
                 <div class="btn-group pt-0" role="group">
                     <button v-if="(now - 20000 < student.timestamp)" @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-success btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">send</button>
                     <button v-if="(now - 20000 < student.timestamp)"  @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-success btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;">get</button>
-                    <button v-if="!student.focus && (now - 20000 < student.timestamp)"   @click='restore(student.token)' type="button" class="btn btn-danger btn-sm" style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;">restore</button>
+                    <button v-if="!student.focus && (now - 20000 < student.timestamp)"   @click='restore(student.token,student.clientip)' type="button" class="btn btn-danger btn-sm" style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;">restore</button>
                 </div>
             </div>
         </div>
@@ -247,12 +247,18 @@ export default {
         },
 
           //remove student from exam
-        async restore(studenttoken){
-            await axios.get(`http://${this.serverip}:${this.serverApiPort}/server/control/studentlist/statechange/${this.servername}/${studenttoken}/true`)
+        async restore(studenttoken, studentip){
+            axios.get(`http://${this.serverip}:${this.serverApiPort}/server/control/studentlist/statechange/${this.servername}/${studenttoken}/true`)
                 .then( async (response) => {
                     this.status(response.data.message);
                     console.log(response.data);
                 }).catch(error => {console.log(error)});
+
+
+            axios.get(`http://${studentip}:${this.clientApiPort}/client/control/focus/${studenttoken}/true`)
+                .then( response => { console.log(response.data)  })
+                .catch( err => {console.log(err)});
+
         },
 
         // make upload div visible or hide it

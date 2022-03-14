@@ -72,6 +72,40 @@ input:focus::placeholder {
     color: transparent;
 }
 
+
+.infodiv {
+    display: none;
+    position: fixed;
+    top: 30%;
+    left: 50%;
+    margin-left: -200px;
+    width: 400px;
+    height: 110px;
+    background-color: rgba(255, 255, 255, 1);
+    border: 1px solid rgba(255, 255, 255, 0.589);
+    box-shadow: 0 0 15px rgba(22, 9, 9, 0.589);
+    padding: 10px;
+    border-radius: 12px;
+    z-index:9999;
+}
+
+
+.green {
+    filter: invert(48%) sepia(22%) saturate(800%) hue-rotate(86deg) brightness(100%) contrast(140%);
+}
+
+.red {
+    filter: invert(52%) sepia(23%) saturate(800%) hue-rotate(-412deg) brightness(79%) contrast(205%);
+}
+.focuswarning {
+   background-color: #ffc107 !important;
+   text-align: center !important;
+    font-weight: bold;
+    font-size: 1.1em;
+    border: 1px solid rgb(255, 153, 0) !important;
+}
+
+
 #uploaddiv {
     display: none;
     position: fixed;
