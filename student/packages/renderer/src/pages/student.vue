@@ -169,7 +169,7 @@ export default {
 
     beforeUnmount() {
         clearInterval( this.fetchinterval )
-        this.startExamEvent.removeAllListeners('endexam')   //remove  self
+        this.startExamEvent.removeAllListeners('exam')   //remove  self
     },
 }
 
