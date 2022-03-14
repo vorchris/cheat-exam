@@ -176,14 +176,11 @@ export default {
         startExam(who){
             console.log(this.examtype)
             if (who == "all"){
-
                 if ( this.studentlist.length <= 0 ) { this.status("no clients connected"); console.log("no clients connected") }
                 else {  
-                    this.status("starting exam mode for all clients");
                     this.studentlist.forEach( (student) => {
-                        //check exam mode for students - dont initialize twice
-                        console.log(student)
-                        if (student.exammode){ return; }
+                        //check exam mode for students - dont initialize twice (right after exam stop it takes a few seconds for the students to update their exam status on the server again)
+                        if (student.exammode){ this.status("student(s) still in exam mode"); return; }
                         axios.get(`http://${student.clientip}:${this.clientApiPort}/client/control/exammode/start/${student.token}/${this.examtype}`)
                         .then( response => {
                             this.status(response.data.message);

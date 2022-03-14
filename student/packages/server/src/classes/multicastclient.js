@@ -87,7 +87,7 @@ class MulticastClient {
                     headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
                 })
                 .then( response => {
-                    console.log(`MulticastClient: ${response.data.message}`)
+                    //console.log(`MulticastClient: ${response.data.message}`)
                     if (response.data && response.data.status === "success") { this.beaconsLost = 0 }
                     if (response.data && response.data.status === "error") { this.beaconsLost += 1; console.log("beacon lost..") }
                 })

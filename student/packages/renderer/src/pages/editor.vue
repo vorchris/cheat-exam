@@ -3,16 +3,19 @@
  
         <router-link v-if="online" :to="(clientname == 'DemoUser')?'/':''" class="text-white m-1">
             <img src="/src/assets/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
-            <span class="fs-4 align-middle me-1 ">{{clientname}}</span><span class="fs-4 align-middle me-4 green"  >| online</span>
+            <span class="fs-4 align-middle me-1">{{clientname}}</span><span class="fs-4 align-middle me-4 green"  >| online</span> 
+            
         </router-link>
 
         <router-link v-if="!online" :to="(clientname == 'DemoUser')?'/':'/'" class="text-white m-1">
             <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" >
-             <span class="fs-4 align-middle me-1 ">{{clientname}}</span><span class="fs-4 align-middle me-4 red"  >| offline</span>
+             <span class="fs-4 align-middle me-1">{{clientname}}</span><span class="fs-4 align-middle me-4 red"  >| offline</span> 
+             
         </router-link>
 
 
         <span class="fs-4 align-middle" style="float: right">Writer</span>
+        <span class="fs-4 align-middle me-2" style="float: right">{{timesinceentry}}</span>
   </div>
 
 
@@ -22,6 +25,7 @@
         <div v-if="!focus" id="" class="infodiv p-4 d-block focuswarning" >
             <div class="mb-3 row">
                 <div class="mb-3 ">Sie haben den gesicherten Exam Modus verlassen!</div>
+                <img src="/src/assets/img/svg/eye-slash-fill.svg" class=" me-2" width="32" height="32" >
             </div>
         </div>
 
@@ -102,7 +106,6 @@ import Superscript from '@tiptap/extension-superscript'
 import Dropcursor from '@tiptap/extension-dropcursor'
 import Gapcursor from '@tiptap/extension-gapcursor'
 import History from '@tiptap/extension-history'
-//import { lowlight } from 'lowlight'// load all highlight.js languages // doesnt work in electron build 
 import { lowlight } from "lowlight/lib/common.js";
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
@@ -113,142 +116,42 @@ import $ from 'jquery'
 
 
 export default {
-  components: {
-    EditorContent,
-  },
-
-  data() {
-    return {
-        online: true,
-        focus: true,
-        exammode: false,
-        selectedFile:null,
-        currentFile:null,
-        editor: null,
-        fetchinterval: null,
-        fetchinfointerval: null,
-        loadfilelistinterval: null,
-        servername: this.$route.params.servername,
-        servertoken: this.$route.params.servertoken,
-        serverip: this.$route.params.serverip,
-        token: this.$route.params.token,
-        clientname: this.$route.params.clientname,
-        localfiles: null,
-        serverApiPort: this.$route.params.serverApiPort,
-        clientApiPort: this.$route.params.clientApiPort,
-        electron: this.$route.params.electron,
-        blurEvent : null,
-        endExamEvent: null,
-        clientinfo: null,
-       
-    }
-  },
-
-  mounted() {
-   
-    if(this.token) { this.focuscheck() }  // run focuscheck function (sets some window event listeners )
-    if (this.electron){
-       if (this.electron){
-            this.blurEvent = ipcRenderer.on('blurevent', this.focuslost, false);  //ipcRenderer seems to be of type nodeEventTarget (on/addlistener returns a reference to the eventTarget)
-            this.endExamEvent = ipcRenderer.on('endexam', () => { this.$router.push({ name: 'student'}); }); //redirect to home view // right before we leave vue.js will run beforeUnmount() which removes all listeners this view attached to the window and the ipcrenderer
+    components: {
+        EditorContent,
+    },
+    data() {
+        return {
+            online: true,
+            focus: true,
+            exammode: false,
+            selectedFile:null,
+            currentFile:null,
+            editor: null,
+            fetchinterval: null,
+            fetchinfointerval: null,
+            clockinterval: null,
+            loadfilelistinterval: null,
+            servername: this.$route.params.servername,
+            servertoken: this.$route.params.servertoken,
+            serverip: this.$route.params.serverip,
+            token: this.$route.params.token,
+            clientname: this.$route.params.clientname,
+            localfiles: null,
+            serverApiPort: this.$route.params.serverApiPort,
+            clientApiPort: this.$route.params.clientApiPort,
+            electron: this.$route.params.electron,
+            blurEvent : null,
+            endExamEvent: null,
+            clientinfo: null,
+            entrytime: 0,
+            timesinceentry: 0
         }
-    }
-
-
-    this.editor = new Editor({
-        extensions: [
-            Blockquote,
-            BulletList,
-            Document,
-            HardBreak,
-            Heading,
-            HorizontalRule,
-            ListItem,
-            OrderedList,
-            Paragraph,
-            Text,
-            Bold,
-            Code,
-            Italic,
-            Subscript,
-            Superscript,
-            Underline,
-            Dropcursor,
-            Gapcursor,
-            History,
-            TextAlign.configure({
-              types: ['heading', 'paragraph'],
-            }),
-            CodeBlockLowlight
-              .extend({
-                addNodeView() {
-                  return VueNodeViewRenderer(CodeBlockComponent)
-                },
-              })
-              .configure({ lowlight }),
-        ],
-        content: `
-     
-<h2>
-    Hi there,
-</h2>
-<p>
-    this is a <em>basic</em> example of <strong>tiptap</strong>. 
-    <br>Next up: A bullet list:
-</p>
-<ul>
-    <li>Free Open Source Software</li>
-    <li>Plattform independent</li>
-</ul>
-<p>Let’s try a code block:</p>
-<pre><code class="language-css">
-body {
-    background-color: rgba(200,200,24,1);
-}
-</code></pre>
-<p> 1 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>2 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>3 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>4 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>5 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>6 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>7 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>8 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>9 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>10 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>11 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>12 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>13 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>14 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>Let’s try a code block: </p>
-<pre><code class="language-javascript">
-const test = function ( data ) { console.log(data); }
-</code></pre>
-<p>1 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>2 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>3 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>4 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>5 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>6 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>7 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>8 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>9 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>10 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>11 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>12 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>13 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>14 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-
-ENDE !!`,
-    });
-
-    this.currentFile = this.clientname
-    this.fetchinterval = setInterval(() => { this.fetchContent() }, 6000)   
-    this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 6000)   
-    this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 6000)   
-    this.loadFilelist()
-  },
-  methods: {
+    },
+    methods: {
+        clock(){
+            let now = new Date().getTime()
+            this.timesinceentry =  new Date(now - this.entrytime).toISOString().substr(11, 8)
+        },
         fetchInfo() {
             axios.get(`http://localhost:${this.clientApiPort}/client/control/getinfo`)
             .then( response => {
@@ -257,12 +160,9 @@ ENDE !!`,
                 this.focus = this.clientinfo.focus;
                 this.clientname = this.clientinfo.name;
                 this.exammode = this.clientinfo.exammode
-                if (this.clientinfo && this.clientinfo.token){  // if client is already registered disable button (this is also handled on api level)
-                    this.online = true
-                }
-                else {
-                    this.online = false
-                }
+                if (!this.focus){  this.entrytime = new Date().getTime()}
+                if (this.clientinfo && this.clientinfo.token){  this.online = true  }
+                else { this.online = false  }
             })
             .catch( err => {console.log(err)});
         }, 
@@ -387,13 +287,113 @@ ENDE !!`,
             fetch(`http://${this.serverip}:${this.serverApiPort}/server/control/studentlist/statechange/${this.servername}/${this.token}/false`)
             .then( response => response.json() )
             .then( (data) => { console.log(data); });  
-
-
+           
+            //also store focus information locally
             axios.get(`http://localhost:${this.clientApiPort}/client/control/focus/${this.token}/false`)
             .then( response => { this.focus = false; console.log(response.data);  })
             .catch( err => {console.log(err)});
-        },
+        }
+    },
+    mounted() {
+        this.editor = new Editor({
+            extensions: [
+                Blockquote,
+                BulletList,
+                Document,
+                HardBreak,
+                Heading,
+                HorizontalRule,
+                ListItem,
+                OrderedList,
+                Paragraph,
+                Text,
+                Bold,
+                Code,
+                Italic,
+                Subscript,
+                Superscript,
+                Underline,
+                Dropcursor,
+                Gapcursor,
+                History,
+                TextAlign.configure({
+                types: ['heading', 'paragraph'],
+                }),
+                CodeBlockLowlight
+                .extend({
+                    addNodeView() {
+                    return VueNodeViewRenderer(CodeBlockComponent)
+                    },
+                })
+                .configure({ lowlight }),
+            ],
+            content: `
+     
+<h2>
+    Hi there,
+</h2>
+<p>
+    this is a <em>basic</em> example of <strong>tiptap</strong>. 
+    <br>Next up: A bullet list:
+</p>
+<ul>
+    <li>Free Open Source Software</li>
+    <li>Plattform independent</li>
+</ul>
+<p>Let’s try a code block:</p>
+<pre><code class="language-css">
+body {
+    background-color: rgba(200,200,24,1);
+}
+</code></pre>
+<p> 1 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>2 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>3 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>4 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>5 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>6 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>7 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>8 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>9 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>10 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>11 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>12 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>13 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>14 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>Let’s try a code block: </p>
+<pre><code class="language-javascript">
+const test = function ( data ) { console.log(data); }
+</code></pre>
+<p>1 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>2 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>3 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>4 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>5 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>6 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>7 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>8 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>9 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>10 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>11 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>12 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>13 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
+<p>14 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
 
+ENDE !!`,
+        });
+
+        if(this.token) {  this.focuscheck() }  // run focuscheck function (sets some window event listeners )       
+        if (this.electron){
+            this.blurEvent = ipcRenderer.on('blurevent', this.focuslost, false);  //ipcRenderer seems to be of type nodeEventTarget (on/addlistener returns a reference to the eventTarget)
+             this.endExamEvent = ipcRenderer.on('endexam', () => { this.$router.push({ name: 'student'}); }); //redirect to home view // right before we leave vue.js will run beforeUnmount() which removes all listeners this view attached to the window and the ipcrenderer
+        }   
+        this.currentFile = this.clientname
+        this.entrytime = new Date().getTime()
+        this.fetchinterval = setInterval(() => { this.fetchContent() }, 10000)   
+        this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 10000)   
+        this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 5000) 
+        this.clockinterval = setInterval(() => { this.clock() }, 1000)   
+        this.loadFilelist()
     },
     beforeUnmount() {
         //remove electron ipcRender events
@@ -403,11 +403,10 @@ ENDE !!`,
         window.removeEventListener("beforeunload",  this.focuslost);
         window.removeEventListener('blur',          this.focuslost);
         document.removeEventListener("visibilityChange", this.focuslost); 
-            
+
         this.editor.destroy()
         clearInterval( this.fetchinterval )
         clearInterval( this.loadfilelistinterval )
-
     },
 }
 </script>

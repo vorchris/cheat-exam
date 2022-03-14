@@ -11,18 +11,21 @@
         </router-link>
     
         <span class="fs-4 align-middle" style="float: right">GeoGebra</span>
+         <span class="fs-4 align-middle me-2" style="float: right">{{timesinceentry}}</span>
     </div>
     <div id="content">
 
          <div v-if="!focus" id="" class="infodiv p-4 d-block focuswarning" >
             <div class="mb-3 row">
                 <div class="mb-3 ">Sie haben den gesicherten Exam Modus verlassen!</div>
+                <img src="/src/assets/img/svg/eye-slash-fill.svg" class=" me-2" width="32" height="32" >
             </div>
         </div>
 
 
 
         <iframe id="geogebraframe" :src="geogebrasource"></iframe>
+       
     </div>
 </template>
 
@@ -41,6 +44,7 @@ export default {
             currentFile:null,
             fetchinterval: null,
             fetchinfointerval: null,
+            clockinterval: null,
             servername: this.$route.params.servername,
             servertoken: this.$route.params.servertoken,
             serverip: this.$route.params.serverip,
@@ -53,6 +57,8 @@ export default {
             blurEvent : null,
             endExamEvent: null,
             clientinfo: null,
+            entrytime: 0,
+            timesinceentry: 0
         }
     }, 
     components: {  },  
@@ -66,12 +72,17 @@ export default {
         }
     
         this.$nextTick(function () { // Code that will run only after the entire view has been rendered
-           this.fetchinterval = setInterval(() => { this.fetchContent() }, 6000)   
-           this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 6000)   
-           if (this.token) { this.focuscheck() } 
+            this.fetchinterval = setInterval(() => { this.fetchContent() }, 10000)   
+            this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 5000)  
+            this.clockinterval = setInterval(() => { this.clock() }, 1000)  
+            if (this.token) { this.focuscheck() } 
         })
     },
-    methods: {    
+    methods: {          
+        clock(){
+            let now = new Date().getTime()
+            this.timesinceentry =  new Date(now - this.entrytime).toISOString().substr(11, 8)
+        },  
         fetchInfo() {
             axios.get(`http://localhost:${this.clientApiPort}/client/control/getinfo`)
             .then( response => {
@@ -80,12 +91,9 @@ export default {
                 this.focus = this.clientinfo.focus
                 this.clientname = this.clientinfo.name
                 this.exammode = this.clientinfo.exammode
-                if (this.clientinfo && this.clientinfo.token){  // if client is already registered disable button (this is also handled on api level)
-                    this.online = true
-                }
-                else {
-                    this.online = false
-                }
+                if (!this.focus){  this.entrytime = new Date().getTime()}
+                if (this.clientinfo && this.clientinfo.token){  this.online = true  }
+                else { this.online = false  }
             })
             .catch( err => {console.log(err)});
         }, 

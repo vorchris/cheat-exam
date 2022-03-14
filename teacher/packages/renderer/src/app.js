@@ -5,14 +5,14 @@ import { createRouter } from './router'
 
 
 const router = createRouter()
-const app = createApp(App)
+const vApp = createApp(App)
 
-app.use(router)
-app.config.unwrapInjectedRef = true  // should not be neccecary in future versions (suppress specific warning)
+vApp.use(router)
+vApp.config.unwrapInjectedRef = true  // should not be neccecary in future versions (suppress specific warning)
 
 
 
 // wait until router is ready before mounting to ensure hydration match
 router.isReady().then(() => {
-  app.mount('#app')
+    vApp.mount('#app')
 })

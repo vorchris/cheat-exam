@@ -236,15 +236,11 @@ router.get('/serverlist', function (req, res, next) {
     const servername = clientinfo.servername
     const mcServer = config.examServerList[servername]
 
-
-
     if ( !mcServer) {  return res.send({sender: "server", message:"server does not exist", status: "error"} )  }
     if ( !checkToken(token, "server", mcServer) ) {return res.send({ sender: "server", message:"token is not valid", status: "error" }) } //check if the student is registered on this server
     if ( !req.files ) {return res.send({sender: "server", message:"No files were uploaded", status:"error"});  }
     
-    console.log(req.files)
     for (const [key, file] of Object.entries( req.files)) {
-        console.log(file.name)
         let absoluteFilepath = path.join(config.publicdirectory, file.name); 
         file.mv(absoluteFilepath, (err) => {  
             if (err) {  console.log(err)  }

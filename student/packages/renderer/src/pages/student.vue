@@ -59,16 +59,17 @@
         <h4>Running Exams</h4>
         <div id="list" class="placeholder" style="overflow-y:auto; height: 369px; display:flex; flex-wrap: wrap; flex-direction: row;">
 
-            <div v-for="server in serverlist" class="row p-3 m-0 mb-2 border bg-light" style="margin-right: 10px !important; height:120px; width: 300px; min-width:250px; max-width: 300px;">
+            <div v-for="server in serverlist" class="row p-3 m-0 mb-2 border bg-light" style="margin-right: 10px !important; min-height:130px; max-height:140px;  min-width:240px; max-width: 240px;">
                 <dl class="row">
                     <dt class="col-sm-4">Name</dt>
-                    <dd class="col-sm-8">{{server.servername}}</dd>
+                    <dd class="col-sm-9">{{server.servername}}</dd>
                 </dl>
+                  
                 <input v-if="!token" :id="server.servername" type="button" name="register" class="btn btn-info" value="register" @click="registerClient(server.serverip,server.servername)"/>
                 <input v-if="token && clientinfo.servername !== server.servername" :id="server.servername" type="button" name="register" class="btn btn-secondary" value="register" />
                 <input v-if="token && clientinfo.servername === server.servername" :id="server.servername" type="button" name="register" class="btn btn-success" value="registered" />
+      
             </div>
-
         </div>
     </div>
 </div>

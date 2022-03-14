@@ -80,7 +80,7 @@ input:focus::placeholder {
     left: 50%;
     margin-left: -200px;
     width: 400px;
-    height: 110px;
+    height: 140px;
     background-color: rgba(255, 255, 255, 1);
     border: 1px solid rgba(255, 255, 255, 0.589);
     box-shadow: 0 0 15px rgba(22, 9, 9, 0.589);
@@ -100,7 +100,7 @@ input:focus::placeholder {
 .focuswarning {
    background-color: #ffc107 !important;
    text-align: center !important;
-    font-weight: bold;
+  
     font-size: 1.1em;
     border: 1px solid rgb(255, 153, 0) !important;
 }
