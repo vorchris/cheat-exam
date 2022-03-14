@@ -4,9 +4,11 @@ const router = Router()
 import { join } from 'path'
 import FormData from 'form-data'
 import config from '../../config.js'
-import archiver from 'archiver'
+
 import fs from 'fs' 
+import  extract from 'extract-zip'
 import axios from 'axios'
+
 
 /**
  * Sends MANUALLY SELECTED file(s) from the SERVER to specified CLIENTS (no single client supported right noch FIXME)
@@ -94,15 +96,48 @@ import axios from 'axios'
     else {
         console.log("Receiving File(s)...")
         let errors = 0
-        console.log(req.files)
+        
         if (req.files){
             for (const [key, file] of Object.entries( req.files)) {
                 //console.log(file)
                 let absoluteFilepath = join(config.workdirectory, file.name);
+                if (file.name.includes(".zip")){  //ABGABE as ZIP
+                    let time = new Date(new Date().getTime()).toISOString().substr(11, 8);
+                    let studentname = ""
+                    // get username
+                    mcServer.studentList.forEach( (student) => {
+                        if (token === student.token) {
+                            studentname = student.clientname
+                            console.log(student)
+                        }
+                    });
+                    
+                    // create user abgabe directory
+                    let studentdirectory =  join(config.workdirectory, studentname)
+                    if (!fs.existsSync(studentdirectory)){ fs.mkdirSync(studentdirectory);  }
+
+                    // create archive directory
+                    let studentarchivedir = join(studentdirectory, String(time))
+                    fs.mkdirSync(studentarchivedir);
+
+                    // extract zip file to archive
+                    file.mv(absoluteFilepath, (err) => {  
+                        if (err) { errors++; return {status: "client couldn't store file"} }
+                        extract(absoluteFilepath, { dir: studentarchivedir }).then( () => {
+                            fs.unlink(absoluteFilepath, (err) => {
+                                if (err) console.log(err);
+                                return
+                            });
+                        }).catch( err => console.log(err))
+                    });
+                }
+
+                // this is another file (most likely a screenshot as we do not yet transfer other files)
                 file.mv(absoluteFilepath, (err) => {  
                     if (err) { errors++; return {status: "client couldn't store file"} }
                     return {status: "success"}
                 });
+
             }
             res.json({ status: "Files received", errors: errors, clienttoken: token  })
         }

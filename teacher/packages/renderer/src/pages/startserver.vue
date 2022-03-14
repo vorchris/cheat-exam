@@ -41,19 +41,13 @@
     <div id="content" class="fadeinslow p-3">
         <div class="col-7">
             <div class="input-group  mb-1">
-                <span class="input-group-text col-4" style="min-width:120px;" id="inputGroup-sizing-lg">Exam Name</span>
+                <span class="input-group-text col-4" style="width:110px;" id="inputGroup-sizing-lg">Exam Name</span>
                 <div class="col-sm-7"> 
                     <input v-model="servername" type="text" class="form-control" id="servername" placeholder="Mathematik-5a" >
                 </div>
             </div>   
-            <div class="input-group  mb-1"> 
-                <span class="input-group-text col-4" style="min-width:120px;" id="inputGroup-sizing-lg">Pincode</span>
-                <div class="col-sm-7"> 
-                    <input v-model="pincode" type="text" class="form-control" id="pin" placeholder="1337">
-                </div>
-            </div>
             <div class="input-group  mb-3"> 
-                <span class="input-group-text col-4" style="min-width:120px;" id="inputGroup-sizing-lg">Password</span>
+                <span class="input-group-text col-4" style="width:110px;" id="inputGroup-sizing-lg">Password</span>
                 <div class="col-sm-7"> 
                     <input v-model="password" type="text" class="form-control" id="password" placeholder="password">
                 </div>
@@ -78,7 +72,6 @@ export default {
         return {
             title: document.title,
             servername : "Mathe5A",
-            pincode: "1337",
             password: "password",
             prod : false,
             serverApiPort: this.$route.params.serverApiPort,
@@ -89,7 +82,7 @@ export default {
     components: {},
     methods: {
         async startServer(){
-            await axios.get(`http://${this.hostname}:${this.serverApiPort}/server/control/start/${this.servername}/${this.pincode}/${this.password}`)
+            await axios.get(`http://${this.hostname}:${this.serverApiPort}/server/control/start/${this.servername}/${this.password}`)
             .then( async (response) => {
                 this.status(response.data.message);
                 await this.sleep(1000);

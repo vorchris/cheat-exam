@@ -1,19 +1,20 @@
  <template>
-  <div class="w-100 p-3 text-white bg-dark shadow text-right">
+  <div class="w-100 p-3 text-white bg-dark shadow text-center">
  
         <router-link v-if="online" :to="(clientname == 'DemoUser')?'/':''" class="text-white m-1">
-            <img src="/src/assets/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
-            <span class="fs-4 align-middle me-1">{{clientname}}</span><span class="fs-4 align-middle me-4 green"  >| online</span> 
-            
+            <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style="float: left;" />
+            <span class="fs-4 align-middle me-1" style="float: left;">{{clientname}}</span>
+            <span class="fs-4 align-middle me-4 green" style="float: left;" >| online</span> 
         </router-link>
 
         <router-link v-if="!online" :to="(clientname == 'DemoUser')?'/':'/'" class="text-white m-1">
-            <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" >
-             <span class="fs-4 align-middle me-1">{{clientname}}</span><span class="fs-4 align-middle me-4 red"  >| offline</span> 
+            <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style=" float: left;" />
+             <span class="fs-4 align-middle me-1" style=" float: left;"> {{clientname}} </span>
+             <span class="fs-4 align-middle me-4 red" style="float: left;"> | offline </span> 
              
         </router-link>
 
-
+        <span class="fs-4 align-middle" style="">{{servername}}</span>
         <span class="fs-4 align-middle" style="float: right">Writer</span>
         <span class="fs-4 align-middle me-2" style="float: right">{{timesinceentry}}</span>
   </div>

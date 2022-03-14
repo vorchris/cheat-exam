@@ -15,16 +15,20 @@ import path from 'path'
  * @param servername the chosen name (for example "mathe")
  * @param pin the pin code used to authenticate
  */
- router.get('/start/:servername/:pin/:passwd', function (req, res, next) {
+ router.get('/start/:servername/:passwd', function (req, res, next) {
     const servername = req.params.servername 
     const mcServer = config.examServerList[servername]
+    let pin = String(Math.floor(Math.random()*90000) + 10000)
+    
+    if (config.development){ pin = "1337" }
+
     if (mcServer) { 
         res.send( {sender: "server", message: "server already exists", status: "error"})
     } 
     else {
         console.log('Initializing new Exam Server')
         let mcs = new multiCastserver();
-        mcs.init(servername, req.params.pin, req.params.passwd)
+        mcs.init(servername, pin, req.params.passwd)
         config.examServerList[servername]=mcs
         res.send( {sender: "server", message: "server started", status: "success"})
     }

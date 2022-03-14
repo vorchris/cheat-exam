@@ -1,4 +1,5 @@
 const config = {
+    development: true,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
     workdirectory : "/home/student/SHARE",
     tempdirectory : "/tmp",
     publicdirectory: "public/files/",
@@ -8,7 +9,6 @@ const config = {
     serverVitePort:3002,
     multicastClientPort: 6024,
     hostip: "0.0.0.0",
-    development: true,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
     examServerList: {},
     clientinfo: {}
 }
