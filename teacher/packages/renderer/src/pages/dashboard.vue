@@ -66,9 +66,9 @@
                     <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-2 pe-2 float-end" title="kick user"></button> </span>
                 </div>
                 <div class="btn-group pt-0" role="group">
-                    <button v-if="(now - 20000 < student.timestamp)" @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-success btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">send</button>
-                    <button v-if="(now - 20000 < student.timestamp)"  @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-success btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;">get</button>
-                    <button v-if="!student.focus && (now - 20000 < student.timestamp)"   @click='restore(student.token,student.clientip)' type="button" class="btn btn-danger btn-sm" style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;">restore</button>
+                    <button v-if="(now - 20000 < student.timestamp)" @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-success btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">online</button>
+                    <button v-if="(now - 20000 < student.timestamp) && student.exammode"  @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-warning btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;">exammode</button>
+                    <button v-if="!student.focus && (now - 20000 < student.timestamp)"   @click='restore(student.token,student.clientip)' type="button" class="btn btn-danger btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;"> restore </button>
                 </div>
             </div>
         </div>
@@ -84,6 +84,8 @@
 import $ from 'jquery'
 import axios from "axios";
 import FormData from 'form-data';
+import swal from 'sweetalert';
+
 
 export default {
     data() {
@@ -161,15 +163,27 @@ export default {
             this.files = event.target.files;
         },
 
+
         //stop and clear this exam server instance
         stopserver(){
-             axios.get(`http://${this.serverip}:${this.serverApiPort}/server/control/stopserver/${this.servername}/${this.servertoken}`)
-                .then( async (response) => {
-                    this.status(response.data.message);
-                    console.log(response.data);
-                    await this.sleep(2000);
-                    this.$router.push({ path: '/serverlist' })
-                }).catch( err => {console.log(err)});
+            swal({
+                title: "Are you sure?",
+                text: "Stop this Exam Server and disconnect all Students!",
+                icon: "warning",
+                buttons: true,
+                dangerMode: true,
+            })
+            .then((exit) => {
+                if (exit) {
+                    axios.get(`http://${this.serverip}:${this.serverApiPort}/server/control/stopserver/${this.servername}/${this.servertoken}`)
+                    .then( async (response) => {
+                        this.status(response.data.message);
+                        console.log(response.data);
+                        await this.sleep(2000);
+                        this.$router.push({ path: '/serverlist' })
+                    }).catch( err => {console.log(err)});
+                } 
+            });    
         },
 
         //triggers exam mode on specified clients
@@ -193,19 +207,28 @@ export default {
 
         // exit exam mode on all specified cilents
         endExam(who){
-            this.status("stopping exam mode");
-            if (who == "all"){
-                if ( this.studentlist.length <= 0 ) { this.status("no clients connected"); console.log("no clients connected") }
-                else {  
-                    this.studentlist.forEach( (student) => {
-                        axios.get(`http://${student.clientip}:${this.clientApiPort}/client/control/exammode/stop/${student.token}`)
-                        .then( async (response) => {
-                            this.status(response.data.message);
-                            console.log(response.data);
-                        }).catch(error => {console.log(error)});
-                    });
-                }
-            }
+            if ( this.studentlist.length <= 0 ) { this.status("no clients connected"); return; }
+            swal({
+                title: "Are you sure?",
+                text: "Sstop the Exam Mode for all Students!",
+                icon: "warning",
+                buttons: true,
+                dangerMode: true,
+            })
+            .then((exit) => {
+                if (exit) {
+                    this.status("stopping exam mode");
+                    if (who == "all"){
+                        this.studentlist.forEach( (student) => {
+                            axios.get(`http://${student.clientip}:${this.clientApiPort}/client/control/exammode/stop/${student.token}`)
+                            .then( async (response) => {
+                                this.status(response.data.message);
+                                console.log(response.data);
+                            }).catch(error => {console.log(error)});
+                        }); 
+                    }
+                } 
+            }); 
         },
 
         // get finished exams (ABGABE) from students
@@ -215,11 +238,15 @@ export default {
                 else {  
                     console.log("Requesting Filetransfer from ALL Clients")
                     this.studentlist.forEach( (student) => {
-
-                        axios.get(`http://${student.clientip}:${this.clientApiPort}/client/data/abgabe/send/${student.token}`)
+                        //for some reason this has a 30sec timeout when triggered the second time with method GET only inside "electron"
+                        axios({
+                            url:`http://${student.clientip}:${this.clientApiPort}/client/data/abgabe/send/${student.token}`,
+                            method: 'post'
+                        })
                         .then( response => {
                             console.log(response.data.message);
                         }).catch(error => {console.log(error)});
+
                     });
                 }
             }
@@ -227,21 +254,32 @@ export default {
 
         //remove student from exam
         kick(studenttoken, studentip){
-            //unregister locally
-            axios.get(`http://${this.serverip}:${this.serverApiPort}/server/control/kick/${this.servername}/${this.servertoken}/${studenttoken}`)
-            .then( response => {
-                console.log(response.data);
-                this.status(response.data.message);
-            }).catch(error => {console.log(error)});
+            swal({
+                title: "Are you sure?",
+                text: "Remove Student from Server!",
+                icon: "warning",
+                buttons: true,
+                dangerMode: true,
+            })
+            .then((exit) => {
+                if (exit) {
+                     //unregister locally
+                    axios.get(`http://${this.serverip}:${this.serverApiPort}/server/control/kick/${this.servername}/${this.servertoken}/${studenttoken}`)
+                    .then( response => {
+                        console.log(response.data);
+                        this.status(response.data.message);
+                    }).catch(error => {console.log(error)});
 
-            //inform student
-            axios.get(`http://${studentip}:${this.clientApiPort}/client/control/kick/${studenttoken}`)
-            .then( response => {
-                console.log(response.data);
-            }).catch(error => {
-                console.info("Client not reachable")
-                //console.log(error)
-            });
+                    //inform student
+                    axios.get(`http://${studentip}:${this.clientApiPort}/client/control/kick/${studenttoken}`)
+                    .then( response => {
+                        console.log(response.data);
+                    }).catch(error => {
+                        console.info("Client not reachable")
+                        //console.log(error)
+                    });
+                } 
+            });  
         },
 
           //remove student from exam

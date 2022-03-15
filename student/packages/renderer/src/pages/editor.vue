@@ -292,9 +292,9 @@ export default {
         },
         informTeacher(){
             console.log("HOUSTON WE HAVE A CHEATER!")
-            fetch(`http://${this.serverip}:${this.serverApiPort}/server/control/studentlist/statechange/${this.servername}/${this.token}/false`)
-            .then( response => response.json() )
-            .then( (data) => { console.log(data); });  
+            axios.get(`http://${this.serverip}:${this.serverApiPort}/server/control/studentlist/statechange/${this.servername}/${this.token}/false`)
+            .then( (response) => { console.log(response.data); })
+            .catch( err => {console.log(err)});  
            
             //also store focus information locally
             axios.get(`http://localhost:${this.clientApiPort}/client/control/focus/${this.token}/false`)

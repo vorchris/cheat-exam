@@ -14,7 +14,7 @@ import axios from "axios"
  * ZIPs and sends all files from a CLIENTS workdirectory TO the registered exam SERVER
  * @param token the students token (needed to accept this "abgabe" request from the server)
  */
- router.get('/abgabe/send/:token', async (req, res, next) => { 
+ router.post('/abgabe/send/:token', async (req, res, next) => { 
      console.log("request received")    
     const token = req.params.token
     const serverip = multiCastclient.clientinfo.serverip  //this is set if you are registered on a server

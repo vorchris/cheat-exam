@@ -118,7 +118,7 @@ import axios from 'axios'
 
                     // create archive directory
                     let studentarchivedir = join(studentdirectory, String(time))
-                    fs.mkdirSync(studentarchivedir);
+                    if (!fs.existsSync(studentarchivedir)){ fs.mkdirSync(studentarchivedir); }
 
                     // extract zip file to archive
                     file.mv(absoluteFilepath, (err) => {  

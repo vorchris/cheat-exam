@@ -69,7 +69,8 @@ export default {
     mounted() {
         this.geogebrasource = `./geogebra/geometry.html`
         this.currentFile = this.clientname
-
+        this.entrytime = new Date().getTime()  
+                 
         if (this.electron){
             this.blurEvent = ipcRenderer.on('blurevent', this.focuslost, false);  //ipcRenderer seems to be of type nodeEventTarget (on/addlistener returns a reference to the eventTarget)
             this.endExamEvent = ipcRenderer.on('endexam', () => { this.$router.push({ name: 'student'}); }); //redirect to home view // right before we leave vue.js will run beforeUnmount() which removes all listeners this view attached to the window and the ipcrenderer

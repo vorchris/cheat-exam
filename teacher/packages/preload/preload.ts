@@ -51,7 +51,6 @@ ipcRenderer.on('env-reply', function (event, home, desktop, temp, workdirectory)
 
     contextBridge.exposeInMainWorld('config', config )  // expose configuration (readonly) to the renderer (frontend)
     contextBridge.exposeInMainWorld('api', api)   // this finally runs the express API in electron (and exposes it)
-
 });
 
 
