@@ -56,7 +56,9 @@
                 </div>
             </div>
         </div>
-        <h4>Running Exams</h4>
+        <h4>{{ $t("exams") }}</h4>
+      
+ 
         <div id="list" class="placeholder" style="overflow-y:auto; height: 369px; display:flex; flex-wrap: wrap; flex-direction: row;">
 
             <div v-for="server in serverlist" class="row p-3 m-0 mb-2 border bg-light" style="margin-right: 10px !important; min-height:130px; max-height:140px;  min-width:240px; max-width: 240px;">
@@ -73,15 +75,18 @@
         </div>
     </div>
 </div>
+
+
 </template>
 
-<script>
 
+<script>
 import $ from 'jquery'
 import axios from "axios";
 
 
 export default {
+
     data() {
         return {
             token: "",
@@ -148,11 +153,11 @@ export default {
         }
     },
 
-    mounted() {   
+    mounted() {  
   
         $("#statusdiv").fadeOut("slow")
         this.fetchInfo();
-        this.fetchinterval = setInterval(() => { this.fetchInfo() }, 2000)
+       // this.fetchinterval = setInterval(() => { this.fetchInfo() }, 2000)
 
         if (this.electron){
              this.startExamEvent = ipcRenderer.on('exam', (event, token, examtype) => {
@@ -173,17 +178,10 @@ export default {
         this.startExamEvent.removeAllListeners('exam')   //remove  self
     },
 }
-
-
-
-
-
 </script>
 
 
 
+
 <style scoped>
-
-
-
 </style>

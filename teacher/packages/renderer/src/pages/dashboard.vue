@@ -210,7 +210,7 @@ export default {
             if ( this.studentlist.length <= 0 ) { this.status("no clients connected"); return; }
             swal({
                 title: "Are you sure?",
-                text: "Sstop the Exam Mode for all Students!",
+                text: "Stop the Exam Mode for all Students!",
                 icon: "warning",
                 buttons: true,
                 dangerMode: true,
