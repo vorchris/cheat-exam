@@ -26,8 +26,6 @@ api.use(express.static("public"));
 api.use(express.urlencoded({extended: true}));
 api.use('/client', clientRouter)
 
-
-
 api.listen(config.clientApiPort, () => {  
     console.log(`Express listening on http://${config.hostip}:${config.clientApiPort}`)
     console.log(`Vite-vue listening on http://${config.hostip}:${config.clientVitePort}`)

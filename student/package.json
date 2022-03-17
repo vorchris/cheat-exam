@@ -12,11 +12,8 @@
   "description": "An exam managment tool for digital exams",
   "type": "module",
   "scripts": {
-    "vite": "vite ./packages/renderer",
-    "dev": "vite ./packages/renderer | npm run serve  ",
-    "dev:electron": "node scripts/watch.mjs",
-    "build:electron": "node scripts/build.mjs && electron-builder",
-    "serve": "nodemon packages/server/src/server"
+    "dev": "node scripts/watch.mjs",
+    "build": "node scripts/build.mjs && electron-builder"
   },
   "build": {
     "productName": "Next-Exam-Student",
@@ -66,6 +63,7 @@
     "@intlify/vite-plugin-vue-i18n": "^3.3.1",
     "@types/jquery": "^3.5.14",
     "@types/screenshot-desktop": "^1.12.0",
+    "@types/vue-i18n": "^7.0.0",
     "@vitejs/plugin-vue": "^2.1.0",
     "electron": "16.0.8",
     "electron-builder": "^22.14.5",

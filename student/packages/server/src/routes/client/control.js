@@ -9,7 +9,10 @@ import ip from 'ip'
 import { ipcRenderer } from 'electron'  // we use this to talk to the electron ipcMain process (send signals)
 
 
-
+// the moment i import this here i create some sort of racecondition (reloading the page helps to overcome the error and it works in the final build)
+// import i18n from '../../../../renderer/src/locales/locales.js'
+// const { t } = i18n.global
+ 
 
 /**
  * Returns all found Servers and the information about this client
@@ -40,12 +43,10 @@ router.get('/focus/:token/:state', function (req, res, next) {
     else {
         res.json({ sender: "client", message:"token is not valid", status: "error" })
     }
-
-
- 
-  
-  
 })
+
+
+
 
 
 
@@ -57,6 +58,9 @@ router.get('/focus/:token/:state', function (req, res, next) {
  */
 router.get('/register/:serverip/:servername/:pin/:clientname', async function (req, res, next) {
     console.log(config)
+
+    
+
     const clientname = req.params.clientname
     const pin = req.params.pin
     const serverip = req.params.serverip

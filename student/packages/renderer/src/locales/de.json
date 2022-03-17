@@ -1,5 +1,17 @@
-{
-    "exams": "Aktive Prüfungen",
-    "t2": "Übersetzung 2"
+{ 
+    "student" : {
+        "exams": "Aktive Prüfungen",
+        "username": "Benutzername",
+        "pin": "Pincode",
+        "name": "Name",
+        "register": "anmelden",
+        "registering": "melde an...",
+        "registered": "angemelded"
+    },
+    "control": {
+        "tokennotvalid": "das token ist ungültig"
+    },
+    "data": {
+        "tokennotvalid": "das token ist ungültig"
+    }
 }
-

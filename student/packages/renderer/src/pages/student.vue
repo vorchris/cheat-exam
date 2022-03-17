@@ -18,7 +18,7 @@
             <li class="nav-item">
                 <router-link to="student" id="exams" class="nav-link active">
                     <img src='/src/assets/img/svg/server.svg' class="white me-2"  width="16" height="16" >
-                    Running Exams
+                    {{ $t("student.exams") }}
                 </router-link>
             </li>
             <li>
@@ -44,32 +44,32 @@
     <div id="content" class="fadeinslow p-3">
         <div class="col-8" v-if="!remoterequest">
             <div class="input-group  mb-1">
-                <span class="input-group-text col-3" style="min-width:120px;" id="inputGroup-sizing-lg">Username</span>
+                <span class="input-group-text col-3" style="min-width:135px;" id="inputGroup-sizing-lg">{{ $t("student.username") }}</span>
                 <div class="col-sm-7"> 
-                    <input v-model="username" type="text" class="form-control" id="user" placeholder="Thomas">
+                    <input v-model="username" type="text" class="form-control" id="user" placeholder="Thomas" style="min-width:135px;">
                 </div>
             </div>   
             <div class="input-group  mb-3"> 
-                <span class="input-group-text col-3" style="min-width:120px;" id="inputGroup-sizing-lg">Pincode</span>
+                <span class="input-group-text col-3" style="min-width:135px;" id="inputGroup-sizing-lg">{{ $t("student.pin") }}</span>
                 <div class="col-sm-7"> 
-                    <input  v-model="pincode" type="text" class="form-control" id="pin" placeholder="1337">
+                    <input  v-model="pincode" type="text" class="form-control" id="pin" placeholder="1337" style="min-width:135px;">
                 </div>
             </div>
         </div>
-        <h4>{{ $t("exams") }}</h4>
+        <h4>{{ $t("student.exams") }}</h4>
       
  
         <div id="list" class="placeholder" style="overflow-y:auto; height: 369px; display:flex; flex-wrap: wrap; flex-direction: row;">
 
             <div v-for="server in serverlist" class="row p-3 m-0 mb-2 border bg-light" style="margin-right: 10px !important; min-height:130px; max-height:140px;  min-width:240px; max-width: 240px;">
                 <dl class="row">
-                    <dt class="col-sm-4">Name</dt>
+                    <dt class="col-sm-4">{{ $t("student.name") }}</dt>
                     <dd class="col-sm-9">{{server.servername}}</dd>
                 </dl>
                   
-                <input v-if="!token" :id="server.servername" type="button" name="register" class="btn btn-info" value="register" @click="registerClient(server.serverip,server.servername)"/>
-                <input v-if="token && clientinfo.servername !== server.servername" :id="server.servername" type="button" name="register" class="btn btn-secondary" value="register" />
-                <input v-if="token && clientinfo.servername === server.servername" :id="server.servername" type="button" name="register" class="btn btn-success" value="registered" />
+                <input v-if="!token" :id="server.servername" type="button" name="register" class="btn btn-info" :value="$t('student.register')" @click="registerClient(server.serverip,server.servername)"/>
+                <input v-if="token && clientinfo.servername !== server.servername" :id="server.servername" type="button" name="register" class="btn btn-secondary" :value="$t('student.register')" />
+                <input v-if="token && clientinfo.servername === server.servername" :id="server.servername" type="button" name="register" class="btn btn-success" :value="$t('student.registered')" />
       
             </div>
         </div>
@@ -126,7 +126,7 @@ export default {
         /** register client on the server **/
         async registerClient(serverip, servername){
             
-            $(`#${servername}`).val("registering...");   //well be overwritten by fetchInfo()
+            $(`#${servername}`).val( this.$t("registering") );   //well be overwritten by fetchInfo()
             await axios.get(`http://localhost:${this.clientApiPort}/client/control/register/${serverip}/${servername}/${this.pincode}/${this.username}`)
             .then( response => { 
                 this.status(response.data.message);
@@ -134,7 +134,7 @@ export default {
                 this.token = response.data.token  // set token immediately for further use (editor , geogebra)
             })
             .then( () =>{
-                if (!this.token){ $(`#${servername}`).val("register"); }
+                if (!this.token){ $(`#${servername}`).val(this.$t('register')); }
             })
             .catch( err => console.log(err));
         },
@@ -157,7 +157,7 @@ export default {
   
         $("#statusdiv").fadeOut("slow")
         this.fetchInfo();
-       // this.fetchinterval = setInterval(() => { this.fetchInfo() }, 2000)
+        this.fetchinterval = setInterval(() => { this.fetchInfo() }, 2000)
 
         if (this.electron){
              this.startExamEvent = ipcRenderer.on('exam', (event, token, examtype) => {
