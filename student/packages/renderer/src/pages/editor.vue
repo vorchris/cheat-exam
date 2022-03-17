@@ -67,7 +67,7 @@
 
         <div v-if="!focus" id="" class="infodiv p-4 d-block focuswarning" >
             <div class="mb-3 row">
-                <div class="mb-3 ">Sie haben den gesicherten Exam Modus verlassen!</div>
+                <div class="mb-3 "> {{$t('editor.leftkiosk')}}</div>
                 <img src="/src/assets/img/svg/eye-slash-fill.svg" class=" me-2" width="32" height="32" >
             </div>
         </div>
@@ -75,7 +75,7 @@
 
         <div id="uploaddiv" class="fadeinslow p-4">
             <div class="mb-3 row">
-                <div class="mb-3 ">Wollen sie den Inhalt des Editors durch den Inhalt der Datei <b>{{selectedFile}}</b> ersetzen?</div>
+                <div class="mb-3 "> {{$t('editor.replacecontent')}} <b>{{selectedFile}}</b></div>
                 <div class="col d-inlineblock btn btn-success m-1"  @click="toggleUpload()"        >cancel </div>
                 <div class="col d-inlineblock btn btn-danger m-1"  @click="loadfile(selectedFile)" >replace</div>
             </div>

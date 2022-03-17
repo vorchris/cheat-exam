@@ -9,6 +9,9 @@ import fs from 'fs'
 import  extract from 'extract-zip'
 import axios from 'axios'
 
+import i18n from '../../../../renderer/src/locales/locales.js'
+const { t } = i18n.global
+ 
 
 /**
  * Sends MANUALLY SELECTED file(s) from the SERVER to specified CLIENTS (no single client supported right noch FIXME)
@@ -21,9 +24,9 @@ import axios from 'axios'
     const servername = req.body.servername
     const mcServer = config.examServerList[servername]
         
-    if (!req.body.servertoken === mcServer.serverinfo.servertoken) { return res.send({status:"Access denied"})  }  // csrf check
-    if (!req.files) { return res.send({sender: "server", message:"No files were uploaded.", status:"error"});  }
-    if ( mcServer.studentList.length <= 0  ) { res.json({ sender: "server", message: "no clients connected", status:"error"  }) }
+    if (!req.body.servertoken === mcServer.serverinfo.servertoken) { return res.send({status:t("data.denied")})  }  // csrf check
+    if (!req.files) { return res.send({sender: "server", message:t("data.nofiles"), status:"error"});  }
+    if ( mcServer.studentList.length <= 0  ) { res.json({ sender: "server", message: t("data.noclients"), status:"error"  }) }
 
     if (config.electron){  //electron wants to send BLOBs instead of array buffers via formData
         if (Array.isArray(req.files.files)){  //multiple files
@@ -72,7 +75,7 @@ import axios from 'axios'
                   console.log(`Server Data API: ${err}`)
               })
         });
-        res.send({sender: "server", message:"File(s) sent", status:"success"});
+        res.send({sender: "server", message:t("data.filessent"), status:"success"});
     }
 });
 
@@ -92,7 +95,7 @@ import axios from 'axios'
   
 
 
-    if ( !checkToken(token, mcServer ) ) { res.json({ status: "token is not valid" }) }
+    if ( !checkToken(token, mcServer ) ) { res.json({ status: t("data.tokennotvalid") }) }
     else {
         console.log("Receiving File(s)...")
         let errors = 0
@@ -134,15 +137,15 @@ import axios from 'axios'
 
                 // this is another file (most likely a screenshot as we do not yet transfer other files)
                 file.mv(absoluteFilepath, (err) => {  
-                    if (err) { errors++; return {status: "client couldn't store file"} }
+                    if (err) { errors++; return {status: t("data.couldnotstore")} }
                     return {status: "success"}
                 });
 
             }
-            res.json({ status: "Files received", errors: errors, clienttoken: token  })
+            res.json({ status: t("data.filereceived"), errors: errors, clienttoken: token  })
         }
         else {
-            res.json({ status: "NO Files received", errors: errors, clienttoken: token  })
+            res.json({ status:t("data.nofilereceived"), errors: errors, clienttoken: token  })
         }
 
 

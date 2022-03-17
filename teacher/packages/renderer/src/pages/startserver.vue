@@ -32,7 +32,7 @@
         </ul>
         <div class="m-2">
             <br>
-            <div id="statusdiv" class="btn btn-warning m-2 hidden"> connected </div>
+            <div id="statusdiv" class="btn btn-warning m-2 hidden">{{$t("startserver.connected")}}</div>
         </div>
         <br>
     </div>
@@ -41,19 +41,19 @@
     <div id="content" class="fadeinslow p-3">
         <div class="col-7">
             <div class="input-group  mb-1">
-                <span class="input-group-text col-4" style="width:110px;" id="inputGroup-sizing-lg">Exam Name</span>
+                <span class="input-group-text col-4" style="width:135px;" id="inputGroup-sizing-lg">{{$t("startserver.examname")}}</span>
                 <div class="col-sm-7"> 
-                    <input v-model="servername" type="text" class="form-control" id="servername" placeholder="Mathematik-5a" >
+                    <input v-model="servername" type="text" class="form-control" id="servername" placeholder="Mathematik-5a" style="min-width:135px;">
                 </div>
             </div>   
             <div class="input-group  mb-3"> 
-                <span class="input-group-text col-4" style="width:110px;" id="inputGroup-sizing-lg">Password</span>
+                <span class="input-group-text col-4" style="width:135px;" id="inputGroup-sizing-lg">{{$t("startserver.pwd")}}</span>
                 <div class="col-sm-7"> 
-                    <input v-model="password" type="text" class="form-control" id="password" placeholder="password">
+                    <input v-model="password" type="text" class="form-control" id="password" placeholder="password" style="min-width:135px;">
                 </div>
             </div>
             <div class="col mb-4" >
-                <button @click="startServer()" id="examstart" class="btn btn-success" value="start exam">Start New Exam Server</button>
+                <button @click="startServer()" id="examstart" class="btn btn-success" value="start exam">{{$t("startserver.start")}}</button>
             </div>
         </div>
         <div id="list" class="placeholder"></div>

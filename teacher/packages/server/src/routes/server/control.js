@@ -25,14 +25,14 @@ const { t } = i18n.global
     if (config.development){ pin = "1337" }
 
     if (mcServer) { 
-        res.send( {sender: "server", message: "server already exists", status: "error"})
+        res.send( {sender: "server", message: t("control.serverexists"), status: "error"})
     } 
     else {
         console.log('Initializing new Exam Server')
         let mcs = new multiCastserver();
         mcs.init(servername, pin, req.params.passwd)
         config.examServerList[servername]=mcs
-        res.send( {sender: "server", message: "server started", status: "success"})
+        res.send( {sender: "server", message: t("control.serverstarted"), status: "success"})
     }
 })
 
@@ -52,7 +52,7 @@ const { t } = i18n.global
         mcServer.server.close();
         //delete mcServer
         delete config.examServerList[servername]
-        res.send( {sender: "server", message: "exam server stopped", status: "success"})
+        res.send( {sender: "server", message: t("control.serverstopped"), status: "success"})
 
         
     }
@@ -77,7 +77,7 @@ const { t } = i18n.global
         if (passwd === mcServer.serverinfo.password){ 
         return res.send( {
             sender: "server", 
-            message: "password ok", 
+            message: t("control.correctpw"), 
             status: "success", 
             data: {
             pin: mcServer.serverinfo.pin,
@@ -85,10 +85,10 @@ const { t } = i18n.global
             serverip: mcServer.serverinfo.ip
             } 
         } )} 
-        else { return res.send( {sender: "server", message: "wrong password", status: "error"}) }
+        else { return res.send( {sender: "server", message: t("wrongpw"), status: "error"}) }
     } 
     else {
-        res.send( {sender: "server", message: "server not found", status: "error"})
+        res.send( {sender: "server", message: t("control.notfound"), status: "error"})
     }
 })
 
@@ -134,7 +134,7 @@ router.get('/serverlist', function (req, res, next) {
         res.send({studentlist: mcServer.studentList})
     }
     else {
-        res.send({sender: "server", message:"server does not exist", status: "error"} )
+        res.send({sender: "server", message:t("control.notfound"), status: "error"} )
     }
 })
 
@@ -158,7 +158,7 @@ router.get('/serverlist', function (req, res, next) {
     const token = `csrf-${v4()}`
 
     const mcServer = config.examServerList[servername] // get the multicastserver object
-    if (!mcServer) {  return res.send({sender: "server", message:"server does not exist", status: "error"} )  }
+    if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
 
 
     if (pin === mcServer.serverinfo.pin) {
@@ -184,7 +184,7 @@ router.get('/serverlist', function (req, res, next) {
     
     }
     else {
-        res.json({sender: "server", message:"wrong server pin", status: "error"})
+        res.json({sender: "server", message:t("control.wrongpin"), status: "error"})
     }
 })
 
@@ -212,11 +212,11 @@ router.get('/serverlist', function (req, res, next) {
         mcServer.studentList = mcServer.studentList.filter( el => el.token !==  studenttoken);
         }
 
-        res.send( {sender: "server", message: "student removed", status: "success"} )
+        res.send( {sender: "server", message: t("control.studentremove"), status: "success"} )
     }
     else {
 
-        res.send( {sender: "server", message: "action denied", status: "error"} )
+        res.send( {sender: "server", message: t("control.actiondenied"), status: "error"} )
     }
 })
 
@@ -242,9 +242,9 @@ router.get('/serverlist', function (req, res, next) {
     const servername = clientinfo.servername
     const mcServer = config.examServerList[servername]
 
-    if ( !mcServer) {  return res.send({sender: "server", message:"server does not exist", status: "error"} )  }
-    if ( !checkToken(token, "server", mcServer) ) {return res.send({ sender: "server", message:"token is not valid", status: "error" }) } //check if the student is registered on this server
-    if ( !req.files ) {return res.send({sender: "server", message:"No files were uploaded", status:"error"});  }
+    if ( !mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
+    if ( !checkToken(token, "server", mcServer) ) {return res.send({ sender: "server", message:t("control.tokennotvalid"), status: "error" }) } //check if the student is registered on this server
+    if ( !req.files ) {return res.send({sender: "server", message:t("control.nofiles"), status:"error"});  }
     
     for (const [key, file] of Object.entries( req.files)) {
         let absoluteFilepath = path.join(config.publicdirectory, file.name); 
@@ -257,7 +257,7 @@ router.get('/serverlist', function (req, res, next) {
     // do not update all of the clientinfo (leave some decisions to the server - like 'focus' for example)
     registeredClient.timestamp = new Date().getTime()
     registeredClient.exammode = exammode  
-    res.send({sender: "server", message:'Student updated', status:"success" })
+    res.send({sender: "server", message:t("control.studentupdate"), status:"success" })
 })
 
 
@@ -275,18 +275,18 @@ router.get('/serverlist', function (req, res, next) {
     const mcServer = config.examServerList[servername]
     const state = req.params.state
 
-    if (!mcServer) {  return res.send({sender: "server", message:"server does not exist", status: "error"} )  }
-    if ( !checkToken(token, "server", mcServer) ) { return res.json({ sender: "server", message:"token is not valid", status: "error" }) } //check if the student is registered on this server
+    if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
+    if ( !checkToken(token, "server", mcServer) ) { return res.json({ sender: "server", message:t("control.tokennotvalid"), status: "error" }) } //check if the student is registered on this server
 
     let registeredClient = mcServer.studentList.find(element => element.token === token)
     
     if (state === "false"){
         registeredClient.focus = false;
-        return res.json({ sender: "server", message:"student left exam", status: "success" })
+        return res.json({ sender: "server", message:t("control.studentleft"), status: "success" })
     }
     else if (state === "true"){
         registeredClient.focus = true;
-        return res.json({ sender: "server", message:"student status restored", status: "success" })
+        return res.json({ sender: "server", message:t("control.staterestore"), status: "success" })
     }
 })
 

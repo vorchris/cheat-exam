@@ -38,10 +38,10 @@ router.get('/focus/:token/:state', function (req, res, next) {
         else {
           multiCastclient.clientinfo.focus = true
         }
-        res.json({ sender: "client",message:t("statechange"), status:"success" })
+        res.json({ sender: "client",message:t("control.statechange"), status:"success" })
     }
     else {
-        res.json({ sender: "client", message:t("tokennotvalid"), status: "error" })
+        res.json({ sender: "client", message:t("control.tokennotvalid"), status: "error" })
     }
 })
 
@@ -59,8 +59,6 @@ router.get('/focus/:token/:state', function (req, res, next) {
 router.get('/register/:serverip/:servername/:pin/:clientname', async function (req, res, next) {
     console.log(config)
 
-    
-
     const clientname = req.params.clientname
     const pin = req.params.pin
     const serverip = req.params.serverip
@@ -68,7 +66,7 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
     const clientip = ip.address()
 
     if (multiCastclient.clientinfo.token){
-        res.json({status: "already registered on a server"})
+        res.json({status: t("control.alreadyregistered")})
         return
     }
   
@@ -101,10 +99,10 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
           ipcRenderer.send('exam', token, examtype)  //this only works in electron app..switches electron to kiosk and send a signal to the renderer to load given exam page (writer or geogebra)
         }
         multiCastclient.clientinfo.exammode = true  // mark this client as active exam 
-        res.json({ sender: "client",message:"exam initialized", status:"success" })
+        res.json({ sender: "client",message:t("control.examinit"), status:"success" })
     }
     else {
-        res.json({ sender: "client", message:"token is not valid", status: "error" })
+        res.json({ sender: "client", message:t("control.tokennotvalid"), status: "error" })
     }
 })
 
@@ -116,15 +114,15 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
  router.get('/exammode/stop/:token', function (req, res, next) {
   const token = req.params.token
   if ( checkToken(token) ) {
-    if (!multiCastclient.clientinfo.exammode){return res.json({ sender: "client",message:"exam not running", status:"error" })}
+    if (!multiCastclient.clientinfo.exammode){return res.json({ sender: "client",message:t("control.noexam"), status:"error" })}
    
     ipcRenderer.send('endexam')
    
     multiCastclient.clientinfo.exammode = false
-    res.json({ sender: "client",message:"exam stopped", status:"success" })
+    res.json({ sender: "client",message:t("control.examexit"), status:"success" })
   }
   else {
-    res.json({ sender: "client", message:"token is not valid", status: "error" })
+    res.json({ sender: "client", message:t("control.tokennotvalid"), status: "error" })
   }
 })
 
@@ -143,10 +141,10 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
         multiCastclient.clientinfo[key] = false   
     }
     showOSD("Kicked by Server!")
-    res.json({ sender: "client", message : "client unsubscribed", status: "success" })
+    res.json({ sender: "client", message : t("control.clientunsubscribe"), status: "success" })
   }
   else {
-    res.json({ sender: "client",  message:"token is not valid", status: "error" })
+    res.json({ sender: "client",  message:t("control.tokennotvalid"), status: "error" })
   }
 })
 
@@ -176,10 +174,10 @@ router.get('/tokencheck/:token', function (req, res, next) {
             }
         );
        
-      res.json({ sender: "client", message: "token is valid", status: "success" })
+      res.json({ sender: "client", message: t("control.tokenvalid"), status: "success" })
     }
     else {
-      res.json({ sender: "client", message: "token is not valid", status: "error" })
+      res.json({ sender: "client", message: t("control.tokennotvalid"), status: "error" })
     }
 })
 

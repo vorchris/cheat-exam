@@ -13,52 +13,35 @@
 <div id="wrapper" class="w-100 h-100 d-flex" >
     <div class="p-3 text-white bg-dark h-100 " style="width: 240px; min-width: 240px;">
        
-        <div class="btn btn-light m-1 text-start">Name <br><b> {{$route.params.servername}}</b> </div><br>
-        <div class="btn btn-light m-1 mb-1 text-start">Pin <br><b> {{ $route.params.pin }} </b>  </div><br>
-        <div class="btn btn-danger m-1 mb-3 text-start" @click="stopserver()">Stop Server</div><br>
+        <div class="btn btn-light m-1 text-start">{{$t('dashboard.name')}} <br><b> {{$route.params.servername}}</b> </div><br>
+        <div class="btn btn-light m-1 mb-1 text-start" @click="showpin()">{{$t('dashboard.pin')}}<br><b> {{ $route.params.pin }} </b>  </div><br>
+        <div class="btn btn-danger m-1 mb-3 text-start" @click="stopserver()">{{$t('dashboard.stopserver')}}</div><br>
 
 
         <div class="form-check m-1">
             <input v-model="examtype" value="language" class="form-check-input" type="radio" name="examtype" id="examtype1" checked>
             <label class="form-check-label" for="examtype1">
-                Texteditor
+                {{$t('dashboard.lang')}}
             </label>
         </div>
         <div class="form-check m-1 mb-2">
             <input v-model="examtype" value="math" class="form-check-input" type="radio" name="examtype" id="examtype2">
             <label class="form-check-label" for="examtype2">
-                Geogebra
+                {{$t('dashboard.math')}}
             </label>
         </div>
         <div class="form-check form-switch  m-1 mb-4">
             <input @change="toggleAutoabgabe()"  v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
-            <label class="form-check-label" for="flexSwitchCheckDefault">Auto Abgabe</label>
+            <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
         </div>
-
-
         <div id="statusdiv" class="btn btn-warning m-1"> connected </div>
     </div>
 
-    <div id="uploaddiv" class="fadeinslow">
-        <form id="uploadform" method="POST" enctype="multipart/form-data">
-            <div class="mb-3">
-                <label for="formFileMultiple" class="form-label">Send Files to ALL Clients</label> 
-                <div class="btn-close d-inline float-end" @click="toggleUpload()"></div>
-                <input class="form-control" type="file" name="files" id="formFileMultiple" multiple @change="handleFileUpload($event)">
-                <input class="form-control" type="hidden" name="servertoken" id="servertoken" v-model="servertoken">
-                <input class="form-control" type="hidden" name="servername" id="servername" v-model="servername">
-            </div>
-            <input  @click="sendFiles('all')" type="buttom" name="submit" class="btn btn-info" value="senden"/>
-        </form>
-    </div>
-
-
-
     <div id="content" class="fadeinslow p-3">
-        <div class="btn btn-success m-1 text-start" style="width:100px;"  @click="startExam('all')">Exam starten</div>
-        <div class="btn btn-info m-1 text-start" style="width:100px;" @click="toggleUpload()">Datei senden</div>
-        <div class="btn btn-info m-1 text-start" style="width:100px;" @click="getFiles('all')">Abgabe holen</div>
-        <div class="btn btn-danger m-1 text-start" style="width:100px;" @click="endExam('all')" >Exam beenden</div>
+        <div class="btn btn-success m-1 text-start" style="width:120px;"  @click="startExam('all')">{{$t('dashboard.startexam')}}</div>
+        <div class="btn btn-info m-1 text-start" style="width:100px;" @click="sendFiles('all')">{{$t('dashboard.sendfile')}}</div>
+        <div class="btn btn-info m-1 text-start" style="width:100px;" @click="getFiles('all')">{{$t('dashboard.getfile')}}</div>
+        <div class="btn btn-danger m-1 text-start" style="width:120px;" @click="endExam('all')" >{{$t('dashboard.stopexam')}}</div>
         <div id="studentslist" class="placeholder pt-4"> 
             <div v-for="student in studentlist" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn border-0 rounded-3 btn-block m-1 ">
                 <div id="image" class="rounded" :style="`background-image:url(http://${serverip}:${serverApiPort}/files/${student.token}.jpg?ver=${student.timestamp})  `" style="position: relative; height:75%; background-size:cover;">
@@ -73,8 +56,6 @@
             </div>
         </div>
     </div>
-
-
 </div>
 </template>
 
@@ -82,10 +63,8 @@
 
 <script >
 import $ from 'jquery'
-import axios from "axios";
-import FormData from 'form-data';
-import swal from 'sweetalert';
-
+import axios from "axios"
+import FormData from 'form-data'
 
 export default {
     data() {
@@ -101,6 +80,7 @@ export default {
             clientApiPort: this.$route.params.clientApiPort,
             electron: this.$route.params.electron,
             hostname: window.location.hostname,
+            pin : this.$route.params.pin,
             now : null,
             files: null,
             examtype: 'language',
@@ -118,7 +98,7 @@ export default {
                 //console.log(response.data)
                 if (this.studentlist){
                     this.studentlist.forEach(student =>{
-                        if (!student.focus){this.status(`${student.clientname} has left the exam`); }
+                        if (!student.focus){this.status(`${student.clientname} ${this.$t("dashboard.leftkiosk")}`); }
                     });
                 }
             }).catch( err => {console.log(err)});
@@ -131,50 +111,68 @@ export default {
 
         //upload files to all students
         sendFiles(who) {
-            if (!this.files) { this.status("No Files selected"); return }
-            this.status("File(s) uploading...");
+            if (this.studentlist.length === 0) { this.status(this.$t("dashboard.noclients")); return;}
+            this.$swal.fire({
+                title: this.$t("dashboard.filesend"),
+                text: this.$t("dashboard.filesendtext"),
+                icon: "info",
+                input: 'file',
+                showCancelButton: true,
+                cancelButtonText: this.$t("dashboard.cancel"),
+                reverseButtons: true,
+                inputAttributes: {
+                    type: "file",
+                    name:"files",
+                    id: "swalFile",
+                    class:"form-control",
+                    multiple:"multiple"
+                }
+            })
+            .then((input) => {
+                this.files = input.value
+                if (!this.files) { this.status(this.$t("dashboard.nofiles")); return }
+                this.status(this.$t("dashboard.uploadfiles"));
 
-            //create a new form
-            const formData = new FormData()
-            formData.append('servertoken', this.servertoken);
-            formData.append('servername', this.servername);
+                //create a new form
+                const formData = new FormData()
+                formData.append('servertoken', this.servertoken);
+                formData.append('servername', this.servername);
 
-            for (const i of Object.keys(this.files)) {
-                formData.append('files', this.files[i])
-            }
+                for (const i of Object.keys(this.files)) {
+                    formData.append('files', this.files[i])
+                }
 
-            axios({
-                method: "post", 
-                url: `http://${this.serverip}:${this.serverApiPort}/server/data/send/${who}`, 
-                data: formData, 
-                headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
-                })
-            .then( response => {
-                this.status(response.data.message);
-                if (response.data.status === "success") {
-                    this.status("Files sent");
-                    setTimeout(this.toggleUpload, 2000);  
-                } 
-            }).catch( err => {console.log(err)});
+                axios({
+                    method: "post", 
+                    url: `http://${this.serverip}:${this.serverApiPort}/server/data/send/${who}`, 
+                    data: formData, 
+                    headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
+                    })
+                .then( response => {
+                    this.status(response.data.message);
+                    if (response.data.status === "success") {
+                        this.status(this.$t("dashboard.filessent"));
+                    } 
+                }).catch( err => {console.log(err)});
+
+
+
+            });    
         },  
-
-        //sets reactive variable "files" onChange of the file input field
-        handleFileUpload( event ){
-            this.files = event.target.files;
-        },
 
 
         //stop and clear this exam server instance
         stopserver(){
-            swal({
-                title: "Are you sure?",
-                text: "Stop this Exam Server and disconnect all Students!",
-                icon: "warning",
-                buttons: true,
-                dangerMode: true,
+            this.$swal.fire({
+                title: this.$t("dashboard.sure"),
+                text:  this.$t("dashboard.exitexam"),
+                icon: "question",
+                showCancelButton: true,
+                cancelButtonText: this.$t("dashboard.cancel"),
+                reverseButtons: true
             })
-            .then((exit) => {
-                if (exit) {
+            .then((result) => {
+                if (result.isConfirmed) {
                     axios.get(`http://${this.serverip}:${this.serverApiPort}/server/control/stopserver/${this.servername}/${this.servertoken}`)
                     .then( async (response) => {
                         this.status(response.data.message);
@@ -186,11 +184,21 @@ export default {
             });    
         },
 
+        //show pincode bid
+        showpin(){
+            this.$swal.fire({
+                title: this.pin,
+                text: "Pincode",
+                icon: "info",
+            })
+        },
+
+
         //triggers exam mode on specified clients
         startExam(who){
             console.log(this.examtype)
             if (who == "all"){
-                if ( this.studentlist.length <= 0 ) { this.status("no clients connected"); console.log("no clients connected") }
+                if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); console.log("no clients connected") }
                 else {  
                     this.studentlist.forEach( (student) => {
                         //check exam mode for students - dont initialize twice (right after exam stop it takes a few seconds for the students to update their exam status on the server again)
@@ -207,17 +215,17 @@ export default {
 
         // exit exam mode on all specified cilents
         endExam(who){
-            if ( this.studentlist.length <= 0 ) { this.status("no clients connected"); return; }
-            swal({
-                title: "Are you sure?",
-                text: "Stop the Exam Mode for all Students!",
-                icon: "warning",
-                buttons: true,
-                dangerMode: true,
+            if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); return; }
+             this.$swal.fire({
+                title: this.$t("dashboard.sure"),
+                text:  this.$t("dashboard.exitkiosk"),
+                icon: "question",
+                showCancelButton: true,
+                cancelButtonText: this.$t("dashboard.cancel"),
+                reverseButtons: true
             })
-            .then((exit) => {
-                if (exit) {
-                    this.status("stopping exam mode");
+            .then((result) => {
+                if (result.isConfirmed) {
                     if (who == "all"){
                         this.studentlist.forEach( (student) => {
                             axios.get(`http://${student.clientip}:${this.clientApiPort}/client/control/exammode/stop/${student.token}`)
@@ -254,15 +262,18 @@ export default {
 
         //remove student from exam
         kick(studenttoken, studentip){
-            swal({
-                title: "Are you sure?",
-                text: "Remove Student from Server!",
+       if ( this.studentlist.length <= 0 ) { this.status("no clients connected"); return; }
+            
+            this.$swal.fire({
+                title: this.$t("dashboard.sure"),
+                text:  this.$t("dashboard.kick"),
                 icon: "warning",
-                buttons: true,
-                dangerMode: true,
+                showCancelButton: true,
+                cancelButtonText: this.$t("dashboard.cancel"),
+                reverseButtons: true
             })
-            .then((exit) => {
-                if (exit) {
+            .then((result) => {
+                if (result.isConfirmed) {
                      //unregister locally
                     axios.get(`http://${this.serverip}:${this.serverApiPort}/server/control/kick/${this.servername}/${this.servertoken}/${studenttoken}`)
                     .then( response => {
@@ -297,15 +308,6 @@ export default {
 
         },
 
-        // make upload div visible or hide it
-        toggleUpload(){
-            let status =  $("#uploaddiv").css("display");
-            if (status == "none") {  
-                $("#uploaddiv").css("display","block");
-                $("#formFileMultiple").val('') 
-            }
-            else {  $("#uploaddiv").css("display","none"); }
-        },
 
         // (dummy function - validate a specific token - trigger notification on client)
         async task2(token, ip){

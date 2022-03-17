@@ -10,10 +10,19 @@
     },
     "control": {
         "tokennotvalid": "das token ist ungültig",
+        "tokenvalid": "das token ist gültig",
         "statechange": "Vertrauensstellung geändert",
-        "alreadyregistered": "Schüler*in bereits angemeldet"
+        "alreadyregistered": "Schüler*in bereits angemeldet",
+        "examinit":"Kioskmodus gestartet",
+        "examexit":"Kioskmodus beendet",
+        "noexam": "Kioskmodus nicht aktiv",
+        "clientunsubscribe": "Schüler*in entfernt"
     },
     "data": {
         "tokennotvalid": "das token ist ungültig"
+    },
+    "editor": {
+        "leftkiosk": "Sie haben den gesicherten Kioskmodus verlassen!",
+        "replacecontent": "Wollen sie den Inhalt des Editors durch den Inhalt dieser Datei ersetzen?"
     }
 }

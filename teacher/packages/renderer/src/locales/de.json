@@ -8,13 +8,63 @@
         "name": "Name",
         "login": "anmelden"
     },
+    "startserver" : {
+        "connected": "verbunden",
+        "start": "Neue Prüfung starten",
+        "examname": "Prüfungsname",
+        "pwd": "Passwort"
+    },
+    "dashboard":{
+        "name": "Name",
+        "pin": "Pin",
+        "stopserver": "Prüfung beenden",
+        "filesend": "Dateien senden",
+        "filesendtext": "Bitte wählen sie eine oder mehrere Dateien",
+        "cancel": "Abbrechen",
+        "nofiles": "Keine Dateien ausgewählt",
+        "uploadfiles": "Dateien werden hochgeladen",
+        "filessent": "Dateien gesendet",
+        "noclients": "Keine Schüler*innen verbunden",
+        "lang": "Sprachen",
+        "math": "Mathematik",
+        "autoget": "auto Abgabe",
+        "startexam": "Kioskmodus starten",
+        "sendfile": "Datei senden",
+        "getfile": "Abgabe holen",
+        "stopexam": "Kioskmodus beenden",
+        "sure": "Sind sie sicher?",
+        "exitexam": "Prüfung für alle Schüler*innen beenden",
+        "exitkiosk": "Kiosk Modus beenden",
+        "kick": "Schüler*in aus der Prüfung entfernen",
+        "leftkiosk": "hat den Kioskmodus verlassen!"
+    },
     "control": {
         "tokennotvalid": "das token ist ungültig",
         "statechange": "Vertrauensstellung geändert",
         "alreadyregistered": "Schüler*in bereits angemeldet",
-        "registered": "Schüler*in angemeldet"
-    },
+        "registered": "Schüler*in angemeldet",
+        "serverexists": "Prüfung existiert bereits",
+        "serverstarted": "Prüfung gestartet",
+        "serverstopped": "Prüfung beendet",
+        "notfound": "Prüfung existiert nicht",
+        "wrongpw": "Passwort falsch",
+        "wrongpin": "Falscher PIN",
+        "correctpw": "Passwort OK",
+        "studentremove": "Schüler*in von Prüfung entfernt",
+        "actiondenied": "Aktion verboten",
+        "nofiles": "Es wurden keine Dateien hochgeladen",
+        "studentupdate": "Schülerdaten aktualisiert",
+        "studentleft": "Schüler*in hat die Prüfung verlassen",
+        "staterestore": "Vertrauensstellung wiederhergestellt"
+    },  
     "data": {
-        "tokennotvalid": "das token ist ungültig"
+        "tokennotvalid": "das token ist ungültig",
+        "denied": "Zugriff verweigert",
+        "nofiles": "Es wurden keine Dateien hochgeladen",
+        "noclients": "Keine Schüler*innen verbunden",
+        "filessent": "Dateien gesendet",
+        "couldnotstore": "Schüler*in konnte die Datei nicht speichern",
+        "filereceived": "Datei erhalten",
+        "nofliereceived": "Keine Dateien erhalten"
     }
 }
