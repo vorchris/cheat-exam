@@ -19,13 +19,13 @@
             <li class="nav-item">
                 <router-link to="startserver" id="startserver" class="nav-link">
                 <img src="/src/assets/img/svg/server.svg" class="white me-2"  width="16" height="16" >
-                Start Exam Server
+                {{$t("general.startserver")}}
                 </router-link >
             </li>
             <li>
                 <router-link to="serverlist" id="serverlist" class="nav-link active">
                 <img src="/src/assets/img/svg/person-lines-fill.svg" class="white me-2"  width="16" height="16" >
-                Server List
+                {{$t("general.slist")}}
                 </router-link>
             </li>
         </ul>
@@ -42,14 +42,14 @@
                 <div  v-for="server in serverlist" class="col-6" style="min-width:310px; max-width: 370px;">
                     <div class="p-3 border bg-light">
                         <dl class="row mb-0">
-                            <dt class="col-sm-4 p-1">Name</dt>
+                            <dt class="col-sm-4 p-1"> {{$t("serverlist.name")}}</dt>
                             <dd class="col-sm-8 p-1">{{server.servername}}</dd>
                             <!-- <dt class="col-sm-4 p-1">IP Address</dt>
                             <dd class="col-sm-8 p-1">{{server.serverip}}</dd> -->
-                            <dt class="col-sm-4 p-1 pt-2">Password</dt>
+                            <dt class="col-sm-4 p-1 pt-2"> {{$t("serverlist.pwd")}}</dt>
                             <dd class="col-sm-8 p-1">
                                 <input v-bind:id="server.servername" type="password" class="form-control" placeholder="password" :value="password">
-                                <input @click="login(server.servername)" type="button" name="login" class="btn btn-success mt-1" value="Log In"/> 
+                                <input @click="login(server.servername)" type="button" name="login" class="btn btn-success mt-1" :value=" $t('serverlist.login')"/> 
                             </dd>
                         </dl>
                     </div>

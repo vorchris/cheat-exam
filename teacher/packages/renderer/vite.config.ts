@@ -1,7 +1,8 @@
 
 import { defineConfig, Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
-
+import {vueI18n} from '@intlify/vite-plugin-vue-i18n'
+import path from 'path'
 import pkg from '../../package.json'
 
 // https://vitejs.dev/config/
@@ -9,7 +10,14 @@ export default defineConfig({
   mode: process.env.NODE_ENV,
   root: __dirname,
   plugins: [
-    vue()
+    vue(),
+    vueI18n({
+        compositionOnly: false,
+        include: path.resolve(__dirname, './src/locales/*'),
+        runtimeOnly: false,
+        fullInstall: true,
+        forceStringify : true,
+      })
   ],
   base: './',
  

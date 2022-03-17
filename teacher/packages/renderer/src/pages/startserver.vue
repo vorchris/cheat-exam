@@ -20,13 +20,13 @@
             <li class="nav-item">
                 <router-link to="startserver" id="startserver" class="nav-link active">
                     <img src="/src/assets/img/svg/server.svg" class="white me-2"  width="16" height="16" >
-                    Start Exam Server
+                     {{$t("general.startserver")}}
                 </router-link>
             </li>
             <li>
                 <router-link to="serverlist" id="serverlist" class="nav-link">
                     <img src="/src/assets/img/svg/person-lines-fill.svg" class="white me-2"  width="16" height="16" >
-                    Server List
+                    {{$t("general.slist")}}
                 </router-link> 
             </li>
         </ul>

@@ -126,7 +126,7 @@ export default {
         /** register client on the server **/
         async registerClient(serverip, servername){
             
-            $(`#${servername}`).val( this.$t("registering") );   //well be overwritten by fetchInfo()
+            $(`#${servername}`).val( this.$t("student.registering") );   //well be overwritten by fetchInfo()
             await axios.get(`http://localhost:${this.clientApiPort}/client/control/register/${serverip}/${servername}/${this.pincode}/${this.username}`)
             .then( response => { 
                 this.status(response.data.message);
@@ -134,7 +134,7 @@ export default {
                 this.token = response.data.token  // set token immediately for further use (editor , geogebra)
             })
             .then( () =>{
-                if (!this.token){ $(`#${servername}`).val(this.$t('register')); }
+                if (!this.token){ $(`#${servername}`).val(this.$t('student.register')); }
             })
             .catch( err => console.log(err));
         },

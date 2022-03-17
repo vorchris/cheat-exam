@@ -1,0 +1,20 @@
+{ 
+    "general": {
+        "startserver":"Prüfung anlegen",
+        "slist": "Aktive Prüfungen"
+    },
+    "serverlist" : {
+        "pwd": "Passwort",
+        "name": "Name",
+        "login": "anmelden"
+    },
+    "control": {
+        "tokennotvalid": "das token ist ungültig",
+        "statechange": "Vertrauensstellung geändert",
+        "alreadyregistered": "Schüler*in bereits angemeldet",
+        "registered": "Schüler*in angemeldet"
+    },
+    "data": {
+        "tokennotvalid": "das token ist ungültig"
+    }
+}

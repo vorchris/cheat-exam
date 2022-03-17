@@ -4,7 +4,9 @@ import multiCastserver from '../../classes/multicastserver.js'
 import { v4 } from 'uuid'
 import config from '../../config.js'
 import path from 'path'
-
+import i18n from '../../../../renderer/src/locales/locales.js'
+const { t } = i18n.global
+ 
 
 
 
@@ -174,10 +176,10 @@ router.get('/serverlist', function (req, res, next) {
         }
 
         mcServer.studentList.push(client)
-        return res.json({sender: "server", message:"client registered on server", status: "success", token: token})  // on success return client token (auth needed for server api)
+        return res.json({sender: "server", message:t("control.registered"), status: "success", token: token})  // on success return client token (auth needed for server api)
         }
         else {
-        return res.json({sender: "server", message:"client already registered", status: "error"})
+        return res.json({sender: "server", message:t("control.alreadyregistered"), status: "error"})
         }
     
     }

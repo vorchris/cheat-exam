@@ -10,8 +10,8 @@ import { ipcRenderer } from 'electron'  // we use this to talk to the electron i
 
 
 // the moment i import this here i create some sort of racecondition (reloading the page helps to overcome the error and it works in the final build)
-// import i18n from '../../../../renderer/src/locales/locales.js'
-// const { t } = i18n.global
+import i18n from '../../../../renderer/src/locales/locales.js'
+const { t } = i18n.global
  
 
 /**
@@ -38,10 +38,10 @@ router.get('/focus/:token/:state', function (req, res, next) {
         else {
           multiCastclient.clientinfo.focus = true
         }
-        res.json({ sender: "client",message:"state changed", status:"success" })
+        res.json({ sender: "client",message:t("statechange"), status:"success" })
     }
     else {
-        res.json({ sender: "client", message:"token is not valid", status: "error" })
+        res.json({ sender: "client", message:t("tokennotvalid"), status: "error" })
     }
 })
 

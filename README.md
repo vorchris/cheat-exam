@@ -44,7 +44,7 @@ read /stuff/concept.md !!
 
 
 
-![screenshot](/stuff/screenshot.jpg)
+![screenshot](/teacher/packages/renderer/src/assets/img/screenshot.jpg)
 
 
 

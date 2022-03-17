@@ -6,10 +6,12 @@
         "name": "Name",
         "register": "anmelden",
         "registering": "melde an...",
-        "registered": "angemelded"
+        "registered": "angemeldet"
     },
     "control": {
-        "tokennotvalid": "das token ist ungültig"
+        "tokennotvalid": "das token ist ungültig",
+        "statechange": "Vertrauensstellung geändert",
+        "alreadyregistered": "Schüler*in bereits angemeldet"
     },
     "data": {
         "tokennotvalid": "das token ist ungültig"

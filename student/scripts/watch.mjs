@@ -55,11 +55,14 @@ function watchPreload(server) {
   })
 }
 
-
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 // bootstrap
 const server = await createServer({ configFile: 'packages/renderer/vite.config.ts' })
 
 await server.listen()
 await watchPreload(server)
+await sleep(1000) // we need this timeout here because starting the express api and generating the locales takes some time - preload.js (which loads the api would not be ready otherwise) 
 await watchMain(server)

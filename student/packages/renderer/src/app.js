@@ -10,10 +10,10 @@ const router = createRouter()
 const vApp = createApp(App)
 
 vApp.use(router)
+vApp.use(i18n)
 vApp.config.unwrapInjectedRef = true  // should not be neccecary in future versions (suppress specific warning)
 
 
-vApp.use(i18n)
 
 // wait until router is ready before mounting to ensure hydration match
 router.isReady().then(() => {
