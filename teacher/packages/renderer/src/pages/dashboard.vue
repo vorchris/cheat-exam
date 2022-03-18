@@ -9,26 +9,34 @@
     <span class="fs-4 align-middle" style="float: right">Dashboard</span>
 </div>
  
+<div id="studentinfocontainer" class="fadeinslow p-4">
+    <div v-if="activestudent!= null" id="studentinfodiv"  class="studentinfoimage" :style="`background-image:url(${activestudent.imageurl})`">
+        <div style="height:100%">
+            <div id="controlbuttons">
+                <b>{{activestudent.clientname}}</b>
+                <div class="col d-inlineblock btn btn-warning m-1"  @click="startExam(activestudent)" >kiosk </div>
+                <div class="col d-inlineblock btn btn-warning m-1"  @click="endExam(activestudent)" >endkiosk </div>
+                <div class="col d-inlineblock btn btn-info m-1"  @click="sendFiles(activestudent)" >sendfile </div>
+                <div class="col d-inlineblock btn btn-info m-1"  @click="getFiles(activestudent)" >abgabe </div>
+                <div class="col d-inlineblock btn btn-danger m-1"   @click='kick(activestudent.token,activestudent.clientip)' >kick</div>
+                 <div class="col d-inlineblock btn btn-secondary m-1"     @click="hideStudentview()" >close </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div id="wrapper" class="w-100 h-100 d-flex" >
     <div class="p-3 text-white bg-dark h-100 " style="width: 240px; min-width: 240px;">
-       
         <div class="btn btn-light m-1 text-start">{{$t('dashboard.name')}} <br><b> {{$route.params.servername}}</b> </div><br>
         <div class="btn btn-light m-1 mb-1 text-start" @click="showpin()">{{$t('dashboard.pin')}}<br><b> {{ $route.params.pin }} </b>  </div><br>
         <div class="btn btn-danger m-1 mb-3 text-start" @click="stopserver()">{{$t('dashboard.stopserver')}}</div><br>
-
-
         <div class="form-check m-1">
             <input v-model="examtype" value="language" class="form-check-input" type="radio" name="examtype" id="examtype1" checked>
-            <label class="form-check-label" for="examtype1">
-                {{$t('dashboard.lang')}}
-            </label>
+            <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}} </label>
         </div>
         <div class="form-check m-1 mb-2">
             <input v-model="examtype" value="math" class="form-check-input" type="radio" name="examtype" id="examtype2">
-            <label class="form-check-label" for="examtype2">
-                {{$t('dashboard.math')}}
-            </label>
+            <label class="form-check-label" for="examtype2"> {{$t('dashboard.math')}}  </label>
         </div>
         <div class="form-check form-switch  m-1 mb-4">
             <input @change="toggleAutoabgabe()"  v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
@@ -43,14 +51,15 @@
         <div class="btn btn-info m-1 text-start" style="width:100px;" @click="getFiles('all')">{{$t('dashboard.getfile')}}</div>
         <div class="btn btn-danger m-1 text-start" style="width:120px;" @click="endExam('all')" >{{$t('dashboard.stopexam')}}</div>
         <div id="studentslist" class="placeholder pt-4"> 
-            <div v-for="student in studentlist" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn border-0 rounded-3 btn-block m-1 ">
-                <div id="image" class="rounded" :style="`background-image:url(http://${serverip}:${serverApiPort}/files/${student.token}.jpg?ver=${student.timestamp})  `" style="position: relative; height:75%; background-size:cover;">
+            <div v-for="student in studentlist" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn border-0 rounded-3 btn-block m-1 ">
+                
+                <div id="image" class="rounded" :style="(student.imageurl)? `background-image:url(${student.imageurl})`:'background-image:url(/src/assets/img/icons/security.png)'" style="position: relative; height:75%; background-size:cover;">
                     <span style="">{{student.clientname}}            
                     <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-2 pe-2 float-end" title="kick user"></button> </span>
                 </div>
                 <div class="btn-group pt-0" role="group">
-                    <button v-if="(now - 20000 < student.timestamp)" @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-success btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">online</button>
-                    <button v-if="(now - 20000 < student.timestamp) && student.exammode"  @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-warning btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;">exammode</button>
+                    <button v-if="(now - 20000 < student.timestamp)" @click="showStudentview(student)" type="button" class="btn btn-outline-success btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">online</button>
+                    <button v-if="(now - 20000 < student.timestamp) && student.exammode"  @click='showStudentview(student)' type="button" class="btn btn-outline-warning btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;">kioskmode</button>
                     <button v-if="!student.focus && (now - 20000 < student.timestamp)"   @click='restore(student.token,student.clientip)' type="button" class="btn btn-danger btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;"> restore </button>
                 </div>
             </div>
@@ -85,20 +94,29 @@ export default {
             files: null,
             examtype: 'language',
             autoabgabe: false,
+            activestudent: null
         };
     },
     components: { },
     methods: {
+        //display student specific actions
+        showStudentview(student) {
+            $("#studentinfocontainer").css("display","block");
+            this.activestudent = student
+        },
+        hideStudentview() {
+            $("#studentinfocontainer").css("display","none");
+        },
         // get all information about students status
         fetchInfo() {
             this.now = new Date().getTime()
             axios.get(`http://${this.serverip}:${this.serverApiPort}/server/control/studentlist/${this.servername}/${this.servertoken}`)
             .then( response => {
                 this.studentlist = response.data.studentlist;
-                //console.log(response.data)
                 if (this.studentlist){
-                    this.studentlist.forEach(student =>{
+                    this.studentlist.forEach(student =>{  // on studentlist-receive check focus status and other things
                         if (!student.focus){this.status(`${student.clientname} ${this.$t("dashboard.leftkiosk")}`); }
+                        //console.log(student.imageurl)
                     });
                 }
             }).catch( err => {console.log(err)});
@@ -139,24 +157,36 @@ export default {
                 formData.append('servername', this.servername);
 
                 for (const i of Object.keys(this.files)) {
-                    formData.append('files', this.files[i])
+                    formData.append('files', this.files[i])  // single file is sent as object.. multiple files as array..
                 }
 
-                axios({
-                    method: "post", 
-                    url: `http://${this.serverip}:${this.serverApiPort}/server/data/send/${who}`, 
-                    data: formData, 
-                    headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
+                if (who == "all"){
+                    this.studentlist.forEach( (student) => {  
+                        axios({
+                            method: "post", 
+                            url: `http://${student.clientip}:${this.clientApiPort}/client/data/receive/${student.token}`, 
+                            data: formData, 
+                            headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
+                        })
+                        .then( (response) => {
+                            console.log(response)
+                        })
+                        .catch( err =>{    console.log(`${err}`) })
+                    });
+                }
+                else {
+                    let student = who
+                    axios({
+                        method: "post", 
+                        url: `http://${student.clientip}:${this.clientApiPort}/client/data/receive/${student.token}`, 
+                        data: formData, 
+                        headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
                     })
-                .then( response => {
-                    this.status(response.data.message);
-                    if (response.data.status === "success") {
-                        this.status(this.$t("dashboard.filessent"));
-                    } 
-                }).catch( err => {console.log(err)});
-
-
-
+                    .then( (response) => {
+                        console.log(response)
+                    })
+                    .catch( err =>{    console.log(`${err}`) })
+                }
             });    
         },  
 
@@ -211,12 +241,23 @@ export default {
                     });
                 }
             }
+            else {
+                let student = who
+              
+                if (student.exammode){ this.status("student(s) still in exam mode"); return; }
+                axios.get(`http://${student.clientip}:${this.clientApiPort}/client/control/exammode/start/${student.token}/${this.examtype}`)
+                .then( response => {
+                    this.status(response.data.message);
+                    console.log(response.data);
+                }).catch(error => {console.log(error)});
+            }
         },
 
         // exit exam mode on all specified cilents
         endExam(who){
             if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); return; }
-             this.$swal.fire({
+            
+            this.$swal.fire({
                 title: this.$t("dashboard.sure"),
                 text:  this.$t("dashboard.exitkiosk"),
                 icon: "question",
@@ -235,35 +276,51 @@ export default {
                             }).catch(error => {console.log(error)});
                         }); 
                     }
+                    else {
+                        let student = who
+                        axios.get(`http://${student.clientip}:${this.clientApiPort}/client/control/exammode/stop/${student.token}`)
+                        .then( async (response) => {
+                            this.status(response.data.message);
+                            console.log(response.data);
+                        }).catch(error => {console.log(error)});
+                    }
                 } 
             }); 
         },
 
         // get finished exams (ABGABE) from students
         getFiles(who){
+            if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); console.log("no clients connected"); return; }
             if (who == "all"){
-                if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); console.log("no clients connected") }
-                else {  
-                    console.log("Requesting Filetransfer from ALL Clients")
-                    this.studentlist.forEach( (student) => {
-                        //for some reason this has a 30sec timeout when triggered the second time with method GET only inside "electron"
-                        axios({
-                            url:`http://${student.clientip}:${this.clientApiPort}/client/data/abgabe/send/${student.token}`,
-                            method: 'post'
-                        })
-                        .then( response => {
-                            
-                            this.status(response.data.message);
-                        }).catch(error => {console.log(error)});
-
-                    });
-                }
+                console.log("Requesting Filetransfer from ALL Clients")
+                this.studentlist.forEach( (student) => {
+                    //for some reason this has a 30sec timeout when triggered the second time with method GET only inside "electron"
+                    axios({
+                        url:`http://${student.clientip}:${this.clientApiPort}/client/data/abgabe/send/${student.token}`,
+                        method: 'post'
+                    })
+                    .then( response => {
+                        console.log(response.data.message);
+                    }).catch(error => {console.log(error)});
+                });
+            
+            }
+            
+            else {
+                let student = who
+                axios({
+                    url:`http://${student.clientip}:${this.clientApiPort}/client/data/abgabe/send/${student.token}`,
+                    method: 'post'
+                })
+                .then( response => {
+                    console.log(response.data.message);
+                }).catch(error => {console.log(error)});
             }
         },
 
         //remove student from exam
         kick(studenttoken, studentip){
-       if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); return; }
+            if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); return; }
             
             this.$swal.fire({
                 title: this.$t("dashboard.sure"),
@@ -354,6 +411,51 @@ export default {
 
 <style scoped>
 
+#studentinfocontainer {
+    display: none;
+    position: absolute;
+    top:0;
+    left: 0;
+    width:100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index:100;
+}
+
+#studentinfodiv {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -45vw;
+    margin-top: -40vh;
+    width:90vw;
+    height: 80vh;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 1);
+    border: 0px solid rgba(255, 255, 255, 0.589);
+    box-shadow: 0 0 15px rgba(22, 9, 9, 0.589);
+    padding: 10px;
+    border-radius: 6px;
+  
+   background-size:cover;
+   background-repeat: no-repeat;
+}
+
+
+
+#controlbuttons {
+    backdrop-filter: blur(2px);
+    position: absolute;
+    left: 0px;
+    width: 120px; 
+    height: 100%; 
+    top: 0px;  
+    background:  rgba(0, 0, 0, 0.493);
+   
+    color: white; 
+    font-size: 1.4em; 
+    padding: 10px;
+}
 
 
 </style>

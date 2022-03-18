@@ -21,7 +21,8 @@
     "data": {
         "tokennotvalid": "das token ist ungültig",
         "filereceived": "Dateien erhalten",
-        "filestored": "Dateien gespeichert"
+        "filestored": "Dateien gespeichert",
+        "nofiles": "Es wurden keine Dateien hochgeladen"
     },
     "editor": {
         "leftkiosk": "Sie haben den gesicherten Kioskmodus verlassen!",

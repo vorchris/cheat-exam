@@ -1,5 +1,5 @@
 
-import { response, Router } from 'express'
+import { Router } from 'express'
 const router = Router()
 import config from '../../config.js'
 import multiCastclient from '../../classes/multicastclient.js'
@@ -9,6 +9,10 @@ import archiver from 'archiver'
 import fs from 'fs' 
 import axios from "axios"
 
+
+import i18n from '../../../../renderer/src/locales/locales.js'
+const { t } = i18n.global
+ 
 
 /**
  * ZIPs and sends all files from a CLIENTS workdirectory TO the registered exam SERVER
@@ -24,30 +28,24 @@ import axios from "axios"
     else {
         console.log(`token checked - preparing file to send to server: ${serverip}`)
  
-       
         //zip config.work directory
         let zipfilename = multiCastclient.clientinfo.name.concat('.zip')
         let zipfilepath = path.join(config.tempdirectory, zipfilename);
         await zipDirectory(config.workdirectory, zipfilepath)
-        
         let file = await fs.readFileSync(zipfilepath);
         const form = new FormData()
 
         if (config.electron){
             let blob =  new Blob( [ new Uint8Array(file).buffer], { type: 'application/zip' })
-            console.log(blob)
             form.append(zipfilename, blob, zipfilename );
         } 
         else {
-            form.append(zipfilename, file, {
-                contentType: 'application/zip',
-                filename: zipfilename,
-            });
+            form.append(zipfilename, file, {contentType: 'application/zip', filename: zipfilename });
         }
 
         axios({
             method: "post", 
-            url: `http://${serverip}:${config.serverApiPort}/server/data/receive/server/${servername}/${token}`, 
+            url: `http://${serverip}:${config.serverApiPort}/server/data/receive/${servername}/${token}`, 
             data: form, 
             headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
         })
@@ -57,13 +55,8 @@ import axios from "axios"
             }
             else {
                 res.json({ sender: "client", message:response.data.message, status: "error", errors: response.data.errors, clienttoken: response.data.clienttoken })  //we actually send the servers (backend) response back to the server (frontend)
-            }
-            
-        })
-        .catch( err =>{
-            console.log(`ClientData API: ${err}`)
-        }) 
-
+            } 
+        }).catch( err =>{console.log(`ClientData API: ${err}`) })
     }
 })
 
@@ -84,20 +77,25 @@ import axios from "axios"
  router.post('/receive/:token', async (req, res, next) => {  
     const token = req.params.token
     if ( !checkToken(token) ) { return res.json({ sender: "client", message:t("data.tokennotvalid"), status: "error" })}  //only accept files with valid token (coming from the server)
-    else {
-        console.log("Receiving File(s)...")
-        let errors = 0
-        console.log(req.files)
+    if ( !req.files) { return res.send({sender: "client", message:t("data.nofiles"), status:"error"});  }
 
-        for (const [key, file] of Object.entries( req.files)) {
-            let absoluteFilepath = path.join(config.workdirectory, file.name);
-            file.mv(absoluteFilepath, (err) => {  
-                if (err) { errors++; console.log( "client couldn't store file") }
-                console.log( "file(s) received")
-            });
-        }
-        res.json({sender: "client", message:t("data.filereceived"), status: "success", errors: errors, client: multiCastclient.clientinfo  })
-    }
+    console.log("receiving file(s)...")
+    let errors = 0
+   
+    let filesArray = []  // depending on the number of files this comes as array of objects or object
+    if (!Array.isArray(req.files.files)){ filesArray.push(req.files.files)}
+    else {filesArray = req.files.files}
+
+    filesArray.forEach(file => {
+        let absoluteFilepath = path.join(config.workdirectory, file.name);
+        file.mv(absoluteFilepath, (err) => {  
+            if (err) { errors++; console.log( "client couldn't store file") }
+            console.log( "file(s) received")
+        });
+    })
+    
+    res.json({sender: "client", message:t("data.filereceived"), status: "success", errors: errors, client: multiCastclient.clientinfo  })
+    
 })
 
 

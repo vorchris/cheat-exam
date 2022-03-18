@@ -57,8 +57,6 @@ router.get('/focus/:token/:state', function (req, res, next) {
  * @param clientname the given username of the student
  */
 router.get('/register/:serverip/:servername/:pin/:clientname', async function (req, res, next) {
-    console.log(config)
-
     const clientname = req.params.clientname
     const pin = req.params.pin
     const serverip = req.params.serverip
@@ -69,10 +67,8 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
         res.json({status: t("control.alreadyregistered")})
         return
     }
-  
     await axios.get(`http://${serverip}:${config.serverApiPort}/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}`)
     .then(response => {
-        console.log(response.data)
         if (response.data && response.data.status == "success") { // registration successfull otherwise data would be "false"
           multiCastclient.clientinfo.name = clientname
           multiCastclient.clientinfo.serverip = serverip
@@ -82,7 +78,7 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
           multiCastclient.clientinfo.focus = true
         }
         res.send(response.data)
-      })
+    })
 })
 
 

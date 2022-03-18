@@ -66,6 +66,8 @@ input:focus::placeholder {
     color: transparent;
 }
 
+
+
 #uploaddiv {
     display: none;
     position: fixed;
@@ -96,7 +98,7 @@ input:focus::placeholder {
 }
 
 .studentwidget {
-    width: 214px;
+    width: 212px;
     height: 200px;
     white-space: nowrap;
     text-overflow:    ellipsis; 
@@ -121,11 +123,6 @@ input:focus::placeholder {
     position: absolute;
     bottom: 0;
     right: 0;
-
-}
-
-.studentwidget #image {
-    background-image:url('./src/assets/img/icons/security.png');
 }
 
 

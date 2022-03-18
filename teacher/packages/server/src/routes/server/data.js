@@ -13,73 +13,6 @@ import i18n from '../../../../renderer/src/locales/locales.js'
 const { t } = i18n.global
  
 
-/**
- * Sends MANUALLY SELECTED file(s) from the SERVER to specified CLIENTS (no single client supported right noch FIXME)
- * @param destination who should we send the file(s) to? all students, specific student, server (get)
- */
- router.post("/send/:destination", (req, res) => { 
-
-    const destination = req.params.destination
-    const form = new FormData()
-    const servername = req.body.servername
-    const mcServer = config.examServerList[servername]
-        
-    if (!req.body.servertoken === mcServer.serverinfo.servertoken) { return res.send({status:t("data.denied")})  }  // csrf check
-    if (!req.files) { return res.send({sender: "server", message:t("data.nofiles"), status:"error"});  }
-    if ( mcServer.studentList.length <= 0  ) { res.json({ sender: "server", message: t("data.noclients"), status:"error"  }) }
-
-    if (config.electron){  //electron wants to send BLOBs instead of array buffers via formData
-        if (Array.isArray(req.files.files)){  //multiple files
-            console.log("preparing multiple files for electron transfer")
-            req.files.files.forEach( (file, index) => {
-                let blob =  new Blob( [ new Uint8Array(file.data).buffer], { type: file.mimetype })
-                form.append(file.name, blob, file.name );
-            });
-        }
-        else {
-            console.log("preparing file for electron transfer")
-            let file = req.files.files
-            let blob =  new Blob( [ new Uint8Array(file.data).buffer.alloc], { type: file.mimetype })
-            form.append(file.name, blob, file.name);
-        }
-    }
-    else {
-        if (Array.isArray(req.files.files)){  //multiple files
-            console.log("preparing multiple files")
-            req.files.files.forEach( (file, index) => {
-                form.append(index, file.data, {
-                    contentType: file.mimetype,
-                    filename: file.name,
-                });
-            });
-        }
-        else {
-            console.log("preparing file")
-            let file = req.files.files
-            form.append(file.name, file.data, {
-                contentType: file.mimetype,
-                filename: file.name,
-            });
-        }
-    }
-
-    if (destination == "all"){
-        console.log("Sending POST Form Data to Clients")
-        mcServer.studentList.forEach( (student) => {
-            axios({
-                method: "post", 
-                url: `http://${student.clientip}:${config.clientApiPort}/client/data/receive/${student.token}`, 
-                data: form, 
-                headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
-              }).catch( err =>{
-                  console.log(`Server Data API: ${err}`)
-              })
-        });
-        res.send({sender: "server", message:t("data.filessent"), status:"success"});
-    }
-});
-
-
 
 
 /**
@@ -88,7 +21,7 @@ const { t } = i18n.global
  * in order to process the request - DO NOT STORE FILES COMING from anywhere.. always check if token belongs to a registered student (or server)
  * TODO: if receiver is "server" it should unzip and store with files with timestamp and username
  */
- router.post('/receive/server/:servername/:token', async (req, res, next) => {  
+ router.post('/receive/:servername/:token', async (req, res, next) => {  
     const token = req.params.token
     const servername = req.params.servername
     const mcServer = config.examServerList[servername] // get the multicastserver object

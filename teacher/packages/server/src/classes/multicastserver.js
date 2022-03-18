@@ -28,8 +28,9 @@ class MulticastServer {
     this.serverinfo = this.initMessage(servername, pin, password)
     this.server.bind(this.SRC_PORT, () => { // Add the HOST_IP_ADDRESS for reliability
       this.broadcastInterval = setInterval(() => { this.multicastNew() }, 2000)
-      let address = this.server.address()
-      console.log(`UDP Multicast Server Broadcasting on Port: ${address.port }` );
+      this.address = this.server.address().address
+     
+      console.log(`UDP MC Server listening on http://${config.hostip}:${this.server.address().port}`)
     })
    
 

@@ -172,7 +172,8 @@ router.get('/serverlist', function (req, res, next) {
             clientip: clientip,
             timestamp: new Date().getTime(),
             focus: true,
-            exammode: false
+            exammode: false,
+            imageurl:false
         }
 
         mcServer.studentList.push(client)
@@ -257,6 +258,7 @@ router.get('/serverlist', function (req, res, next) {
     // do not update all of the clientinfo (leave some decisions to the server - like 'focus' for example)
     registeredClient.timestamp = new Date().getTime()
     registeredClient.exammode = exammode  
+    registeredClient.imageurl = `http://${config.hostip}:${config.serverApiPort}/files/${token}.jpg?ver=${registeredClient.timestamp}`
     res.send({sender: "server", message:t("control.studentupdate"), status:"success" })
 })
 

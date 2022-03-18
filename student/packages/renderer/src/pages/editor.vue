@@ -1,5 +1,5 @@
  <template>
-  <div class="w-100 p-3 text-white bg-dark  text-center" style="position: fixed !important; z-index: 10000 !important">
+  <div class="w-100 p-3 text-white bg-dark  text-center" style=" z-index: 10000 !important">
  
         <router-link v-if="online" :to="(clientname == 'DemoUser')?'/':''" class="text-white m-1">
             <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style="float: left;" />
@@ -19,7 +19,7 @@
         <span class="fs-4 align-middle me-2" style="float: right">{{timesinceentry}}</span>
     </div>
     
-    <div class="w-100 p-2 m-0 text-white shadow-sm text-center" style="position: fixed !important; top: 66px; z-index: 10001 !important; background-color: white;">
+    <div class="w-100 p-2 m-0 text-white shadow-sm text-center" style=" top: 66px; z-index: 10001 !important; background-color: white;">
         <div id="localfiles" class="mb-2" style="top:0px;">
              <div v-for="file in localfiles" class="btn btn-dark me-2" @click="selectedFile=file; toggleUpload()">
               <img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file}} 
@@ -56,23 +56,16 @@
 
             <button @click="editor.chain().focus().setHardBreak().run()" class="btn btn-outline-info p-1 me-2 mb-1"><img src="/src/assets/img/svg/key-enter.svg" class="white" width="22" height="22" ></button>
         </div>
+    </div>
 
 
-
-  </div>
-
-
-
-    <div id="editorcontainer" style="position: relative !important; top: 190px; ">
-
-        <div v-if="!focus" id="" class="infodiv p-4 d-block focuswarning" >
+   <div v-if="!focus" id="" class="infodiv p-4 d-block focuswarning" >
             <div class="mb-3 row">
                 <div class="mb-3 "> {{$t('editor.leftkiosk')}}</div>
                 <img src="/src/assets/img/svg/eye-slash-fill.svg" class=" me-2" width="32" height="32" >
             </div>
         </div>
-
-
+        
         <div id="uploaddiv" class="fadeinslow p-4">
             <div class="mb-3 row">
                 <div class="mb-3 "> {{$t('editor.replacecontent')}} <b>{{selectedFile}}</b></div>
@@ -81,13 +74,14 @@
             </div>
         </div>
 
-
-
-
+    <div style="position: relative; height: 100%; overflow:hidden; overflow-y: scroll; background-color: #eeeefa;">
         
-    
-        <editor-content :editor="editor" class='p-0' id="editorcontent"/>
+        <div id="editorcontainer" class="shadow" style="border-radius:0; margin-top:20px; width: 90vw; margin-left:5vw;">
+            <editor-content :editor="editor" class='p-0' id="editorcontent" style="background-color: #fff; border-radius:0;" />
+        </div>
+
     </div>
+    
 </template>
 
 <script>
@@ -163,11 +157,12 @@ export default {
         fetchInfo() {
             axios.get(`http://localhost:${this.clientApiPort}/client/control/getinfo`)
             .then( response => {
-                this.clientinfo = response.data.clientinfo;
-                this.token = this.clientinfo.token;
-                this.focus = this.clientinfo.focus;
-                this.clientname = this.clientinfo.name;
+                this.clientinfo = response.data.clientinfo
+                this.token = this.clientinfo.token
+                this.focus = this.clientinfo.focus
+                this.clientname = this.clientinfo.name
                 this.exammode = this.clientinfo.exammode
+        
                 if (!this.focus){  this.entrytime = new Date().getTime()}
                 if (this.clientinfo && this.clientinfo.token){  this.online = true  }
                 else { this.online = false  }
@@ -210,62 +205,101 @@ export default {
         /** Converts the Editor View into a multipage PDF */
         async fetchContent() {              
             let body = document.body;
-            let doc = new jsPDF('p', 'px','a4', true, true);   //orientation, unit for coordinates, format, onlyUsedFonts, compress
             let pagenumber = 0;   // how many pdf pages can we get out of the total page height?
             let windowHeight = 0;  // the dryrun will set the windowheight of the editor at a given width of 794px (final pdf x resolution)
 
-            html2canvas(body, { scale: 1, x:0, y: 0,  scrollX: 0,  scrollY: 0,  windowWidth: 794,    //DRYRUN - this sets the html body width for this canvas render testrun >> ATTENTION: windowHeight will change accordingly !!!
-                onclone: (document) => {
-                    document.getElementById('editortoolbar').style.display = 'none';   //hide toolbar
-                    document.getElementById('localfiles').style.display = 'none';   //hide filespicker
-                    let body = document.body;           
-                    let html = document.documentElement;
-                    windowHeight = Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight );  // calculate NEW Height for rendering and set global variable
-                    pagenumber = Math.ceil(windowHeight / 1123);   // how many pdf pages can we get out of the total page height?
-                }
-            }).then( async () => {
-                for (let i = 0; i < pagenumber; i++) {
-                    await new Promise( resolve => {
-                        html2canvas(body, {
-                            scale: 1,
-                            x:0,
-                            y: i * 1123,  // on every loop advance y-position by 1123 - why this number ? because gimp says the final pdf page in 96dpi has this height.. wtf ? jsPDF sucks hard!
-                            scrollX: 0,
-                            scrollY: 0,
-                            windowWidth: 794,    //this sets the html body width somehow
-                            windowHeight: windowHeight,  // we set the height for this rendering to the previously determined height
-                            onclone: (document) => {
-                                document.getElementById('editortoolbar').style.display = 'none'
-                                document.getElementById('localfiles').style.display = 'none';   //hide filespicker
-                            }
-                        }).then( canvas => {  // now we have a canvas that contains the whole website :-) !!
-                            let img = canvas.toDataURL('image/jpeg', 1);  // type, quality
-                            doc.addImage(img, 'JPG', 0, 0, 0, 0, i, 'FAST');    // imagedata, format if recognition fails, x, y ,w ,h, alias, compression, rotation
-                            if ( ( i + 1 ) == pagenumber) {  // FINISHED
-                                const editorcontent = this.editor.getHTML();  //get content as JSON (für späteren re-import in den editor!?)
-                                const pdfBlob = new Blob([ doc.output('blob') ], { type : 'application/pdf'});
 
-                                let form = new FormData()
-                                form.append("file", pdfBlob,  `${this.currentFile}.pdf` );
-                                form.append("editorcontent", editorcontent)
-                                form.append("currentfilename", this.currentFile)
-
-                                axios({
-                                    method: "post", 
-                                    url: `http://localhost:${this.clientApiPort}/client/data/store`, 
-                                    data: form, 
-                                    headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
-                                }).then( async (response) => {
-                                    //console.log(response.data)
-                                }).catch(err => { console.warn(err)});
-
-                            } 
-                            else { doc.addPage(); }
-                            resolve();
-                        });
-                    });
-                }
+            let doc = new jsPDF('p', 'px','a4', true, true);   //orientation, unit for coordinates, format, onlyUsedFonts, compress
+            const editorcontent = this.editor.getHTML();    
+           
+            let pdfBlob;
+            doc.html(editorcontent, {
+                    callback: (doc) => {
+                        pdfBlob = new Blob([ doc.output('blob') ], { type : 'application/pdf'});
+                        let form = new FormData()
+                        form.append("file", pdfBlob,  `${this.currentFile}.pdf` );
+                        form.append("editorcontent", editorcontent)
+                        form.append("currentfilename", this.currentFile)
+                        
+                        axios({
+                            method: "post", 
+                            url: `http://localhost:${this.clientApiPort}/client/data/store`, 
+                            data: form, 
+                            headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
+                        }).then( async (response) => {
+                            //console.log(response.data)
+                        }).catch(err => { console.warn(err)});
+                    },
+                    x: 0,
+                    y: 0,
+                    margin: [20,20,20,20],
+                    width :400,
+                    windowWidth:420,
+                    autoPaging: 'slice',
             });
+
+
+           // const pdfBlob = new Blob([ doc.output('blob') ], { type : 'application/pdf'});
+
+    
+
+
+            //kinda screenshots the whole editor and generates a pdf (really big pdf unfortunately)
+            // html2canvas(body, { scale: 1, x:0, y: 0,  scrollX: 0,  scrollY: 0,  windowWidth: 794,    //DRYRUN - this sets the html body width for this canvas render testrun >> ATTENTION: windowHeight will change accordingly !!!
+            //     onclone: (document) => {
+            //         document.getElementById('editortoolbar').style.display = 'none';   //hide toolbar
+            //         document.getElementById('localfiles').style.display = 'none';   //hide filespicker
+            //         let body = document.body;           
+            //         let html = document.documentElement;
+            //         windowHeight = Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight );  // calculate NEW Height for rendering and set global variable
+            //         pagenumber = Math.ceil(windowHeight / 1123);   // how many pdf pages can we get out of the total page height?
+            //     }
+            // }).then( async () => {
+            //     for (let i = 0; i < pagenumber; i++) {
+            //         await new Promise( resolve => {
+            //             html2canvas(body, {
+            //                 scale: 1,
+            //                 x:0,
+            //                 y: i * 1123,  // on every loop advance y-position by 1123 - why this number ? because gimp says the final pdf page in 96dpi has this height.. wtf ? jsPDF sucks hard!
+            //                 scrollX: 0,
+            //                 scrollY: 0,
+            //                 windowWidth: 794,    //this sets the html body width somehow
+            //                 windowHeight: windowHeight,  // we set the height for this rendering to the previously determined height
+            //                 onclone: (document) => {
+            //                     document.getElementById('editortoolbar').style.display = 'none'
+            //                     document.getElementById('localfiles').style.display = 'none';   //hide filespicker
+            //                 }
+            //             }).then( canvas => {  // now we have a canvas that contains the whole website :-) !!
+            //                 let img = canvas.toDataURL('image/jpeg', 1);  // type, quality
+            //                 doc.addImage(img, 'JPG', 0, 0, 0, 0, i, 'FAST');    // imagedata, format if recognition fails, x, y ,w ,h, alias, compression, rotation
+            //                 if ( ( i + 1 ) == pagenumber) {  // FINISHED
+            //                     const editorcontent = this.editor.getHTML();  //get content as JSON (für späteren re-import in den editor!?)
+            //                     const pdfBlob = new Blob([ doc.output('blob') ], { type : 'application/pdf'});
+
+            //                     let form = new FormData()
+            //                     form.append("file", pdfBlob,  `${this.currentFile}.pdf` );
+            //                     form.append("editorcontent", editorcontent)
+            //                     form.append("currentfilename", this.currentFile)
+
+            //                     axios({
+            //                         method: "post", 
+            //                         url: `http://localhost:${this.clientApiPort}/client/data/store`, 
+            //                         data: form, 
+            //                         headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
+            //                     }).then( async (response) => {
+            //                         //console.log(response.data)
+            //                     }).catch(err => { console.warn(err)});
+
+            //                 } 
+            //                 else { doc.addPage(); }
+            //                 resolve();
+            //             }).catch( err => console.log(err));
+            //         });
+            //     }
+            // });
+
+
+
         },
         focuscheck() {
             window.addEventListener('beforeunload',         this.focuslost);  // keeps the window open (displays "are you sure in browser")
@@ -390,14 +424,15 @@ const test = function ( data ) { console.log(data); }
 ENDE !!`,
         });
 
-        if(this.token) {  this.focuscheck() }  // run focuscheck function (sets some window event listeners )       
+        if(this.token && this.exammode) { this.focuscheck() }  // run focuscheck function (sets some window event listeners )       
         if (this.electron){
-            this.blurEvent = ipcRenderer.on('blurevent', this.focuslost, false);  //ipcRenderer seems to be of type nodeEventTarget (on/addlistener returns a reference to the eventTarget)
-             this.endExamEvent = ipcRenderer.on('endexam', () => { this.$router.push({ name: 'student'}); }); //redirect to home view // right before we leave vue.js will run beforeUnmount() which removes all listeners this view attached to the window and the ipcrenderer
+
+            if(this.token && this.exammode) {  this.blurEvent = ipcRenderer.on('blurevent', this.focuslost, false); } //ipcRenderer seems to be of type nodeEventTarget (on/addlistener returns a reference to the eventTarget)
+            this.endExamEvent = ipcRenderer.on('endexam', () => { this.$router.push({ name: 'student'}); }); //redirect to home view // right before we leave vue.js will run beforeUnmount() which removes all listeners this view attached to the window and the ipcrenderer
         }   
         this.currentFile = this.clientname
         this.entrytime = new Date().getTime()
-        this.fetchinterval = setInterval(() => { this.fetchContent() }, 10000)   
+        this.fetchinterval = setInterval(() => { this.fetchContent() }, 1000)   
         this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 10000)   
         this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 5000) 
         this.clockinterval = setInterval(() => { this.clock() }, 1000)   
@@ -420,6 +455,30 @@ ENDE !!`,
 </script>
 
 <style lang="scss">
+
+.html2pdf__container {  //this works only if html automaging mode is "slice" - if we set it to "text" this messes up all lineheights
+    line-height: 12px;
+    font-size: 12px;
+    
+ 
+    
+    ul { padding: 0 15px; line-height: 2px;  }
+    ol { padding: 0 15px; line-height: 2px;  }
+
+    pre {
+        code {
+            letter-spacing: 2px;
+        }
+    }
+    
+    h5 {font-size: 20px; }
+    h4 {font-size: 22px; }
+    h3 {font-size: 24px; }
+    h2 {font-size: 26px; }
+}
+
+
+
 /* Basic editor styles */
 
 .ProseMirror {
@@ -440,6 +499,7 @@ ENDE !!`,
   ul,
   ol {
     padding: 0 1rem;
+    line-height: 1;
   }
 
   h1,
