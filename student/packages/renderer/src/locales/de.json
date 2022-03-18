@@ -19,7 +19,9 @@
         "clientunsubscribe": "Schüler*in entfernt"
     },
     "data": {
-        "tokennotvalid": "das token ist ungültig"
+        "tokennotvalid": "das token ist ungültig",
+        "filereceived": "Dateien erhalten",
+        "filestored": "Dateien gespeichert"
     },
     "editor": {
         "leftkiosk": "Sie haben den gesicherten Kioskmodus verlassen!",

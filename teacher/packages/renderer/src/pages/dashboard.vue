@@ -34,7 +34,7 @@
             <input @change="toggleAutoabgabe()"  v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
             <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
         </div>
-        <div id="statusdiv" class="btn btn-warning m-1"> connected </div>
+        <div id="statusdiv" class="btn btn-warning m-1"> {{$t('dashboard.connected')}}  </div>
     </div>
 
     <div id="content" class="fadeinslow p-3">
@@ -242,7 +242,7 @@ export default {
         // get finished exams (ABGABE) from students
         getFiles(who){
             if (who == "all"){
-                if ( this.studentlist.length <= 0 ) { this.status("no clients connected"); console.log("no clients connected") }
+                if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); console.log("no clients connected") }
                 else {  
                     console.log("Requesting Filetransfer from ALL Clients")
                     this.studentlist.forEach( (student) => {
@@ -252,7 +252,8 @@ export default {
                             method: 'post'
                         })
                         .then( response => {
-                            console.log(response.data.message);
+                            
+                            this.status(response.data.message);
                         }).catch(error => {console.log(error)});
 
                     });
@@ -262,7 +263,7 @@ export default {
 
         //remove student from exam
         kick(studenttoken, studentip){
-       if ( this.studentlist.length <= 0 ) { this.status("no clients connected"); return; }
+       if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); return; }
             
             this.$swal.fire({
                 title: this.$t("dashboard.sure"),

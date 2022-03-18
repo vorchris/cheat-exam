@@ -17,6 +17,7 @@
     "dashboard":{
         "name": "Name",
         "pin": "Pin",
+        "connected": "verbunden",
         "stopserver": "Prüfung beenden",
         "filesend": "Dateien senden",
         "filesendtext": "Bitte wählen sie eine oder mehrere Dateien",
@@ -64,7 +65,7 @@
         "noclients": "Keine Schüler*innen verbunden",
         "filessent": "Dateien gesendet",
         "couldnotstore": "Schüler*in konnte die Datei nicht speichern",
-        "filereceived": "Datei erhalten",
+        "filereceived": "Daten erhalten",
         "nofliereceived": "Keine Dateien erhalten"
     }
 }

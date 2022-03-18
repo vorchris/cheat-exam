@@ -1,5 +1,5 @@
 
-import { Router } from 'express'
+import { response, Router } from 'express'
 const router = Router()
 import config from '../../config.js'
 import multiCastclient from '../../classes/multicastclient.js'
@@ -20,7 +20,7 @@ import axios from "axios"
     const serverip = multiCastclient.clientinfo.serverip  //this is set if you are registered on a server
     const servername = multiCastclient.clientinfo.servername
 
-    if ( !checkToken(token) ) { res.json({ status: "token is not valid" }); return }
+    if ( !checkToken(token) ) { return res.json({ sender: "client", message:t("data.tokennotvalid"), status: "error" })}
     else {
         console.log(`token checked - preparing file to send to server: ${serverip}`)
  
@@ -50,9 +50,20 @@ import axios from "axios"
             url: `http://${serverip}:${config.serverApiPort}/server/data/receive/server/${servername}/${token}`, 
             data: form, 
             headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
-        }).catch( err =>{
+        })
+        .then(response =>{
+            if (response.status === "success"){
+                res.json({ sender: "client", message:response.data.message, status: "success",  errors: response.data.errors, clienttoken: response.data.clienttoken })  //we actually send the servers (backend) response back to the server (frontend)
+            }
+            else {
+                res.json({ sender: "client", message:response.data.message, status: "error", errors: response.data.errors, clienttoken: response.data.clienttoken })  //we actually send the servers (backend) response back to the server (frontend)
+            }
+            
+        })
+        .catch( err =>{
             console.log(`ClientData API: ${err}`)
-        })  
+        }) 
+
     }
 })
 
@@ -72,7 +83,7 @@ import axios from "axios"
  */
  router.post('/receive/:token', async (req, res, next) => {  
     const token = req.params.token
-    if ( !checkToken(token) ) { res.json({ status: "token is not valid" }) }  //only accept files with valid token (coming from the server)
+    if ( !checkToken(token) ) { return res.json({ sender: "client", message:t("data.tokennotvalid"), status: "error" })}  //only accept files with valid token (coming from the server)
     else {
         console.log("Receiving File(s)...")
         let errors = 0
@@ -85,7 +96,7 @@ import axios from "axios"
                 console.log( "file(s) received")
             });
         }
-        res.json({sender: "client", message:"file(s) received", status: "success", errors: errors, client: multiCastclient.clientinfo  })
+        res.json({sender: "client", message:t("data.filereceived"), status: "success", errors: errors, client: multiCastclient.clientinfo  })
     }
 })
 
@@ -94,9 +105,8 @@ import axios from "axios"
 
 
 /**
- * Stores file(s) to the workdirectory (files coming FROM the SERVER (Questions, tasks)  )
- * @param token the students token - this has to be valid (coming from the examserver you registered) 
- * in order to process the request - DO NOT STORE FILES COMING from anywhere.. always check if token belongs to a registered student (or server)
+ * Stores file(s) to the workdirectory (files coming FROM the EDITOR  )
+ * Only store file if request source is local
  */
  router.post('/store', async (req, res, next) => {  
     if (!requestSourceAllowed(req, res)) return //only allow this api route on localhost (same machine)
@@ -118,7 +128,7 @@ import axios from "axios"
                // console.log( "file(s) received")
         });
     }
-    res.json({sender: "client", message:"file(s) saved", status: "success", errors: errors  })
+    res.json({sender: "client", message:t("data.filestored"), status: "success", errors: errors  })
     
 })
 

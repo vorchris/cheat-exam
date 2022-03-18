@@ -125,27 +125,26 @@ const { t } = i18n.global
 
                     // extract zip file to archive
                     file.mv(absoluteFilepath, (err) => {  
-                        if (err) { errors++; return {status: "client couldn't store file"} }
+                        if (err) { errors++; console.log( t("data.couldnotstore") ) }
                         extract(absoluteFilepath, { dir: studentarchivedir }).then( () => {
                             fs.unlink(absoluteFilepath, (err) => {
                                 if (err) console.log(err);
-                                return
                             });
                         }).catch( err => console.log(err))
                     });
                 }
-
-                // this is another file (most likely a screenshot as we do not yet transfer other files)
-                file.mv(absoluteFilepath, (err) => {  
-                    if (err) { errors++; return {status: t("data.couldnotstore")} }
-                    return {status: "success"}
-                });
+                else {
+                    // this is another file (most likely a screenshot as we do not yet transfer other files)
+                    file.mv(absoluteFilepath, (err) => {  
+                        if (err) { errors++; console.log( t("data.couldnotstore") ) }
+                    });
+                }
 
             }
-            res.json({ status: t("data.filereceived"), errors: errors, clienttoken: token  })
+            res.json({ status:"success", sender: "server", message:t("data.filereceived"), errors: errors, clienttoken: token  })
         }
         else {
-            res.json({ status:t("data.nofilereceived"), errors: errors, clienttoken: token  })
+            res.json({ status:"error",  sender: "server", message:t("data.nofilereceived"), errors: errors, clienttoken: token  })
         }
 
 
