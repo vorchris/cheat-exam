@@ -10,10 +10,9 @@
 </div>
  
 <div id="studentinfocontainer" class="fadeinslow p-4">
-    <div id="studentinfodiv">
+    <div id="studentinfodiv"  class="studentinfoimage" :style="`background-image:url(http://${serverip}:${serverApiPort}/files/${activestudent.token}.jpg?ver=${activestudent.timestamp})`">
         <div v-if="activestudent != null" style="height:100%">
-            <div class=""><b>{{activestudent.clientname}}</b></div>
-            <div id="image" class="rounded studentinfoimage"  :style="`background-image:url(http://${serverip}:${serverApiPort}/files/${activestudent.token}.jpg?ver=${activestudent.timestamp})`"></div>
+            <div class=""><h3><b>{{activestudent.clientname}}</b></h3></div>
             <div id="controlbuttons">
                 <div class="col d-inlineblock btn btn-secondary m-1"     @click="hideStudentview()" >close </div>
                 <div class="col d-inlineblock btn btn-warning m-1"  @click="startExam(activestudent)" >kiosk </div>
@@ -52,13 +51,13 @@
         <div class="btn btn-info m-1 text-start" style="width:100px;" @click="getFiles('all')">{{$t('dashboard.getfile')}}</div>
         <div class="btn btn-danger m-1 text-start" style="width:120px;" @click="endExam('all')" >{{$t('dashboard.stopexam')}}</div>
         <div id="studentslist" class="placeholder pt-4"> 
-            <div v-for="student in studentlist" @click="showStudentview(student)" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn border-0 rounded-3 btn-block m-1 ">
+            <div v-for="student in studentlist"  v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn border-0 rounded-3 btn-block m-1 ">
                 <div id="image" class="rounded" :style="`background-image:url(http://${serverip}:${serverApiPort}/files/${student.token}.jpg?ver=${student.timestamp})  `" style="position: relative; height:75%; background-size:cover;">
                     <span style="">{{student.clientname}}            
                     <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-2 pe-2 float-end" title="kick user"></button> </span>
                 </div>
                 <div class="btn-group pt-0" role="group">
-                    <button v-if="(now - 20000 < student.timestamp)" @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-success btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">online</button>
+                    <button v-if="(now - 20000 < student.timestamp)" @click="showStudentview(student)" type="button" class="btn btn-outline-success btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">online</button>
                     <button v-if="(now - 20000 < student.timestamp) && student.exammode"  @click='task2(student.token,student.clientip)' type="button" class="btn btn-outline-warning btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;">exammode</button>
                     <button v-if="!student.focus && (now - 20000 < student.timestamp)"   @click='restore(student.token,student.clientip)' type="button" class="btn btn-danger btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;"> restore </button>
                 </div>
@@ -427,24 +426,20 @@ export default {
     height: 80vh;
     padding: 10px;
     background-color: rgba(255, 255, 255, 1);
-    border: 1px solid rgba(255, 255, 255, 0.589);
+    border: 0px solid rgba(255, 255, 255, 0.589);
     box-shadow: 0 0 15px rgba(22, 9, 9, 0.589);
     padding: 10px;
     border-radius: 12px;
   
+   background-size:cover;
+   background-repeat: no-repeat;
 }
-.studentinfoimage {
-    position: relative; 
-    height:80%;
-    background-size:contain;
-    background-repeat: no-repeat;
-    width:100%;
 
-}
 #controlbuttons {
     position: absolute;
-    bottom: 10px;
-    
+    left: 10px;
+    width: 100px;  
+    top: 45px;  
 }
 
 
