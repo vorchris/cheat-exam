@@ -66,6 +66,8 @@ input:focus::placeholder {
     color: transparent;
 }
 
+
+
 #uploaddiv {
     display: none;
     position: fixed;
