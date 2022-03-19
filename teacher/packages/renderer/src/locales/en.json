@@ -1,4 +1,76 @@
-{
-    "exams": "Active Exams",
-    "t2": "transl 2"
-  }
+{ 
+    "general": {
+        "startserver":"Start Exam",
+        "slist": "Aktive Exams"
+    },
+    "serverlist" : {
+        "pwd": "Password",
+        "name": "Name",
+        "login": "login"
+    },
+    "startserver" : {
+        "connected": "connected",
+        "start": "Start Exam Server",
+        "examname": "Name",
+        "pwd": "Password"
+    },
+    "dashboard":{
+        "name": "Name",
+        "pin": "Pin",
+        "connected": "connected",
+        "stopserver": "stop",
+        "filesend": "Send Files",
+        "filesendtext": "Please choose one or several Files",
+        "cancel": "Cancel",
+        "nofiles": "No Files selected",
+        "uploadfiles": "uploading files",
+        "filessent": "Files sent",
+        "noclients": "No students connected",
+        "lang": "Language",
+        "math": "Math",
+        "autoget": "auto fetch",
+        "startexam": "Start Exam ",
+        "sendfile": "Send Files",
+        "getfile": "Fetch Work",
+        "stopexam": "Stop Exam",
+        "sure": "Are you sure?",
+        "exitexamsure": "Close Exam Server?",
+        "exitexam": "This stops the exam for all students",
+        "exitkiosk": "exit safe exam mode",
+        "kick": "remove student from server",
+        "leftkiosk": "has left the safe exam mode!",
+        "online":"online",
+        "secure":"secured",
+        "restore":"restore",
+        "exammodeactive": "student already in safe exam mode"
+    },
+    "control": {
+        "tokennotvalid": "token is not valid",
+        "statechange": "statechange",
+        "alreadyregistered": "student already registered",
+        "registered": "student registered",
+        "serverexists": "Exam Server already exists",
+        "serverstarted": "Exam Server started",
+        "serverstopped": "Exam Server stopped",
+        "notfound": "Exam doesn't exist",
+        "wrongpw": "Wrong Password",
+        "wrongpin": "Wrong PIN",
+        "correctpw": "Password OK",
+        "studentremove": "Removed student from Exam Server",
+        "actiondenied": "action denied",
+        "nofiles": "no files were uploaded",
+        "studentupdate": "student updated",
+        "studentleft": "student left the exam",
+        "staterestore": "safe exam state restored"
+    },  
+    "data": {
+        "tokennotvalid": "the token is not valid",
+        "denied": "permission denied",
+        "nofiles": "no files were uploaded",
+        "noclients": "no students connected",
+        "filessent": "files sent",
+        "couldnotstore": "student could not store file",
+        "filereceived": "files received",
+        "nofliereceived": "no files received"
+    }
+}
