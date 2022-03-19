@@ -67,6 +67,7 @@ async function createWindow() {
     // which sets a ipcRenderer listener for the "exam" signal to switch to the correct page (read examtype)  
     ipcMain.on("exam", (event, token, examtype) =>  {
         win?.setKiosk(true)
+        win?.minimize()
         win?.focus()
         win?.webContents.send('exam', token, examtype);
     }); 
