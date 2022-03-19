@@ -41,7 +41,7 @@ async function createWindow() {
     if (app.isPackaged || process.env["DEBUG"]) {
         win.removeMenu() 
         win.loadFile(join(__dirname, '../renderer/index.html'))
-        win.webContents.openDevTools()  // you don't want this in the final build
+        //win.webContents.openDevTools()  // you don't want this in the final build
     } 
     else {
         const url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}`
@@ -67,6 +67,7 @@ async function createWindow() {
     // which sets a ipcRenderer listener for the "exam" signal to switch to the correct page (read examtype)  
     ipcMain.on("exam", (event, token, examtype) =>  {
         win?.setKiosk(true)
+        win?.focus()
         win?.webContents.send('exam', token, examtype);
     }); 
 
