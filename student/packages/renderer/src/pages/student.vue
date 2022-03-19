@@ -21,22 +21,10 @@
                     {{ $t("student.exams") }}
                 </router-link>
             </li>
-            <li>
-                <router-link to="/mtest/" class="nav-link">
-                    <img src='/src/assets/img/svg/question-square-fill.svg' class="white me-2"  width="16" height="16" >
-                    Test G
-                </router-link>
-            </li>
-              <li>
-                <router-link to="/ltest/" class="nav-link">
-                    <img src='/src/assets/img/svg/question-square-fill.svg' class="white me-2"  width="16" height="16" >
-                    Test L
-                </router-link>
-            </li>
         </ul>
         <div class="m-2">
             <br>
-            <div id="statusdiv" class="btn btn-warning m-2"> Client started </div>
+            <div id="statusdiv" class="btn btn-warning m-2"> {{ $t("student.started") }} </div>
         </div>
     </div>
 
@@ -68,8 +56,8 @@
                 </dl>
                   
                 <input v-if="!token" :id="server.servername" type="button" name="register" class="btn btn-info" :value="$t('student.register')" @click="registerClient(server.serverip,server.servername)"/>
-                <input v-if="token && clientinfo.servername !== server.servername" :id="server.servername" type="button" name="register" class="btn btn-secondary" :value="$t('student.register')" />
-                <input v-if="token && clientinfo.servername === server.servername" :id="server.servername" type="button" name="register" class="btn btn-success" :value="$t('student.registered')" />
+                <input v-if="token && clientinfo.servername !== server.servername" :id="server.servername" disabled type="button" name="register" class="btn btn-secondary" :value="$t('student.register')" />
+                <input v-if="token && clientinfo.servername === server.servername" :id="server.servername" disabled type="button" name="register" class="btn btn-success" :value="$t('student.registered')" />
       
             </div>
         </div>
@@ -86,7 +74,6 @@ import axios from "axios";
 
 
 export default {
-
     data() {
         return {
             token: "",
@@ -113,32 +100,20 @@ export default {
                 this.clientinfo = response.data.clientinfo;
                 this.serverlist = response.data.serverlist;
                 this.token = this.clientinfo.token;
-                //console.log(this.clientinfo.name)
-                if (this.clientinfo && this.clientinfo.token){  // if client is already registered disable button (this is also handled on api level)
-                    let registerbuttons =  document.getElementsByName("register");
-                    registerbuttons.forEach( button => {button.disabled = true; });
-                }
             })
             .catch( err => {console.log(err)});
         },      
         
-
         /** register client on the server **/
-        async registerClient(serverip, servername){
-            
-            $(`#${servername}`).val( this.$t("student.registering") );   //well be overwritten by fetchInfo()
-            await axios.get(`http://localhost:${this.clientApiPort}/client/control/register/${serverip}/${servername}/${this.pincode}/${this.username}`)
+        registerClient(serverip, servername){
+            axios.get(`http://localhost:${this.clientApiPort}/client/control/register/${serverip}/${servername}/${this.pincode}/${this.username}`)
             .then( response => { 
                 this.status(response.data.message);
                 console.log(response.data.message);
                 this.token = response.data.token  // set token immediately for further use (editor , geogebra)
             })
-            .then( () =>{
-                if (!this.token){ $(`#${servername}`).val(this.$t('student.register')); }
-            })
             .catch( err => console.log(err));
         },
-
 
         //show status message
         async status(text){  
@@ -154,7 +129,6 @@ export default {
     },
 
     mounted() {  
-  
         $("#statusdiv").fadeOut("slow")
         this.fetchInfo();
         this.fetchinterval = setInterval(() => { this.fetchInfo() }, 2000)
@@ -169,8 +143,6 @@ export default {
                 }
             });
         }
-
-
     },
 
     beforeUnmount() {

@@ -2,8 +2,6 @@ import dgram from 'dgram';
 import config from '../config.js';  // node not vue (relative path needed)
 import axios from 'axios';
 import FormData from 'form-data';
-import fs from 'fs'; 
-import path from 'path';
 import screenshot from 'screenshot-desktop';
 
 /**
@@ -36,10 +34,11 @@ class MulticastClient {
      * starts an intervall to check server status by timestamp
      */
     init () {
-        config.clientinfo = this.clientinfo
-        this.client.on('listening', () => { this.getAddress() })
+        this.client.on('listening', () => { 
+            this.address = this.client.address()
+            console.log(`UDP MC Client listening on http://${config.hostip}:${this.address.port}`)
+        })
         this.client.on('message', (message, rinfo) => { this.messageReceived(message, rinfo) })
-        // Add the HOST_IP_ADDRESS for reliability
         this.client.bind(this.PORT, () => { this.client.addMembership(this.MULTICAST_ADDR) })
     
         //start loops
@@ -48,11 +47,6 @@ class MulticastClient {
         this.running = true
     }
 
-    //sets IP for client and sends a message to console
-    async getAddress () {
-        this.address = this.client.address()
-        console.log(`UDP MC Client listening on http://${config.hostip}:${this.address.port}`)
-    }
 
 
     /** 
@@ -118,21 +112,12 @@ class MulticastClient {
 
     /**
      * receives messages and stores new exam instances in this.examServerList[]
-     * starts an intervall to check server status by timestamp
      */
     messageReceived (message, rinfo) {
         const serverInfo = JSON.parse(String(message))
         serverInfo.serverip = rinfo.address
         serverInfo.serverport = rinfo.port
-        if (this.debug) { console.log(serverInfo) }
-
-        this.addOrUpdateServer(serverInfo)
-    }
-
-    /**
-     * adds server instance to list if server is new
-     */
-    addOrUpdateServer (serverInfo) {
+        
         if (this.isNewExamInstance(serverInfo)) {
             console.log(`Adding new Exam Instance "${serverInfo.servername}" to Serverlist`)
             this.examServerList.push(serverInfo)
@@ -146,7 +131,7 @@ class MulticastClient {
     isNewExamInstance (obj) {
         for (let i = 0; i < this.examServerList.length; i++) {
             if (this.examServerList[i].id === obj.id) {
-                if (this.debug) { console.log('existing server - updating timestamp') }
+                //console.log('existing server - updating timestamp')
                 this.examServerList[i].timestamp = obj.timestamp // existing server - update timestamp
                 return false
             }
@@ -162,8 +147,7 @@ class MulticastClient {
         for (let i = 0; i < this.examServerList.length; i++) {
             const now = new Date().getTime()
             if (now - 20000 > this.examServerList[i].timestamp) {
-                console.log('found old server')
-                // remove from list .. this server is dead
+                console.log('Removing inactive server from list')
                 this.examServerList.splice(i, 1)
             }
         }

@@ -6,16 +6,17 @@
         "name": "Name",
         "register": "anmelden",
         "registering": "melde an...",
-        "registered": "angemeldet"
+        "registered": "angemeldet",
+        "started": "Suche gestartet"
     },
     "control": {
         "tokennotvalid": "das token ist ungültig",
         "tokenvalid": "das token ist gültig",
         "statechange": "Vertrauensstellung geändert",
         "alreadyregistered": "Schüler*in bereits angemeldet",
-        "examinit":"Kioskmodus gestartet",
-        "examexit":"Kioskmodus beendet",
-        "noexam": "Kioskmodus nicht aktiv",
+        "examinit":"Abgesicherter Modus gestartet",
+        "examexit":"Abgesicherter Modus beendet",
+        "noexam": "Abgesicherter Modus nicht aktiv",
         "clientunsubscribe": "Schüler*in entfernt"
     },
     "data": {
@@ -25,7 +26,12 @@
         "nofiles": "Es wurden keine Dateien hochgeladen"
     },
     "editor": {
-        "leftkiosk": "Sie haben den gesicherten Kioskmodus verlassen!",
-        "replacecontent": "Wollen sie den Inhalt des Editors durch den Inhalt dieser Datei ersetzen?"
+        "leftkiosk": "Sie haben den abgesicherten Modus verlassen!",
+        "tellsomeone": "Melden sie sich umgehend bei der Aufsichtsperson!",
+        "replacecontent": "Wollen sie den Inhalt des Editors durch den Inhalt dieser Datei ersetzen?",
+        "exit":"Abgesicherten Modus beenden"
+    },
+    "math": {
+        "exit":"Abgesicherten Modus beenden"
     }
 }

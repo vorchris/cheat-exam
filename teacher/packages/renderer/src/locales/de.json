@@ -1,7 +1,7 @@
 { 
     "general": {
-        "startserver":"Prüfung anlegen",
-        "slist": "Aktive Prüfungen"
+        "startserver":"Exam anlegen",
+        "slist": "Aktive Examen"
     },
     "serverlist" : {
         "pwd": "Passwort",
@@ -10,15 +10,15 @@
     },
     "startserver" : {
         "connected": "verbunden",
-        "start": "Neue Prüfung starten",
-        "examname": "Prüfungsname",
+        "start": "Exam Server starten",
+        "examname": "Name",
         "pwd": "Passwort"
     },
     "dashboard":{
         "name": "Name",
         "pin": "Pin",
         "connected": "verbunden",
-        "stopserver": "Prüfung beenden",
+        "stopserver": "beenden",
         "filesend": "Dateien senden",
         "filesendtext": "Bitte wählen sie eine oder mehrere Dateien",
         "cancel": "Abbrechen",
@@ -29,33 +29,38 @@
         "lang": "Sprachen",
         "math": "Mathematik",
         "autoget": "auto Abgabe",
-        "startexam": "Kioskmodus starten",
+        "startexam": "Prüfung starten",
         "sendfile": "Datei senden",
         "getfile": "Abgabe holen",
-        "stopexam": "Kioskmodus beenden",
+        "stopexam": "Prüfung beenden",
         "sure": "Sind sie sicher?",
-        "exitexam": "Prüfung für alle Schüler*innen beenden",
-        "exitkiosk": "Kiosk Modus beenden",
-        "kick": "Schüler*in aus der Prüfung entfernen",
-        "leftkiosk": "hat den Kioskmodus verlassen!"
+        "exitexamsure": "Exam Server schließen?",
+        "exitexam": "Dies beendet die Prüfung für alle Schüler*innen",
+        "exitkiosk": "Abesicherten Modus beenden",
+        "kick": "Schüler*in vom Server entfernen",
+        "leftkiosk": "hat den abgesicherten Modus verlassen!",
+        "online":"online",
+        "secure":"abgesichert",
+        "restore":"wiederherstellen",
+        "exammodeactive": "Schüler*in bereits im abgesicherten Modus"
     },
     "control": {
         "tokennotvalid": "das token ist ungültig",
         "statechange": "Vertrauensstellung geändert",
         "alreadyregistered": "Schüler*in bereits angemeldet",
         "registered": "Schüler*in angemeldet",
-        "serverexists": "Prüfung existiert bereits",
-        "serverstarted": "Prüfung gestartet",
-        "serverstopped": "Prüfung beendet",
+        "serverexists": "Exam Server existiert bereits",
+        "serverstarted": "Exam Server gestartet",
+        "serverstopped": "Exam Server beendet",
         "notfound": "Prüfung existiert nicht",
         "wrongpw": "Passwort falsch",
         "wrongpin": "Falscher PIN",
         "correctpw": "Passwort OK",
-        "studentremove": "Schüler*in von Prüfung entfernt",
+        "studentremove": "Schüler*in von Exam Server entfernt",
         "actiondenied": "Aktion verboten",
         "nofiles": "Es wurden keine Dateien hochgeladen",
         "studentupdate": "Schülerdaten aktualisiert",
-        "studentleft": "Schüler*in hat die Prüfung verlassen",
+        "studentleft": "Schüler*in hat den Exam Server verlassen",
         "staterestore": "Vertrauensstellung wiederhergestellt"
     },  
     "data": {

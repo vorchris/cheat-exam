@@ -29,7 +29,7 @@
     <div class="p-3 text-white bg-dark h-100 " style="width: 240px; min-width: 240px;">
         <div class="btn btn-light m-1 text-start">{{$t('dashboard.name')}} <br><b> {{$route.params.servername}}</b> </div><br>
         <div class="btn btn-light m-1 mb-1 text-start" @click="showpin()">{{$t('dashboard.pin')}}<br><b> {{ $route.params.pin }} </b>  </div><br>
-        <div class="btn btn-danger m-1 mb-3 text-start" @click="stopserver()">{{$t('dashboard.stopserver')}}</div><br>
+        <div class="btn btn-danger m-1 mb-3 text-start" @click="stopserver()" style="">{{$t('dashboard.stopserver')}}</div><br>
         <div class="form-check m-1">
             <input v-model="examtype" value="language" class="form-check-input" type="radio" name="examtype" id="examtype1" checked>
             <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}} </label>
@@ -53,14 +53,14 @@
         <div id="studentslist" class="placeholder pt-4"> 
             <div v-for="student in studentlist" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn border-0 rounded-3 btn-block m-1 ">
                 
-                <div id="image" class="rounded" :style="(student.imageurl)? `background-image:url(${student.imageurl})`:'background-image:url(/src/assets/img/icons/security.png)'" style="position: relative; height:75%; background-size:cover;">
+                <div id="image" class="rounded" :style="(student.imageurl)? `background-image:url(${student.imageurl})`:'background-image:url(person-lines-fill.svg)'" style="position: relative; height:75%; background-size:cover;">
                     <span style="">{{student.clientname}}            
                     <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-2 pe-2 float-end" title="kick user"></button> </span>
                 </div>
                 <div class="btn-group pt-0" role="group">
-                    <button v-if="(now - 20000 < student.timestamp)" @click="showStudentview(student)" type="button" class="btn btn-outline-success btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">online</button>
-                    <button v-if="(now - 20000 < student.timestamp) && student.exammode"  @click='showStudentview(student)' type="button" class="btn btn-outline-warning btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;">kioskmode</button>
-                    <button v-if="!student.focus && (now - 20000 < student.timestamp)"   @click='restore(student.token,student.clientip)' type="button" class="btn btn-danger btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;"> restore </button>
+                    <button v-if="(now - 20000 < student.timestamp)" @click="showStudentview(student)" type="button" class="btn btn-outline-success btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">{{$t('dashboard.online')}} </button>
+                    <button v-if="(now - 20000 < student.timestamp) && student.exammode && student.focus"  @click='showStudentview(student)' type="button" class="btn btn-outline-warning btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;">{{$t('dashboard.secure')}}</button>
+                    <button v-if="(now - 20000 < student.timestamp) && student.exammode && !student.focus "   @click='restore(student.token,student.clientip)' type="button" class="btn btn-danger btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;"> {{$t('dashboard.restore')}} </button>
                 </div>
             </div>
         </div>
@@ -194,7 +194,7 @@ export default {
         //stop and clear this exam server instance
         stopserver(){
             this.$swal.fire({
-                title: this.$t("dashboard.sure"),
+                title: this.$t("dashboard.exitexamsure"),
                 text:  this.$t("dashboard.exitexam"),
                 icon: "question",
                 showCancelButton: true,
@@ -232,7 +232,7 @@ export default {
                 else {  
                     this.studentlist.forEach( (student) => {
                         //check exam mode for students - dont initialize twice (right after exam stop it takes a few seconds for the students to update their exam status on the server again)
-                        if (student.exammode){ this.status("student(s) still in exam mode"); return; }
+                        if (student.exammode){ this.status(this.$t("dashboard.exammodeactive")); return; }
                         axios.get(`http://${student.clientip}:${this.clientApiPort}/client/control/exammode/start/${student.token}/${this.examtype}`)
                         .then( response => {
                             this.status(response.data.message);
@@ -244,7 +244,7 @@ export default {
             else {
                 let student = who
               
-                if (student.exammode){ this.status("student(s) still in exam mode"); return; }
+                if (student.exammode){ this.status(this.$t("dashboard.exammodeactive")); return; }
                 axios.get(`http://${student.clientip}:${this.clientApiPort}/client/control/exammode/start/${student.token}/${this.examtype}`)
                 .then( response => {
                     this.status(response.data.message);
@@ -410,6 +410,7 @@ export default {
 
 
 <style scoped>
+
 
 #studentinfocontainer {
     display: none;

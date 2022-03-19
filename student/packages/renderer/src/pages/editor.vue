@@ -1,18 +1,17 @@
  <template>
   <div class="w-100 p-3 text-white bg-dark  text-center" style=" z-index: 10000 !important">
- 
-        <router-link v-if="online" :to="(clientname == 'DemoUser')?'/':''" class="text-white m-1">
+        <div v-if="online" class="text-white m-1">
             <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style="float: left;" />
             <span class="fs-4 align-middle me-1" style="float: left;">{{clientname}}</span>
             <span class="fs-4 align-middle me-4 green" style="float: left;" >| online</span> 
-        </router-link>
+        </div>
 
-        <router-link v-if="!online" :to="(clientname == 'DemoUser')?'/':'/'" class="text-white m-1">
+        <div v-if="!online" class="text-white m-1">
             <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style=" float: left;" />
              <span class="fs-4 align-middle me-1" style=" float: left;"> {{clientname}} </span>
-             <span class="fs-4 align-middle me-4 red" style="float: left;"> | offline </span> 
-             
-        </router-link>
+             <span class="fs-4 align-middle me-4 red" style="float: left;"> | offline </span>  
+            <button style="float: left;" @click="exit()" class="btn btn-outline-warning ">{{$t('editor.exit')}} </button>
+        </div>
 
         <span class="fs-4 align-middle" style="">{{servername}}</span>
         <span class="fs-4 align-middle" style="float: right">Writer</span>
@@ -61,7 +60,7 @@
 
    <div v-if="!focus" id="" class="infodiv p-4 d-block focuswarning" >
             <div class="mb-3 row">
-                <div class="mb-3 "> {{$t('editor.leftkiosk')}}</div>
+                <div class="mb-3 "> {{$t('editor.leftkiosk')}} <br> {{$t('editor.tellsomeone')}} </div>
                 <img src="/src/assets/img/svg/eye-slash-fill.svg" class=" me-2" width="32" height="32" >
             </div>
         </div>
@@ -150,6 +149,9 @@ export default {
         }
     },
     methods: {
+        exit(){
+             ipcRenderer.send('endexam')
+        }, 
         clock(){
             let now = new Date().getTime()
             this.timesinceentry =  new Date(now - this.entrytime).toISOString().substr(11, 8)
@@ -424,15 +426,14 @@ const test = function ( data ) { console.log(data); }
 ENDE !!`,
         });
 
-        if(this.token && this.exammode) { this.focuscheck() }  // run focuscheck function (sets some window event listeners )       
+        if (this.token) { this.focuscheck() }  // run focuscheck function (sets some window event listeners )    // no focuscheck function when entering manually   
         if (this.electron){
-
-            if(this.token && this.exammode) {  this.blurEvent = ipcRenderer.on('blurevent', this.focuslost, false); } //ipcRenderer seems to be of type nodeEventTarget (on/addlistener returns a reference to the eventTarget)
+            if (this.token) {  this.blurEvent = ipcRenderer.on('blurevent', this.focuslost, false); } //ipcRenderer seems to be of type nodeEventTarget (on/addlistener returns a reference to the eventTarget)
             this.endExamEvent = ipcRenderer.on('endexam', () => { this.$router.push({ name: 'student'}); }); //redirect to home view // right before we leave vue.js will run beforeUnmount() which removes all listeners this view attached to the window and the ipcrenderer
         }   
         this.currentFile = this.clientname
         this.entrytime = new Date().getTime()
-        this.fetchinterval = setInterval(() => { this.fetchContent() }, 1000)   
+        this.fetchinterval = setInterval(() => { this.fetchContent() }, 10000)   
         this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 10000)   
         this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 5000) 
         this.clockinterval = setInterval(() => { this.clock() }, 1000)   
@@ -450,6 +451,8 @@ ENDE !!`,
         this.editor.destroy()
         clearInterval( this.fetchinterval )
         clearInterval( this.loadfilelistinterval )
+        clearInterval( this.fetchinfointerval )
+        clearInterval( this.clockinterval )
     },
 }
 </script>

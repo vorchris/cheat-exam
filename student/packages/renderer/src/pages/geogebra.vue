@@ -1,35 +1,38 @@
  <template> 
     <div id="apphead" class="w-100 p-3 text-white bg-dark shadow text-center">
-        <router-link v-if="online" :to="(clientname == 'DemoUser')?'/':''" class="text-white m-1">
+
+        <div v-if="online" class="text-white m-1">
             <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style="float: left;" />
             <span class="fs-4 align-middle me-1" style="float: left;">{{clientname}}</span>
             <span class="fs-4 align-middle me-4 green" style="float: left;" >| online</span> 
-        </router-link>
+        </div>
 
-        <router-link v-if="!online" :to="(clientname == 'DemoUser')?'/':'/'" class="text-white m-1">
+        <div v-if="!online" class="text-white m-1">
             <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style=" float: left;" />
              <span class="fs-4 align-middle me-1" style=" float: left;"> {{clientname}} </span>
-             <span class="fs-4 align-middle me-4 red" style="float: left;"> | offline </span> 
-             
-        </router-link>
-
-        <span class="fs-4 align-middle" style="">{{servername}}</span>
-        <span class="fs-4 align-middle" style="float: right">GeoGebra</span>
-        <span class="fs-4 align-middle me-2" style="float: right">{{timesinceentry}}</span>
-    </div>
-    <div id="content">
-
-         <div v-if="!focus" id="" class="infodiv p-4 d-block focuswarning" >
-            <div class="mb-3 row">
-                <div class="mb-3 "> {{$t('editor.leftkiosk')}} </div>
-                <img src="/src/assets/img/svg/eye-slash-fill.svg" class=" me-2" width="32" height="32" >
-            </div>
+             <span class="fs-4 align-middle me-4 red" style="float: left;"> | offline </span>  
+            <button style="float: left;" @click="exit()" class="btn btn-outline-warning ">{{$t('math.exit')}} </button>
         </div>
 
 
+        <span class="fs-4 align-middle" style="">{{servername}}</span>
+        <span class="fs-4 align-middle" style="float: right">GeoGebra</span>
+        <!-- <div class="btn-group pt-0 ms-4 me-4" role="group" style="float: right">
+            <div class="btn btn-outline-info" @click="setsource('geometry')"> geometry</div>
+            <div class="btn btn-outline-info" @click="setsource('graphing')"> graphing</div>
+        </div> -->
+        <span class="fs-4 align-middle me-2" style="float: right">{{timesinceentry}}</span>
+    </div>
 
+
+    <div id="content">
+         <div v-if="!focus" id="" class="infodiv p-4 d-block focuswarning" >
+            <div class="mb-3 row">
+                <div class="mb-3 "> {{$t('editor.leftkiosk')}} <br> {{$t('editor.tellsomeone')}} </div>
+                <img src="/src/assets/img/svg/eye-slash-fill.svg" class=" me-2" width="32" height="32" >
+            </div>
+        </div>
         <iframe id="geogebraframe" :src="geogebrasource"></iframe>
-       
     </div>
 </template>
 
@@ -67,7 +70,7 @@ export default {
     }, 
     components: {  },  
     mounted() {
-        this.geogebrasource = `./geogebra/geometry.html`
+        this.geogebrasource = `./geogebra/suite.html`
         this.currentFile = this.clientname
         this.entrytime = new Date().getTime()  
                  
@@ -83,7 +86,14 @@ export default {
             if (this.token) { this.focuscheck() } 
         })
     },
-    methods: {          
+    methods: { 
+        setsource(source){
+            if (source === "geometry") { this.geogebrasource = `./geogebra/suite.html`}
+            if (source === "graphing") { this.geogebrasource = `./geogebra/graphing.html`}
+        },
+        exit(){
+             ipcRenderer.send('endexam')
+        },     
         clock(){
             let now = new Date().getTime()
             this.timesinceentry =  new Date(now - this.entrytime).toISOString().substr(11, 8)
@@ -146,6 +156,8 @@ export default {
             let pagenumber = 0;   // how many pdf pages can we get out of the total page height?
             let windowHeight = 0;  // the dryrun will set the windowheight of the editor at a given width of 794px (final pdf x resolution)
 
+
+            /// ATTENTION:  it would be easier and mode reliable to just make a screenshot and embed it 
             html2canvas(body, { scale: 1, x:0, y: 0,  scrollX: 0,  scrollY: 0,  windowWidth: 794,    //DRYRUN - this sets the html body width for this canvas render testrun >> ATTENTION: windowHeight will change accordingly !!!
                 onclone: (document) => {
                     windowHeight = Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight );  // calculate NEW Height for rendering and set global variable
@@ -192,7 +204,9 @@ export default {
     },
     beforeUnmount() {
         clearInterval( this.fetchinterval )
-        clearInterval( this.loadfilelistinterval )
+        clearInterval( this.fetchinfointerval )
+        clearInterval( this.clockinterval )
+
         //remove electron ipcRender events
         this.endExamEvent.removeAllListeners('endexam')   //remove endExam listener from window
         this.blurEvent.removeAllListeners('blurevent')  //Node.js-specific extension to the EventTarget class. If type is specified, removes all registered listeners for type, otherwise removes all registered listeners.

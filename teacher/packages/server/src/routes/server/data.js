@@ -4,11 +4,8 @@ const router = Router()
 import { join } from 'path'
 import FormData from 'form-data'
 import config from '../../config.js'
-
 import fs from 'fs' 
 import  extract from 'extract-zip'
-import axios from 'axios'
-
 import i18n from '../../../../renderer/src/locales/locales.js'
 const { t } = i18n.global
  

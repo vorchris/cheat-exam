@@ -2,23 +2,6 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
-	<title>Graphing Calculator - GeoGebra</title>
-	<link rel="shortcut icon" href="https://www.geogebra.org/apps/icons/graphing.ico" type="image/x-icon">
-	<link rel="icon" href="https://www.geogebra.org/apps/icons/graphing.ico" type="image/x-icon">
-	<meta property="og:title" content="Graphing Calculator - GeoGebra" />
-	<meta name="apple-itunes-app" content="app-id=1146717204"><link rel="manifest" href="https://www.geogebra.org/apps/manifest/graphing.json">
-	<link rel="preconnect" href="https://cdn.geogebra.org">
-<link rel="preconnect" href="https://www.google-analytics.com">
-	<script>
-    (function(h,o,t,j,a,r){
-        h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
-        h._hjSettings={hjid:1920935,hjsv:6};
-        a=o.getElementsByTagName('head')[0];
-        r=o.createElement('script');r.async=1;
-        r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
-        a.appendChild(r);
-    })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
-</script>
 <script type="text/javascript">
 
 // for IE9
@@ -520,33 +503,16 @@ function addAppletPreview(tubeid){
 }
 
 </script>
-<!-- Google Analytics (Start) -->
-	<script type="text/javascript">
-	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
-	if(window.installAnalytics){
-		window.installAnalytics('UA-1780044-1');
-	} else {
-		ga('create','UA-1780044-1','auto');
-	}
-	
-	ga('send', 'pageview');
-	
-	var gaPrefixes = {"graphing":"Graphing", "geometry":"Geometry"};
-	var gaLabel = gaPrefixes[window.appID] || "Classic";
-	gaLabel += appOnline ? " Web" : " Offline";	
-	ga('send', 'event', 'Startup', analyticsVersion, gaLabel);
-	</script> 
-	<script async src='https://www.google-analytics.com/analytics.js'></script>
- 	<!-- Google Analytics (End) -->
+
 
 
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1" />
     <style>
     body {
         touch-action: none;
-        -ms-touch-action: none; /* Direct all pointer events to JavaScript code. */
+        -ms-touch-action: none; 
         -ms-user-select: none;
-        -webkit-tap-highlight-color: rgba(255, 255, 255, 0); /* avoid flash on Android http://stackoverflow.com/questions/5210481/*/
+        -webkit-tap-highlight-color: rgba(255, 255, 255, 0); 
         color: #666666;
         font-size: 14px;
         font-family: sans-serif;
@@ -1239,27 +1205,7 @@ window.addEventListener("resize", ggbHeaderResize);
     data-param-useBrowserForJS="false"
     data-param-app="true" data-param-showAppsPicker="true" ></div>
 </body>
-<script src="https://www.gstatic.com/firebasejs/7.14.3/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/7.14.3/firebase-analytics.js"></script>
 
-<script>
-var firebaseConfig = {
-    apiKey: "AIzaSyDg3hfaFLUKQDJCRRrTnTIshxxgyAUzPuU",
-    authDomain: "geogebra-ggb.firebaseapp.com",
-    databaseURL: "https://geogebra-ggb.firebaseio.com",
-    projectId: "geogebra-ggb",
-    storageBucket: "geogebra-ggb.appspot.com",
-    messagingSenderId: "895270214636",
-    appId: "1:895270214636:web:db7055c9a67f1f1e84fec9",
-    measurementId: "G-55K7P9GRQK"
-};
-
-// Initialize Firebase
-if (window.firebase) {
-    firebase.initializeApp(firebaseConfig);
-    firebase.analytics();
-}
-</script>
 
 </html>
 

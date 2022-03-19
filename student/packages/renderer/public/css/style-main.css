@@ -100,8 +100,9 @@ input:focus::placeholder {
 .focuswarning {
    background-color: #ffc107 !important;
    text-align: center !important;
-  
-    font-size: 1.1em;
+   height: 160px;
+   width: 450px;
+   font-size: 1.1em;
     border: 1px solid rgb(255, 153, 0) !important;
 }
 
