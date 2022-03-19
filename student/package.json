@@ -19,7 +19,7 @@
     "productName": "Next-Exam-Student",
     "appId": "com.nextexam-student.app",
     "asar": true,
-    "asarUnpack": "node_modules/puppeteer/.local-chromium/**/*",
+    "asarUnpack": [ "node_modules/screenshot-desktop/lib/win32"],
     "directories": {
       "output": "release/${version}"
     },
