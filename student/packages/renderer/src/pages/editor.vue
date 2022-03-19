@@ -206,11 +206,7 @@ export default {
 
         /** Converts the Editor View into a multipage PDF */
         async fetchContent() {              
-            let body = document.body;
-            let pagenumber = 0;   // how many pdf pages can we get out of the total page height?
-            let windowHeight = 0;  // the dryrun will set the windowheight of the editor at a given width of 794px (final pdf x resolution)
-
-
+            
             let doc = new jsPDF('p', 'px','a4', true, true);   //orientation, unit for coordinates, format, onlyUsedFonts, compress
             const editorcontent = this.editor.getHTML();    
            
@@ -239,69 +235,6 @@ export default {
                     windowWidth:420,
                     autoPaging: 'slice',
             });
-
-
-           // const pdfBlob = new Blob([ doc.output('blob') ], { type : 'application/pdf'});
-
-    
-
-
-            //kinda screenshots the whole editor and generates a pdf (really big pdf unfortunately)
-            // html2canvas(body, { scale: 1, x:0, y: 0,  scrollX: 0,  scrollY: 0,  windowWidth: 794,    //DRYRUN - this sets the html body width for this canvas render testrun >> ATTENTION: windowHeight will change accordingly !!!
-            //     onclone: (document) => {
-            //         document.getElementById('editortoolbar').style.display = 'none';   //hide toolbar
-            //         document.getElementById('localfiles').style.display = 'none';   //hide filespicker
-            //         let body = document.body;           
-            //         let html = document.documentElement;
-            //         windowHeight = Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight );  // calculate NEW Height for rendering and set global variable
-            //         pagenumber = Math.ceil(windowHeight / 1123);   // how many pdf pages can we get out of the total page height?
-            //     }
-            // }).then( async () => {
-            //     for (let i = 0; i < pagenumber; i++) {
-            //         await new Promise( resolve => {
-            //             html2canvas(body, {
-            //                 scale: 1,
-            //                 x:0,
-            //                 y: i * 1123,  // on every loop advance y-position by 1123 - why this number ? because gimp says the final pdf page in 96dpi has this height.. wtf ? jsPDF sucks hard!
-            //                 scrollX: 0,
-            //                 scrollY: 0,
-            //                 windowWidth: 794,    //this sets the html body width somehow
-            //                 windowHeight: windowHeight,  // we set the height for this rendering to the previously determined height
-            //                 onclone: (document) => {
-            //                     document.getElementById('editortoolbar').style.display = 'none'
-            //                     document.getElementById('localfiles').style.display = 'none';   //hide filespicker
-            //                 }
-            //             }).then( canvas => {  // now we have a canvas that contains the whole website :-) !!
-            //                 let img = canvas.toDataURL('image/jpeg', 1);  // type, quality
-            //                 doc.addImage(img, 'JPG', 0, 0, 0, 0, i, 'FAST');    // imagedata, format if recognition fails, x, y ,w ,h, alias, compression, rotation
-            //                 if ( ( i + 1 ) == pagenumber) {  // FINISHED
-            //                     const editorcontent = this.editor.getHTML();  //get content as JSON (für späteren re-import in den editor!?)
-            //                     const pdfBlob = new Blob([ doc.output('blob') ], { type : 'application/pdf'});
-
-            //                     let form = new FormData()
-            //                     form.append("file", pdfBlob,  `${this.currentFile}.pdf` );
-            //                     form.append("editorcontent", editorcontent)
-            //                     form.append("currentfilename", this.currentFile)
-
-            //                     axios({
-            //                         method: "post", 
-            //                         url: `http://localhost:${this.clientApiPort}/client/data/store`, 
-            //                         data: form, 
-            //                         headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
-            //                     }).then( async (response) => {
-            //                         //console.log(response.data)
-            //                     }).catch(err => { console.warn(err)});
-
-            //                 } 
-            //                 else { doc.addPage(); }
-            //                 resolve();
-            //             }).catch( err => console.log(err));
-            //         });
-            //     }
-            // });
-
-
-
         },
         focuscheck() {
             window.addEventListener('beforeunload',         this.focuslost);  // keeps the window open (displays "are you sure in browser")
@@ -433,10 +366,10 @@ ENDE !!`,
         }   
         this.currentFile = this.clientname
         this.entrytime = new Date().getTime()
-        this.fetchinterval = setInterval(() => { this.fetchContent() }, 10000)   
-        this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 10000)   
-        this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 5000) 
-        this.clockinterval = setInterval(() => { this.clock() }, 1000)   
+        this.fetchinterval = setInterval(() => { this.fetchContent() }, 20000)    // speichert content als datei
+        this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 10000)   // zeigt html dateien (angaben, eigene arbeit) im header
+        this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 5000)      //holt client info (exam status, connection, token)
+        this.clockinterval = setInterval(() => { this.clock() }, 1000)   // uhrzeit (jede sekunde)
         this.loadFilelist()
     },
     beforeUnmount() {
