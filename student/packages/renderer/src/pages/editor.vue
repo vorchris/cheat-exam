@@ -108,7 +108,6 @@ import Dropcursor from '@tiptap/extension-dropcursor'
 import Gapcursor from '@tiptap/extension-gapcursor'
 import History from '@tiptap/extension-history'
 import { lowlight } from "lowlight/lib/common.js";
-import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 
 import FormData from 'form-data';
