@@ -13,7 +13,7 @@
   "type": "module",
   "scripts": {
     "dev": "node scripts/watch.mjs",
-    "build": "node scripts/build.mjs && electron-builder"
+    "build": "node scripts/build.mjs && electron-builder -wl"
   },
   "build": {
     "productName": "Next-Exam-Student",
@@ -27,27 +27,28 @@
       "dist"
     ],
     "linux": {
-      "target": "AppImage",
-      "category": "Utility",
-      "icon": "dist/renderer/favicon.svg",
-      "artifactName": "${productName}_${version}.${ext}"
+        "target": "AppImage",
+        "category": "Utility",
+        "icon": "dist/renderer/favicon.svg",
+        "artifactName": "${productName}_${version}.${ext}"
     },
     "mac": {
-      "artifactName": "${productName}_${version}.${ext}",
-      "target": [
-        "dmg"
-      ]
+        "icon": "dist/renderer/favicon.svg",
+        "artifactName": "${productName}_${version}.${ext}",
+        "target": [
+            "dmg"
+        ]
     },
     "win": {
-      "target": [
-        {
-          "target": "portable",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "artifactName": "${productName}_${version}.${ext}"
+        "target": [
+            {
+            "target": "portable",
+            "arch": [
+                    "x64"
+                ]
+            }
+        ],
+         "artifactName": "${productName}_${version}.${ext}"
     },
     "nsis": {
       "oneClick": false,

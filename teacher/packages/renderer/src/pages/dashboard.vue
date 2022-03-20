@@ -14,12 +14,12 @@
         <div style="height:100%">
             <div id="controlbuttons">
                 <b>{{activestudent.clientname}}</b>
-                <div class="col d-inlineblock btn btn-warning m-1"  @click="startExam(activestudent)" >kiosk </div>
-                <div class="col d-inlineblock btn btn-warning m-1"  @click="endExam(activestudent)" >endkiosk </div>
-                <div class="col d-inlineblock btn btn-info m-1"  @click="sendFiles(activestudent)" >sendfile </div>
-                <div class="col d-inlineblock btn btn-info m-1"  @click="getFiles(activestudent)" >abgabe </div>
-                <div class="col d-inlineblock btn btn-danger m-1"   @click='kick(activestudent.token,activestudent.clientip)' >kick</div>
-                 <div class="col d-inlineblock btn btn-secondary m-1"     @click="hideStudentview()" >close </div>
+                <div class="col d-inlineblock btn btn-warning m-1"   @click="startExam(activestudent)" style="width: 100px">{{$t('dashboard.startexam')}} </div>
+                <div class="col d-inlineblock btn btn-warning m-1"   @click="endExam(activestudent)"  style="width: 100px">{{$t('dashboard.stopexam')}} </div>
+                <div class="col d-inlineblock btn btn-info m-1"      @click="sendFiles(activestudent)"  style="width: 100px">{{$t('dashboard.sendfile')}}</div>
+                <div class="col d-inlineblock btn btn-info m-1"      @click="getFiles(activestudent)"  style="width: 100px">{{$t('dashboard.getfile')}}</div>
+                <div class="col d-inlineblock btn btn-danger m-1"    @click='kick(activestudent.token,activestudent.clientip)'  style="width: 100px">{{$t('dashboard.kick')}}</div>
+                <div class="col d-inlineblock btn btn-secondary m-1" @click="hideStudentview()"  style="width: 100px">{{$t('dashboard.close')}} </div>
             </div>
         </div>
     </div>
@@ -324,7 +324,7 @@ export default {
             
             this.$swal.fire({
                 title: this.$t("dashboard.sure"),
-                text:  this.$t("dashboard.kick"),
+                text:  this.$t("dashboard.reallykick"),
                 icon: "warning",
                 showCancelButton: true,
                 cancelButtonText: this.$t("dashboard.cancel"),
@@ -448,7 +448,7 @@ export default {
     backdrop-filter: blur(2px);
     position: absolute;
     left: 0px;
-    width: 120px; 
+    width: 128px; 
     height: 100%; 
     top: 0px;  
     background:  rgba(0, 0, 0, 0.493);

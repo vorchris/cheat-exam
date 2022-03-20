@@ -31,8 +31,12 @@ Node v16.14.0
 
 ## build next-exam 
 
+student: 
+```npm run build```
+teacher:
 ```npm run build:electron```
 
+!in order to build for windows on linux you need to 'apt install wine'!
 
 
 ## more information

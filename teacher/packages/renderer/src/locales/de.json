@@ -37,12 +37,14 @@
         "exitexamsure": "Exam Server schließen?",
         "exitexam": "Dies beendet die Prüfung für alle Schüler*innen",
         "exitkiosk": "Abesicherten Modus beenden",
-        "kick": "Schüler*in vom Server entfernen",
+        "reallykick": "Schüler*in vom Exam Server entfernen",
+        "kick": "entfernen",
         "leftkiosk": "hat den abgesicherten Modus verlassen!",
         "online":"online",
         "secure":"abgesichert",
         "restore":"wiederherstellen",
-        "exammodeactive": "Schüler*in bereits im abgesicherten Modus"
+        "exammodeactive": "Schüler*in bereits im abgesicherten Modus",
+        "close":"schließen"
     },
     "control": {
         "tokennotvalid": "das token ist ungültig",

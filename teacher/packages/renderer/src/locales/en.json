@@ -37,12 +37,14 @@
         "exitexamsure": "Close Exam Server?",
         "exitexam": "This stops the exam for all students",
         "exitkiosk": "exit safe exam mode",
-        "kick": "remove student from server",
+        "reallykick": "remove student from server",
+        "kick": "remove",
         "leftkiosk": "has left the safe exam mode!",
         "online":"online",
         "secure":"secured",
         "restore":"restore",
-        "exammodeactive": "student already in safe exam mode"
+        "exammodeactive": "student already in safe exam mode",
+        "close":"schließen"
     },
     "control": {
         "tokennotvalid": "token is not valid",
