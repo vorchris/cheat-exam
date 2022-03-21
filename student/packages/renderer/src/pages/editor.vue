@@ -1,5 +1,6 @@
  <template>
-  <div class="w-100 p-3 text-white bg-dark  text-center" style=" z-index: 10000 !important">
+    <!-- HEADER START -->
+    <div class="w-100 p-3 text-white bg-dark  text-center" style=" z-index: 10000 !important">
         <div v-if="online" class="text-white m-1">
             <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style="float: left;" />
             <span class="fs-4 align-middle me-1" style="float: left;">{{clientname}}</span>
@@ -17,18 +18,24 @@
         <span class="fs-4 align-middle" style="float: right">Writer</span>
         <span class="fs-4 align-middle me-2" style="float: right">{{timesinceentry}}</span>
     </div>
-    
+     <!-- HEADER END -->
+
+
+
     <div class="w-100 p-2 m-0 text-white shadow-sm text-center" style=" top: 66px; z-index: 10001 !important; background-color: white;">
         
+        <!-- filelist start -->
         <div id="localfiles" class="mb-2" style="top:0px;">
-             
              <div v-for="file in localfiles" class="d-inline">
-                <div v-if="(file == currentFile)" class="btn btn-success me-2"   @click="selectedFile=file; toggleUpload()"><img src="/src/assets/img/svg/games-solve.svg" class="" width="22" height="22" > {{file}} </div>
-                <div v-if="(file != currentFile)" class="btn btn-secondary me-2" @click="selectedFile=file; toggleUpload()"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file}} </div>
+                <div v-if="(file.name == currentFile && file.type == 'html')" class="btn btn-success me-2"   @click="selectedFile=file.name; toggleUpload()"><img src="/src/assets/img/svg/games-solve.svg" class="" width="22" height="22" > {{file.name}} </div>
+                <div v-if="(file.name != currentFile && file.type == 'html')" class="btn btn-secondary me-2" @click="selectedFile=file.name; toggleUpload()"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file.name}} </div>
+                <div v-if="(file.name == currentFile && file.type == 'pdf')" class="btn btn-success me-2"   @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/games-solve.svg" class="" width="22" height="22" > {{file.name}} </div>
+                <div v-if="(file.name != currentFile && file.type == 'pdf')" class="btn btn-secondary me-2" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file.name}} </div>
             </div>
-  
         </div>
+        <!-- filelist end -->
 
+        <!-- toolbar start -->
         <div v-if="editor" class="mb-2" id="editortoolbar">
             <button @click="editor.chain().focus().undo().run()" class="btn btn-outline-warning p-1 me-1 mb-1"><img src="/src/assets/img/svg/edit-undo.svg" class="white" width="22" height="22" ></button>
             <button @click="editor.chain().focus().redo().run()" class="btn btn-outline-warning p-1 me-1 mb-1"><img src="/src/assets/img/svg/edit-redo.svg" class="white" width="22" height="22" > </button>
@@ -53,32 +60,45 @@
             <button @click="editor.chain().focus().setTextAlign('right').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'right' }) }" class="btn btn-outline-info p-1 me-2 mb-1 "><img src="/src/assets/img/svg/format-justify-right.svg" class="white" width="22" height="22" ></button>
             <button @click="editor.chain().focus().setHardBreak().run()" class="btn btn-outline-info p-1 me-2 mb-1"><img src="/src/assets/img/svg/key-enter.svg" class="white" width="22" height="22" ></button>
         </div>
+        <!-- toolbar end -->
     </div>
 
+    <!-- angabe/pdf preview start -->
+    <div id=preview class="fadeinslow p-4">
+        <embed src="" id="pdfembed"/>
+    </div>
+    <!-- angabe/pdf preview end -->
 
+    <!-- focus warning start -->
    <div v-if="!focus" id="" class="infodiv p-4 d-block focuswarning" >
-            <div class="mb-3 row">
-                <div class="mb-3 "> {{$t('editor.leftkiosk')}} <br> {{$t('editor.tellsomeone')}} </div>
-                <img src="/src/assets/img/svg/eye-slash-fill.svg" class=" me-2" width="32" height="32" >
-            </div>
+        <div class="mb-3 row">
+            <div class="mb-3 "> {{$t('editor.leftkiosk')}} <br> {{$t('editor.tellsomeone')}} </div>
+            <img src="/src/assets/img/svg/eye-slash-fill.svg" class=" me-2" width="32" height="32" >
         </div>
-        
-        <div id="uploaddiv" class="fadeinslow p-4">
-            <div class="mb-3 row">
-                <div class="mb-3 "> {{$t('editor.replacecontent')}} <b>{{selectedFile}}</b></div>
-                <div class="col d-inlineblock btn btn-success m-1"  @click="toggleUpload()"        >cancel </div>
-                <div class="col d-inlineblock btn btn-danger m-1"  @click="loadfile(selectedFile)" >replace</div>
-            </div>
-        </div>
+    </div>
+    <!-- focuswarning end  -->
 
+
+
+    <!-- file replace start -->
+    <div id="uploaddiv" class="fadeinslow p-4">
+        <div class="mb-3 row">
+            <div class="mb-3 "> {{$t('editor.replacecontent')}} <b>{{selectedFile}}</b></div>
+            <div class="col d-inlineblock btn btn-success m-1"  @click="toggleUpload()"        >cancel </div>
+            <div class="col d-inlineblock btn btn-danger m-1"  @click="loadHTML(selectedFile)" >replace</div>
+        </div>
+    </div>
+    <!-- filereplace end -->
+
+
+
+    <!-- EDITOR START -->
     <div style="position: relative; height: 100%; overflow:hidden; overflow-y: scroll; background-color: #eeeefa;">
-        
         <div id="editorcontainer" class="shadow" style="border-radius:0; margin-top:20px; width: 90vw; margin-left:5vw;">
             <editor-content :editor="editor" class='p-0' id="editorcontent" style="background-color: #fff; border-radius:0;" />
         </div>
-
     </div>
-    
+    <!-- EDITOR END -->
 </template>
 
 <script>
@@ -171,24 +191,39 @@ export default {
         loadFilelist(){
             fetch(`http://localhost:${this.clientApiPort}/client/data/getfiles`, { method: 'POST' })
             .then( response => response.json() )
-            .then( data => {
-                this.localfiles = data;
+            .then( filelist => {
+                this.localfiles = filelist;
             }).catch(err => { console.warn(err)});
         },
 
         // get file from local workdirectory and replace editor content with it
-        loadfile(file){
+        loadHTML(file){
             this.toggleUpload()
             this.currentFile = file  //.replace(/\.[^/.]+$/, "")  // this is going to be the name of the file (without extension) when saved as html or pdf (never overwrite another file)
             const form = new FormData()
             form.append("filename", file)
-            // fetch file from disc - replace editor content
             fetch(`http://localhost:${this.clientApiPort}/client/data/getfiles`, { method: 'POST', body: form })
-                .then( response => response.json() )
-                .then( html => {
+                .then( response => response.json())
+                .then( data => {
                     this.editor.commands.clearContent(true)
-                    this.editor.commands.insertContent(html)
+                    this.editor.commands.insertContent(data)
                 }).catch(err => { console.warn(err)});     
+        },
+
+        // fetch file from disc - show preview
+        loadPDF(file){
+            const form = new FormData()
+            form.append("filename", file)
+            fetch(`http://localhost:${this.clientApiPort}/client/data/getpdf`, { method: 'POST', body: form })
+                .then( response => response.arrayBuffer())
+                .then( data => {
+                    let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
+                    $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
+                    $("#preview").css("display","block");
+                    $("#preview").click(function(e) {
+                         $("#preview").css("display","none");
+                    });
+               }).catch(err => { console.warn(err)});     
         },
 
         // make upload div visible or hide it
@@ -201,16 +236,20 @@ export default {
             else {  $("#uploaddiv").css("display","none"); }
         },
 
+        // make preview div visible or hide it
+        togglePreview(){
+            let status =  $("#preview").css("display");
+            if (status == "none") { $("#preview").css("display","block");}
+            else {  $("#preview").css("display","none"); }
+        },
+
         /** Converts the Editor View into a multipage PDF */
         async saveContent() {              
-            
             let doc = new jsPDF('p', 'px','a4', true, true);   //orientation, unit for coordinates, format, onlyUsedFonts, compress
             const editorcontent = this.editor.getHTML();    
-           
             let pdfBlob;
             doc.html(editorcontent, {
                     callback: (doc) => {
-
                         let filename = this.currentFile.replace(/\.[^/.]+$/, "")  // we dont need the extension
                         pdfBlob = new Blob([ doc.output('blob') ], { type : 'application/pdf'});
                         let form = new FormData()
@@ -245,7 +284,7 @@ export default {
             if (e && e.type === "blur") {  
                 let elementInFocus = document.activeElement.id
                 console.log(elementInFocus);
-                if (elementInFocus !== "geogebraframe" && elementInFocus !== "vuexambody" ){
+                if (elementInFocus !== "geogebraframe" && elementInFocus !== "vuexambody" && elementInFocus !== "pdfembed" ){
                    this.informTeacher()
                 }
             }
@@ -373,8 +412,10 @@ ENDE !!`,
     },
     beforeUnmount() {
         //remove electron ipcRender events
-        this.endExamEvent.removeAllListeners('endexam')   //remove endExam listener from window
-        this.blurEvent.removeAllListeners('blurevent')  //Node.js-specific extension to the EventTarget class. If type is specified, removes all registered listeners for type, otherwise removes all registered listeners.
+        if (this.endExamEvent){ this.endExamEvent.removeAllListeners('endexam')  } //remove endExam listener from window
+        if (this.blurEvent){ this.blurEvent.removeAllListeners('blurevent') } //Node.js-specific extension to the EventTarget class. If type is specified, removes all registered listeners for type, otherwise removes all registered listeners.
+        
+
         //remove window/document events
         window.removeEventListener("beforeunload",  this.focuslost);
         window.removeEventListener('blur',          this.focuslost);
@@ -390,6 +431,42 @@ ENDE !!`,
 </script>
 
 <style lang="scss">
+
+#preview {
+    
+    display: none;
+    position: absolute;
+    top:0;
+    left: 0;
+    width:100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index:100000;
+}
+
+#pdfembed { 
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -30vw;
+    margin-top: -45vh;
+    width:60vw;
+    height: 90vh;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 1);
+    border: 0px solid rgba(255, 255, 255, 0.589);
+    box-shadow: 0 0 15px rgba(22, 9, 9, 0.589);
+    padding: 10px;
+    border-radius: 6px;
+  
+   background-size:cover;
+   background-repeat: no-repeat;
+
+
+}
+
+
+
 
 .html2pdf__container {  //this works only if html automaging mode is "slice" - if we set it to "text" this messes up all lineheights
     line-height: 12px;

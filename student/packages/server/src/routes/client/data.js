@@ -133,29 +133,56 @@ const { t } = i18n.global
 
 /**
  * GET all files from workdirectory
+ * @param filename if set the content of the file is returned
  */ 
  router.post('/getfiles', function (req, res, next) {
     if (!requestSourceAllowed(req, res)) return //only allow this api route on localhost (same machine)
 
     const workdir = path.join(config.workdirectory,"/")
     const filename = req.body.filename
-    if (filename) {
+    if (filename) { //return content of specific file (html only)
         let filepath = path.join(workdir,filename)
         fs.readFile(filepath, 'utf8' , (err, data) => {
             if (err) {console.error(err);  return }
+
             return res.json( data )
         })
     }
-    else {
-        let files=  fs.readdirSync(workdir, { withFileTypes: true })
+    else {  // return file list of exam directory
+        let filelist =  fs.readdirSync(workdir, { withFileTypes: true })
             .filter(dirent => dirent.isFile())
             .map(dirent => dirent.name)
-            .filter( file => file.includes('html'))
+            .filter( file => path.extname(file).toLowerCase() === ".pdf" || path.extname(file).toLowerCase() === ".html" || path.extname(file).toLowerCase() === ".mtml")
+        
+        let files = []
+        filelist.forEach( file => {
+             let type = ""
+             if  (path.extname(file).toLowerCase() === ".pdf"){ files.push( {name: file, type: "pdf"})   }
+             else if  (path.extname(file).toLowerCase() === ".html"){ files.push( {name: file, type: "html"})   }
+             else if  (path.extname(file).toLowerCase() === ".mtml"){ files.push( {name: file, type: "mtml"})   }  // imaginary multiple choice testformat from the future
+            
+        })
+        
         return res.send( files )
     }
 })
   
 
+
+/**
+ * GET PDF from EXAM directory
+ * @param filename if set the content of the file is returned
+ */ 
+ router.post('/getpdf', function (req, res, next) {
+    if (!requestSourceAllowed(req, res)) return //only allow this api route on localhost (same machine)
+
+    const workdir = path.join(config.workdirectory,"/")
+    const filename = req.body.filename
+    if (filename) { //return content of specific file
+        let filepath = path.join(workdir,filename)
+        res.sendFile(filepath); 
+    }
+})
 
 
 
