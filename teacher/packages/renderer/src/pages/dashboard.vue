@@ -39,10 +39,17 @@
             <input v-model="examtype" value="math" class="form-check-input" type="radio" name="examtype" id="examtype2">
             <label class="form-check-label" for="examtype2"> {{$t('dashboard.math')}}  </label>
         </div>
+
         <div class="form-check form-switch  m-1 mb-4">
             <input @change="toggleAutoabgabe()"  v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
             <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
         </div>
+
+        <div class="form-check m-1 mb-2">
+            <input value="del" class="form-check-input" type="checkbox" name="delfolder" id="delfolder">
+            <label class="form-check-label" for="delfolder"> {{$t('dashboard.del')}}  </label>
+        </div>
+
         <div id="statusdiv" class="btn btn-warning m-1"> {{$t('dashboard.connected')}}  </div>
     </div>
 
@@ -227,14 +234,14 @@ export default {
 
         //triggers exam mode on specified clients
         startExam(who){
-            console.log(this.examtype)
+            let delfolder = $("#delfolder").is(':checked')
             if (who == "all"){
                 if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); console.log("no clients connected") }
                 else {  
                     this.studentlist.forEach( (student) => {
                         //check exam mode for students - dont initialize twice (right after exam stop it takes a few seconds for the students to update their exam status on the server again)
                         if (student.exammode){ this.status(this.$t("dashboard.exammodeactive")); return; }
-                        axios.get(`http://${student.clientip}:${this.clientApiPort}/client/control/exammode/start/${student.token}/${this.examtype}`)
+                        axios.get(`http://${student.clientip}:${this.clientApiPort}/client/control/exammode/start/${student.token}/${this.examtype}/${delfolder}`)
                         .then( response => {
                             this.status(response.data.message);
                             console.log(response.data);
@@ -244,9 +251,8 @@ export default {
             }
             else {
                 let student = who
-              
                 if (student.exammode){ this.status(this.$t("dashboard.exammodeactive")); return; }
-                axios.get(`http://${student.clientip}:${this.clientApiPort}/client/control/exammode/start/${student.token}/${this.examtype}`)
+                axios.get(`http://${student.clientip}:${this.clientApiPort}/client/control/exammode/start/${student.token}/${this.examtype}/${delfolder}`)
                 .then( response => {
                     this.status(response.data.message);
                     console.log(response.data);

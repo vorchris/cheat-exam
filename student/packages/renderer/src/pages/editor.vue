@@ -84,8 +84,8 @@
     <div id="uploaddiv" class="fadeinslow p-4">
         <div class="mb-3 row">
             <div class="mb-3 "> {{$t('editor.replacecontent')}} <b>{{selectedFile}}</b></div>
-            <div class="col d-inlineblock btn btn-success m-1"  @click="toggleUpload()"        >cancel </div>
-            <div class="col d-inlineblock btn btn-danger m-1"  @click="loadHTML(selectedFile)" >replace</div>
+            <div class="col d-inlineblock btn btn-success m-1"  @click="toggleUpload()"        >{{$t('editor.cancel')}}</div>
+            <div class="col d-inlineblock btn btn-danger m-1"  @click="loadHTML(selectedFile)" >{{$t('editor.replace')}}</div>
         </div>
     </div>
     <!-- filereplace end -->

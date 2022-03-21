@@ -86,7 +86,7 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
  * Runs a tokencheck and STARTS THE EXAM MODE
  * @param token a csrf token for validation
  */ 
- router.get('/exammode/start/:token/:examtype', function (req, res, next) {
+ router.get('/exammode/start/:token/:examtype/:delfolder', function (req, res, next) {
     const token = req.params.token
     const examtype = req.params.examtype
     

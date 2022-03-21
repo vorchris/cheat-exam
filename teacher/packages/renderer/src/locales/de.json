@@ -44,7 +44,8 @@
         "secure":"abgesichert",
         "restore":"wiederherstellen",
         "exammodeactive": "Schüler*in bereits im abgesicherten Modus",
-        "close":"schließen"
+        "close":"schließen",
+        "del": "Arbeitsordner löschen"
     },
     "control": {
         "tokennotvalid": "das token ist ungültig",

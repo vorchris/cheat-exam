@@ -29,7 +29,9 @@
         "leftkiosk": "Sie haben den abgesicherten Modus verlassen!",
         "tellsomeone": "Melden sie sich umgehend bei der Aufsichtsperson!",
         "replacecontent": "Wollen sie den Inhalt des Editors durch den Inhalt dieser Datei ersetzen?",
-        "exit":"Abgesicherten Modus beenden"
+        "exit":"Abgesicherten Modus beenden",
+        "cancel":"Abbrechen",
+        "replace":"Ersetzen"
     },
     "math": {
         "exit":"Abgesicherten Modus beenden"

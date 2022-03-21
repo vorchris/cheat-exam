@@ -44,7 +44,8 @@
         "secure":"secured",
         "restore":"restore",
         "exammodeactive": "student already in safe exam mode",
-        "close":"schließen"
+        "close":"close",
+        "del": "delete workfolder"
     },
     "control": {
         "tokennotvalid": "token is not valid",
