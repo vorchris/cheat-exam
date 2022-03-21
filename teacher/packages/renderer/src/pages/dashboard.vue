@@ -12,14 +12,15 @@
 <div id="studentinfocontainer" class="fadeinslow p-4">
     <div v-if="activestudent!= null" id="studentinfodiv"  class="studentinfoimage" :style="`background-image:url(${activestudent.imageurl})`">
         <div style="height:100%">
-            <div id="controlbuttons">
-                <b>{{activestudent.clientname}}</b>
-                <div class="col d-inlineblock btn btn-warning m-1"   @click="startExam(activestudent)" style="width: 100px">{{$t('dashboard.startexam')}} </div>
-                <div class="col d-inlineblock btn btn-warning m-1"   @click="endExam(activestudent)"  style="width: 100px">{{$t('dashboard.stopexam')}} </div>
-                <div class="col d-inlineblock btn btn-info m-1"      @click="sendFiles(activestudent)"  style="width: 100px">{{$t('dashboard.sendfile')}}</div>
-                <div class="col d-inlineblock btn btn-info m-1"      @click="getFiles(activestudent)"  style="width: 100px">{{$t('dashboard.getfile')}}</div>
-                <div class="col d-inlineblock btn btn-danger m-1"    @click='kick(activestudent.token,activestudent.clientip)'  style="width: 100px">{{$t('dashboard.kick')}}</div>
-                <div class="col d-inlineblock btn btn-secondary m-1" @click="hideStudentview()"  style="width: 100px">{{$t('dashboard.close')}} </div>
+            <div id="controlbuttons" style="text-align: center;">
+                <b>{{activestudent.clientname}}</b><br>
+                <span style="font-size: 0.7em;">{{activestudent.clientip}}</span>
+                <div class="col d-inlineblock btn btn-warning m-1 btn-sm"   @click="startExam(activestudent)" style="width: 100px">{{$t('dashboard.startexam')}} </div>
+                <div class="col d-inlineblock btn btn-warning m-1 btn-sm"   @click="endExam(activestudent)"  style="width: 100px">{{$t('dashboard.stopexam')}} </div>
+                <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent)"  style="width: 100px">{{$t('dashboard.sendfile')}}</div>
+                <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="getFiles(activestudent)"  style="width: 100px">{{$t('dashboard.getfile')}}</div>
+                <div class="col d-inlineblock btn btn-danger m-1 btn-sm"    @click='kick(activestudent.token,activestudent.clientip)'  style="width: 100px">{{$t('dashboard.kick')}}</div>
+                <div class="col d-inlineblock btn btn-secondary m-1 btn-sm" @click="hideStudentview()"  style="width: 100px">{{$t('dashboard.close')}} </div>
             </div>
         </div>
     </div>
