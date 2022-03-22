@@ -47,7 +47,8 @@
         "close":"close",
         "del": "clean workfolder",
         "delsure": "Delete contents of the workfolder on exam start",
-        "attention": "Attention!"
+        "attention": "Attention!",
+        "abgaberequest": "Requesting files from all students"
     },
     "control": {
         "tokennotvalid": "token is not valid",

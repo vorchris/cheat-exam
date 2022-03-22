@@ -27,7 +27,7 @@ const { t } = i18n.global
 
     if ( !checkToken(token, mcServer ) ) { res.json({ status: t("data.tokennotvalid") }) }
     else {
-        console.log("Receiving File(s)...")
+        console.log("Server: Receiving File(s)...")
         let errors = 0
         
         if (req.files){

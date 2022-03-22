@@ -47,7 +47,8 @@
         "close":"schließen",
         "del": "Arbeitsordner bereinigen",
         "delsure": "Die Arbeitsordner der Schüler*innen werden bei Prüfungsbeginn bereinigt",
-        "attention": "Achtung!"
+        "attention": "Achtung!",
+        "abgaberequest": "Arbeiten werden geholt"
     },
     "control": {
         "tokennotvalid": "das token ist ungültig",

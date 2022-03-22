@@ -310,7 +310,7 @@ export default {
         getFiles(who){
             if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); console.log("no clients connected"); return; }
             if (who == "all"){
-                console.log("Requesting Filetransfer from ALL Clients")
+                this.status(this.$t("dashboard.abgaberequest"));
                 this.studentlist.forEach( (student) => {
                     //for some reason this has a 30sec timeout when triggered the second time with method GET only inside "electron"
                     axios({
@@ -321,9 +321,7 @@ export default {
                         console.log(response.data.message);
                     }).catch(error => {console.log(error)});
                 });
-            
             }
-            
             else {
                 let student = who
                 axios({
