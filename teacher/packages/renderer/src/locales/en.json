@@ -45,7 +45,9 @@
         "restore":"restore",
         "exammodeactive": "student already in safe exam mode",
         "close":"close",
-        "del": "delete workfolder"
+        "del": "clean workfolder",
+        "delsure": "Delete contents of the workfolder on exam start",
+        "attention": "Attention!"
     },
     "control": {
         "tokennotvalid": "token is not valid",

@@ -7,7 +7,7 @@ import axios from 'axios'
 import nodenotify  from 'node-notifier'
 import ip from 'ip'
 import { ipcRenderer } from 'electron'  // we use this to talk to the electron ipcMain process (send signals)
-
+import fs from 'fs' 
 
 // the moment i import this here i create some sort of racecondition (reloading the page helps to overcome the error and it works in the final build)
 import i18n from '../../../../renderer/src/locales/locales.js'
@@ -89,8 +89,26 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
  router.get('/exammode/start/:token/:examtype/:delfolder', function (req, res, next) {
     const token = req.params.token
     const examtype = req.params.examtype
+    const delfolder = req.params.delfolder
     
     if ( checkToken(token)) {  
+
+        // delete the contents of the students workdirectory
+        if (delfolder === "true") {  //get parameters come as string
+            console.log("cleaning exam workfolderrr")
+            if (fs.existsSync(config.workdirectory)){ 
+                fs.readdir(config.workdirectory, (err, files) => {
+                    if (err) throw err;
+                    for (const file of files) {
+                      fs.unlink(path.join(config.workdirectory, file), err => {
+                        if (err) throw err;
+                      });
+                    }
+                });
+            }
+        }
+
+        // send the exam signal to the electron base app in order to load kiosk mode and the according vue.js view 
         if (config.electron){
           ipcRenderer.send('exam', token, examtype)  //this only works in electron app..switches electron to kiosk and send a signal to the renderer to load given exam page (writer or geogebra)
         }

@@ -46,7 +46,7 @@
         </div>
 
         <div class="form-check m-1 mb-2">
-            <input value="del" class="form-check-input" type="checkbox" name="delfolder" id="delfolder">
+            <input @click="delfolder()" value="del" class="form-check-input" type="checkbox" name="delfolder" id="delfolder">
             <label class="form-check-label" for="delfolder"> {{$t('dashboard.del')}}  </label>
         </div>
 
@@ -107,6 +107,17 @@ export default {
     },
     components: { },
     methods: {
+        // show warning
+        delfolder(){
+            let delfolder = $("#delfolder").is(':checked')
+            if (delfolder) {
+                this.$swal.fire({
+                    title: this.$t("dashboard.attention"),
+                    text: this.$t("dashboard.delsure"),
+                    icon: "info"
+                })
+            }
+        },
         //display student specific actions
         showStudentview(student) {
             $("#studentinfocontainer").css("display","block");
