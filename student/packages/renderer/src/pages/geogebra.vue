@@ -14,8 +14,13 @@
             <button style="float: left;" @click="exit()" class="btn btn-outline-warning ">{{$t('math.exit')}} </button>
         </div>
 
+        <!-- filelist start - show local files from workfolder (pdf only)-->
+             <div v-for="file in localfiles" class="d-inline">
+                <div v-if="(file.type == 'pdf')" class="btn btn-secondary me-2 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file.name}} </div>
+            </div>
+        <!-- filelist end -->
 
-        <span class="fs-4 align-middle" style="">{{servername}}</span>
+        <span class="fs-4 align-middle ms-2" style="">{{servername}}</span>
         <span class="fs-4 align-middle" style="float: right">GeoGebra</span>
         <!-- <div class="btn-group pt-0 ms-4 me-4" role="group" style="float: right">
             <div class="btn btn-outline-info" @click="setsource('geometry')"> geometry</div>
@@ -23,6 +28,15 @@
         </div> -->
         <span class="fs-4 align-middle me-2" style="float: right">{{timesinceentry}}</span>
     </div>
+
+    
+    
+    <!-- angabe/pdf preview start -->
+    <div id=preview class="fadeinslow p-4">
+        <embed src="" id="pdfembed"/>
+    </div>
+    <!-- angabe/pdf preview end -->
+   
 
 
     <div id="content">
@@ -40,6 +54,7 @@
 
 import jsPDF from 'jspdf'
 import axios from "axios";
+import $ from 'jquery'
 
 
 export default {
@@ -51,6 +66,7 @@ export default {
             currentFile:null,
             fetchinterval: null,
             fetchinfointerval: null,
+            loadfilelistinterval: null,
             clockinterval: null,
             servername: this.$route.params.servername,
             servertoken: this.$route.params.servertoken,
@@ -65,7 +81,8 @@ export default {
             endExamEvent: null,
             clientinfo: null,
             entrytime: 0,
-            timesinceentry: 0
+            timesinceentry: 0,
+            localfiles: null,
         }
     }, 
     components: {  },  
@@ -84,9 +101,34 @@ export default {
             this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 5000)  
             this.clockinterval = setInterval(() => { this.clock() }, 1000)  
             if (this.token) { this.focuscheck() } 
+
+            this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 10000)   // zeigt html dateien (angaben, eigene arbeit) im header
+            this.loadFilelist()
         })
     },
     methods: { 
+        // fetch file from disc - show preview
+        loadPDF(file){
+            const form = new FormData()
+            form.append("filename", file)
+            fetch(`http://localhost:${this.clientApiPort}/client/data/getpdf`, { method: 'POST', body: form })
+                .then( response => response.arrayBuffer())
+                .then( data => {
+                    let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
+                    $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
+                    $("#preview").css("display","block");
+                    $("#preview").click(function(e) {
+                         $("#preview").css("display","none");
+                    });
+               }).catch(err => { console.warn(err)});     
+        },
+        loadFilelist(){
+            fetch(`http://localhost:${this.clientApiPort}/client/data/getfiles`, { method: 'POST' })
+            .then( response => response.json() )
+            .then( filelist => {
+                this.localfiles = filelist;
+            }).catch(err => { console.warn(err)});
+        },
         setsource(source){
             if (source === "geometry") { this.geogebrasource = `./geogebra/suite.html`}
             if (source === "graphing") { this.geogebrasource = `./geogebra/graphing.html`}
@@ -178,6 +220,7 @@ export default {
         clearInterval( this.fetchinterval )
         clearInterval( this.fetchinfointerval )
         clearInterval( this.clockinterval )
+        clearInterval( this.loadfilelistinterval )
 
         //remove electron ipcRender events
         this.endExamEvent.removeAllListeners('endexam')   //remove endExam listener from window
@@ -190,7 +233,12 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
+#localfiles {
+    position: relative;
+   
+
+}
 
 
 </style>

@@ -5,6 +5,8 @@ the next iteration of the life-exam project
 basic communication between teacher and client instances is reduced to simple API calls over http
 networking is moved from twisted to node express
 
+service discovery is done with a simple multicastserver/client which stores necessary information in it's 'clientinfo' or 'serverinfo' object.
+
 # technologies used
 * electron
 * vite
@@ -31,7 +33,7 @@ Node v16.14.0
 
 ## build next-exam 
 
-```npm run build:electron```
+```npm run build```
 
 !in order to build for windows on linux you need to 'apt install wine'!
 
