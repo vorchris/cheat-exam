@@ -95,16 +95,11 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
 
         // delete the contents of the students workdirectory
         if (delfolder === "true") {  //get parameters come as string
-            console.log("cleaning exam workfolderrr")
+            console.log("cleaning exam workfolder")
             if (fs.existsSync(config.workdirectory)){ 
-                fs.readdir(config.workdirectory, (err, files) => {
-                    if (err) throw err;
-                    for (const file of files) {
-                      fs.unlink(path.join(config.workdirectory, file), err => {
-                        if (err) throw err;
-                      });
-                    }
-                });
+                fs.rmdirSync(config.workdirectory, { recursive: true });
+                fs.mkdirSync(config.workdirectory);
+                
             }
         }
 
