@@ -24,16 +24,6 @@
 
     <div class="w-100 p-2 m-0 text-white shadow-sm text-center" style=" top: 66px; z-index: 10001 !important; background-color: white;">
         
-        <!-- filelist start -->
-        <!-- <div id="localfiles" class="mb-2 mt-1" style="top:0px;">
-             <div v-for="file in localfiles" class="d-inline">
-                <div v-if="(file.name == currentFile && file.type == 'html')" class="btn btn-success me-2 btn-sm"   @click="selectedFile=file.name; toggleUpload()"><img src="/src/assets/img/svg/games-solve.svg" class="" width="22" height="22" > {{file.name}} </div>
-                <div v-if="(file.name != currentFile && file.type == 'html')" class="btn btn-secondary me-2 btn-sm" @click="selectedFile=file.name; toggleUpload()"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file.name}} </div>
-                <div v-if="(file.type == 'pdf')" class="btn btn-secondary me-2 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file.name}} </div>
-            </div>
-        </div> -->
-        <!-- filelist end -->
-
         <!-- toolbar start -->
         <div v-if="editor" class="m-2" id="editortoolbar">
             <button @click="editor.chain().focus().undo().run()" class="btn btn-outline-warning p-1 me-1 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-undo.svg" class="white" width="22" height="22" ></button>
@@ -432,7 +422,6 @@ ENDE !!`,
 <style lang="scss">
 
 #preview {
-    
     display: none;
     position: absolute;
     top:0;
@@ -457,22 +446,11 @@ ENDE !!`,
     box-shadow: 0 0 15px rgba(22, 9, 9, 0.589);
     padding: 10px;
     border-radius: 6px;
-  
-   background-size:cover;
-   background-repeat: no-repeat;
-
-
 }
-
-
-
 
 .html2pdf__container {  //this works only if html automaging mode is "slice" - if we set it to "text" this messes up all lineheights
     line-height: 12px;
     font-size: 12px;
-    
- 
-    
     ul { padding: 0 15px; line-height: 2px;  }
     ol { padding: 0 15px; line-height: 2px;  }
 
@@ -487,8 +465,6 @@ ENDE !!`,
     h3 {font-size: 24px; }
     h2 {font-size: 26px; }
 }
-
-
 
 /* Basic editor styles */
 

@@ -27,6 +27,19 @@
 </div>
 
 <div id="wrapper" class="w-100 h-100 d-flex" >
+    <!--     view start -->
+    <div id=preview class="fadeinslow p-4">
+        <div id=workfolder >
+            <h5>{{$t('dashboard.filesfolder')}}: <br> <h6 class="ms-3 mb-3">{{workdirectory}}</h6></h5>
+            <div v-for="file in localfiles" class="d-inline">
+                <div class="btn btn-info pe-3 ps-3 me-3 mb-3 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/document-send.svg" class="" width="22" height="22" > {{file.name}} </div>
+            </div>
+        </div>
+    </div>
+    <!-- workfolder view end -->
+
+
+    <!-- sidebar start -->
     <div class="p-3 text-white bg-dark h-100 " style="width: 240px; min-width: 240px;">
         <div class="btn btn-light m-1 text-start">{{$t('dashboard.name')}} <br><b> {{$route.params.servername}}</b> </div><br>
         <div class="btn btn-light m-1 mb-1 text-start" @click="showpin()">{{$t('dashboard.pin')}}<br><b> {{ $route.params.pin }} </b>  </div><br>
@@ -39,28 +52,29 @@
             <input v-model="examtype" value="math" class="form-check-input" type="radio" name="examtype" id="examtype2">
             <label class="form-check-label" for="examtype2"> {{$t('dashboard.math')}}  </label>
         </div>
-
         <div class="form-check form-switch  m-1 mb-4">
             <input @change="toggleAutoabgabe()"  v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
             <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
         </div>
-
         <div class="form-check m-1 mb-2">
             <input @click="delfolder()" value="del" class="form-check-input" type="checkbox" name="delfolder" id="delfolder">
             <label class="form-check-label" for="delfolder"> {{$t('dashboard.del')}}  </label>
         </div>
-
         <div id="statusdiv" class="btn btn-warning m-1"> {{$t('dashboard.connected')}}  </div>
     </div>
+    <!-- sidebar end -->
+
+
 
     <div id="content" class="fadeinslow p-3">
         <div class="btn btn-success m-1 text-start" style="width:120px;"  @click="startExam('all')">{{$t('dashboard.startexam')}}</div>
         <div class="btn btn-info m-1 text-start" style="width:100px;" @click="sendFiles('all')">{{$t('dashboard.sendfile')}}</div>
         <div class="btn btn-info m-1 text-start" style="width:100px;" @click="getFiles('all')">{{$t('dashboard.getfile')}}</div>
         <div class="btn btn-danger m-1 text-start" style="width:120px;" @click="endExam('all')" >{{$t('dashboard.stopexam')}}</div>
+        <div class="col d-inlineblock btn btn-secondary m-1" @click="loadFilelist()"  style="width: 100px">{{$t('dashboard.showworkfolder')}} </div>
+
         <div id="studentslist" class="placeholder pt-4"> 
             <div v-for="student in studentlist" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn border-0 rounded-3 btn-block m-1 ">
-                
                 <div id="image" class="rounded" :style="(student.imageurl)? `background-image:url(${student.imageurl})`:'background-image:url(person-lines-fill.svg)'" style="position: relative; height:75%; background-size:cover;">
                     <span style="">{{student.clientname}}            
                     <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-2 pe-2 float-end" title="kick user"></button> </span>
@@ -72,7 +86,9 @@
                 </div>
             </div>
         </div>
+
     </div>
+
 </div>
 </template>
 
@@ -90,6 +106,7 @@ export default {
             fetchinterval: null,
             abgabeinterval: null,
             studentlist: [],
+            workdirectory: this.$route.params.workdirectory,
             servername: this.$route.params.servername,
             servertoken: this.$route.params.servertoken,
             serverip: this.$route.params.serverip,
@@ -102,11 +119,28 @@ export default {
             files: null,
             examtype: 'language',
             autoabgabe: false,
-            activestudent: null
+            activestudent: null,
+            localfiles: null
         };
     },
     components: { },
     methods: {
+        // show workfloder
+        showWorkfolder(){
+            $("#preview").css("display","block");
+            $("#preview").click(function(e) { $("#preview").css("display","none"); });
+        },
+
+        loadFilelist(){
+            fetch(`http://${this.serverip}:${this.serverApiPort}/server/data/getfiles/${this.servername}/${this.servertoken}`, { method: 'POST' })
+            .then( response => response.json() )
+            .then( filelist => {
+                this.localfiles = filelist;
+                console.log(filelist)
+                this.showWorkfolder()
+            }).catch(err => { console.warn(err)});
+        },
+
         // show warning
         delfolder(){
             let delfolder = $("#delfolder").is(':checked')
@@ -426,6 +460,34 @@ export default {
 
 
 <style scoped>
+
+#preview {
+    display: none;
+    position: absolute;
+    top:0;
+    left: 0;
+    width:100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index:100000;
+}
+
+#workfolder { 
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -45vw;
+    margin-top: -45vh;
+    width:90vw;
+    height: 90vh;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 1);
+    border: 0px solid rgba(255, 255, 255, 0.589);
+    box-shadow: 0 0 15px rgba(22, 9, 9, 0.589);
+    padding: 10px;
+    border-radius: 6px;
+}
+
 
 
 #studentinfocontainer {

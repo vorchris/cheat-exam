@@ -1,14 +1,59 @@
 
 import { Router } from 'express'
 const router = Router()
-import { join } from 'path'
-import FormData from 'form-data'
+import path  from 'path'
 import config from '../../config.js'
 import fs from 'fs' 
-import  extract from 'extract-zip'
+import extract from 'extract-zip'
 import i18n from '../../../../renderer/src/locales/locales.js'
 const { t } = i18n.global
  
+
+
+
+
+/**
+ * GET all files from workdirectory
+ */ 
+ router.post('/getfiles/:servername/:token', function (req, res, next) {
+  
+    const token = req.params.token
+    const servername = req.params.servername
+    const mcServer = config.examServerList[servername] // get the multicastserver object
+   
+    if ( token !== mcServer.serverinfo.servertoken ) { return res.json({ status: t("data.tokennotvalid") }) }
+   
+    
+    // ATTENTION!  this currently only makes sense if the server(teacher) runs on the local computer in electron app (re-think for server version )
+    const workdir = path.join(config.workdirectory,"/")
+  
+    
+    let filelist =  fs.readdirSync(workdir, { withFileTypes: true })
+        .filter(dirent => dirent.isFile())
+        .map(dirent => dirent.name)
+        .filter( file => path.extname(file).toLowerCase() === ".pdf" || path.extname(file).toLowerCase() === ".html" || path.extname(file).toLowerCase() === ".mtml")
+    
+    let files = []
+    filelist.forEach( file => {
+            let type = ""
+            if  (path.extname(file).toLowerCase() === ".pdf"){ files.push( {name: file, type: "pdf"})   }
+            else if  (path.extname(file).toLowerCase() === ".html"){ files.push( {name: file, type: "html"})   }
+            else if  (path.extname(file).toLowerCase() === ".mtml"){ files.push( {name: file, type: "mtml"})   }  // imaginary multiple choice testformat from the future
+        
+    })
+    
+    return res.send( files )
+    
+})
+
+
+
+
+
+
+
+
+
 
 
 
@@ -23,8 +68,6 @@ const { t } = i18n.global
     const servername = req.params.servername
     const mcServer = config.examServerList[servername] // get the multicastserver object
   
-
-
     if ( !checkToken(token, mcServer ) ) { res.json({ status: t("data.tokennotvalid") }) }
     else {
         console.log("Server: Receiving File(s)...")
@@ -33,7 +76,7 @@ const { t } = i18n.global
         if (req.files){
             for (const [key, file] of Object.entries( req.files)) {
                 //console.log(file)
-                let absoluteFilepath = join(config.workdirectory, file.name);
+                let absoluteFilepath = path.join(config.workdirectory, file.name);
                 if (file.name.includes(".zip")){  //ABGABE as ZIP
                     let time = new Date(new Date().getTime()).toISOString().substr(11, 8);
                     let studentname = ""
@@ -46,11 +89,11 @@ const { t } = i18n.global
                     });
                     
                     // create user abgabe directory
-                    let studentdirectory =  join(config.workdirectory, studentname)
+                    let studentdirectory =  path.join(config.workdirectory, studentname)
                     if (!fs.existsSync(studentdirectory)){ fs.mkdirSync(studentdirectory);  }
 
                     // create archive directory
-                    let studentarchivedir = join(studentdirectory, String(time))
+                    let studentarchivedir = path.join(studentdirectory, String(time))
                     if (!fs.existsSync(studentarchivedir)){ fs.mkdirSync(studentarchivedir); }
 
                     // extract zip file to archive
@@ -69,15 +112,12 @@ const { t } = i18n.global
                         if (err) { errors++; console.log( t("data.couldnotstore") ) }
                     });
                 }
-
             }
             res.json({ status:"success", sender: "server", message:t("data.filereceived"), errors: errors, clienttoken: token  })
         }
         else {
             res.json({ status:"error",  sender: "server", message:t("data.nofilereceived"), errors: errors, clienttoken: token  })
         }
-
-
     }
 })
 
@@ -95,7 +135,7 @@ export default router
  function checkToken(token, mcserver){
     
         let tokenexists = false
-        console.log("checking if student is already registered on this server")
+        console.log("checking if student is registered on this server")
         mcserver.studentList.forEach( (student) => {
             if (token === student.token) {
                 tokenexists = true

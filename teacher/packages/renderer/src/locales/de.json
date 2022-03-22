@@ -48,7 +48,9 @@
         "del": "Arbeitsordner bereinigen",
         "delsure": "Die Arbeitsordner der Schüler*innen werden bei Prüfungsbeginn bereinigt",
         "attention": "Achtung!",
-        "abgaberequest": "Arbeiten werden geholt"
+        "abgaberequest": "Arbeiten werden geholt",
+        "showworkfolder": "Arbeits Ordner",
+        "filesfolder": "Dateien im Arbeitsordner"
     },
     "control": {
         "tokennotvalid": "das token ist ungültig",
