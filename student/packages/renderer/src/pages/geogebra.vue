@@ -239,6 +239,31 @@ export default {
    
 
 }
+#preview {
+    display: none;
+    position: absolute;
+    top:0;
+    left: 0;
+    width:100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index:100000;
+}
 
+#pdfembed { 
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -30vw;
+    margin-top: -45vh;
+    width:60vw;
+    height: 90vh;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 1);
+    border: 0px solid rgba(255, 255, 255, 0.589);
+    box-shadow: 0 0 15px rgba(22, 9, 9, 0.589);
+    padding: 10px;
+    border-radius: 6px;
+}
 
 </style>

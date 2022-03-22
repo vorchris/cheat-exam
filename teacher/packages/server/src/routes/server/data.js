@@ -13,46 +13,53 @@ const { t } = i18n.global
 
 
 /**
- * GET all files from workdirectory
+ * GET a FILE-LIST from workdirectory
  */ 
  router.post('/getfiles/:servername/:token', function (req, res, next) {
   
     const token = req.params.token
     const servername = req.params.servername
     const mcServer = config.examServerList[servername] // get the multicastserver object
-   
     if ( token !== mcServer.serverinfo.servertoken ) { return res.json({ status: t("data.tokennotvalid") }) }
    
-    
+
+    const dir =req.body.dir
+
     // ATTENTION!  this currently only makes sense if the server(teacher) runs on the local computer in electron app (re-think for server version )
-    const workdir = path.join(config.workdirectory,"/")
-  
-    
-    let filelist =  fs.readdirSync(workdir, { withFileTypes: true })
-        .filter(dirent => dirent.isFile())
-        .map(dirent => dirent.name)
-        .filter( file => path.extname(file).toLowerCase() === ".pdf" || path.extname(file).toLowerCase() === ".html" || path.extname(file).toLowerCase() === ".mtml")
-    
-    let files = []
-    filelist.forEach( file => {
-            let type = ""
-            if  (path.extname(file).toLowerCase() === ".pdf"){ files.push( {name: file, type: "pdf"})   }
-            else if  (path.extname(file).toLowerCase() === ".html"){ files.push( {name: file, type: "html"})   }
-            else if  (path.extname(file).toLowerCase() === ".mtml"){ files.push( {name: file, type: "mtml"})   }  // imaginary multiple choice testformat from the future
-        
-    })
-    
-    return res.send( files )
-    
+
+    let folders = []
+    folders.push( {currentdirectory: dir, parentdirectory: path.dirname(dir)})
+    fs.readdirSync(dir).reduce(function (list, file) {
+        const filepath = path.join(dir, file);
+        if (fs.statSync(filepath).isDirectory()) {
+            folders.push( { path: filepath, name : file, type : "dir", ext: "", parent: dir })
+        }
+        else if(fs.statSync(filepath).isFile() ){
+            let ext = path.extname(file).toLowerCase()
+            folders.push({  path: filepath, name : file, type : "file", ext: ext, parent: '' })
+        }
+    }, []);
+    return res.send( folders )
 })
 
 
 
 
+/**
+ * GET PDF from EXAM directory
+ * @param filename if set the content of the file is returned
+ */ 
+ router.post('/getpdf/:servername/:token', function (req, res, next) {
+    const token = req.params.token
+    const servername = req.params.servername
+    const mcServer = config.examServerList[servername] // get the multicastserver object
+    if ( token !== mcServer.serverinfo.servertoken ) { return res.json({ status: t("data.tokennotvalid") }) }
 
-
-
-
+    const filename = req.body.filename
+    if (filename) { //return specific file
+        res.sendFile(filename); 
+    }
+})
 
 
 

@@ -27,16 +27,40 @@
 </div>
 
 <div id="wrapper" class="w-100 h-100 d-flex" >
-    <!--     view start -->
-    <div id=preview class="fadeinslow p-4">
+    
+    <!--   workfolder view start -->
+    <div id=preview class="fadeinslow ">
         <div id=workfolder >
-            <h5>{{$t('dashboard.filesfolder')}}: <br> <h6 class="ms-3 mb-3">{{workdirectory}}</h6></h5>
+            <h4>{{$t('dashboard.filesfolder')}}: <br> <h6 class="ms-3 mb-3"><strong> {{currentdirectory}}</strong>  </h6></h4>
+            <div class="btn btn-dark pe-3 ps-3 me-1 mb-3 btn-sm" @click="loadFilelist(workdirectory) "><img src="/src/assets/img/svg/go-home.svg" class="" width="22" height="22" > </div>
+            <div  v-if="(currentdirectory !== workdirectory)" class="btn btn-dark pe-3 ps-3 me-1 mb-3 btn-sm" @click="loadFilelist(currentdirectoryparent) "><img src="/src/assets/img/svg/edit-undo.svg" class="" width="22" height="22" >up </div>
+  
             <div v-for="file in localfiles" class="d-inline">
-                <div class="btn btn-info pe-3 ps-3 me-3 mb-3 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/document-send.svg" class="" width="22" height="22" > {{file.name}} </div>
-            </div>
+                <div v-if="(file.type == 'file')" class="btn btn-info pe-3 ps-3 me-3 mb-2 btn-sm" @click=""><img src="/src/assets/img/svg/document.svg" class="" width="22" height="22" > {{file.name}} </div>
+                
+
+                <div v-if="(file.type == 'file')" class="btn btn-dark  me-1 mb-2 btn-sm disabled" style="float: right;" @click="sendFile(file.path)"><img src="/src/assets/img/svg/document-send.svg" class="" width="22" height="22" ></div>
+                <div v-if="(file.type == 'file')" class="btn btn-dark  me-1 mb-2 btn-sm disabled " style="float: right;" @click="downloadFile(file.path)"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" ></div>
+                <div v-if="(file.type == 'file' && file.ext === '.pdf')" class="btn btn-secondary me-1 mb-2 btn-sm" style="float: right;" @click="loadPDF(file.path)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
+                
+
+                <div v-if="(file.type == 'dir')" class="btn btn-success pe-3 ps-3 me-3 mb-2 btn-sm" @click="loadFilelist(file.path)"><img src="/src/assets/img/svg/folder-open.svg" class="" width="22" height="22" > {{file.name}} </div>
+                <div v-if="(file.type == 'dir')" class="btn btn-dark  me-1 mb-2 btn-sm disabled " style="float: right;" @click="downloadFile(file.path)"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" ></div>
+
+                <br>
+           </div>
         </div>
     </div>
     <!-- workfolder view end -->
+
+
+    <!-- pdf preview start -->
+    <div id=pdfpreview class="fadeinslow p-4">
+        <embed src="" id="pdfembed"/>
+    </div>
+    <!-- pdf preview end -->
+   
+
 
 
     <!-- sidebar start -->
@@ -68,10 +92,10 @@
 
     <div id="content" class="fadeinslow p-3">
         <div class="btn btn-success m-1 text-start" style="width:120px;"  @click="startExam('all')">{{$t('dashboard.startexam')}}</div>
-        <div class="btn btn-info m-1 text-start" style="width:100px;" @click="sendFiles('all')">{{$t('dashboard.sendfile')}}</div>
-        <div class="btn btn-info m-1 text-start" style="width:100px;" @click="getFiles('all')">{{$t('dashboard.getfile')}}</div>
-        <div class="btn btn-danger m-1 text-start" style="width:120px;" @click="endExam('all')" >{{$t('dashboard.stopexam')}}</div>
-        <div class="col d-inlineblock btn btn-secondary m-1" @click="loadFilelist()"  style="width: 100px">{{$t('dashboard.showworkfolder')}} </div>
+        <div class="btn btn-info m-1 text-start ms-0 " style="width:100px;" @click="sendFiles('all')">{{$t('dashboard.sendfile')}}</div>
+        <div class="btn btn-info m-1 text-start ms-0 " style="width:100px;" @click="getFiles('all')">{{$t('dashboard.getfile')}}</div>
+        <div class="btn btn-danger m-1 text-start ms-0 " style="width:120px;" @click="endExam('all')" >{{$t('dashboard.stopexam')}}</div>
+        <div class="col d-inlineblock btn btn-secondary m-1 ms-3" @click="loadFilelist(workdirectory)"  style="width: 100px">{{$t('dashboard.showworkfolder')}} </div>
 
         <div id="studentslist" class="placeholder pt-4"> 
             <div v-for="student in studentlist" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn border-0 rounded-3 btn-block m-1 ">
@@ -107,6 +131,8 @@ export default {
             abgabeinterval: null,
             studentlist: [],
             workdirectory: this.$route.params.workdirectory,
+            currentdirectory: this.$route.params.workdirectory,
+            currentdirectoryparent: '',
             servername: this.$route.params.servername,
             servertoken: this.$route.params.servertoken,
             serverip: this.$route.params.serverip,
@@ -125,19 +151,49 @@ export default {
     },
     components: { },
     methods: {
+        downloadFile(){
+            console.log("nothing to see here for now ")
+        },
+        sendFile(){
+            console.log("nothing to see here for now ")
+        },
+        // fetch file from disc - show preview
+        loadPDF(file){
+            const form = new FormData()
+            form.append("filename", file)
+            fetch(`http://${this.serverip}:${this.serverApiPort}/server/data/getpdf/${this.servername}/${this.servertoken}`, { method: 'POST', body: form })
+                .then( response => response.arrayBuffer())
+                .then( data => {
+                    let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
+                    $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
+                    $("#pdfpreview").css("display","block");
+                    $("#pdfpreview").click(function(e) {
+                         $("#pdfpreview").css("display","none");
+                    });
+               }).catch(err => { console.warn(err)});     
+        },
+
+
         // show workfloder
         showWorkfolder(){
             $("#preview").css("display","block");
-            $("#preview").click(function(e) { $("#preview").css("display","none"); });
+            $("#preview").click(function(e) { $("#preview").css("display","none"); });  // the surroundings of #workfolder can be clicked to close the view
+            $('#workfolder').click(function(e){ e.stopPropagation(); });    // don't propagate clicks through the div to the preview div (it would hide the view)
         },
 
-        loadFilelist(){
-            fetch(`http://${this.serverip}:${this.serverApiPort}/server/data/getfiles/${this.servername}/${this.servertoken}`, { method: 'POST' })
+        loadFilelist(directory){
+            fetch(`http://${this.serverip}:${this.serverApiPort}/server/data/getfiles/${this.servername}/${this.servertoken}`, { 
+                method: 'POST',
+                headers: {'Content-Type': 'application/json' },
+                body: JSON.stringify({ dir : directory})
+            })
             .then( response => response.json() )
             .then( filelist => {
-                this.localfiles = filelist;
                 console.log(filelist)
-                this.showWorkfolder()
+                this.localfiles = filelist;
+                this.currentdirectory = directory
+                this.currentdirectoryparent = filelist[0].parentdirectory // the currentdirectory and parentdirectory properties are always on [0]
+                if (directory === this.workdirectory) {this.showWorkfolder(); }
             }).catch(err => { console.warn(err)});
         },
 
@@ -461,7 +517,10 @@ export default {
 
 <style scoped>
 
-#preview {
+
+
+
+#pdfpreview {
     display: none;
     position: absolute;
     top:0;
@@ -471,14 +530,13 @@ export default {
     background-color: rgba(0, 0, 0, 0.4);
     z-index:100000;
 }
-
-#workfolder { 
+#pdfembed { 
     position: absolute;
     top: 50%;
     left: 50%;
-    margin-left: -45vw;
+    margin-left: -30vw;
     margin-top: -45vh;
-    width:90vw;
+    width:60vw;
     height: 90vh;
     padding: 10px;
     background-color: rgba(255, 255, 255, 1);
@@ -487,6 +545,46 @@ export default {
     padding: 10px;
     border-radius: 6px;
 }
+
+
+
+
+
+
+
+
+
+#preview {
+    display: none;
+    position: absolute;
+    top:0;
+    left: 0;
+    width:100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index:1000;
+}
+#workfolder { 
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -45vw;
+    margin-top: -45vh;
+    width:90vw;
+    height: 90vh;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 0px solid rgba(255, 255, 255, 0.589);
+    box-shadow: 0 0 15px rgba(22, 9, 9, 0.589);
+   
+    border-radius: 6px;
+    z-index:1001;
+    backdrop-filter: blur(3px);
+    overflow-y: auto;
+}
+
+
+
 
 
 
@@ -500,7 +598,6 @@ export default {
     background-color: rgba(0, 0, 0, 0.4);
     z-index:100;
 }
-
 #studentinfodiv {
     position: absolute;
     top: 50%;
@@ -515,13 +612,9 @@ export default {
     box-shadow: 0 0 15px rgba(22, 9, 9, 0.589);
     padding: 10px;
     border-radius: 6px;
-  
-   background-size:cover;
-   background-repeat: no-repeat;
+    background-size:cover;
+    background-repeat: no-repeat;
 }
-
-
-
 #controlbuttons {
     backdrop-filter: blur(2px);
     position: absolute;
@@ -530,7 +623,6 @@ export default {
     height: 100%; 
     top: 0px;  
     background:  rgba(0, 0, 0, 0.493);
-   
     color: white; 
     font-size: 1.4em; 
     padding: 10px;
