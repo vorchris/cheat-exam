@@ -41,14 +41,15 @@ teacher:
 
 ## more information
 
-read /stuff/concept.md !!
+read /info/concept.md !!
 
 
 
 
 
+![projectstructure](/info/structure.jpg)
 
-![screenshot](/teacher/packages/renderer/src/assets/img/screenshot.jpg)
+![screenshot](/info/screenshot.jpg)
 
 
 

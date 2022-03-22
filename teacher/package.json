@@ -7,11 +7,11 @@
   "description": "An exam managment tool for digital exams",
   "type": "module",
   "scripts": {
-    "vite": "vite ./packages/renderer --host",
-    "dev": "vite ./packages/renderer --host | npm run serve  ",
-    "dev:electron": "node scripts/watch.mjs",
-    "build:electron": "node scripts/build.mjs && electron-builder -wl",
-    "serve": "nodemon packages/server/src/server"
+    "dev": "node scripts/watch.mjs",
+    "build": "node scripts/build.mjs && electron-builder -wl",
+    "dev:web": "vite ./packages/renderer --host | npm run serve  ",
+    "serve": "nodemon packages/server/src/server",
+    "vite": "vite ./packages/renderer --host"
   },
   "build": {
     "productName": "Next-Exam-Teacher",
