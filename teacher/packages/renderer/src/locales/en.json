@@ -50,7 +50,9 @@
         "attention": "Attention!",
         "abgaberequest": "Requesting files from all students",
         "showworkfolder": "Show Workfolder",
-        "filesfolder": "Workfolder files"
+        "filesfolder": "Workfolder files",
+        "choosestudent": "Select Student",
+        "chooserequire": "You need to choose a student!"
     },
     "control": {
         "tokennotvalid": "token is not valid",

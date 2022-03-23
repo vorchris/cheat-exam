@@ -39,9 +39,9 @@
                 <div v-if="(file.type == 'file')" class="btn btn-info pe-3 ps-3 me-3 mb-2 btn-sm" @click=""><img src="/src/assets/img/svg/document.svg" class="" width="22" height="22" > {{file.name}} </div>
                 
 
-                <div v-if="(file.type == 'file')" class="btn btn-dark  me-1 mb-2 btn-sm disabled" style="float: right;" @click="sendFile(file.path)"><img src="/src/assets/img/svg/document-send.svg" class="" width="22" height="22" ></div>
+                <div v-if="(file.type == 'file')"  :class="(studentlist.length == 0)? 'disabled':''"  class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="sendFile(file)"><img src="/src/assets/img/svg/document-send.svg" class="" width="22" height="22" ></div>
                 <div v-if="(file.type == 'file')" class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="downloadFile(file)"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" ></div>
-                <div v-if="(file.type == 'file' && file.ext === '.pdf')" class="btn btn-secondary me-1 mb-2 btn-sm" style="float: right;" @click="loadPDF(file.path)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
+                <div v-if="(file.type == 'file' && file.ext === '.pdf')" class="btn btn-dark me-1 mb-2 btn-sm" style="float: right;" @click="loadPDF(file.path)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
                 
 
                 <div v-if="(file.type == 'dir')" class="btn btn-success pe-3 ps-3 me-3 mb-2 btn-sm" @click="loadFilelist(file.path)"><img src="/src/assets/img/svg/folder-open.svg" class="" width="22" height="22" > {{file.name}} </div>
@@ -151,6 +151,7 @@ export default {
     },
     components: { },
     methods: {
+        // fetch a file or folder (zip) and open download/save dialog
         downloadFile(file){
             console.log("requesting file for downlod ")
             fetch(`http://${this.serverip}:${this.serverApiPort}/server/data/download/${this.servername}/${this.servertoken}`, { 
@@ -167,12 +168,54 @@ export default {
                     a.click();
             })
            .catch(err => { console.warn(err)});
-
-
-
         },
-        sendFile(){
-            console.log("nothing to see here for now ")
+
+        // send a file from dashboard explorer to specific student
+        sendFile(file){
+            console.log("fetching file")
+            fetch(`http://${this.serverip}:${this.serverApiPort}/server/data/download/${this.servername}/${this.servertoken}`, { 
+                method: 'POST',
+                headers: {'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename : file.name, path: file.path, type: file.type})
+            })
+            .then( res => res.blob() )
+            .then( blob => {
+                // prepare input options for radio buttons
+                const inputOptions = new Promise((resolve) => {
+                    let connectedStudents = {}
+                    this.studentlist.forEach( (student) => {  
+                        connectedStudents[student.token]=student.clientname
+                    });
+                    resolve(connectedStudents)
+                })
+                this.$swal.fire({
+                    title: this.$t("dashboard.choosestudent"),
+                    input: 'select',
+                    icon: 'success',
+                    showCancelButton: true,
+                    reverseButtons: true,
+                    inputOptions: inputOptions,
+                    inputValidator: (value) => {
+                        if (!value) { return this.$t("dashboard.chooserequire") }
+                    }
+                })
+                .then((input) => {
+                    if (input.isConfirmed) {
+                        let student = this.studentlist.find(element => element.token === input.value)  // fetch cerrect student that belongs to the token
+                        const formData = new FormData()  //prepare form to send file
+                        formData.append('files', blob, file.name)  
+                        axios({
+                            method: "post", 
+                            url: `http://${student.clientip}:${this.clientApiPort}/client/data/receive/${student.token}`, 
+                            data: formData, 
+                            headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
+                        })
+                        .then( (response) => { if (response.data.status === "success"){  this.status( this.$t("dashboard.filessent") )} })
+                        .catch( err =>{    console.log(`${err}`) })
+                    }
+                });
+            })
+            .catch(err => { console.warn(err)});
         },
         // fetch file from disc - show preview
         loadPDF(file){
@@ -552,9 +595,9 @@ export default {
     top: 50%;
     left: 50%;
     margin-left: -30vw;
-    margin-top: -45vh;
+    margin-top: -48vh;
     width:60vw;
-    height: 90vh;
+    height: 96vh;
     padding: 10px;
     background-color: rgba(255, 255, 255, 1);
     border: 0px solid rgba(255, 255, 255, 0.589);
@@ -585,9 +628,9 @@ export default {
     position: absolute;
     top: 50%;
     left: 50%;
-    margin-left: -45vw;
+    margin-left: -35vw;
     margin-top: -45vh;
-    width:90vw;
+    width: 70vw;
     height: 90vh;
     padding: 20px;
     background-color: rgba(255, 255, 255, 0.8);

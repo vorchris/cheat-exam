@@ -50,7 +50,9 @@
         "attention": "Achtung!",
         "abgaberequest": "Arbeiten werden geholt",
         "showworkfolder": "Arbeits Ordner",
-        "filesfolder": "Dateien im Arbeitsordner"
+        "filesfolder": "Dateien im Arbeitsordner",
+        "choosestudent": "Wählen sie eine Person",
+        "chooserequire": "Sie müssen eine Option wählen!"
     },
     "control": {
         "tokennotvalid": "das token ist ungültig",

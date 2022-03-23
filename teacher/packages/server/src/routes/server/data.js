@@ -16,17 +16,14 @@ import archiver from 'archiver'
  * GET a FILE-LIST from workdirectory
  */ 
  router.post('/getfiles/:servername/:token', function (req, res, next) {
-  
     const token = req.params.token
     const servername = req.params.servername
     const mcServer = config.examServerList[servername] // get the multicastserver object
     if ( token !== mcServer.serverinfo.servertoken ) { return res.json({ status: t("data.tokennotvalid") }) }
-   
 
     const dir =req.body.dir
 
     // ATTENTION!  this currently only makes sense if the server(teacher) runs on the local computer in electron app (re-think for server version )
-
     let folders = []
     folders.push( {currentdirectory: dir, parentdirectory: path.dirname(dir)})
     fs.readdirSync(dir).reduce(function (list, file) {
@@ -60,9 +57,6 @@ import archiver from 'archiver'
         res.sendFile(filename); 
     }
 })
-
-
-import mime from 'mime'
 
 
 
