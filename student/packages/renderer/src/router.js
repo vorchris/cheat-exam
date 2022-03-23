@@ -35,6 +35,7 @@ function addParams(to){
     to.params.clientApiPort = config.clientApiPort
     to.params.electron = electron
     to.params.clientname = "DemoUser"
+    to.params.virtualized = config.virtualized
 }
 
 

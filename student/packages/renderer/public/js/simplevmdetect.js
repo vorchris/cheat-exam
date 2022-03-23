@@ -5,9 +5,6 @@ const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL).toLowerCase();
 const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL).toLowerCase();
 
 
-
-
-
 const keywords = ['vmware','virtualbox','parallels','solarwinds','qemu','hyper-v','bootcamp']
 
 

@@ -8,9 +8,8 @@ import { contextBridge, ipcRenderer } from 'electron'
 import api from "../server/src/server.js"
 import config from '../server/src/config.js';
 import screenshot from 'screenshot-desktop';
-import vmInfo from '../renderer/public/js/simplevmdetect.js';
+import virtual from '../renderer/public/js/simplevmdetect.js';
 
-console.log(vmInfo)
 
 // fetch some env vars from main process
 ipcRenderer.send('env-request');
@@ -49,6 +48,7 @@ ipcRenderer.on('env-reply', function (event, home, desktop, temp, workdirectory)
     config.desktop = desktop;
     config.tempdirectory = temp; 
     config.workdirectory = workdirectory;
+    config.virtualized = virtual
 
     // create workdirectory if it doesn't exist 
     if (!fs.existsSync(workdirectory)){
