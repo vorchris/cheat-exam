@@ -72,7 +72,7 @@
         "studentupdate": "Schülerdaten aktualisiert",
         "studentleft": "Schüler*in hat den Exam Server verlassen",
         "staterestore": "Vertrauensstellung wiederhergestellt",
-        "virtualized": "Next-Exam wird in einer virtuellen Maschine ausgeführt"
+        "virtualized": ": Die Prüfungsumgebung wird in einer virtuellen Maschine ausgeführt"
     },  
     "data": {
         "tokennotvalid": "das token ist ungültig",

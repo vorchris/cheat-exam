@@ -173,7 +173,8 @@ router.get('/serverlist', function (req, res, next) {
             timestamp: new Date().getTime(),
             focus: true,
             exammode: false,
-            imageurl:false
+            imageurl:false,
+            virtualized: false
         }
 
         mcServer.studentList.push(client)
@@ -299,6 +300,7 @@ router.get('/serverlist', function (req, res, next) {
         return res.json({ sender: "server", message:t("control.staterestore"), status: "success" })
     }
     else if (state === "virtualized"){
+        registeredClient.virtualized = true;
         return res.json({ sender: "server", message:t("control.virtualized"), status: "success" })
     }
 })

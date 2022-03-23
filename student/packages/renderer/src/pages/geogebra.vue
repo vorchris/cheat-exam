@@ -186,9 +186,11 @@ export default {
             .then( response => response.json() )
             .then( (data) => { console.log(data); });  
 
-            axios.get(`http://localhost:${this.clientApiPort}/client/control/focus/${this.token}/false`)
-            .then( response => { this.focus = false; console.log(response.data);  })
-            .catch( err => {console.log(err)});
+            if (!focus){
+                axios.get(`http://localhost:${this.clientApiPort}/client/control/focus/${this.token}/false`)
+                .then( response => { this.focus = false; console.log(response.data);  })
+                .catch( err => {console.log(err)});
+            }
         },
   
         /** Converts the Editor View into a multipage PDF */

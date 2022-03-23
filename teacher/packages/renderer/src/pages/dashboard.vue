@@ -285,6 +285,7 @@ export default {
                 if (this.studentlist){
                     this.studentlist.forEach(student =>{  // on studentlist-receive check focus status and other things
                         if (!student.focus){this.status(`${student.clientname} ${this.$t("dashboard.leftkiosk")}`); }
+                        if (student.virtualized){this.status(`${student.clientname}${this.$t("control.virtualized")}`)}
                         //console.log(student.imageurl)
                     });
                 }

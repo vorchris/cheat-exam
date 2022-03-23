@@ -292,15 +292,18 @@ export default {
             }
         },
         informTeacher(focus){
+            console.log(focus)
             console.log("HOUSTON WE HAVE A CHEATER!")
             axios.get(`http://${this.serverip}:${this.serverApiPort}/server/control/studentlist/statechange/${this.servername}/${this.token}/${focus}`)
             .then( (response) => { console.log(response.data); })
             .catch( err => {console.log(err)});  
            
-            //also store focus information locally
-            axios.get(`http://localhost:${this.clientApiPort}/client/control/focus/${this.token}/false`)
-            .then( response => { this.focus = false; console.log(response.data);  })
-            .catch( err => {console.log(err)});
+            if (!focus){
+                //also store focus information locally
+                axios.get(`http://localhost:${this.clientApiPort}/client/control/focus/${this.token}/false`)
+                .then( response => { this.focus = false; console.log(response.data);  })
+                .catch( err => {console.log(err)});
+            }
         }
     },
     mounted() {
