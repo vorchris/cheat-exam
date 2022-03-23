@@ -186,7 +186,7 @@ export default {
             .catch( err => {console.log(err)});
 
 
-            if(this.virtualized === "true"){this.informTeacher('virtualized') }
+            if(this.virtualized){this.informTeacher('virtualized') }
 
         }, 
         loadFilelist(){

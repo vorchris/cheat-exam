@@ -154,7 +154,8 @@ export default {
                 else { this.online = false  }
             })
             .catch( err => {console.log(err)});
-            if(this.virtualized === "true"){this.informTeacher('virtualized') }
+        
+            if(this.virtualized){this.informTeacher('virtualized') }
         }, 
         focuscheck() {
             window.addEventListener('beforeunload',         this.focuslost);  // keeps the window open (displays "are you sure in browser")
