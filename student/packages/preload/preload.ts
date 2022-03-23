@@ -8,6 +8,9 @@ import { contextBridge, ipcRenderer } from 'electron'
 import api from "../server/src/server.js"
 import config from '../server/src/config.js';
 import screenshot from 'screenshot-desktop';
+import vmInfo from '../renderer/public/js/simplevmdetect.js';
+
+console.log(vmInfo)
 
 // fetch some env vars from main process
 ipcRenderer.send('env-request');
@@ -53,8 +56,6 @@ ipcRenderer.on('env-reply', function (event, home, desktop, temp, workdirectory)
     }
 
     contextBridge.exposeInMainWorld('config', config )  // expose configuration (readonly) to the renderer (frontend)
-
-
 });
  
 // `exposeInMainWorld` can't detect attributes and methods of `prototype`, manually patching it.
