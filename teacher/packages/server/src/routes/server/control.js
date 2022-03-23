@@ -6,7 +6,7 @@ import config from '../../config.js'
 import path from 'path'
 import i18n from '../../../../renderer/src/locales/locales.js'
 const { t } = i18n.global
- 
+import fs from 'fs' 
 
 
 
@@ -247,14 +247,22 @@ router.get('/serverlist', function (req, res, next) {
     if ( !checkToken(token, "server", mcServer) ) {return res.send({ sender: "server", message:t("control.tokennotvalid"), status: "error" }) } //check if the student is registered on this server
     if ( !req.files ) {return res.send({sender: "server", message:t("control.nofiles"), status:"error"});  }
     
+    let registeredClient = mcServer.studentList.find(element => element.token === token)
+
     for (const [key, file] of Object.entries( req.files)) {
         let absoluteFilepath = path.join(config.publicdirectory, file.name); 
-        file.mv(absoluteFilepath, (err) => {  
-            if (err) {  console.log(err)  }
-        });
+        file.mv(absoluteFilepath, (err) => {  if (err) {  console.log(err)  } });
+        
+        if (!registeredClient.focus){
+            console.log("Server Control: Student out of focus - securing screenshots")
+            let time = new Date(new Date().getTime()).toISOString().substr(11, 8);
+            let filepath =path.join(config.workdirectory, registeredClient.clientname, "focuslost");
+            let absoluteFilename = path.join(filepath,`${time}-${file.name}`)
+            if (!fs.existsSync(filepath)){ fs.mkdirSync(filepath); }
+            file.mv(absoluteFilename, (err) => {  if (err) {  console.log(err)  } });
+        }
     }
     
-    let registeredClient = mcServer.studentList.find(element => element.token === token)
     // do not update all of the clientinfo (leave some decisions to the server - like 'focus' for example)
     registeredClient.timestamp = new Date().getTime()
     registeredClient.exammode = exammode  

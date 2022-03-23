@@ -6,7 +6,6 @@ import config from './config.js';
 import fsExtra from "fs-extra"
 import path from 'path'
 import rateLimit  from 'express-rate-limit'  //simple ddos protection
-import morgan from 'morgan'
 import ip from 'ip'
 
 config.hostip = ip.address()  // config is exposed to electron-vue app via context bridge so we can use it in the frontend
@@ -30,7 +29,7 @@ fsExtra.emptyDirSync(publicdirectory)
 
 // init express API
 const api = express()
-//api.use(morgan('tiny'));
+
 api.use(fileUpload())  //When you upload a file, the file will be accessible from req.files (init before routes)
 api.use(cors())
 api.use(express.json())
