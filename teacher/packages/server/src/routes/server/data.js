@@ -7,7 +7,7 @@ import fs from 'fs'
 import extract from 'extract-zip'
 import i18n from '../../../../renderer/src/locales/locales.js'
 const { t } = i18n.global
- 
+import archiver from 'archiver'
 
 
 
@@ -60,6 +60,49 @@ const { t } = i18n.global
         res.sendFile(filename); 
     }
 })
+
+
+import mime from 'mime'
+
+
+
+/**
+ * GET ANY File/Folder from EXAM directory - download !
+ * @param filename if set the content of the file is returned
+ */ 
+ router.post('/download/:servername/:token', async (req, res, next) => {
+    const token = req.params.token
+    const servername = req.params.servername
+    const mcServer = config.examServerList[servername] // get the multicastserver object
+    if ( token !== mcServer.serverinfo.servertoken ) { return res.json({ status: t("data.tokennotvalid") }) }
+
+    console.log(req.body)
+    const filename = req.body.filename
+    const filepath = req.body.path
+    const type = req.body.type
+
+    if (type === "file") {
+            res.setHeader('Content-disposition', 'attachment; filename=' + filename);
+            res.download(filepath, filename);       
+    }
+    else if (type === "dir") {
+        //zip folder and then send
+    
+        let zipfilename = filename.concat('.zip')
+        let zipfilepath = path.join(config.tempdirectory, zipfilename);
+        await zipDirectory(filepath, zipfilepath)
+
+        console.log(zipfilepath)
+
+        res.setHeader('Content-disposition', 'attachment; filename=' + filename);
+        res.download(zipfilepath,filename); 
+    }
+ 
+})
+
+
+
+
 
 
 
@@ -150,4 +193,27 @@ export default router
         });
         return tokenexists
   
+  }
+
+
+
+/**
+ * @param {String} sourceDir: /some/folder/to/compress
+ * @param {String} outPath: /path/to/created.zip
+ * @returns {Promise}
+ */
+ function zipDirectory(sourceDir, outPath) {
+    const archive = archiver('zip', { zlib: { level: 9 }});
+    const stream = fs.createWriteStream(outPath);
+  
+    return new Promise((resolve, reject) => {
+      archive
+        .directory(sourceDir, false)
+        .on('error', err => reject(err))
+        .pipe(stream)
+      ;
+  
+      stream.on('close', () => resolve());
+      archive.finalize();
+    });
   }

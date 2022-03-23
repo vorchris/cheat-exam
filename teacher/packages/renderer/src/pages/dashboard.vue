@@ -40,12 +40,12 @@
                 
 
                 <div v-if="(file.type == 'file')" class="btn btn-dark  me-1 mb-2 btn-sm disabled" style="float: right;" @click="sendFile(file.path)"><img src="/src/assets/img/svg/document-send.svg" class="" width="22" height="22" ></div>
-                <div v-if="(file.type == 'file')" class="btn btn-dark  me-1 mb-2 btn-sm disabled " style="float: right;" @click="downloadFile(file.path)"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" ></div>
+                <div v-if="(file.type == 'file')" class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="downloadFile(file)"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" ></div>
                 <div v-if="(file.type == 'file' && file.ext === '.pdf')" class="btn btn-secondary me-1 mb-2 btn-sm" style="float: right;" @click="loadPDF(file.path)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
                 
 
                 <div v-if="(file.type == 'dir')" class="btn btn-success pe-3 ps-3 me-3 mb-2 btn-sm" @click="loadFilelist(file.path)"><img src="/src/assets/img/svg/folder-open.svg" class="" width="22" height="22" > {{file.name}} </div>
-                <div v-if="(file.type == 'dir')" class="btn btn-dark  me-1 mb-2 btn-sm disabled " style="float: right;" @click="downloadFile(file.path)"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" ></div>
+                <div v-if="(file.type == 'dir')" class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="downloadFile(file)"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" ></div>
 
                 <br>
            </div>
@@ -151,8 +151,25 @@ export default {
     },
     components: { },
     methods: {
-        downloadFile(){
-            console.log("nothing to see here for now ")
+        downloadFile(file){
+            console.log("requesting file for downlod ")
+            fetch(`http://${this.serverip}:${this.serverApiPort}/server/data/download/${this.servername}/${this.servertoken}`, { 
+                method: 'POST',
+                headers: {'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename : file.name, path: file.path, type: file.type})
+            })
+            .then( res => res.blob() )
+            .then( blob => {
+                    //this is a trick to trigger the download dialog
+                    let a = document.createElement("a");
+                    a.href = window.URL.createObjectURL(blob);
+                    a.setAttribute("download", file.name);
+                    a.click();
+            })
+           .catch(err => { console.warn(err)});
+
+
+
         },
         sendFile(){
             console.log("nothing to see here for now ")
