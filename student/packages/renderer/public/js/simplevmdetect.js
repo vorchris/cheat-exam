@@ -11,7 +11,7 @@ const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL).toLowerCase(
 const keywords = ['vmware','virtualbox','parallels','solarwinds','qemu','hyper-v','bootcamp']
 
 
-const virtual = false
+let virtual = false
 keywords.forEach( keyword => {
     if (vendor.includes(keyword) ){ virtual = true }
     if (renderer.includes(keyword) ){ virtual = true }
