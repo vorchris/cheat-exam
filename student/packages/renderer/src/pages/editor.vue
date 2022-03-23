@@ -6,7 +6,7 @@
             <span class="fs-4 align-middle me-1" style="float: left;">{{clientname}}</span>
             <span class="fs-4 align-middle me-4 green" style="float: left;" >| online</span> 
         </div>
-        {{virtualized}}
+        
         <div v-if="!online" class="text-white m-1">
             <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style=" float: left;" />
              <span class="fs-4 align-middle me-1" style=" float: left;"> {{clientname}} </span>
@@ -184,6 +184,10 @@ export default {
                 else { this.online = false  }
             })
             .catch( err => {console.log(err)});
+
+
+            if(this.virtualized === "true"){this.informTeacher('virtualized') }
+
         }, 
         loadFilelist(){
             fetch(`http://localhost:${this.clientApiPort}/client/data/getfiles`, { method: 'POST' })
@@ -275,21 +279,21 @@ export default {
                 let elementInFocus = document.activeElement.id
                 console.log(elementInFocus);
                 if (elementInFocus !== "geogebraframe" && elementInFocus !== "vuexambody" && elementInFocus !== "pdfembed" ){
-                   this.informTeacher()
+                   this.informTeacher(false)
                 }
             }
             else if (e && e.type === "beforeunload") {
                 e.preventDefault(); 
                 e.returnValue = ''; 
-                this.informTeacher()
+                this.informTeacher(false)
             }
             else {
-                this.informTeacher()
+                this.informTeacher(false)
             }
         },
-        informTeacher(){
+        informTeacher(focus){
             console.log("HOUSTON WE HAVE A CHEATER!")
-            axios.get(`http://${this.serverip}:${this.serverApiPort}/server/control/studentlist/statechange/${this.servername}/${this.token}/false`)
+            axios.get(`http://${this.serverip}:${this.serverApiPort}/server/control/studentlist/statechange/${this.servername}/${this.token}/${focus}`)
             .then( (response) => { console.log(response.data); })
             .catch( err => {console.log(err)});  
            

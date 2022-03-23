@@ -71,7 +71,8 @@
         "nofiles": "Es wurden keine Dateien hochgeladen",
         "studentupdate": "Schülerdaten aktualisiert",
         "studentleft": "Schüler*in hat den Exam Server verlassen",
-        "staterestore": "Vertrauensstellung wiederhergestellt"
+        "staterestore": "Vertrauensstellung wiederhergestellt",
+        "virtualized": "Next-Exam wird in einer virtuellen Maschine ausgeführt"
     },  
     "data": {
         "tokennotvalid": "das token ist ungültig",

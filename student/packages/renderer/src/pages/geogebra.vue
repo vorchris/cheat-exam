@@ -77,6 +77,7 @@ export default {
             clientApiPort: this.$route.params.clientApiPort,
             geogebrasource: "",
             electron: this.$route.params.electron,
+            virtualized: this.$route.params.virtualized,
             blurEvent : null,
             endExamEvent: null,
             clientinfo: null,
@@ -153,6 +154,7 @@ export default {
                 else { this.online = false  }
             })
             .catch( err => {console.log(err)});
+            if(this.virtualized === "true"){this.informTeacher('virtualized') }
         }, 
         focuscheck() {
             window.addEventListener('beforeunload',         this.focuslost);  // keeps the window open (displays "are you sure in browser")
@@ -165,21 +167,21 @@ export default {
                 let elementInFocus = document.activeElement.id
                 console.log(elementInFocus);
                 if (elementInFocus !== "geogebraframe" && elementInFocus !== "vuexambody" ){
-                   this.informTeacher()
+                   this.informTeacher(false)
                 }
             }
             else if (e && e.type === "beforeunload") {
                 e.preventDefault(); 
                 e.returnValue = ''; 
-                this.informTeacher()
+                this.informTeacher(false)
             }
             else {
-                this.informTeacher()
+                this.informTeacher(false)
             }
         },
-        informTeacher(){
+        informTeacher(focus){
             console.log("HOUSTON WE HAVE A CHEATER!")
-            fetch(`http://${this.serverip}:${this.serverApiPort}/server/control/studentlist/statechange/${this.servername}/${this.token}/false`)
+            fetch(`http://${this.serverip}:${this.serverApiPort}/server/control/studentlist/statechange/${this.servername}/${this.token}/${focus}`)
             .then( response => response.json() )
             .then( (data) => { console.log(data); });  
 

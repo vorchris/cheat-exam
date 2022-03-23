@@ -298,6 +298,9 @@ router.get('/serverlist', function (req, res, next) {
         registeredClient.focus = true;
         return res.json({ sender: "server", message:t("control.staterestore"), status: "success" })
     }
+    else if (state === "virtualized"){
+        return res.json({ sender: "server", message:t("control.virtualized"), status: "success" })
+    }
 })
 
 
