@@ -35,7 +35,13 @@ Node v16.14.0
 
 ```npm run build```
 
-!in order to build for windows on linux you need to 'apt install wine'!
+attention : in order to build for windows on linux you need to ```apt install wine```
+
+
+## download latest builds
+https://life-edu.eu/next-exam/
+
+
 
 
 ## more information
