@@ -36,14 +36,15 @@
             <div  v-if="(currentdirectory !== workdirectory)" class="btn btn-dark pe-3 ps-3 me-1 mb-3 btn-sm" @click="loadFilelist(currentdirectoryparent) "><img src="/src/assets/img/svg/edit-undo.svg" class="" width="22" height="22" >up </div>
   
             <div v-for="file in localfiles" class="d-inline">
+                <!-- files -->
                 <div v-if="(file.type == 'file')" class="btn btn-info pe-3 ps-3 me-3 mb-2 btn-sm" @click=""><img src="/src/assets/img/svg/document.svg" class="" width="22" height="22" > {{file.name}} </div>
                 
-
                 <div v-if="(file.type == 'file')"  :class="(studentlist.length == 0)? 'disabled':''"  class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="sendFile(file)"><img src="/src/assets/img/svg/document-send.svg" class="" width="22" height="22" ></div>
                 <div v-if="(file.type == 'file')" class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="downloadFile(file)"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" ></div>
                 <div v-if="(file.type == 'file' && file.ext === '.pdf')" class="btn btn-dark me-1 mb-2 btn-sm" style="float: right;" @click="loadPDF(file.path)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
+                <div v-if="(file.type == 'file' && (file.ext === '.png'|| file.ext === '.jpg' ))" class="btn btn-dark me-1 mb-2 btn-sm" style="float: right;" @click="loadImage(file.path)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
                 
-
+                <!-- folders -->
                 <div v-if="(file.type == 'dir')" class="btn btn-success pe-3 ps-3 me-3 mb-2 btn-sm" @click="loadFilelist(file.path)"><img src="/src/assets/img/svg/folder-open.svg" class="" width="22" height="22" > {{file.name}} </div>
                 <div v-if="(file.type == 'dir')" class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="downloadFile(file)"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" ></div>
 
@@ -229,6 +230,24 @@ export default {
                     $("#pdfpreview").css("display","block");
                     $("#pdfpreview").click(function(e) {
                          $("#pdfpreview").css("display","none");
+                         $("#pdfembed").attr("src", '')
+                    });
+               }).catch(err => { console.warn(err)});     
+        },
+           // fetch file from disc - show preview
+        loadImage(file){
+            const form = new FormData()
+            form.append("filename", file)
+            fetch(`http://${this.serverip}:${this.serverApiPort}/server/data/getpdf/${this.servername}/${this.servertoken}`, { method: 'POST', body: form })
+                .then( response => response.arrayBuffer())
+                .then( data => {
+                    let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
+                    //$("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
+                    $("#pdfembed").css("background-image",`url(${ url  })`);
+                    $("#pdfpreview").css("display","block");
+                    $("#pdfpreview").click(function(e) {
+                        $("#pdfpreview").css("display","none");
+                        $("#pdfembed").css("background-image",'');
                     });
                }).catch(err => { console.warn(err)});     
         },
@@ -605,6 +624,10 @@ export default {
     box-shadow: 0 0 15px rgba(22, 9, 9, 0.589);
     padding: 10px;
     border-radius: 6px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: #212529;
 }
 
 
