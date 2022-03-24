@@ -90,11 +90,11 @@
 
 
     <div id="content" class="fadeinslow p-3">
-        <div class="btn btn-success m-1 text-start" style="width:120px;"  @click="startExam('all')">{{$t('dashboard.startexam')}}</div>
+        <div class="btn btn-success m-1 text-start ms-0" style="width:100px;"  @click="startExam('all')">{{$t('dashboard.startexam')}}</div>
+              <div class="btn btn-danger m-1 text-start ms-0 " style="width:100px;" @click="endExam('all')" >{{$t('dashboard.stopexam')}}</div>
         <div class="btn btn-info m-1 text-start ms-0 " style="width:100px;" @click="sendFiles('all')">{{$t('dashboard.sendfile')}}</div>
         <div class="btn btn-info m-1 text-start ms-0 " style="width:100px;" @click="getFiles('all')">{{$t('dashboard.getfile')}}</div>
-        <div class="btn btn-danger m-1 text-start ms-0 " style="width:120px;" @click="endExam('all')" >{{$t('dashboard.stopexam')}}</div>
-        <div class="col d-inlineblock btn btn-secondary m-1 ms-3" @click="loadFilelist(workdirectory)"  style="width: 100px">{{$t('dashboard.showworkfolder')}} </div>
+        <div class="col d-inlineblock btn btn-dark m-1 ms-0 " @click="loadFilelist(workdirectory)"  style="width: 100px; ">{{$t('dashboard.showworkfolder')}} </div>
 
         <div id="studentslist" class="placeholder pt-4"> 
             <div v-for="student in studentlist" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn border-0 rounded-3 btn-block m-1 ">
@@ -240,12 +240,17 @@ export default {
                 .then( response => response.arrayBuffer())
                 .then( data => {
                     let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
-                    //$("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
+                    // wanted to save code here but images need to be presented in a different way than pdf.. so...
                     $("#pdfembed").css("background-image",`url(${ url  })`);
+                    $("#pdfembed").css("height","60vh");
+                    $("#pdfembed").css("margin-top","-30vh");
+                    
                     $("#pdfpreview").css("display","block");
                     $("#pdfpreview").click(function(e) {
                         $("#pdfpreview").css("display","none");
                         $("#pdfembed").css("background-image",'');
+                        $("#pdfembed").css("height","96vh");
+                        $("#pdfembed").css("margin-top","-48vh");
                     });
                }).catch(err => { console.warn(err)});     
         },

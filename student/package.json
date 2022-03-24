@@ -24,7 +24,8 @@
         "output": "../release/${version}"
         },
         "files": [
-            "dist"
+            "dist",
+            "public"
         ],
         "linux": {
             "target": "AppImage",
