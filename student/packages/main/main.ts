@@ -28,7 +28,7 @@ async function createWindow() {
 
     win = new BrowserWindow({
         title: 'Main window',
-        icon: join(__dirname, '../renderer/public/favicon.svg'),
+        icon: join(__dirname, '../../public/icons/icon.png'),
         width: 1000,
         height: 600,
         minWidth: 760,

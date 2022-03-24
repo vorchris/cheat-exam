@@ -11,8 +11,6 @@
  
 
 
-
-
 <div id="wrapper" class="w-100 h-100 d-flex" >
 
     <div class="p-3 text-white bg-dark h-100 " style="width: 240px; min-width: 240px;">
@@ -36,7 +34,6 @@
         </div>
         <br>
     </div>
-
 
     <div id="content" class="fadeinslow p-3">
         <div class="col-7">
@@ -87,7 +84,6 @@ export default {
                 if (response.data.status === "success") {  //directly log in
                     this.status(response.data.message);
                     await this.sleep(1000);
-
                     if (this.electron){
                         this.$router.push({  // for some reason this doesn't work on mobile
                             name: 'dashboard', 
@@ -98,14 +94,8 @@ export default {
                         })
                     }
                     else {window.location.href = `#/dashboard/${this.servername}/${this.password}`}
-
-
                 }
-                else {
-                    this.status(response.data.message);
-                    await this.sleep(1000);
-                    this.$router.push({ path: '/serverlist' })
-                }
+                else { this.status(response.data.message); }
             }).catch(err => { this.status(err)});
         },
 
@@ -133,21 +123,14 @@ export default {
         if (this.electron){
             this.hostname = "localhost"
         }
-
     },
     beforeUnmount() {
         clearInterval( this.fetchinterval )
     },
 }
-
-
-
 </script>
 
 
-
 <style scoped>
-
-
 
 </style>
