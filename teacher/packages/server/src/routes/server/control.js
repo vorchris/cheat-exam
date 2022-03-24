@@ -1,6 +1,7 @@
 import { Router } from 'express'
 const router = Router()
 import multiCastserver from '../../classes/multicastserver.js'
+import multiCastclient from '../../classes/multicastclient.js'
 import { v4 } from 'uuid'
 import config from '../../config.js'
 import path from 'path'
@@ -20,20 +21,29 @@ import fs from 'fs'
  router.get('/start/:servername/:passwd', function (req, res, next) {
     const servername = req.params.servername 
     const mcServer = config.examServerList[servername]
+    //generate random pin
     let pin = String(Math.floor(Math.random()*90000) + 10000)
-    
-    if (config.development){ pin = "1337" }
+    if (config.development){ pin = "1337" }  
 
+    // // check if server is already running locally or in LAN
     if (mcServer) { 
-        res.send( {sender: "server", message: t("control.serverexists"), status: "error"})
+        return res.send( {sender: "server", message: t("control.serverexists"), status: "error"})
     } 
-    else {
-        console.log('Initializing new Exam Server')
-        let mcs = new multiCastserver();
-        mcs.init(servername, pin, req.params.passwd)
-        config.examServerList[servername]=mcs
-        res.send( {sender: "server", message: t("control.serverstarted"), status: "success"})
-    }
+
+    for (const exam of multiCastclient.examServerList) {  // do not use forEach() because its run async and the interpreter will not wait for it to finish
+        if (servername == exam.servername ){
+            return res.send( {sender: "server", message: t("control.serverexistsLAN"), status: "error"})
+        }
+     }
+
+
+    
+    console.log('Initializing new Exam Server')
+    let mcs = new multiCastserver();
+    mcs.init(servername, pin, req.params.passwd)
+    config.examServerList[servername]=mcs
+    res.send( {sender: "server", message: t("control.serverstarted"), status: "success"})
+    
 })
 
 

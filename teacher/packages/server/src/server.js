@@ -7,6 +7,10 @@ import fsExtra from "fs-extra"
 import path from 'path'
 import rateLimit  from 'express-rate-limit'  //simple ddos protection
 import ip from 'ip'
+import multicastClient from './classes/multicastclient.js'
+
+
+multicastClient.init()
 
 config.hostip = ip.address()  // config is exposed to electron-vue app via context bridge so we can use it in the frontend
 if (typeof window !== 'undefined'){

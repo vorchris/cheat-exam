@@ -60,6 +60,7 @@
         "alreadyregistered": "student already registered",
         "registered": "student registered",
         "serverexists": "Exam Server already exists",
+        "serverexistsLAN": "Exam Server already active in local area network",
         "serverstarted": "Exam Server started",
         "serverstopped": "Exam Server stopped",
         "notfound": "Exam doesn't exist",

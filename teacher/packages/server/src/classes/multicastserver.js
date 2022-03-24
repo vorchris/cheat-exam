@@ -60,7 +60,10 @@ class MulticastServer {
             ip: this.serverinfo.ip
         }
         const preparedMessage = JSON.stringify(message)
+        //broadcast to clients
         this.server.send(preparedMessage, 0, preparedMessage.length, this.ClientPORT, this.MULTICAST_ADDR)
+        //broadcast to other server(clients)
+        this.server.send(preparedMessage, 0, preparedMessage.length, config.multicastServerClientPort, this.MULTICAST_ADDR)
     }
 }
 

@@ -8,9 +8,11 @@ const config = {
     clientVitePort:3001,
     serverVitePort:3002,
     multicastClientPort: 6024,
+    multicastServerClientPort: 6025,
     multicastServerAdrr: '239.255.255.250',
     hostip: "0.0.0.0",
     examServerList: {},
+  
   
 }
 export default config

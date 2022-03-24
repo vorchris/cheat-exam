@@ -60,6 +60,7 @@
         "alreadyregistered": "Schüler*in bereits angemeldet",
         "registered": "Schüler*in angemeldet",
         "serverexists": "Exam Server existiert bereits",
+        "serverexistsLAN": "Exam Server existiert bereits im loklen Netzwerk",
         "serverstarted": "Exam Server gestartet",
         "serverstopped": "Exam Server beendet",
         "notfound": "Prüfung existiert nicht",
