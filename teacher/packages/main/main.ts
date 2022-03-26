@@ -36,7 +36,7 @@ async function createWindow() {
     if (app.isPackaged || process.env["DEBUG"]) {
         win.removeMenu() 
         win.loadFile(join(__dirname, '../renderer/index.html'))
-        win.webContents.openDevTools()
+       // win.webContents.openDevTools()
     } 
     else {
         const url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}`
