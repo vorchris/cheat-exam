@@ -187,6 +187,11 @@ router.get('/serverlist', function (req, res, next) {
             virtualized: false
         }
 
+        //create folder for student
+        let studentfolder =path.join(config.workdirectory, clientname);
+        if (!fs.existsSync(studentfolder)){ fs.mkdirSync(studentfolder); }
+
+
         mcServer.studentList.push(client)
         return res.json({sender: "server", message:t("control.registered"), status: "success", token: token})  // on success return client token (auth needed for server api)
         }

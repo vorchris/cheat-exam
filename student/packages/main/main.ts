@@ -2,10 +2,9 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow, shell, ipcMain, screen } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, screen, globalShortcut } from 'electron'
 import { release } from 'os'
 import { join } from 'path'
-
 
 
 // Disable GPU Acceleration for Windows 7
@@ -58,7 +57,9 @@ async function createWindow() {
      * we can call ipcRenderer.send('signal') to send and ipcMain to reveive in mainprocess
      */
 
-
+     win?.on("blur", function() {
+        win?.show();
+      });
     
     const blurevent = () => { win?.webContents. send('blurevent'); }
     win?.addListener('blur', blurevent)  // send blurevent on blur
@@ -77,17 +78,15 @@ async function createWindow() {
         win?.webContents.send('endexam', token, examtype);
     }); 
 
+
    
 
-    const home = app.getPath('home')
-    const desktop = app.getPath('desktop')
-    const temp  = app.getPath('temp')
-    const workdirectory = join(desktop, 'EXAM')
-    
-    ipcMain.on('env-request', function (event) {
-        event.sender.send('env-reply', home, desktop, temp, workdirectory);
-    });
-
+    win.webContents.on('before-input-event', (event, input) => {
+        if (input.alt && input.key === "i") {
+            console.log('Pressed Alt+I')
+            event.preventDefault()
+          }
+    })
 
 
     // Make all links open with the browser, not with the application
@@ -97,7 +96,27 @@ async function createWindow() {
     })
 }
 
-app.whenReady().then(createWindow)
+
+ 
+
+
+app.whenReady()
+.then( () => {
+    globalShortcut.register('Alt+Tab', () => {
+      console.log('Electron loves global shortcuts!')
+      return false
+    })
+  })
+.then(createWindow)
+
+
+app.on('ready', () => {
+    globalShortcut.register('alt+tab', () => {
+  
+       return false
+    })
+  })
+
 
 
 app.on('window-all-closed', () => {

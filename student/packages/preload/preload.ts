@@ -11,9 +11,7 @@ import screenshot from 'screenshot-desktop';
 import virtual from '../renderer/public/js/simplevmdetect.js';
 
 
-// fetch some env vars from main process
-ipcRenderer.send('env-request');
-
+config.virtualized = virtual
 
 
 /** document ready */
@@ -41,22 +39,8 @@ contextBridge.exposeInMainWorld('fs', fs)
 contextBridge.exposeInMainWorld('screenshot', screenshot)
 contextBridge.exposeInMainWorld('ipcRenderer', withPrototype(ipcRenderer))   // this gives us an option to access the electron mainwindow with an ipc call
 contextBridge.exposeInMainWorld('api', api)   // this finally runs the express API in electron (and exposes it)
+contextBridge.exposeInMainWorld('config', config )  // expose configuration (readonly) to the renderer (frontend)
 
-// we wait for some environment variables the main process provides.. unfortunately there is no better way to get information from the mainprocess than through the eventemitter
-ipcRenderer.on('env-reply', function (event, home, desktop, temp, workdirectory) {
-    config.home = home; 
-    config.desktop = desktop;
-    config.tempdirectory = temp; 
-    config.workdirectory = workdirectory;
-    config.virtualized = virtual
-
-    // create workdirectory if it doesn't exist 
-    if (!fs.existsSync(workdirectory)){
-        fs.mkdirSync(workdirectory);
-    }
-
-    contextBridge.exposeInMainWorld('config', config )  // expose configuration (readonly) to the renderer (frontend)
-});
  
 // `exposeInMainWorld` can't detect attributes and methods of `prototype`, manually patching it.
 function withPrototype(obj: Record<string, any>) {
