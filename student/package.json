@@ -20,9 +20,11 @@
         "productName": "Next-Exam-Student",
         "appId": "com.nextexam-student.app",
         "asar": true,
-        "asarUnpack": [ "node_modules/screenshot-desktop/lib/win32"],
+        "asarUnpack": [
+            "node_modules/screenshot-desktop/lib/win32"
+        ],
         "directories": {
-        "output": "../release/${version}"
+            "output": "../release/${version}"
         },
         "files": [
             "dist",
@@ -49,8 +51,8 @@
             "icon": "public/icons/icon.ico",
             "target": [
                 {
-                "target": "portable",
-                "arch": [
+                    "target": "portable",
+                    "arch": [
                         "x64"
                     ]
                 }
@@ -118,8 +120,10 @@
         "jspdf": "^2.5.1",
         "lowlight": "^2.5.0",
         "node-notifier": "^10.0.1",
+        "platform-folders": "^0.5.4",
         "sass": "^1.49.9",
         "screenshot-desktop": "^1.12.7",
+        "vue-i18n": "^9.1.9",
         "vue-router": "^4.0.13"
     }
 }
