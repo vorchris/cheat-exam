@@ -1,6 +1,6 @@
 {
     "name": "next-exam-student",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "main": "dist/main/main.cjs",
     "author": {
         "name": "Thomas Michael Weissel",
@@ -37,9 +37,13 @@
         "mac": {
             "icon": "public/icons/icon.png",
             "artifactName": "${productName}_${version}.${ext}",
-            "target": [
-                "dmg"
-            ]
+            "target": {
+                "target": "dmg",
+                "arch": [
+                    "x64",
+                    "arm64"
+                ]
+            }
         },
         "win": {
             "icon": "public/icons/icon.ico",
