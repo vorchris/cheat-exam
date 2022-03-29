@@ -261,7 +261,8 @@ router.get('/serverlist', function (req, res, next) {
     let registeredClient = mcServer.studentList.find(element => element.token === token)
 
     for (const [key, file] of Object.entries( req.files)) {
-        let absoluteFilepath = path.join(config.publicdirectory, file.name); 
+        let absoluteFilepath = path.join(config.tempdirectory, file.name); 
+        console.log(absoluteFilepath)
         file.mv(absoluteFilepath, (err) => {  if (err) {  console.log(err)  } });
         
         if (!registeredClient.focus){
@@ -277,7 +278,7 @@ router.get('/serverlist', function (req, res, next) {
     // do not update all of the clientinfo (leave some decisions to the server - like 'focus' for example)
     registeredClient.timestamp = new Date().getTime()
     registeredClient.exammode = exammode  
-    registeredClient.imageurl = `http://${config.hostip}:${config.serverApiPort}/files/${token}.jpg?ver=${registeredClient.timestamp}`
+    registeredClient.imageurl = `http://${config.hostip}:${config.serverApiPort}/${token}.jpg?ver=${registeredClient.timestamp}`
     res.send({sender: "server", message:t("control.studentupdate"), status:"success" })
 })
 

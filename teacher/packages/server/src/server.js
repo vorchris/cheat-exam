@@ -8,6 +8,14 @@ import path from 'path'
 import rateLimit  from 'express-rate-limit'  //simple ddos protection
 import ip from 'ip'
 import multicastClient from './classes/multicastclient.js'
+import getPath from 'platform-folders';
+
+
+config.home = getPath('home'); 
+config.desktop = getPath('desktop');
+config.workdirectory = path.join(config.desktop, 'EXAM')
+config.tempdirectory = path.join(config.workdirectory, 'temp')
+
 
 
 multicastClient.init()
@@ -25,10 +33,8 @@ const limiter = rateLimit({
   })
 
 
-// clean public directory
-const __dirname = path.resolve();
-const publicdirectory = path.join(__dirname, config.publicdirectory);
-fsExtra.emptyDirSync(publicdirectory)
+// clean temp directory
+fsExtra.emptyDirSync(config.tempdirectory)
 
 
 // init express API
@@ -37,7 +43,7 @@ const api = express()
 api.use(fileUpload())  //When you upload a file, the file will be accessible from req.files (init before routes)
 api.use(cors())
 api.use(express.json())
-api.use(express.static("public"));
+api.use(express.static(config.tempdirectory));
 api.use(express.urlencoded({extended: true}));
 api.use(limiter)
 api.use('/server', serverRouter)

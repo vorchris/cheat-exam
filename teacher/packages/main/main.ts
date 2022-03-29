@@ -36,7 +36,7 @@ async function createWindow() {
     if (app.isPackaged || process.env["DEBUG"]) {
         win.removeMenu() 
         win.loadFile(join(__dirname, '../renderer/index.html'))
-       // win.webContents.openDevTools()
+        win.webContents.openDevTools()
     } 
     else {
         const url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}`
@@ -44,15 +44,6 @@ async function createWindow() {
         win.loadURL(url)
         win.webContents.openDevTools()
     }
-
-    const home = app.getPath('home')
-    const desktop = app.getPath('desktop')
-    const temp  = app.getPath('temp')
-    const workdirectory = join(desktop, 'EXAM')
-    
-    ipcMain.on('env-request', function (event) {
-        event.sender.send('env-reply', home, desktop, temp, workdirectory);
-    });
 
 
     // Make all links open with the browser, not with the application

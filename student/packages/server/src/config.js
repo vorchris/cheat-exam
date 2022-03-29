@@ -3,7 +3,6 @@ const config = {
     tempdirectory : "",   // set by main.ts and preload.ts
     desktop : "",         // set by main.ts and preload.ts
     home : "",            // set by main.ts and preload.ts
-    publicdirectory: "public/files/",
     serverApiPort:22422,
     clientApiPort:11411,
     clientVitePort:3001,

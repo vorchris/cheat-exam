@@ -8,9 +8,6 @@ import { contextBridge, ipcRenderer } from 'electron'
 import api from "../server/src/server.js"
 import config from "../server/src/config.js"
 
-// fetch some env vars from main process
-ipcRenderer.send('env-request');
-
 
 /** document ready */
 function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {
@@ -37,24 +34,7 @@ function domReady(condition: DocumentReadyState[] = ['complete', 'interactive'])
 contextBridge.exposeInMainWorld('fs', fs)
 contextBridge.exposeInMainWorld('ipcRenderer', withPrototype(ipcRenderer))
 contextBridge.exposeInMainWorld('api', api)   // this finally runs the express API in electron (and exposes it)
-
-// we wait for some environment variables the main process provides.. unfortunately there is no better way to get information from the mainprocess than through the eventemitter
-ipcRenderer.on('env-reply', function (event, home, desktop, temp, workdirectory) {
-    config.home = home; 
-    config.desktop = desktop;
-    config.tempdirectory = temp; 
-    config.workdirectory = workdirectory;
-    
-    // create workdirectory if it doesn't exist 
-    if (!fs.existsSync(workdirectory)){
-        fs.mkdirSync(workdirectory);
-    }
-
-    contextBridge.exposeInMainWorld('config', config )  // expose configuration (readonly) to the renderer (frontend)
-    
-});
-
-
+contextBridge.exposeInMainWorld('config', config )  // expose configuration (readonly) to the renderer (frontend)
 
 
 

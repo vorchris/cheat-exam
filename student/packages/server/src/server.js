@@ -1,6 +1,5 @@
 import express from "express"
 import cors from 'cors'
-
 import fileUpload from "express-fileupload";
 import {clientRouter} from './routes/clientroutes.js' 
 import config from './config.js';
@@ -8,6 +7,13 @@ import fsExtra from "fs-extra"
 import path from 'path'
 import ip from 'ip'
 import multicastClient from './classes/multicastclient.js'
+import getPath from 'platform-folders';
+
+config.home = getPath('home'); 
+config.desktop = getPath('desktop');
+config.workdirectory = path.join(config.desktop, 'EXAM')
+config.tempdirectory = path.join(config.workdirectory, 'temp')
+
 
 
 multicastClient.init()
@@ -17,12 +23,16 @@ if (typeof window !== 'undefined'){
     if (window.process.type == "renderer") config.electron = true
 }
 
+// clean temp directory
+fsExtra.emptyDirSync(config.tempdirectory)
+
+
 
 const api = express()
 api.use(fileUpload())  //When you upload a file, the file will be accessible from req.files (init before routes)
 api.use(cors())
 api.use(express.json())
-api.use(express.static("public"));
+api.use(express.static(config.tempdirectory));
 api.use(express.urlencoded({extended: true}));
 api.use('/client', clientRouter)
 

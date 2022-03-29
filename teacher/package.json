@@ -7,11 +7,12 @@
     "description": "An exam managment tool for digital exams",
     "type": "module",
     "scripts": {
-            "dev": "node scripts/watch.mjs",
-            "build": "node scripts/build.mjs && electron-builder -wl",
-            "dev:web": "vite ./packages/renderer --host | npm run serve  ",
-            "serve": "nodemon packages/server/src/server",
-            "vite": "vite ./packages/renderer --host"
+        "dev": "node scripts/watch.mjs",
+        "build": "node scripts/build.mjs && electron-builder -wl",
+        "build:mac": "node scripts/build.mjs && electron-builder -m",
+        "dev:web": "vite ./packages/renderer --host | npm run serve  ",
+        "serve": "nodemon packages/server/src/server",
+        "vite": "vite ./packages/renderer --host"
     },
     "build": {
         "productName": "Next-Exam-Teacher",
@@ -41,17 +42,17 @@
             "icon": "public/icons/icon.ico",
             "target": [
                 {
-                "target": "portable",
-                "arch": [
-                    "x64"
-                ]
+                    "target": "portable",
+                    "arch": [
+                        "x64"
+                    ]
                 }
             ],
             "artifactName": "${productName}_${version}.${ext}"
         }
     },
     "engines": {
-            "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
+        "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
     },
     "devDependencies": {
         "@intlify/vite-plugin-vue-i18n": "^3.3.1",
@@ -114,6 +115,8 @@
         "jspdf": "^2.5.1",
         "lowlight": "^2.5.0",
         "node-notifier": "^10.0.1",
+        "os": "^0.1.2",
+        "platform-folders": "^0.5.4",
         "sass": "^1.49.9",
         "screenshot-desktop": "^1.12.7",
         "vue-router": "^4.0.13",
