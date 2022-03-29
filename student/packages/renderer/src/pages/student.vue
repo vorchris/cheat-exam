@@ -72,10 +72,6 @@
 import $ from 'jquery'
 import axios from "axios";
 
-import Mousetrap from "mousetrap"
-
-Mousetrap.bind('alt+tab', function() { console.log('escape'); }, 'keyup');
-
 
 export default {
     data() {

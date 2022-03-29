@@ -2,7 +2,6 @@ import { Router } from 'express'
 const router = Router()
 import config from '../../config.js'
 import multiCastclient from '../../classes/multicastclient.js'
-import path from 'path'
 import axios from 'axios'
 import nodenotify  from 'node-notifier'
 import ip from 'ip'

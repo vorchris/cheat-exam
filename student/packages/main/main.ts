@@ -6,12 +6,25 @@ import { app, BrowserWindow, shell, ipcMain, screen, globalShortcut } from 'elec
 import { release } from 'os'
 import { join } from 'path'
 
+import childProcess from 'child_process'
+
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
 
 // Set application name for Windows 10+ notifications
 if (process.platform === 'win32') app.setAppUserModelId(app.getName())
+
+
+// disable global keyboardshortcuts on kde
+if (process.platform === 'linux') {
+      childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'true'], (error, stdout, stderr) => {
+        if (stderr) {  console.log(stderr)  }
+        if (error)  {  console.log(error)   }
+    })
+}
+
+
 
 if (!app.requestSingleInstanceLock()) {
   app.quit()
@@ -32,6 +45,7 @@ async function createWindow() {
         height: 600,
         minWidth: 760,
         minHeight: 600,
+        alwaysOnTop: true,
         webPreferences: {
             preload: join(__dirname, '../preload/preload.cjs')
         }
@@ -62,6 +76,8 @@ async function createWindow() {
     const blurevent = () => { 
         win?.webContents. send('blurevent'); 
         win?.show();  // we keep focus on the window.. no matter what
+        win?.moveTop();
+        win?.focus();
     }
    
 
@@ -81,12 +97,15 @@ async function createWindow() {
         win?.webContents.send('endexam', token, examtype);
     }); 
 
-
-   
-
+    //trying to fetch some common keyboardshortcuts (alt+tab strg-alt-entf is not possible)
     win.webContents.on('before-input-event', (event, input) => {
-        if (input.alt && input.key === "i") {
-            console.log('Pressed Alt+I')
+        console.log(input)
+        if (input.alt || input.key.toLowerCase() === "alt") {
+            console.log('Pressed Alt')
+            event.preventDefault()
+          }
+        if (input.key.toLocaleLowerCase() === "meta" || input.key.toLocaleLowerCase() === "super"|| input.key.toLocaleLowerCase() === "cmd" ) {
+            console.log('Pressed meta')
             event.preventDefault()
           }
     })
@@ -105,41 +124,42 @@ async function createWindow() {
 
 app.whenReady()
 .then( () => {
-    globalShortcut.register('Alt+Tab', () => {
-      console.log('Electron loves global shortcuts!')
-      return false
+    globalShortcut.register('Cmd+i', () => {
+        console.log('Electron loves global shortcuts!')
+        return false
     })
   })
 .then(createWindow)
 
 
-app.on('ready', () => {
-    globalShortcut.register('alt+tab', () => {
-  
-       return false
-    })
-  })
 
-
-
+// if window is closed
 app.on('window-all-closed', () => {
-  win = null
-  if (process.platform !== 'darwin') app.quit()
+    win = null
+    if (process.platform !== 'darwin') app.quit()
+
+    // disable global keyboardshortcuts on kde
+    if (process.platform === 'linux') {
+        childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'false'], (error, stdout, stderr) => {
+        if (stderr) {  console.log(stderr)  }
+        if (error)  {  console.log(error)   }
+    })
+    }
 })
 
 app.on('second-instance', () => {
-  if (win) {
-    // Focus on the main window if the user tried to open another
-    if (win.isMinimized()) win.restore()
-    win.focus()
-  }
+    if (win) {
+        // Focus on the main window if the user tried to open another
+        if (win.isMinimized()) win.restore()
+        win.focus()
+    }
 })
 
 app.on('activate', () => {
-  const allWindows = BrowserWindow.getAllWindows()
-  if (allWindows.length) {
-    allWindows[0].focus()
-  } else {
-    createWindow()
-  }
+    const allWindows = BrowserWindow.getAllWindows()
+    if (allWindows.length) {
+        allWindows[0].focus()
+    } else {
+        createWindow()
+    }
 })
