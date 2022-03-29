@@ -57,12 +57,13 @@ async function createWindow() {
      * we can call ipcRenderer.send('signal') to send and ipcMain to reveive in mainprocess
      */
 
-     win?.on("blur", function() {
-        win?.show();
-      });
+
     
-    const blurevent = () => { win?.webContents. send('blurevent'); }
-    win?.addListener('blur', blurevent)  // send blurevent on blur
+    const blurevent = () => { 
+        win?.webContents. send('blurevent'); 
+        win?.show();  // we keep focus on the window.. no matter what
+    }
+   
 
     // if we receive "exam" from the express API (via ipcRenderer.send() ) - we inform our renderer (view) 
     // which sets a ipcRenderer listener for the "exam" signal to switch to the correct page (read examtype)  
@@ -70,11 +71,13 @@ async function createWindow() {
         win?.setKiosk(true)
         win?.minimize()
         win?.focus()
+        win?.addListener('blur', blurevent)  // send blurevent on blur
         win?.webContents.send('exam', token, examtype);
     }); 
 
     ipcMain.on("endexam", (event, token, examtype) =>  {
         win?.setKiosk(false)
+        win?.removeListener('blur', blurevent)  // do not send blurevent on blur
         win?.webContents.send('endexam', token, examtype);
     }); 
 
