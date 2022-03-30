@@ -13,12 +13,20 @@ import childProcess from 'child_process'
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
 
 // Set application name for Windows 10+ notifications
-if (process.platform === 'win32') app.setAppUserModelId(app.getName())
+if (process.platform === 'win32') {
+    app.setAppUserModelId(app.getName())
+    let executable = "'../../public/disable-shortcuts.exe')"
+
+    childProcess.execFile(executable, [], (error, stdout, stderr) => {
+        if (stderr) {  console.log(stderr)  }
+        if (error)  {  console.log(error)   }
+    })
+}
 
 
 // disable global keyboardshortcuts on kde
 if (process.platform === 'linux') {
-      childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'true'], (error, stdout, stderr) => {
+    childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'true'], (error, stdout, stderr) => {
         if (stderr) {  console.log(stderr)  }
         if (error)  {  console.log(error)   }
     })
