@@ -13,15 +13,17 @@
     "type": "module",
     "scripts": {
         "dev": "node scripts/watch.mjs",
-        "build": "node scripts/build.mjs && electron-builder -wl",
-        "build:mac": "node scripts/build.mjs && electron-builder -m"
+        "build": "node scripts/build.mjs && electron-builder -l",
+        "build:mac": "node scripts/build.mjs && electron-builder -m",
+        "build:win": "node scripts/build.mjs && electron-builder -w"
     },
     "build": {
         "productName": "Next-Exam-Student",
         "appId": "com.nextexam-student.app",
         "asar": true,
         "asarUnpack": [
-            "node_modules/screenshot-desktop/lib/win32"
+            "node_modules/screenshot-desktop/lib/win32",
+            "public"
         ],
         "directories": {
             "output": "../release/${version}"
