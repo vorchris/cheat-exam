@@ -2,12 +2,34 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow, shell, ipcMain, screen, globalShortcut } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, screen, globalShortcut, TouchBar } from 'electron'
 import { release } from 'os'
 import { join } from 'path'
-
 import childProcess from 'child_process'
 
+
+//testing mac and win listener
+import {GlobalKeyboardListener} from "node-global-key-listener";
+
+
+if (process.platform === 'win32' || process.platform === 'darwin') {
+
+    const v = new GlobalKeyboardListener();
+
+
+    //Capture Windows + Space on Windows and Command + Space on Mac
+    v.addListener(function (e, down) {
+        if (
+            e.state == "DOWN" &&
+            e.name == "SPACE" &&
+            (down["LEFT META"] || down["RIGHT META"])
+        ) {
+            //call your function
+            console.log("captured!!!")
+            return true;
+        }
+    });
+ }
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -20,7 +42,8 @@ if (process.platform === 'win32') {  app.setAppUserModelId(app.getName())}
 
 
 function enableRestrictions(){
-    // disable global keyboardshortcuts on PLASMA/KDE
+
+    // PLASMA/KDE
     if (process.platform === 'linux') {
         childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'true'], (error, stdout, stderr) => {
             if (stderr) {  console.log(stderr)  }
@@ -28,9 +51,8 @@ function enableRestrictions(){
         })
     }
 
-    // disable global keyboardshortcuts on WINDOWS
+    // WINDOWS
     if (process.platform === 'win32') {
-        app.setAppUserModelId(app.getName())
         let executable = join(__dirname, '../../public/disable-shortcuts.exe')
     
         childProcess.execFile(executable, [], (error, stdout, stderr) => {
@@ -38,7 +60,24 @@ function enableRestrictions(){
             if (error)  {  console.log(error)   }
         })
     }
+
+    // MacOS
+    if (process.platform === 'darwin') {
+        const { TouchBarLabel, TouchBarButton, TouchBarSpacer } = TouchBar
+        const textlabel = new TouchBarLabel({label: "Next-Exam"})
+        const touchBar = new TouchBar({
+            items: [
+            new TouchBarSpacer({ size: 'flexible' }),
+            textlabel,
+            new TouchBarSpacer({ size: 'flexible' }),
+            ]
+        })
+        win?.setTouchBar(touchBar)
+    }
 }
+
+
+
 
 function disableRestrictions(){
     // disable global keyboardshortcuts on PLASMA/KDE
