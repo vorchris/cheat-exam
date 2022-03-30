@@ -13,24 +13,44 @@ import childProcess from 'child_process'
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
 
 // Set application name for Windows 10+ notifications
-if (process.platform === 'win32') {
-    app.setAppUserModelId(app.getName())
-    let executable = join(__dirname, '../../public/disable-shortcuts.exe')
+if (process.platform === 'win32') {  app.setAppUserModelId(app.getName())}
 
-    childProcess.execFile(executable, [], (error, stdout, stderr) => {
-        if (stderr) {  console.log(stderr)  }
-        if (error)  {  console.log(error)   }
-    })
+
+
+
+
+function enableRestrictions(){
+    // disable global keyboardshortcuts on PLASMA/KDE
+    if (process.platform === 'linux') {
+        childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'true'], (error, stdout, stderr) => {
+            if (stderr) {  console.log(stderr)  }
+            if (error)  {  console.log(error)   }
+        })
+    }
+
+    // disable global keyboardshortcuts on WINDOWS
+    if (process.platform === 'win32') {
+        app.setAppUserModelId(app.getName())
+        let executable = join(__dirname, '../../public/disable-shortcuts.exe')
+    
+        childProcess.execFile(executable, [], (error, stdout, stderr) => {
+            if (stderr) {  console.log(stderr)  }
+            if (error)  {  console.log(error)   }
+        })
+    }
+}
+
+function disableRestrictions(){
+    // disable global keyboardshortcuts on PLASMA/KDE
+    if (process.platform === 'linux') {
+        childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'false'], (error, stdout, stderr) => {
+            if (stderr) {  console.log(stderr)  }
+            if (error)  {  console.log(error)   }
+        })
+    }
 }
 
 
-// disable global keyboardshortcuts on kde
-if (process.platform === 'linux') {
-    childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'true'], (error, stdout, stderr) => {
-        if (stderr) {  console.log(stderr)  }
-        if (error)  {  console.log(error)   }
-    })
-}
 
 
 
@@ -78,9 +98,6 @@ async function createWindow() {
      * in electron frontend OR express api (import) ipcRenderer is exposed and usable to send or receive messages (see preload/index.ts)
      * we can call ipcRenderer.send('signal') to send and ipcMain to reveive in mainprocess
      */
-
-
-    
     const blurevent = () => { 
         win?.webContents. send('blurevent'); 
         win?.show();  // we keep focus on the window.. no matter what
@@ -88,10 +105,10 @@ async function createWindow() {
         win?.focus();
     }
    
-
     // if we receive "exam" from the express API (via ipcRenderer.send() ) - we inform our renderer (view) 
     // which sets a ipcRenderer listener for the "exam" signal to switch to the correct page (read examtype)  
     ipcMain.on("exam", (event, token, examtype) =>  {
+        enableRestrictions()
         win?.setKiosk(true)
         win?.minimize()
         win?.focus()
@@ -100,6 +117,7 @@ async function createWindow() {
     }); 
 
     ipcMain.on("endexam", (event, token, examtype) =>  {
+        disableRestrictions()
         win?.setKiosk(false)
         win?.removeListener('blur', blurevent)  // do not send blurevent on blur
         win?.webContents.send('endexam', token, examtype);
@@ -107,7 +125,6 @@ async function createWindow() {
 
     //trying to fetch some common keyboardshortcuts (alt+tab strg-alt-entf is not possible)
     win.webContents.on('before-input-event', (event, input) => {
-        console.log(input)
         if (input.alt || input.key.toLowerCase() === "alt") {
             console.log('Pressed Alt')
             event.preventDefault()
@@ -127,12 +144,12 @@ async function createWindow() {
 }
 
 
- 
+
 
 
 app.whenReady()
 .then( () => {
-    globalShortcut.register('Cmd+i', () => {
+    globalShortcut.register('Cmd+p', () => {
         console.log('Electron loves global shortcuts!')
         return false
     })
@@ -146,13 +163,7 @@ app.on('window-all-closed', () => {
     win = null
     if (process.platform !== 'darwin') app.quit()
 
-    // disable global keyboardshortcuts on kde
-    if (process.platform === 'linux') {
-        childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'false'], (error, stdout, stderr) => {
-        if (stderr) {  console.log(stderr)  }
-        if (error)  {  console.log(error)   }
-    })
-    }
+    disableRestrictions()
 })
 
 app.on('second-instance', () => {
