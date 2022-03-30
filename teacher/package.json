@@ -8,7 +8,8 @@
     "type": "module",
     "scripts": {
         "dev": "node scripts/watch.mjs",
-        "build": "node scripts/build.mjs && electron-builder -wl",
+        "build": "node scripts/build.mjs && electron-builder -l",
+        "build:win": "node scripts/build.mjs && electron-builder -w",
         "build:mac": "node scripts/build.mjs && electron-builder -m",
         "dev:web": "vite ./packages/renderer --host | npm run serve  ",
         "serve": "nodemon packages/server/src/server",
