@@ -15,7 +15,7 @@ if (release().startsWith('6.1')) app.disableHardwareAcceleration()
 // Set application name for Windows 10+ notifications
 if (process.platform === 'win32') {
     app.setAppUserModelId(app.getName())
-    let executable = "'../../public/disable-shortcuts.exe')"
+    let executable = join(__dirname, '../../public/disable-shortcuts.exe')
 
     childProcess.execFile(executable, [], (error, stdout, stderr) => {
         if (stderr) {  console.log(stderr)  }
