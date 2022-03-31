@@ -9,29 +9,6 @@ import childProcess from 'child_process'
 
 
 
-//testing mac and win listener  // this needs "accessability" permissions on mac? makes the start complicated?
-import {GlobalKeyboardListener} from "node-global-key-listener";
-
-
-if (process.platform === 'win32' || process.platform === 'darwin') {
-
-    const v = new GlobalKeyboardListener();
-
-
-    //Capture Windows + Space on Windows and Command + Space on Mac
-    v.addListener(function (e, down) {
-        if (
-            e.state == "DOWN" &&
-            e.name == "SPACE" &&
-            (down["LEFT META"] || down["RIGHT META"])
-        ) {
-            //call your function
-            console.log("captured!!!")
-            return true;
-        }
-    });
- }
-
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
 
@@ -41,7 +18,10 @@ if (process.platform === 'win32') {  app.setAppUserModelId(app.getName())}
 
 
 
-
+/**
+ * most of the keyboard restrictions could be handled by "iohook" for all platforms
+ * unfortunalety it's not yet released for node 16.x
+ */
 function enableRestrictions(){
 
     // PLASMA/KDE

@@ -121,7 +121,6 @@
         "jquery": "^3.6.0",
         "jspdf": "^2.5.1",
         "lowlight": "^2.5.0",
-        "node-global-key-listener": "^0.0.13",
         "node-notifier": "^10.0.1",
         "platform-folders": "^0.5.4",
         "sass": "^1.49.9",
