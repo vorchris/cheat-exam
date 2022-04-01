@@ -8,7 +8,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import api from "../server/src/server.js"
 import config from '../server/src/config.js';
 import screenshot from 'screenshot-desktop';
-import virtual from '../renderer/public/js/simplevmdetect.js';
+import virtual from './scripts/simplevmdetect.js';
 
 
 config.virtualized = virtual
