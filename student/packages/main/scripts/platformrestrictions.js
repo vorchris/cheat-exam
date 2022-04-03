@@ -51,6 +51,8 @@ const gnomeKeybindings = [
         childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'true'])
         // Clear Clipboard history 
         childProcess.execFile('qdbus', ['org.kde.klipper' ,'/klipper', 'org.kde.klipper.klipper.clearClipboardHistory'])
+        // wayland
+        childProcess.execFile('wl-copy', ['-c'])
 
 
         //////////
@@ -99,6 +101,11 @@ const gnomeKeybindings = [
             ]
         })
         win?.setTouchBar(touchBar)
+
+        // clear clipboard
+        childProcess.execFile('pbcopy', ['<', '/dev/null'])
+
+
     }
 }
 
