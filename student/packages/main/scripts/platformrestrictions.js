@@ -105,9 +105,7 @@ const gnomeKeybindings = [
         win?.setTouchBar(touchBar)
 
         // clear clipboard
-        childProcess.execFile('pbcopy', ['<', '/dev/null'])
-
-
+        childProcess.exec('pbcopy < /dev/null')
     }
 }
 
