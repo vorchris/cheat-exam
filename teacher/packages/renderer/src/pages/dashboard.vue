@@ -33,6 +33,9 @@
         <div id=workfolder >
             <h4>{{$t('dashboard.filesfolder')}}: <br> <h6 class="ms-3 mb-3"><strong> {{currentdirectory}}</strong>  </h6></h4>
             <div class="btn btn-dark pe-3 ps-3 me-1 mb-3 btn-sm" @click="loadFilelist(workdirectory) "><img src="/src/assets/img/svg/go-home.svg" class="" width="22" height="22" > </div>
+            
+            <div class="btn btn-primary pe-3 ps-3 me-1 mb-3 btn-sm" style="float: right;" :title="$t('dashboard.summarizepdf')" @click="printLatest() "><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" > <img src="/src/assets/img/svg/document-share.svg" class="" width="22" height="22" ></div>
+
             <div  v-if="(currentdirectory !== workdirectory)" class="btn btn-dark pe-3 ps-3 me-1 mb-3 btn-sm" @click="loadFilelist(currentdirectoryparent) "><img src="/src/assets/img/svg/edit-undo.svg" class="" width="22" height="22" >up </div>
             <div v-for="file in localfiles" class="d-inline">
                 <!-- files -->
@@ -121,6 +124,7 @@
 import $ from 'jquery'
 import axios from "axios"
 import FormData from 'form-data'
+import download from 'downloadjs'
 
 export default {
     data() {
@@ -262,6 +266,25 @@ export default {
             $("#preview").click(function(e) { $("#preview").css("display","none"); });  // the surroundings of #workfolder can be clicked to close the view
             $('#workfolder').click(function(e){ e.stopPropagation(); });    // don't propagate clicks through the div to the preview div (it would hide the view)
         },
+
+        printLatest(){
+            fetch(`http://${this.serverip}:${this.serverApiPort}/server/data/getlatest/${this.servername}/${this.servertoken}`, { 
+                method: 'POST',
+                headers: {'Content-Type': 'application/json' },
+                
+            })
+            .then( response => response.arrayBuffer() )
+            .then( lastestpdf => {
+                if (lastestpdf.length === 0){
+                    this.status(` ${this.$t("dashboard.nopdf")}`);
+                }
+                download(lastestpdf, "allInOne.pdf", "application/pdf");
+               
+               
+            }).catch(err => { console.warn(err)});
+        },
+
+
 
         loadFilelist(directory){
             fetch(`http://${this.serverip}:${this.serverApiPort}/server/data/getfiles/${this.servername}/${this.servertoken}`, { 

@@ -42,6 +42,118 @@ import archiver from 'archiver'
 
 
 
+
+/**
+ * GET a latest work from all students
+ * This API Route creates a list of the latest pdf filepaths of all connected students
+ * and concats each of the pdfs to one
+ */ 
+
+ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied version otherwise we get 1000 sourcemap warnings
+ 
+ router.post('/getlatest/:servername/:token', async function (req, res, next) {
+    const token = req.params.token
+    const servername = req.params.servername
+    const mcServer = config.examServerList[servername] // get the multicastserver object
+    if ( token !== mcServer.serverinfo.servertoken ) { return res.json({ status: t("data.tokennotvalid") }) }
+
+    let dir = config.workdirectory
+
+    let studentfolders = []
+
+    fs.readdirSync(dir).reduce(function (list, file) {
+        const filepath = path.join(dir, file);
+        if (fs.statSync(filepath).isDirectory()) {
+            studentfolders.push({ path: filepath, name : file })
+        }
+    }, []);
+    console.log(studentfolders)
+
+    // get latest directory of every student (add to array) ATTENTION: this only works with the current file/folder name scheme 
+    // DO NOT CHANGE /Clientname/11:02:23
+    let latestfolders = []
+    for (let studentdir of studentfolders) {
+        let latest = "00:00:00"  // we ned this for reference
+        fs.readdirSync(studentdir.path).reduce(function (list, file) {
+            const filepath = path.join(studentdir.path, file);
+            if (fs.statSync(filepath).isDirectory()) {
+                if ( !isNaN(Date.parse(`2022-01-01 ${file}`))){
+                    if (Date.parse(`2022-01-01 ${file}`) > Date.parse(`2022-01-01 ${latest}`) ) { 
+                        latest = file   
+                    }
+                }
+            }
+        }, []);
+
+        const filepath = path.join(studentdir.path, latest);
+        latestfolders.push( { path: filepath, name : studentdir.name })  // we store studentdir.name here because in the next step we need to make sure only the main.pdf (studentsname) is used
+    }
+    console.log(latestfolders)
+
+
+    // get PDFs from latest directories 
+    let files = []
+    for (let folder of latestfolders) {
+        fs.readdirSync(folder.path).reduce(function (list, file) {
+            const filepath = path.join(folder.path, file);
+            if(fs.statSync(filepath).isFile() ){
+                let ext = path.extname(file).toLowerCase()
+                if (ext === ".pdf" && file === `${folder.name}.pdf`){  // folder.name contains the studentfolder (and main file) name
+                    files.push(filepath)
+                } 
+            }
+        }, []);
+    }
+    console.log(files)
+
+    // now create one merged pdf out of all files
+    if (files.length === 0) {
+        return res.send()
+    }
+    else {
+        let PDF = await concatPages(files)
+        res.set('Content-Type', 'application/pdf');
+        return res.send( Buffer.from(PDF) )
+    }
+})
+
+
+
+
+
+
+async function concatPages(pdfsToMerge) {
+    // Create a new PDFDocument
+    const tempPDF = await PDFDocument.create();
+    for (const pdfpath of pdfsToMerge) { 
+        let pdfBytes = fs.readFileSync(pdfpath);
+        const pdf = await PDFDocument.load(pdfBytes); 
+        const copiedPages = await tempPDF.copyPages(pdf, pdf.getPageIndices());
+        copiedPages.forEach((page) => {
+            tempPDF.addPage(page); 
+        }); 
+    } 
+    // Serialize the PDFDocument to bytes (a Uint8Array)
+    const finalPDF = await tempPDF.save()
+    return finalPDF
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /**
  * GET PDF from EXAM directory
  * @param filename if set the content of the file is returned

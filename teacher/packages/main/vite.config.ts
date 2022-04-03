@@ -7,6 +7,7 @@ export default defineConfig({
   build: {
     outDir: '../../dist/main',
     emptyOutDir: true,
+
     lib: {
       entry: 'main.ts',
       formats: ['cjs'],

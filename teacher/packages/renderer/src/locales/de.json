@@ -52,7 +52,9 @@
         "showworkfolder": "Arbeits Ordner",
         "filesfolder": "Dateien im Arbeitsordner",
         "choosestudent": "Wählen sie eine Person",
-        "chooserequire": "Sie müssen eine Option wählen!"
+        "chooserequire": "Sie müssen eine Option wählen!",
+        "nopdf": "Keine Schülerarbeiten gefunden",
+        "summarizepdf": "Aktuelle Versionen \nals zusammengefasstes PDF \nherunterladen"
     },
     "control": {
         "tokennotvalid": "das token ist ungültig",

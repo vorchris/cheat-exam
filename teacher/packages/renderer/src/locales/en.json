@@ -52,7 +52,9 @@
         "showworkfolder": "Show Workfolder",
         "filesfolder": "Workfolder files",
         "choosestudent": "Select Student",
-        "chooserequire": "You need to choose a student!"
+        "chooserequire": "You need to choose a student!",
+        "nopdf": "Students work not found",
+        "summarizepdf": "Download newest versions \nas single pdf"
     },
     "control": {
         "tokennotvalid": "token is not valid",
