@@ -15,6 +15,8 @@
 
 import { join } from 'path'
 import childProcess from 'child_process'   //needed to run bash commands on linux 
+import {  TouchBar } from 'electron'
+
 // import { GlobalKeyboardListener } from "node-global-key-listener";   //needed to deactivate shortcuts on windows
 // const v = new GlobalKeyboardListener();
 
