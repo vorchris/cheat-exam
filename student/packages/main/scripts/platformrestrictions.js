@@ -68,12 +68,17 @@ const gnomeKeybindings = [
     if (process.platform === 'win32') {
 
         //clear clipboard
-        childProcess.execFile('$null', ['|' ,'&', '$env:windir\System32\clip.exe'])
+        let executable0 = join(__dirname, '../../public/clear-clipboard.bat')
+        childProcess.execFile(executable0, [], (error, stdout, stderr) => {
+            if (stderr) { console.log(stderr) }
+            if (error) { console.log(error) }
+        })
+
 
         
         //block important keyboard shortcuts (disable-shortcuts.exe is a selfmade C application - shortcuts are hardcoded there - need to rebuild if adding shortcuts)
-        let executable = join(__dirname, '../../public/disable-shortcuts.exe')
-        childProcess.execFile(executable, [], (error, stdout, stderr) => {
+        let executable1 = join(__dirname, '../../public/disable-shortcuts.exe')
+        childProcess.execFile(executable1, [], (error, stdout, stderr) => {
             if (stderr) {  console.log(stderr)  }
             if (error)  {  console.log(error)   }
         })
