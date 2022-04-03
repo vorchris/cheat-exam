@@ -42,8 +42,19 @@ const gnomeKeybindings = [
 
     // PLASMA/KDE
     if (process.platform === 'linux') {
-        // Temporarily deactivate ALL global keyboardshortcuts for KDE
+        /////////
+        // KDE
+        /////////
+
+        // Temporarily deactivate ALL global keyboardshortcuts 
         childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'true'])
+        // Clear Clipboard history 
+        childProcess.execFile('qdbus', ['org.kde.klipper' ,'/klipper', 'org.kde.klipper.klipper.clearClipboardHistory'])
+
+
+        //////////
+        // GNOME
+        ///////////
 
         // for gnome3 we need to set every key individually => reset will obviously set defaults (so we may mess up customized shortcuts here)
         // possible fix: instead of set > reset we could use get - set - set.. first get the current bindings and store them - then set to nothing - then set to previous setting
@@ -54,12 +65,20 @@ const gnomeKeybindings = [
 
     // WINDOWS
     if (process.platform === 'win32') {
+        
+        //clear clipboard
+        childProcess.execFile('$null', ['|' ,'&', '$env:windir\System32\clip.exe'])
+
+        
+        //block important keyboard shortcuts (disable-shortcuts.exe is a selfmade C application - shortcuts are hardcoded there - need to rebuild if adding shortcuts)
         let executable = join(__dirname, '../../public/disable-shortcuts.exe')
-    
         childProcess.execFile(executable, [], (error, stdout, stderr) => {
             if (stderr) {  console.log(stderr)  }
             if (error)  {  console.log(error)   }
         })
+
+
+
     }
 
     // MacOS
