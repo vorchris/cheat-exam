@@ -14,7 +14,7 @@ import getPath from 'platform-folders';
 config.home = getPath('home'); 
 config.desktop = getPath('desktop');
 config.workdirectory = path.join(config.desktop, 'EXAM')
-config.tempdirectory = path.join(config.workdirectory, 'temp')
+config.tempdirectory = path.join(config.desktop, 'temp')
 
 
 

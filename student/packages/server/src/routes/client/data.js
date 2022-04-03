@@ -9,7 +9,7 @@ import archiver from 'archiver'
 import fs from 'fs' 
 import axios from "axios"
 import { ipcRenderer } from 'electron'  // we use this to talk to the electron ipcMain process (send signals)
-
+import fsExtra from "fs-extra"
 import i18n from '../../../../renderer/src/locales/locales.js'
 const { t } = i18n.global
  
@@ -30,14 +30,15 @@ const { t } = i18n.global
 
         //save trigger
         ipcRenderer.send('save')
-        sleep(1000)  // wait one second before zipping workdirectory (give save some time - unfortunately we have no way to wait for save - we could check the filetime in a "while loop" though)
+        await sleep(1000)  // wait one second before zipping workdirectory (give save some time - unfortunately we have no way to wait for save - we could check the filetime in a "while loop" though)
 
 
         //zip config.work directory
-        let zipfilename = multiCastclient.clientinfo.name.concat('.zip')
-
-
         if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory); }
+        fsExtra.emptyDirSync(config.tempdirectory)
+        let zipfilename = multiCastclient.clientinfo.name.concat('.zip')
+       
+
 
         let zipfilepath = path.join(config.tempdirectory, zipfilename);
         await zipDirectory(config.workdirectory, zipfilepath)
