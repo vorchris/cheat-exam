@@ -13,6 +13,7 @@
  * hardcoding the keyboardshortcuts we want to capture into iohook(or n-g-k-l) and manually compiling it for mac and windows could be done - (but not until i get paid for this amount of work ;-) 
  */
 
+import { join } from 'path'
 import childProcess from 'child_process'   //needed to run bash commands on linux 
 // import { GlobalKeyboardListener } from "node-global-key-listener";   //needed to deactivate shortcuts on windows
 // const v = new GlobalKeyboardListener();
@@ -65,7 +66,7 @@ const gnomeKeybindings = [
 
     // WINDOWS
     if (process.platform === 'win32') {
-        
+
         //clear clipboard
         childProcess.execFile('$null', ['|' ,'&', '$env:windir\System32\clip.exe'])
 
