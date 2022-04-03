@@ -41,7 +41,7 @@ const gnomeKeybindings = [
 ]
 
 
- function enableRestrictions(){
+ function enableRestrictions(win){
 
     // PLASMA/KDE
     if (process.platform === 'linux') {

@@ -70,7 +70,7 @@ async function createWindow() {
     // if we receive "exam" from the express API (via ipcRenderer.send() ) - we inform our renderer (view) 
     // which sets a ipcRenderer listener for the "exam" signal to switch to the correct page (read examtype)  
     ipcMain.on("exam", (event, token, examtype) =>  {
-        enableRestrictions()
+        enableRestrictions(win)
         win?.setKiosk(true)
         win?.minimize()
         win?.focus()
