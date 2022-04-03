@@ -3,11 +3,22 @@
 
 /**
  * most of the keyboard restrictions could be handled by "iohook" for all platforms
- * unfortunalety it's not yet released for node v16.x and electron v16.x
+ * unfortunalety it's not yet released for node v16.x and electron v16.x  (also it's "big sur" intel only on macs)
  * https://wilix-team.github.io/iohook/installation.html
+ * 
+ * "node-global-key-listener" would be another solution for windows and macos (although it requires "accessability" permissions on mac)
+ * but for now it seems the module can not run in a final electron build
+ * https://github.com/LaunchMenu/node-global-key-listener/issues/18
+ * 
+ * hardcoding the keyboardshortcuts we want to capture into iohook(or n-g-k-l) and manually compiling it for mac and windows could be done - (but not until i get paid for this amount of work ;-) 
  */
 
- import childProcess from 'child_process'
+import childProcess from 'child_process'   //needed to run bash commands on linux 
+// import { GlobalKeyboardListener } from "node-global-key-listener";   //needed to deactivate shortcuts on windows
+// const v = new GlobalKeyboardListener();
+
+
+
 
 
 const gnomeKeybindings = [  
@@ -31,10 +42,8 @@ const gnomeKeybindings = [
 
     // PLASMA/KDE
     if (process.platform === 'linux') {
-        childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'true'], (error, stdout, stderr) => {
-            if (stderr) {  console.log(stderr)  }
-            if (error)  {  console.log(error)   }
-        })
+        // Temporarily deactivate ALL global keyboardshortcuts for KDE
+        childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'true'])
 
         // for gnome3 we need to set every key individually => reset will obviously set defaults (so we may mess up customized shortcuts here)
         // possible fix: instead of set > reset we could use get - set - set.. first get the current bindings and store them - then set to nothing - then set to previous setting

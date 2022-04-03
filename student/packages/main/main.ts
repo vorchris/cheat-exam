@@ -85,6 +85,13 @@ async function createWindow() {
         win?.webContents.send('endexam', token, examtype);
     }); 
 
+
+    ipcMain.on("save", () =>  {
+        win?.webContents.send('save');
+    }); 
+
+
+
     //trying to fetch some common keyboardshortcuts (alt+tab strg-alt-entf is not possible)
     win.webContents.on('before-input-event', (event, input) => {
         if (input.alt || input.key.toLowerCase() === "alt") {

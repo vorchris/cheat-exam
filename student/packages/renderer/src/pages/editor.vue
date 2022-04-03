@@ -244,6 +244,13 @@ export default {
             let pdfBlob;
             doc.html(editorcontent, {
                     callback: (doc) => {
+                        // add some sort of header to the document
+                        let newDate = new Date(Date.now())
+                        let savedate = `${newDate.toLocaleDateString()} - ${newDate.toLocaleTimeString()}`
+
+                        doc.text(270, 20, `${this.clientname} | ${savedate}`);
+                       
+
                         let filename = this.currentFile.replace(/\.[^/.]+$/, "")  // we dont need the extension
                         pdfBlob = new Blob([ doc.output('blob') ], { type : 'application/pdf'});
                         let form = new FormData()
@@ -277,7 +284,7 @@ export default {
             console.log(e)
             if (e && e.type === "blur") {  
                 let elementInFocus = document.activeElement.id
-                console.log(elementInFocus);
+                //console.log(elementInFocus);  // if blur event is triggered because we clicked on an iframe
                 if (elementInFocus !== "geogebraframe" && elementInFocus !== "vuexambody" && elementInFocus !== "pdfembed" ){
                    this.informTeacher(false)
                 }
@@ -398,6 +405,9 @@ ENDE !!`,
         if (this.electron){
             if (this.token) {  this.blurEvent = ipcRenderer.on('blurevent', this.focuslost, false); } //ipcRenderer seems to be of type nodeEventTarget (on/addlistener returns a reference to the eventTarget)
             this.endExamEvent = ipcRenderer.on('endexam', () => { this.$router.push({ name: 'student'}); }); //redirect to home view // right before we leave vue.js will run beforeUnmount() which removes all listeners this view attached to the window and the ipcrenderer
+            this.saveEvent = ipcRenderer.on('save', () => { 
+                console.log("EVENT RECEIVERD")
+                this.saveContent() });  //trigger document save by signal "save" sent from data.js
         }   
         this.currentFile = this.clientname+".html"
         this.entrytime = new Date().getTime()

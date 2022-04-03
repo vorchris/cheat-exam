@@ -190,6 +190,7 @@ router.get('/serverlist', function (req, res, next) {
         //create folder for student
         let studentfolder =path.join(config.workdirectory, clientname);
         if (!fs.existsSync(studentfolder)){ fs.mkdirSync(studentfolder); }
+        if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory); }
 
 
         mcServer.studentList.push(client)
@@ -275,7 +276,8 @@ router.get('/serverlist', function (req, res, next) {
             let time = new Date(new Date().getTime()).toISOString().substr(11, 8);
             let filepath =path.join(config.workdirectory, registeredClient.clientname, "focuslost");
             let absoluteFilename = path.join(filepath,`${time}-${file.name}`)
-            if (!fs.existsSync(filepath)){ fs.mkdirSync(filepath); }
+
+            if (!fs.existsSync(filepath)){ fs.mkdirSync(filepath, { recursive: true } ); }
             file.mv(absoluteFilename, (err) => {  if (err) {  console.log(err)  } });
         }
     }

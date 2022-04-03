@@ -8,7 +8,7 @@ import FormData from 'form-data'
 import archiver from 'archiver'
 import fs from 'fs' 
 import axios from "axios"
-
+import { ipcRenderer } from 'electron'  // we use this to talk to the electron ipcMain process (send signals)
 
 import i18n from '../../../../renderer/src/locales/locales.js'
 const { t } = i18n.global
@@ -19,7 +19,7 @@ const { t } = i18n.global
  * @param token the students token (needed to accept this "abgabe" request from the server)
  */
  router.post('/abgabe/send/:token', async (req, res, next) => { 
-     console.log("request received")    
+    console.log("request received")    
     const token = req.params.token
     const serverip = multiCastclient.clientinfo.serverip  //this is set if you are registered on a server
     const servername = multiCastclient.clientinfo.servername
@@ -27,9 +27,18 @@ const { t } = i18n.global
     if ( !checkToken(token) ) { return res.json({ sender: "client", message:t("data.tokennotvalid"), status: "error" })}
     else {
         console.log(`token checked - preparing file to send to server: ${serverip}`)
- 
+
+        //save trigger
+        ipcRenderer.send('save')
+        sleep(1000)  // wait one second before zipping workdirectory (give save some time - unfortunately we have no way to wait for save - we could check the filetime in a "while loop" though)
+
+
         //zip config.work directory
         let zipfilename = multiCastclient.clientinfo.name.concat('.zip')
+
+
+        if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory); }
+
         let zipfilepath = path.join(config.tempdirectory, zipfilename);
         await zipDirectory(config.workdirectory, zipfilepath)
         let file = await fs.readFileSync(zipfilepath);
@@ -195,7 +204,7 @@ export default router
  * @param {String} outPath: /path/to/created.zip
  * @returns {Promise}
  */
- function zipDirectory(sourceDir, outPath) {
+function zipDirectory(sourceDir, outPath) {
     const archive = archiver('zip', { zlib: { level: 9 }});
     const stream = fs.createWriteStream(outPath);
   
@@ -211,7 +220,10 @@ export default router
     });
   }
 
-
+// timeout 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 /**
  * Checks if the token is valid in order to process api request
