@@ -6,7 +6,6 @@ import { app, BrowserWindow, shell, ipcMain, screen, globalShortcut, TouchBar } 
 import { release } from 'os'
 import { join } from 'path'
 import {enableRestrictions, disableRestrictions} from './scripts/platformrestrictions.js';
-import fs from 'fs' 
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()

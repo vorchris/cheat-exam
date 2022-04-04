@@ -239,8 +239,7 @@ export default {
 
         /** Converts the Editor View into a multipage PDF */
         async saveContent() {     
-        
-
+    
             let doc = new jsPDF('p', 'px','a4', true, true);   //orientation, unit for coordinates, format, onlyUsedFonts, compress
             const editorcontent = this.editor.getHTML();    
             let pdfBlob;
@@ -251,8 +250,7 @@ export default {
                         let savedate = `${newDate.toLocaleDateString()} - ${newDate.toLocaleTimeString()}`
 
                         doc.text(270, 20, `${this.clientname} | ${savedate}`);
-                       
-
+                    
                         let filename = this.currentFile.replace(/\.[^/.]+$/, "")  // we dont need the extension
                         pdfBlob = new Blob([ doc.output('blob') ], { type : 'application/pdf'});
                         let form = new FormData()
@@ -260,7 +258,6 @@ export default {
                         form.append("editorcontent", editorcontent)
                         form.append("currentfilename", filename)
                       
-                        
                         axios({
                             method: "post", 
                             url: `http://localhost:${this.clientApiPort}/client/data/store`, 
