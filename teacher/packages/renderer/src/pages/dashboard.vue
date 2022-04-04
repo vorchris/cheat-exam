@@ -287,15 +287,15 @@ export default {
             })
             .then( response => response.arrayBuffer() )
             .then( lastestpdf => {
-                console.log(lastestpdf)
-                if (lastestpdf.length === 0){
-                    console.log("no files")
+               
+                if (lastestpdf.byteLength === 0){
                     this.status(` ${this.$t("dashboard.nopdf")}`);
+                    return
                 }
                 let url =  URL.createObjectURL(new Blob([lastestpdf], {type: "application/pdf"})) 
                 this.currentpreview = url   //needed for preview buttons
                 this.currentpreviewname = "combined"   //needed for preview buttons
-                $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
+                $("#pdfembed").attr("src", `${url}#toolbar=1&navpanes=0&scrollbar=0`)
                 $("#pdfpreview").css("display","block");
                 $("#pdfpreview").click(function(e) {
                         $("#pdfpreview").css("display","none");
@@ -308,6 +308,12 @@ export default {
 
         print(filename){
             console.log("nothing for now")
+           
+            let embed = $("#pdfembed")
+            console.log(embed)
+            embed.document.print()
+           
+            
         },
 
 
