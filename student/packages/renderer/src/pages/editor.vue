@@ -89,7 +89,7 @@
 
 
     <!-- EDITOR START -->
-    <div style="position: relative; height: 100%; overflow:hidden; overflow-y: scroll; background-color: #eeeefa;">
+    <div d="editormaincontainer" style="position: relative; height: 100%; overflow:hidden; overflow-y: scroll; background-color: #eeeefa;">
         <div id="editorcontainer" class="shadow" style="border-radius:0; margin-top:20px; width: 90vw; margin-left:5vw;">
             <editor-content :editor="editor" class='p-0' id="editorcontent" style="background-color: #fff; border-radius:0;" />
         </div>
@@ -238,7 +238,9 @@ export default {
         },
 
         /** Converts the Editor View into a multipage PDF */
-        async saveContent() {              
+        async saveContent() {     
+        
+
             let doc = new jsPDF('p', 'px','a4', true, true);   //orientation, unit for coordinates, format, onlyUsedFonts, compress
             const editorcontent = this.editor.getHTML();    
             let pdfBlob;
@@ -257,6 +259,7 @@ export default {
                         form.append("file", pdfBlob,  `${filename}.pdf` );
                         form.append("editorcontent", editorcontent)
                         form.append("currentfilename", filename)
+                      
                         
                         axios({
                             method: "post", 

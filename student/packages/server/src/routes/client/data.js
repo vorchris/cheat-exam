@@ -123,8 +123,7 @@ const { t } = i18n.global
     const currentfilename = req.body.currentfilename
     const htmlfilename = currentfilename ? currentfilename +".html" : multiCastclient.clientinfo.name +".html"
     const htmlfile = path.join(config.workdirectory, htmlfilename);
-
-    
+ 
     if (htmlContent) { fs.writeFile(htmlfile, htmlContent, (err) => {if (err) console.log(err); });  }
 
     console.log("saving students work to disk...")
