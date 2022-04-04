@@ -43,7 +43,7 @@
                 
                 <div v-if="(file.type == 'file')"  :class="(studentlist.length == 0)? 'disabled':''"  class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="sendFile(file)"><img src="/src/assets/img/svg/document-send.svg" class="" width="22" height="22" ></div>
                 <div v-if="(file.type == 'file')" class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="downloadFile(file)"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" ></div>
-                <div v-if="(file.type == 'file' && file.ext === '.pdf')" class="btn btn-dark me-1 mb-2 btn-sm" style="float: right;" @click="loadPDF(file.path)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
+                <div v-if="(file.type == 'file' && file.ext === '.pdf')" class="btn btn-dark me-1 mb-2 btn-sm" style="float: right;" @click="loadPDF(file.path, file.name)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
                 <div v-if="(file.type == 'file' && (file.ext === '.png'|| file.ext === '.jpg'|| file.ext === '.webp'|| file.ext === '.jpeg' ))" class="btn btn-dark me-1 mb-2 btn-sm" style="float: right;" @click="loadImage(file.path)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
                 
                 <!-- folders -->
@@ -57,7 +57,9 @@
 
 
     <!-- pdf preview start -->
-    <div id=pdfpreview class="fadeinslow p-4">
+    <div id="pdfpreview" class="fadeinslow p-4">
+        <div class="btn btn-success me-1" @click="print('current')" title="print"><img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" > </div>
+        <div class="btn btn-success" @click="downloadFile('current')" title="download"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" > </div>
         <embed src="" id="pdfembed"/>
     </div>
     <!-- pdf preview end -->
@@ -149,13 +151,22 @@ export default {
             examtype: 'language',
             autoabgabe: false,
             activestudent: null,
-            localfiles: null
+            localfiles: null,
+            currentpreview: null,
+            currentpreviewname: null
         };
     },
     components: { },
     methods: {
         // fetch a file or folder (zip) and open download/save dialog
         downloadFile(file){
+            if (file === "current"){   //we want to download the file thats currently displayed in preview
+                let a = document.createElement("a");
+                    a.href = this.currentpreview
+                    a.setAttribute("download", this.currentpreviewname);
+                    a.click();
+                return
+            }
             console.log("requesting file for downlod ")
             fetch(`http://${this.serverip}:${this.serverApiPort}/server/data/download/${this.servername}/${this.servertoken}`, { 
                 method: 'POST',
@@ -221,13 +232,15 @@ export default {
             .catch(err => { console.warn(err)});
         },
         // fetch file from disc - show preview
-        loadPDF(file){
+        loadPDF(filepath, filename){
             const form = new FormData()
-            form.append("filename", file)
+            form.append("filename", filepath)
             fetch(`http://${this.serverip}:${this.serverApiPort}/server/data/getpdf/${this.servername}/${this.servertoken}`, { method: 'POST', body: form })
                 .then( response => response.arrayBuffer())
                 .then( data => {
                     let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
+                    this.currentpreview = url   //needed for preview buttons
+                    this.currentpreviewname = filename   //needed for preview buttons
                     $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
                     $("#pdfpreview").css("display","block");
                     $("#pdfpreview").click(function(e) {
@@ -271,19 +284,31 @@ export default {
             fetch(`http://${this.serverip}:${this.serverApiPort}/server/data/getlatest/${this.servername}/${this.servertoken}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },
-                
             })
             .then( response => response.arrayBuffer() )
             .then( lastestpdf => {
+                console.log(lastestpdf)
                 if (lastestpdf.length === 0){
+                    console.log("no files")
                     this.status(` ${this.$t("dashboard.nopdf")}`);
                 }
-                download(lastestpdf, "allInOne.pdf", "application/pdf");
-               
-               
+                let url =  URL.createObjectURL(new Blob([lastestpdf], {type: "application/pdf"})) 
+                this.currentpreview = url   //needed for preview buttons
+                this.currentpreviewname = "combined"   //needed for preview buttons
+                $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
+                $("#pdfpreview").css("display","block");
+                $("#pdfpreview").click(function(e) {
+                        $("#pdfpreview").css("display","none");
+                        $("#pdfembed").attr("src", '')
+                });
+
+                //download(lastestpdf, "allInOne.pdf", "application/pdf");
             }).catch(err => { console.warn(err)});
         },
 
+        print(filename){
+            console.log("nothing for now")
+        },
 
 
         loadFilelist(directory){

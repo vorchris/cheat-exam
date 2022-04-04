@@ -73,7 +73,7 @@ import archiver from 'archiver'
     // DO NOT CHANGE /Clientname/11:02:23
     let latestfolders = []
     for (let studentdir of studentfolders) {
-        let latest = "00:00:00"  // we ned this for reference
+        let latest = "00:00:00"  // we need this for reference
         fs.readdirSync(studentdir.path).reduce(function (list, file) {
             const filepath = path.join(studentdir.path, file);
             if (fs.statSync(filepath).isDirectory()) {
@@ -84,7 +84,7 @@ import archiver from 'archiver'
                 }
             }
         }, []);
-
+        if (latest === "00:00:00") {continue}
         const filepath = path.join(studentdir.path, latest);
         latestfolders.push( { path: filepath, parent : studentdir.name })  // we store studentdir.name here because in the next step we need to make sure only the main.pdf (studentsname) is used
     }
