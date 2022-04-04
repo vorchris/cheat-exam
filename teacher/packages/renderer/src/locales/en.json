@@ -54,7 +54,12 @@
         "choosestudent": "Select Student",
         "chooserequire": "You need to choose a student!",
         "nopdf": "Students work not found",
-        "summarizepdf": "Download newest versions \nas single pdf"
+        "summarizepdf": "Download newest versions \nas single pdf",
+        "download": "download",
+        "print": "print",
+        "preview": "preview",
+        "send": "send"
+
     },
     "control": {
         "tokennotvalid": "token is not valid",

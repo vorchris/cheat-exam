@@ -54,7 +54,11 @@
         "choosestudent": "Wählen sie eine Person",
         "chooserequire": "Sie müssen eine Option wählen!",
         "nopdf": "Keine Schülerarbeiten gefunden",
-        "summarizepdf": "Aktuelle Versionen \nals zusammengefasstes PDF \nherunterladen"
+        "summarizepdf": "Neueste Abgaben \nals zusammengefasstes PDF \nherunterladen",
+        "download": "herunterladen",
+        "print": "drucken",
+        "preview": "ansehen",
+        "send": "versenden"
     },
     "control": {
         "tokennotvalid": "das token ist ungültig",

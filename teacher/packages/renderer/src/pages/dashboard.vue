@@ -34,21 +34,21 @@
             <h4>{{$t('dashboard.filesfolder')}}: <br> <h6 class="ms-3 mb-3"><strong> {{currentdirectory}}</strong>  </h6></h4>
             <div class="btn btn-dark pe-3 ps-3 me-1 mb-3 btn-sm" @click="loadFilelist(workdirectory) "><img src="/src/assets/img/svg/go-home.svg" class="" width="22" height="22" > </div>
             
-            <div class="btn btn-primary pe-3 ps-3 me-1 mb-3 btn-sm" style="float: right;" :title="$t('dashboard.summarizepdf')" @click="printLatest() "><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" > <img src="/src/assets/img/svg/document-share.svg" class="" width="22" height="22" ></div>
+            <div class="btn btn-primary pe-3 ps-3 me-1 mb-3 btn-sm" style="float: right;" :title="$t('dashboard.summarizepdf')" @click="getLatest() "><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" > <img src="/src/assets/img/svg/edit-copy.svg" class="" width="22" height="22" ></div>
 
             <div  v-if="(currentdirectory !== workdirectory)" class="btn btn-dark pe-3 ps-3 me-1 mb-3 btn-sm" @click="loadFilelist(currentdirectoryparent) "><img src="/src/assets/img/svg/edit-undo.svg" class="" width="22" height="22" >up </div>
             <div v-for="file in localfiles" class="d-inline">
                 <!-- files -->
                 <div v-if="(file.type == 'file')" class="btn btn-info pe-3 ps-3 me-3 mb-2 btn-sm" @click=""><img src="/src/assets/img/svg/document.svg" class="" width="22" height="22" > {{file.name}} </div>
                 
-                <div v-if="(file.type == 'file')"  :class="(studentlist.length == 0)? 'disabled':''"  class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="sendFile(file)"><img src="/src/assets/img/svg/document-send.svg" class="" width="22" height="22" ></div>
-                <div v-if="(file.type == 'file')" class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="downloadFile(file)"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" ></div>
-                <div v-if="(file.type == 'file' && file.ext === '.pdf')" class="btn btn-dark me-1 mb-2 btn-sm" style="float: right;" @click="loadPDF(file.path, file.name)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
-                <div v-if="(file.type == 'file' && (file.ext === '.png'|| file.ext === '.jpg'|| file.ext === '.webp'|| file.ext === '.jpeg' ))" class="btn btn-dark me-1 mb-2 btn-sm" style="float: right;" @click="loadImage(file.path)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
+                <div v-if="(file.type == 'file')"  :class="(studentlist.length == 0)? 'disabled':''"  class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="sendFile(file)" :title="$t('dashboard.send')"><img src="/src/assets/img/svg/document-send.svg" class="" width="22" height="22" ></div>
+                <div v-if="(file.type == 'file')" class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="downloadFile(file)" :title="$t('dashboard.download')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" ></div>
+                <div v-if="(file.type == 'file' && file.ext === '.pdf')" class="btn btn-dark me-1 mb-2 btn-sm" style="float: right;" @click="loadPDF(file.path, file.name)" :title="$t('dashboard.preview')"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
+                <div v-if="(file.type == 'file' && (file.ext === '.png'|| file.ext === '.jpg'|| file.ext === '.webp'|| file.ext === '.jpeg' ))" class="btn btn-dark me-1 mb-2 btn-sm" style="float: right;" @click="loadImage(file.path)" :title="$t('dashboard.preview')"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
                 
                 <!-- folders -->
                 <div v-if="(file.type == 'dir')" class="btn btn-success pe-3 ps-3 me-3 mb-2 btn-sm" @click="loadFilelist(file.path)"><img src="/src/assets/img/svg/folder-open.svg" class="" width="22" height="22" > {{file.name}} </div>
-                <div v-if="(file.type == 'dir')" class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="downloadFile(file)"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" ></div>
+                <div v-if="(file.type == 'dir')" class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="downloadFile(file)" :title="$t('dashboard.download')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" ></div>
                 <br>
            </div>
         </div>
@@ -58,9 +58,9 @@
 
     <!-- pdf preview start -->
     <div id="pdfpreview" class="fadeinslow p-4">
-        <div class="btn btn-success me-1" @click="print('current')" title="print"><img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" > </div>
-        <div class="btn btn-success" @click="downloadFile('current')" title="download"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" > </div>
-        <embed src="" id="pdfembed"/>
+        <div class="btn btn-primary me-2 btn-lg" style="float: right;" @click="print()" :title="$t('dashboard.print')"><img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" > </div>
+        <div class="btn btn-primary me-2 btn-lg" style="float: right;" @click="downloadFile('current')" :title="$t('dashboard.download')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" > </div>
+        <iframe src="" id="pdfembed"></iframe>
     </div>
     <!-- pdf preview end -->
    
@@ -245,7 +245,6 @@ export default {
                     $("#pdfpreview").css("display","block");
                     $("#pdfpreview").click(function(e) {
                          $("#pdfpreview").css("display","none");
-                         $("#pdfembed").attr("src", '')
                     });
                }).catch(err => { console.warn(err)});     
         },
@@ -261,7 +260,8 @@ export default {
                     $("#pdfembed").css("background-image",`url(${ url  })`);
                     $("#pdfembed").css("height","60vh");
                     $("#pdfembed").css("margin-top","-30vh");
-                    
+                    $("#pdfembed").attr("src", '')
+
                     $("#pdfpreview").css("display","block");
                     $("#pdfpreview").click(function(e) {
                         $("#pdfpreview").css("display","none");
@@ -280,7 +280,7 @@ export default {
             $('#workfolder').click(function(e){ e.stopPropagation(); });    // don't propagate clicks through the div to the preview div (it would hide the view)
         },
 
-        printLatest(){
+        getLatest(){
             fetch(`http://${this.serverip}:${this.serverApiPort}/server/data/getlatest/${this.servername}/${this.servertoken}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },
@@ -295,25 +295,21 @@ export default {
                 let url =  URL.createObjectURL(new Blob([lastestpdf], {type: "application/pdf"})) 
                 this.currentpreview = url   //needed for preview buttons
                 this.currentpreviewname = "combined"   //needed for preview buttons
-                $("#pdfembed").attr("src", `${url}#toolbar=1&navpanes=0&scrollbar=0`)
+                $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
                 $("#pdfpreview").css("display","block");
                 $("#pdfpreview").click(function(e) {
                         $("#pdfpreview").css("display","none");
-                        $("#pdfembed").attr("src", '')
+
                 });
 
                 //download(lastestpdf, "allInOne.pdf", "application/pdf");
             }).catch(err => { console.warn(err)});
         },
 
-        print(filename){
-            console.log("nothing for now")
-           
-            let embed = $("#pdfembed")
-            console.log(embed)
-            embed.document.print()
-           
-            
+        print(){
+            var iframe = $('#pdfembed')[0]; 
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print(); 
         },
 
 
@@ -656,7 +652,6 @@ export default {
 
 
 
-
 #pdfpreview {
     display: none;
     position: absolute;
@@ -665,7 +660,7 @@ export default {
     width:100vw;
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.4);
-    z-index:100000;
+    z-index:10000;
 }
 #pdfembed { 
     position: absolute;
@@ -685,6 +680,10 @@ export default {
     background-repeat: no-repeat;
     background-position: center;
     background-color: #212529;
+    z-index:-1;
+}
+.ontop{
+    z-index:1;
 }
 
 
