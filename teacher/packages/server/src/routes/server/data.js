@@ -59,15 +59,15 @@ import archiver from 'archiver'
 
     let dir = config.workdirectory
 
+    // get all studentdirectories from workdirectory
     let studentfolders = []
-
     fs.readdirSync(dir).reduce(function (list, file) {
         const filepath = path.join(dir, file);
         if (fs.statSync(filepath).isDirectory()) {
             studentfolders.push({ path: filepath, name : file })
         }
     }, []);
-    console.log(studentfolders)
+    //console.log(studentfolders)
 
     // get latest directory of every student (add to array) ATTENTION: this only works with the current file/folder name scheme 
     // DO NOT CHANGE /Clientname/11:02:23
@@ -86,10 +86,9 @@ import archiver from 'archiver'
         }, []);
 
         const filepath = path.join(studentdir.path, latest);
-        latestfolders.push( { path: filepath, name : studentdir.name })  // we store studentdir.name here because in the next step we need to make sure only the main.pdf (studentsname) is used
+        latestfolders.push( { path: filepath, parent : studentdir.name })  // we store studentdir.name here because in the next step we need to make sure only the main.pdf (studentsname) is used
     }
-    console.log(latestfolders)
-
+    //console.log(latestfolders)
 
     // get PDFs from latest directories 
     let files = []
@@ -98,13 +97,13 @@ import archiver from 'archiver'
             const filepath = path.join(folder.path, file);
             if(fs.statSync(filepath).isFile() ){
                 let ext = path.extname(file).toLowerCase()
-                if (ext === ".pdf" && file === `${folder.name}.pdf`){  // folder.name contains the studentfolder (and main file) name
+                if (ext === ".pdf" && file === `${folder.parent}.pdf`){  // folder.name contains the studentfolder (and main file) name
                     files.push(filepath)
                 } 
             }
         }, []);
     }
-    console.log(files)
+    //console.log(files)
 
     // now create one merged pdf out of all files
     if (files.length === 0) {
