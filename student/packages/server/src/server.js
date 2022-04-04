@@ -8,12 +8,14 @@ import path from 'path'
 import ip from 'ip'
 import multicastClient from './classes/multicastclient.js'
 import getPath from 'platform-folders';
+import fs from 'fs'
 
 config.home = getPath('home'); 
 config.desktop = getPath('desktop');
-config.workdirectory = path.join(config.desktop, 'EXAM')
-config.tempdirectory = path.join(config.desktop, 'temp')
-
+config.workdirectory = path.join(config.desktop, config.examdirectory)
+config.tempdirectory = path.join(config.desktop, 'tmp')
+if (!fs.existsSync(config.workdirectory)){ fs.mkdirSync(config.workdirectory); }
+if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory); }
 
 
 multicastClient.init()

@@ -77,7 +77,7 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
           multiCastclient.clientinfo.focus = true
         }
         res.send(response.data)
-    })
+    }).catch(err => console.log(err))
 })
 
 

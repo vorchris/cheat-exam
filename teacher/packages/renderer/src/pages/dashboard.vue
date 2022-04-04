@@ -135,7 +135,7 @@ export default {
             fetchinterval: null,
             abgabeinterval: null,
             studentlist: [],
-            workdirectory: this.$route.params.workdirectory,
+            workdirectory: `${this.$route.params.workdirectory}/${this.$route.params.servername}`,
             currentdirectory: this.$route.params.workdirectory,
             currentdirectoryparent: '',
             servername: this.$route.params.servername,

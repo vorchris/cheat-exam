@@ -1,8 +1,9 @@
 const config = {
-    workdirectory : "",   // set by main.ts and preload.ts
-    tempdirectory : "",   // set by main.ts and preload.ts
-    desktop : "",         // set by main.ts and preload.ts
-    home : "",            // set by main.ts and preload.ts
+    workdirectory : "",   // set by server.js (desktop path + examdir)
+    tempdirectory : "",   // set by server.js (desktop path + 'tmp')
+    desktop : "",         // set by server.js 
+    home : "",            // set by server.js
+    examdirectory: "EXAM-TEACHER",
     serverApiPort:22422,
     clientApiPort:11411,  // according to wikipedia and IANA no other service uses this port.. so this is ours ;)
     clientVitePort:3001,

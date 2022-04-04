@@ -57,7 +57,7 @@ import archiver from 'archiver'
     const mcServer = config.examServerList[servername] // get the multicastserver object
     if ( token !== mcServer.serverinfo.servertoken ) { return res.json({ status: t("data.tokennotvalid") }) }
 
-    let dir = config.workdirectory
+    let dir =  path.join( config.workdirectory, mcServer.serverinfo.servername);
 
     // get all studentdirectories from workdirectory
     let studentfolders = []
@@ -231,7 +231,7 @@ async function concatPages(pdfsToMerge) {
         if (req.files){
             for (const [key, file] of Object.entries( req.files)) {
                 //console.log(file)
-                let absoluteFilepath = path.join(config.workdirectory, file.name);
+                let absoluteFilepath = path.join(config.workdirectory, mcServer.serverinfo.servername, file.name);
                 if (file.name.includes(".zip")){  //ABGABE as ZIP
                     let time = new Date(new Date().getTime()).toISOString().substr(11, 8);
                     let studentname = ""
@@ -244,12 +244,12 @@ async function concatPages(pdfsToMerge) {
                     });
                     
                     // create user abgabe directory
-                    let studentdirectory =  path.join(config.workdirectory, studentname)
-                    if (!fs.existsSync(studentdirectory)){ fs.mkdirSync(studentdirectory);  }
+                    let studentdirectory =  path.join(config.workdirectory, mcServer.serverinfo.servername, studentname)
+                    if (!fs.existsSync(studentdirectory)){ fs.mkdirSync(studentdirectory, { recursive: true });  }
 
                     // create archive directory
                     let studentarchivedir = path.join(studentdirectory, String(time))
-                    if (!fs.existsSync(studentarchivedir)){ fs.mkdirSync(studentarchivedir); }
+                    if (!fs.existsSync(studentarchivedir)){ fs.mkdirSync(studentarchivedir, { recursive: true }); }
 
                     // extract zip file to archive
                     file.mv(absoluteFilepath, (err) => {  

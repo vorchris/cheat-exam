@@ -109,7 +109,7 @@ export default {
             axios.get(`http://localhost:${this.clientApiPort}/client/control/register/${serverip}/${servername}/${this.pincode}/${this.username}`)
             .then( response => { 
                 this.status(response.data.message);
-                console.log(response.data.message);
+                //console.log(response.data.message);
                 this.token = response.data.token  // set token immediately for further use (editor , geogebra)
             })
             .catch( err => console.log(err));

@@ -187,10 +187,12 @@ router.get('/serverlist', function (req, res, next) {
             virtualized: false
         }
 
+        console.log(mcServer.serverinfo)
+
         //create folder for student
-        let studentfolder =path.join(config.workdirectory, clientname);
-        if (!fs.existsSync(studentfolder)){ fs.mkdirSync(studentfolder); }
-        if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory); }
+        let studentfolder =path.join(config.workdirectory, mcServer.serverinfo.servername , clientname);
+        if (!fs.existsSync(studentfolder)){ fs.mkdirSync(studentfolder, { recursive: true }); }
+        if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory, { recursive: true }); }
 
 
         mcServer.studentList.push(client)
@@ -268,13 +270,13 @@ router.get('/serverlist', function (req, res, next) {
 
     for (const [key, file] of Object.entries( req.files)) {
         let absoluteFilepath = path.join(config.tempdirectory, file.name); 
-        console.log(absoluteFilepath)
+        //console.log(absoluteFilepath)
         file.mv(absoluteFilepath, (err) => {  if (err) {  console.log(err)  } });
         
         if (!registeredClient.focus){
             console.log("Server Control: Student out of focus - securing screenshots")
             let time = new Date(new Date().getTime()).toISOString().substr(11, 8);
-            let filepath =path.join(config.workdirectory, registeredClient.clientname, "focuslost");
+            let filepath =path.join(config.workdirectory, mcServer.serverinfo.servername, registeredClient.clientname, "focuslost");
             let absoluteFilename = path.join(filepath,`${time}-${file.name}`)
 
             if (!fs.existsSync(filepath)){ fs.mkdirSync(filepath, { recursive: true } ); }

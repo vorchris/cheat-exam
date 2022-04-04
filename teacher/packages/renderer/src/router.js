@@ -33,7 +33,7 @@ function addParams(to){
     to.params.serverApiPort = config.serverApiPort 
     to.params.clientApiPort = config.clientApiPort
     to.params.electron = electron
-    to.params.workdirectory = config.workdirectory
+    to.params.workdirectory = config.workdirectory   //attention.. this is the server base workdirectory > we add servername to get the actual exam workdirectory in the view
 }
 
 
