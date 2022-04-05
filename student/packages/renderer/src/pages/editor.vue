@@ -122,7 +122,6 @@ import Dropcursor from '@tiptap/extension-dropcursor'
 import Gapcursor from '@tiptap/extension-gapcursor'
 import History from '@tiptap/extension-history'
 import { lowlight } from "lowlight/lib/common.js";
-import jsPDF from 'jspdf'
 
 import FormData from 'form-data';
 import axios from "axios";
@@ -239,41 +238,22 @@ export default {
 
         /** Converts the Editor View into a multipage PDF */
         async saveContent() {     
-    
-            let doc = new jsPDF('p', 'px','a4', true, true);   //orientation, unit for coordinates, format, onlyUsedFonts, compress
             const editorcontent = this.editor.getHTML();    
-            let pdfBlob;
-            doc.html(editorcontent, {
-                    callback: (doc) => {
-                        // add some sort of header to the document
-                        let newDate = new Date(Date.now())
-                        let savedate = `${newDate.toLocaleDateString()} - ${newDate.toLocaleTimeString()}`
-
-                        doc.text(270, 20, `${this.clientname} | ${savedate}`);
-                    
-                        let filename = this.currentFile.replace(/\.[^/.]+$/, "")  // we dont need the extension
-                        pdfBlob = new Blob([ doc.output('blob') ], { type : 'application/pdf'});
-                        let form = new FormData()
-                        form.append("file", pdfBlob,  `${filename}.pdf` );
-                        form.append("editorcontent", editorcontent)
-                        form.append("currentfilename", filename)
-                      
-                        axios({
-                            method: "post", 
-                            url: `http://localhost:${this.clientApiPort}/client/data/store`, 
-                            data: form, 
-                            headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
-                        }).then( async (response) => {
-                            //console.log(response.data)
-                        }).catch(err => { console.warn(err)});
-                    },
-                    x: 0,
-                    y: 0,
-                    margin: [20,20,20,20],
-                    width :400,
-                    windowWidth:420,
-                    autoPaging: 'slice',
-            });
+            let newDate = new Date(Date.now())
+            let savedate = `${newDate.toLocaleDateString()} - ${newDate.toLocaleTimeString()}`
+            let filename = this.currentFile.replace(/\.[^/.]+$/, "")  // we dont need the extension
+            let form = new FormData()
+            form.append("editorcontent", editorcontent)
+            form.append("currentfilename", filename)
+            form.append('savedate', savedate)
+            axios({
+                method: "post", 
+                url: `http://localhost:${this.clientApiPort}/client/data/store`, 
+                data: form, 
+                headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
+            }).then( async (response) => {
+                //console.log(response.data)
+            }).catch(err => { console.warn(err)});
         },
         focuscheck() {
             window.addEventListener('beforeunload',         this.focuslost);  // keeps the window open (displays "are you sure in browser")

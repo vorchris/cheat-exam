@@ -12,7 +12,8 @@ import { ipcRenderer } from 'electron'  // we use this to talk to the electron i
 import fsExtra from "fs-extra"
 import i18n from '../../../../renderer/src/locales/locales.js'
 const { t } = i18n.global
- 
+import pdf from "html-pdf"
+
 
 /**
  * ZIPs and sends all files from a CLIENTS workdirectory TO the registered exam SERVER
@@ -111,7 +112,6 @@ const { t } = i18n.global
 
 
 
-
 /**
  * Stores file(s) to the workdirectory (files coming FROM the EDITOR  )
  * Only store file if request source is local
@@ -123,20 +123,38 @@ const { t } = i18n.global
     const currentfilename = req.body.currentfilename
     const htmlfilename = currentfilename ? currentfilename +".html" : multiCastclient.clientinfo.name +".html"
     const htmlfile = path.join(config.workdirectory, htmlfilename);
- 
-    if (htmlContent) { fs.writeFile(htmlfile, htmlContent, (err) => {if (err) console.log(err); });  }
+    const pdffilename = currentfilename ? currentfilename +".pdf" : multiCastclient.clientinfo.name +".pdf"
+    const pdffilepath = path.join(config.workdirectory, pdffilename);
+    const savedate = req.body.savedate
 
-    console.log("saving students work to disk...")
-    let errors = 0
-    for (const [key, file] of Object.entries( req.files)) {
-        let absoluteFilepath = path.join(config.workdirectory, file.name);
-        file.mv(absoluteFilepath, (err) => {  
-        if (err) { errors++; console.log( "client couldn't store file") }
-               // console.log( "file(s) received")
-        });
-    }
-    res.json({sender: "client", message:t("data.filestored"), status: "success", errors: errors  })
-    
+    if (htmlContent) { 
+        console.log("saving students work to disk...")
+        var options = { 
+            format: 'A4' ,
+            orientation: "portrait",
+            border: {
+                top: "1cm",
+                right: "1cm",
+                bottom: "1cm",
+                left: "1cm"
+            },
+            header: {
+                height: "15mm",
+                contents: `<div style="text-align: right;">${multiCastclient.clientinfo.name} |${savedate}  </div>`
+              },
+            footer: {
+                height: "15mm",
+                contents: {
+                  default: '<div style="text-align: right;">{{page}} / {{pages}}</div>', // fallback value
+                }
+            }
+        }
+
+        pdf.create(htmlContent, options).toFile(pdffilepath, function(err, res) { if (err) return console.log(err); });
+        fs.writeFile(htmlfile, htmlContent, (err) => {if (err) console.log(err); }); 
+        
+        return res.json({sender: "client", message:t("data.filestored"), status: "success"  })
+     }
 })
 
 
