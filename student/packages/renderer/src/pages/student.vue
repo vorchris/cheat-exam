@@ -24,7 +24,7 @@
         </ul>
         <div class="m-2">
             <br>
-            <div id="statusdiv" class="btn btn-warning m-2"> {{ $t("student.started") }} </div>
+            <span style="position: absolute; bottom:2px; left: 4px; font-size:0.8em">{{version}}</span>
         </div>
     </div>
 
@@ -76,6 +76,7 @@ import axios from "axios";
 export default {
     data() {
         return {
+            version: this.$route.params.version,
             token: "",
             username: "Thomas",
             pincode: "1337",
@@ -108,20 +109,33 @@ export default {
         registerClient(serverip, servername){
             axios.get(`http://localhost:${this.clientApiPort}/client/control/register/${serverip}/${servername}/${this.pincode}/${this.username}`)
             .then( response => { 
-                this.status(response.data.message);
-                //console.log(response.data.message);
                 this.token = response.data.token  // set token immediately for further use (editor , geogebra)
+
+                if (response.data.status === "success") {
+                    this.$swal.fire({
+                        title: "OK",
+                        text: this.$t("student.registeredinfo"),
+                        icon: 'success',
+                        showCancelButton: false,
+                    })
+                }
+                
+                if (response.data.status === "error") {
+                    this.$swal.fire({
+                        title: "Error",
+                        text: response.data.message,
+                        icon: 'error',
+                        showCancelButton: false,
+                    })
+                }
+               
+
+
             })
             .catch( err => console.log(err));
         },
 
-        //show status message
-        async status(text){  
-            $("#statusdiv").text(text)
-            $("#statusdiv").fadeIn("slow")
-            await this.sleep(2000);
-            $("#statusdiv").fadeOut("slow")
-        },
+       
         // implementing a sleep (wait) function
         sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
@@ -129,7 +143,7 @@ export default {
     },
 
     mounted() {  
-        $("#statusdiv").fadeOut("slow")
+      
         this.fetchInfo();
         this.fetchinterval = setInterval(() => { this.fetchInfo() }, 2000)
 

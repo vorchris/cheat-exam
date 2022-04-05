@@ -9,33 +9,39 @@
     <span class="fs-4 align-middle" style="float: right">Dashboard</span>
 </div>
  
-<div id="studentinfocontainer" class="fadeinslow p-4">
-    <div v-if="activestudent!= null" id="studentinfodiv"  class="studentinfoimage" :style="`background-image:url(${activestudent.imageurl})`">
-        <div style="height:100%">
-            <div id="controlbuttons" style="text-align: center;">
-                <b>{{activestudent.clientname}}</b><br>
-                <span style="font-size: 0.7em;">{{activestudent.clientip}}</span>
-                <div class="col d-inlineblock btn btn-warning m-1 btn-sm"   @click="startExam(activestudent)" style="width: 100px">{{$t('dashboard.startexam')}} </div>
-                <div class="col d-inlineblock btn btn-warning m-1 btn-sm"   @click="endExam(activestudent)"  style="width: 100px">{{$t('dashboard.stopexam')}} </div>
-                <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent)"  style="width: 100px">{{$t('dashboard.sendfile')}}</div>
-                <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="getFiles(activestudent)"  style="width: 100px">{{$t('dashboard.getfile')}}</div>
-                <div class="col d-inlineblock btn btn-danger m-1 btn-sm"    @click='kick(activestudent.token,activestudent.clientip)'  style="width: 100px">{{$t('dashboard.kick')}}</div>
-                <div class="col d-inlineblock btn btn-secondary m-1 btn-sm" @click="hideStudentview()"  style="width: 100px">{{$t('dashboard.close')}} </div>
-            </div>
-        </div>
-    </div>
-</div>
+
+
+
 
 <div id="wrapper" class="w-100 h-100 d-flex" >
     
+
+    <div id="studentinfocontainer" class="fadeinslow p-4">
+        <div v-if="activestudent!= null" id="studentinfodiv"  class="studentinfoimage" :style="`background-image:url(${activestudent.imageurl})`">
+            <div style="height:100%">
+                <div id="controlbuttons" style="text-align: center;">
+                    <button class="btn btn-close  btn-close-white align-right" @click="hideStudentview()"  style="width: 100px"></button>
+
+                    <b>{{activestudent.clientname}}</b><br>
+                    <span style="font-size: 0.7em;">{{activestudent.clientip}}</span>
+                    <div class="col d-inlineblock btn btn-success m-1 btn-sm"   @click="startExam(activestudent)" style="width: 100px">{{$t('dashboard.startexam')}} </div>
+                    <div class="col d-inlineblock btn btn-danger m-1 btn-sm"   @click="endExam(activestudent)"  style="width: 100px">{{$t('dashboard.stopexam')}} </div>
+                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent)"  style="width: 100px">{{$t('dashboard.sendfile')}}</div>
+                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="getFiles(activestudent)"  style="width: 100px">{{$t('dashboard.getfile')}}</div>
+                    <div class="col d-inlineblock btn btn-warning m-1 btn-sm"    @click='kick(activestudent.token,activestudent.clientip)'  style="width: 100px">{{$t('dashboard.kick')}}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <!--   workfolder view start -->
     <div id=preview class="fadeinslow ">
         <div id=workfolder >
+            <button id="closefilebrowser" type="button" class=" btn-close pt-2 pe-2 float-end" title="close"></button>
             <h4>{{$t('dashboard.filesfolder')}}: <br> <h6 class="ms-3 mb-3"><strong> {{currentdirectory}}</strong>  </h6></h4>
             <div class="btn btn-dark pe-3 ps-3 me-1 mb-3 btn-sm" @click="loadFilelist(workdirectory) "><img src="/src/assets/img/svg/go-home.svg" class="" width="22" height="22" > </div>
-            
             <div class="btn btn-primary pe-3 ps-3 me-1 mb-3 btn-sm" style="float: right;" :title="$t('dashboard.summarizepdf')" @click="getLatest() "><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" > <img src="/src/assets/img/svg/edit-copy.svg" class="" width="22" height="22" ></div>
-
             <div  v-if="(currentdirectory !== workdirectory)" class="btn btn-dark pe-3 ps-3 me-1 mb-3 btn-sm" @click="loadFilelist(currentdirectoryparent) "><img src="/src/assets/img/svg/edit-undo.svg" class="" width="22" height="22" >up </div>
             <div v-for="file in localfiles" class="d-inline">
                 <!-- files -->
@@ -45,21 +51,23 @@
                 <div v-if="(file.type == 'file')" class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="downloadFile(file)" :title="$t('dashboard.download')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" ></div>
                 <div v-if="(file.type == 'file' && file.ext === '.pdf')" class="btn btn-dark me-1 mb-2 btn-sm" style="float: right;" @click="loadPDF(file.path, file.name)" :title="$t('dashboard.preview')"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
                 <div v-if="(file.type == 'file' && (file.ext === '.png'|| file.ext === '.jpg'|| file.ext === '.webp'|| file.ext === '.jpeg' ))" class="btn btn-dark me-1 mb-2 btn-sm" style="float: right;" @click="loadImage(file.path)" :title="$t('dashboard.preview')"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
-                
+              
                 <!-- folders -->
                 <div v-if="(file.type == 'dir')" class="btn btn-success pe-3 ps-3 me-3 mb-2 btn-sm" @click="loadFilelist(file.path)"><img src="/src/assets/img/svg/folder-open.svg" class="" width="22" height="22" > {{file.name}} </div>
                 <div v-if="(file.type == 'dir')" class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="downloadFile(file)" :title="$t('dashboard.download')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" ></div>
-                <br>
+                  <hr>
+               
            </div>
         </div>
     </div>
     <!-- workfolder view end -->
 
 
+
     <!-- pdf preview start -->
     <div id="pdfpreview" class="fadeinslow p-4">
-        <div class="btn btn-primary me-2 btn-lg" style="float: right;" @click="print()" :title="$t('dashboard.print')"><img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" > </div>
-        <div class="btn btn-primary me-2 btn-lg" style="float: right;" @click="downloadFile('current')" :title="$t('dashboard.download')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" > </div>
+        <div class="btn btn-dark me-2 btn-lg shadow" style="float: right;" @click="print()" :title="$t('dashboard.print')"><img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" > </div>
+        <div class="btn btn-dark me-2 btn-lg shadow" style="float: right;" @click="downloadFile('current')" :title="$t('dashboard.download')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" > </div>
         <iframe src="" id="pdfembed"></iframe>
     </div>
     <!-- pdf preview end -->
@@ -89,18 +97,18 @@
             <label class="form-check-label" for="delfolder"> {{$t('dashboard.del')}}  </label>
         </div>
         <div id="statusdiv" class="btn btn-warning m-1"> {{$t('dashboard.connected')}}  </div>
+        <span style="position: absolute; bottom:2px; left: 4px; font-size:0.8em">{{version}}</span>
     </div>
     <!-- sidebar end -->
 
 
-
+     <!-- exam & studentlist start -->
     <div id="content" class="fadeinslow p-3">
         <div class="btn btn-success m-1 text-start ms-0" style="width:100px;"  @click="startExam('all')">{{$t('dashboard.startexam')}}</div>
-              <div class="btn btn-danger m-1 text-start ms-0 " style="width:100px;" @click="endExam('all')" >{{$t('dashboard.stopexam')}}</div>
+        <div class="btn btn-danger m-1 text-start ms-0 " style="width:100px;" @click="endExam('all')" >{{$t('dashboard.stopexam')}}</div>
         <div class="btn btn-info m-1 text-start ms-0 " style="width:100px;" @click="sendFiles('all')">{{$t('dashboard.sendfile')}}</div>
         <div class="btn btn-info m-1 text-start ms-0 " style="width:100px;" @click="getFiles('all')">{{$t('dashboard.getfile')}}</div>
         <div class="col d-inlineblock btn btn-dark m-1 ms-0 " @click="loadFilelist(workdirectory)"  style="width: 100px; ">{{$t('dashboard.showworkfolder')}} </div>
-
         <div id="studentslist" class="placeholder pt-4"> 
             <div v-for="student in studentlist" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn border-0 rounded-3 btn-block m-1 ">
                 <div id="image" class="rounded" :style="(student.imageurl)? `background-image:url(${student.imageurl})`:'background-image:url(person-lines-fill.svg)'" style="position: relative; height:75%; background-size:cover;">
@@ -114,8 +122,8 @@
                 </div>
             </div>
         </div>
-
     </div>
+    <!-- exam & studentlist end -->
 
 </div>
 </template>
@@ -126,11 +134,11 @@
 import $ from 'jquery'
 import axios from "axios"
 import FormData from 'form-data'
-import download from 'downloadjs'
 
 export default {
     data() {
         return {
+            version: this.$route.params.version,
             title: document.title,
             fetchinterval: null,
             abgabeinterval: null,
@@ -273,10 +281,13 @@ export default {
         },
 
 
+
+
+
         // show workfloder
         showWorkfolder(){
             $("#preview").css("display","block");
-            $("#preview").click(function(e) { $("#preview").css("display","none"); });  // the surroundings of #workfolder can be clicked to close the view
+            $("#closefilebrowser").click(function(e) { $("#preview").css("display","none"); });  // the surroundings of #workfolder can be clicked to close the view
             $('#workfolder').click(function(e){ e.stopPropagation(); });    // don't propagate clicks through the div to the preview div (it would hide the view)
         },
 
@@ -661,6 +672,7 @@ export default {
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.4);
     z-index:10000;
+    backdrop-filter: blur(3px);
 }
 #pdfembed { 
     position: absolute;
@@ -670,11 +682,11 @@ export default {
     margin-top: -48vh;
     width:60vw;
     height: 96vh;
-    padding: 10px;
+   
     background-color: rgba(255, 255, 255, 1);
-    border: 0px solid rgba(255, 255, 255, 0.589);
+    border: 2px solid #212529;
     box-shadow: 0 0 15px rgba(22, 9, 9, 0.589);
-    padding: 10px;
+    
     border-radius: 6px;
     background-size: contain;
     background-repeat: no-repeat;
@@ -682,10 +694,6 @@ export default {
     background-color: #212529;
     z-index:-1;
 }
-.ontop{
-    z-index:1;
-}
-
 
 
 
@@ -706,18 +714,12 @@ export default {
 }
 #workfolder { 
     position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-left: -35vw;
-    margin-top: -45vh;
-    width: 70vw;
-    height: 90vh;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
     padding: 20px;
     background-color: rgba(255, 255, 255, 0.8);
-    border: 0px solid rgba(255, 255, 255, 0.589);
-    box-shadow: 0 0 15px rgba(22, 9, 9, 0.589);
-   
-    border-radius: 6px;
     z-index:1001;
     backdrop-filter: blur(3px);
     overflow-y: auto;
@@ -735,38 +737,39 @@ export default {
     left: 0;
     width:100vw;
     height: 100vh;
-    background-color: rgba(0, 0, 0, 0.4);
+    
     z-index:100;
+    
 }
 #studentinfodiv {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-left: -45vw;
-    margin-top: -40vh;
-    width:90vw;
-    height: 80vh;
-    padding: 10px;
-    background-color: rgba(255, 255, 255, 1);
-    border: 0px solid rgba(255, 255, 255, 0.589);
-    box-shadow: 0 0 15px rgba(22, 9, 9, 0.589);
-    padding: 10px;
-    border-radius: 6px;
+    top: 0;
+    left: 0;
+    width:100vw;
+    height: 100vh;
     background-size:cover;
     background-repeat: no-repeat;
 }
 #controlbuttons {
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(3px);
     position: absolute;
-    left: 0px;
+    right: 0px;
     width: 128px; 
     height: 100%; 
     top: 0px;  
-    background:  rgba(0, 0, 0, 0.493);
+    background:  rgba(97, 97, 97, 0.693);
     color: white; 
     font-size: 1.4em; 
     padding: 10px;
 }
 
+
+hr {
+    margin: 0.2em 0.9em 0.5em 0.3em;
+   
+    background-color: #b3b3b3;
+    border: 0;
+    opacity: 0.25;
+}
 
 </style>

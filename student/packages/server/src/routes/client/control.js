@@ -61,12 +61,13 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
     const serverip = req.params.serverip
     const servername = req.params.servername
     const clientip = ip.address()
+    const version = config.version
 
     if (multiCastclient.clientinfo.token){
         res.json({status: t("control.alreadyregistered")})
         return
     }
-    await axios.get(`http://${serverip}:${config.serverApiPort}/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}`)
+    await axios.get(`http://${serverip}:${config.serverApiPort}/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}/${version}`)
     .then(response => {
         if (response.data && response.data.status == "success") { // registration successfull otherwise data would be "false"
           multiCastclient.clientinfo.name = clientname
@@ -257,7 +258,7 @@ function showOSD(notification){
           },
           function(err, response) {
               console.log(err)
-              console.log(response)
+              //console.log(response)
           }
   );
 }

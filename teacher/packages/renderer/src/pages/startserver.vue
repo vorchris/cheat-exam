@@ -4,7 +4,7 @@
 <div class="w-100 p-3 text-white bg-dark shadow text-right">
     <router-link to="/" class="text-white m-1">
         <img src="/src/assets/img/svg/shield-lock-fill.svg" class="white me-2  " width="32" height="32" >
-        <span class="fs-4 align-middle me-4 ">Next-Exam</span>
+        <span class="fs-4 align-middle me-1 ">Next-Exam</span>
     </router-link>
     <span class="fs-4 align-middle" style="float: right">Teacher</span>
 </div>
@@ -33,6 +33,7 @@
             <div id="statusdiv" class="btn btn-warning m-2 hidden">{{$t("startserver.connected")}}</div>
         </div>
         <br>
+        <span style="position: absolute; bottom:2px; left: 4px; font-size:0.8em">{{version}}</span>
     </div>
 
     <div id="content" class="fadeinslow p-3">
@@ -67,6 +68,7 @@ import axios from "axios";
 export default {
     data() {
         return {
+            version: this.$route.params.version,
             title: document.title,
             servername : "Mathe5A",
             password: "password",

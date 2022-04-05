@@ -31,6 +31,7 @@ const routes = [
 
 
 function addParams(to){
+    to.params.version = config.version
     to.params.serverApiPort = config.serverApiPort 
     to.params.clientApiPort = config.clientApiPort
     to.params.electron = electron

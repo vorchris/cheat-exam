@@ -159,17 +159,18 @@ router.get('/serverlist', function (req, res, next) {
  *  @param clientname the name of the student
  *  @param clientip the clients ip address for api calls
  */
- router.get('/registerclient/:servername/:pin/:clientname/:clientip', function (req, res, next) {
+ router.get('/registerclient/:servername/:pin/:clientname/:clientip/:version', function (req, res, next) {
     let status = false
     const clientname = req.params.clientname
     const clientip = req.params.clientip
     const pin = req.params.pin
+    const version = req.params.version
     const servername = req.params.servername
     const token = `csrf-${v4()}`
 
     const mcServer = config.examServerList[servername] // get the multicastserver object
     if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
-
+    if (version !== config.version ) {  return res.send({sender: "server", message:t("control.versionmismatch"), status: "error"} )  }  
 
     if (pin === mcServer.serverinfo.pin) {
         let registeredClient = mcServer.studentList.find(element => element.clientname === clientname)

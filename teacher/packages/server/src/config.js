@@ -1,4 +1,7 @@
+import pjson from "../../../package.json"
+
 const config = {
+    version: pjson.version,
     workdirectory : "",   // set by server.js (desktop path + examdir)
     tempdirectory : "",   // set by server.js (desktop path + 'tmp')
     desktop : "",         // set by server.js 

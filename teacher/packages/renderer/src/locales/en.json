@@ -80,7 +80,8 @@
         "studentupdate": "student updated",
         "studentleft": "student left the exam",
         "staterestore": "safe exam state restored",
-        "virtualized": "next-exam is run in a virtual machine"
+        "virtualized": "next-exam is run in a virtual machine",
+        "versionmismatch": "Application versions mismatch"
     },  
     "data": {
         "tokennotvalid": "the token is not valid",

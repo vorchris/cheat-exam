@@ -38,7 +38,7 @@
         "exitexam": "Dies beendet die Prüfung für alle Schüler*innen",
         "exitkiosk": "Abesicherten Modus beenden",
         "reallykick": "Schüler*in vom Exam Server entfernen",
-        "kick": "entfernen",
+        "kick": "Verbindung trennen",
         "leftkiosk": "hat den abgesicherten Modus verlassen!",
         "online":"online",
         "secure":"abgesichert",
@@ -63,7 +63,7 @@
     "control": {
         "tokennotvalid": "das token ist ungültig",
         "statechange": "Vertrauensstellung geändert",
-        "alreadyregistered": "Schüler*in bereits angemeldet",
+        "alreadyregistered": "Schüler*in unter diesem Namen bereits angemeldet",
         "registered": "Schüler*in angemeldet",
         "serverexists": "Exam Server existiert bereits",
         "serverexistsLAN": "Exam Server existiert bereits im loklen Netzwerk",
@@ -79,7 +79,8 @@
         "studentupdate": "Schülerdaten aktualisiert",
         "studentleft": "Schüler*in hat den Exam Server verlassen",
         "staterestore": "Vertrauensstellung wiederhergestellt",
-        "virtualized": ": Die Prüfungsumgebung wird in einer virtuellen Maschine ausgeführt"
+        "virtualized": ": Die Prüfungsumgebung wird in einer virtuellen Maschine ausgeführt",
+        "versionmismatch": "Die Programmversionen stimmen nicht überein"
     },  
     "data": {
         "tokennotvalid": "das token ist ungültig",
