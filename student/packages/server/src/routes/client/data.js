@@ -12,7 +12,6 @@ import { ipcRenderer } from 'electron'  // we use this to talk to the electron i
 import fsExtra from "fs-extra"
 import i18n from '../../../../renderer/src/locales/locales.js'
 const { t } = i18n.global
-import pdf from "html-pdf"
 
 
 /**
@@ -129,30 +128,19 @@ import pdf from "html-pdf"
 
     if (htmlContent) { 
         console.log("saving students work to disk...")
-        var options = { 
-            format: 'A4' ,
-            orientation: "portrait",
-            border: {
-                top: "1cm",
-                right: "1cm",
-                bottom: "1cm",
-                left: "1cm"
-            },
-            header: {
-                height: "15mm",
-                contents: `<div style="text-align: right;">${multiCastclient.clientinfo.name} |${savedate}  </div>`
-              },
-            footer: {
-                height: "15mm",
-                contents: {
-                  default: '<div style="text-align: right;">{{page}} / {{pages}}</div>', // fallback value
-                }
-            }
+
+        fs.writeFile(htmlfile, htmlContent, (err) => {if (err) console.log(err); }); 
+
+
+        for (const [key, file] of Object.entries( req.files)) {
+            let absoluteFilepath = path.join(config.workdirectory, file.name);
+            file.mv(absoluteFilepath, (err) => {  
+            if (err) { errors++; console.log( "client couldn't store file") }
+                  
+            });
         }
 
-        pdf.create(htmlContent, options).toFile(pdffilepath, function(err, res) { if (err) return console.log(err); });
-        fs.writeFile(htmlfile, htmlContent, (err) => {if (err) console.log(err); }); 
-        
+
         return res.json({sender: "client", message:t("data.filestored"), status: "success"  })
      }
 })

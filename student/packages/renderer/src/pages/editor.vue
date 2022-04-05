@@ -122,11 +122,12 @@ import Dropcursor from '@tiptap/extension-dropcursor'
 import Gapcursor from '@tiptap/extension-gapcursor'
 import History from '@tiptap/extension-history'
 import { lowlight } from "lowlight/lib/common.js";
+import jsPDF from 'jspdf'
 
 import FormData from 'form-data';
 import axios from "axios";
 import $ from 'jquery'
-
+import html2pdf from "html2pdf-jspdf2"
 
 export default {
     components: {
@@ -238,22 +239,84 @@ export default {
 
         /** Converts the Editor View into a multipage PDF */
         async saveContent() {     
+    
+
+            var opt = {
+                margin: 1, 
+                filename: 'ontract.pdf',
+                image: { type: 'webp', quality: 0.98 },
+                html2canvas: {scale:1 },
+                jsPDF: { unit: 'cm', format: 'A4', orientation: 'portrait' },
+                pagebreak: { mode: 'avoid-all' }       
+            };
+         
+
+            let doc = new jsPDF('p', 'px','a4', true, true);   //orientation, unit for coordinates, format, onlyUsedFonts, compress
             const editorcontent = this.editor.getHTML();    
-            let newDate = new Date(Date.now())
-            let savedate = `${newDate.toLocaleDateString()} - ${newDate.toLocaleTimeString()}`
-            let filename = this.currentFile.replace(/\.[^/.]+$/, "")  // we dont need the extension
-            let form = new FormData()
-            form.append("editorcontent", editorcontent)
-            form.append("currentfilename", filename)
-            form.append('savedate', savedate)
-            axios({
-                method: "post", 
-                url: `http://localhost:${this.clientApiPort}/client/data/store`, 
-                data: form, 
-                headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
-            }).then( async (response) => {
-                //console.log(response.data)
-            }).catch(err => { console.warn(err)});
+            let pdfBlob;
+
+
+            // let h = html2pdf().from(editorcontent).set(opt).toPdf().get('pdf')
+            // h.then( pdf => {
+
+   
+            //         // add some sort of header to the document
+            //         let newDate = new Date(Date.now())
+            //         let savedate = `${newDate.toLocaleDateString()} - ${newDate.toLocaleTimeString()}`
+
+            //         pdf.text(270, 20, `${this.clientname} | ${savedate}`);
+
+            //             let filename = this.currentFile.replace(/\.[^/.]+$/, "")  // we dont need the extension
+            //             pdfBlob = new Blob([ pdf.output('blob') ], { type : 'application/pdf'});
+            //             let form = new FormData()
+            //             form.append("file", pdfBlob,  `${filename}.pdf` );
+            //             form.append("editorcontent", editorcontent)
+            //             form.append("currentfilename", filename)
+                      
+            //             axios({
+            //                 method: "post", 
+            //                 url: `http://localhost:${this.clientApiPort}/client/data/store`, 
+            //                 data: form, 
+            //                 headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
+            //             }).then( async (response) => {
+            //                 //console.log(response.data)
+            //             }).catch(err => { console.warn(err)});
+                
+            //     }
+            // );
+
+            //this messes up lineheights of bold / italic but is MUCH BETTER quality and filesize
+            doc.html(editorcontent, {
+                    callback: (doc) => {
+                        // add some sort of header to the document
+                        let newDate = new Date(Date.now())
+                        let savedate = `${newDate.toLocaleDateString()} - ${newDate.toLocaleTimeString()}`
+
+                        doc.text(270, 20, `${this.clientname} | ${savedate}`);
+                    
+                        let filename = this.currentFile.replace(/\.[^/.]+$/, "")  // we dont need the extension
+                        pdfBlob = new Blob([ doc.output('blob') ], { type : 'application/pdf'});
+                        let form = new FormData()
+                        form.append("file", pdfBlob,  `${filename}.pdf` );
+                        form.append("editorcontent", editorcontent)
+                        form.append("currentfilename", filename)
+                      
+                        axios({
+                            method: "post", 
+                            url: `http://localhost:${this.clientApiPort}/client/data/store`, 
+                            data: form, 
+                            headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
+                        }).then( async (response) => {
+                            //console.log(response.data)
+                        }).catch(err => { console.warn(err)});
+                    },
+                    x: 0,
+                    y: 0,
+                    margin: [20,20,20,20],
+                    width :400,
+                    windowWidth:420,
+                    autoPaging: 'slice',  //text, slice, false
+            });
         },
         focuscheck() {
             window.addEventListener('beforeunload',         this.focuslost);  // keeps the window open (displays "are you sure in browser")
@@ -391,7 +454,7 @@ ENDE !!`,
         }   
         this.currentFile = this.clientname+".html"
         this.entrytime = new Date().getTime()
-        this.saveinterval = setInterval(() => { this.saveContent() }, 20000)    // speichert content als datei
+        this.saveinterval = setInterval(() => { this.saveContent() }, 5000)    // speichert content als datei
         this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 10000)   // zeigt html dateien (angaben, eigene arbeit) im header
         this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 5000)      //holt client info (exam status, connection, token)
         this.clockinterval = setInterval(() => { this.clock() }, 1000)   // uhrzeit (jede sekunde)
