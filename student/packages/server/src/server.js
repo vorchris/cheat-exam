@@ -7,16 +7,13 @@ import fsExtra from "fs-extra"
 import path from 'path'
 import ip from 'ip'
 import multicastClient from './classes/multicastclient.js'
-import getPath from 'platform-folders';
 import fs from 'fs'
+import os from 'os'
 
-config.home = getPath('home'); 
-config.desktop = getPath('desktop');
-config.workdirectory = path.join(config.desktop, config.examdirectory)
-config.tempdirectory = path.join(config.desktop, 'tmp')
+config.workdirectory = path.join(os.homedir(), config.examdirectory)
+config.tempdirectory = path.join(os.tmpdir(), 'exam-tmp')
 if (!fs.existsSync(config.workdirectory)){ fs.mkdirSync(config.workdirectory); }
 if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory); }
-
 
 multicastClient.init()
 
@@ -42,7 +39,6 @@ api.listen(config.clientApiPort, () => {
     console.log(`Express listening on http://${config.hostip}:${config.clientApiPort}`)
     console.log(`Vite-vue listening on http://${config.hostip}:${config.clientVitePort}`)
 })
-
 
 export default api;
 

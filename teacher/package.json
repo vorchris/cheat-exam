@@ -122,7 +122,6 @@
         "node-notifier": "^10.0.1",
         "os": "^0.1.2",
         "pdf-lib": "^1.17.1",
-        "platform-folders": "^0.5.4",
         "sass": "^1.49.9",
         "screenshot-desktop": "^1.12.7",
         "vue-router": "^4.0.13",
