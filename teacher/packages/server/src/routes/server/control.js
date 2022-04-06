@@ -42,6 +42,10 @@ import fs from 'fs'
     let mcs = new multiCastserver();
     mcs.init(servername, pin, req.params.passwd)
     config.examServerList[servername]=mcs
+
+     let serverinstancedir = path.join(config.workdirectory, servername)
+
+    if (!fs.existsSync(serverinstancedir)){ fs.mkdirSync(serverinstancedir, { recursive: true }); }
     res.send( {sender: "server", message: t("control.serverstarted"), status: "success"})
     
 })
