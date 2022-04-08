@@ -8,7 +8,8 @@
         "registering": "registering...",
         "registered": "registered",
         "registeredinfo": "Successfully registered on server",
-        "started": "search started"
+        "started": "search started",
+        "nopw": "wrong username or pin"
     },
     "control": {
         "tokennotvalid": "token is not valid",
@@ -19,6 +20,7 @@
         "examexit":"stopped safe exam mode",
         "noexam": "safe exam mode not active",
         "clientunsubscribe": "student removed from server"
+       
     },
     "data": {
         "tokennotvalid": "token is valid",

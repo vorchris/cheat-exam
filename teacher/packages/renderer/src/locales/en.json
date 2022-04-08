@@ -12,7 +12,8 @@
         "connected": "connected",
         "start": "Start Exam Server",
         "examname": "Name",
-        "pwd": "Password"
+        "pwd": "Password",
+        "emptypw": "Please provide a valid username and password"
     },
     "dashboard":{
         "name": "Name",

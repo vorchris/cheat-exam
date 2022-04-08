@@ -8,7 +8,8 @@
         "registering": "melde an...",
         "registered": "angemeldet",
         "registeredinfo": "Sie haben sich erfolgreich am Server registriert!",
-        "started": "Suche gestartet"
+        "started": "Suche gestartet",
+        "nopw": "Falscher Benutzername oder Pincode"
     },
     "control": {
         "tokennotvalid": "das token ist ungültig",
@@ -19,6 +20,7 @@
         "examexit":"Abgesicherter Modus beendet",
         "noexam": "Abgesicherter Modus nicht aktiv",
         "clientunsubscribe": "Schüler*in entfernt"
+       
     },
     "data": {
         "tokennotvalid": "das token ist ungültig",

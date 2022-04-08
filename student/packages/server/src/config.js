@@ -13,7 +13,7 @@ const config = {
     serverVitePort:3002,
     multicastClientPort: 6024,
     hostip: "",       // server.js
-    development: true,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
+    development: false,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
     electron: false,
     virtualized: false
 }

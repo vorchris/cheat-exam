@@ -83,8 +83,8 @@ export default {
         return {
             version: this.$route.params.version,
             token: "",
-            username: "Thomas",
-            pincode: "1337",
+            username: config.development ? "Thomas":"",
+            pincode: config.development ? "1337":"",
             clientinfo: {},
             serverlist: [],
             remoterequest: false,
@@ -112,32 +112,40 @@ export default {
         
         /** register client on the server **/
         registerClient(serverip, servername){
-            axios.get(`http://localhost:${this.clientApiPort}/client/control/register/${serverip}/${servername}/${this.pincode}/${this.username}`)
-            .then( response => { 
-                this.token = response.data.token  // set token immediately for further use (editor , geogebra)
+           if (this.username === "" || this.pincode ===""){
+               this.$swal.fire({
+                            title: "Error",
+                            text: this.$t("student.nopw"),
+                            icon: 'error',
+                            showCancelButton: false,
+                        })
+             
+            }
+            else {
+                axios.get(`http://localhost:${this.clientApiPort}/client/control/register/${serverip}/${servername}/${this.pincode}/${this.username}`)
+                .then( response => { 
+                    this.token = response.data.token  // set token immediately for further use (editor , geogebra)
 
-                if (response.data.status === "success") {
-                    this.$swal.fire({
-                        title: "OK",
-                        text: this.$t("student.registeredinfo"),
-                        icon: 'success',
-                        showCancelButton: false,
-                    })
-                }
-                
-                if (response.data.status === "error") {
-                    this.$swal.fire({
-                        title: "Error",
-                        text: response.data.message,
-                        icon: 'error',
-                        showCancelButton: false,
-                    })
-                }
-               
-
-
-            })
-            .catch( err => console.log(err));
+                    if (response.data.status === "success") {
+                        this.$swal.fire({
+                            title: "OK",
+                            text: this.$t("student.registeredinfo"),
+                            icon: 'success',
+                            showCancelButton: false,
+                        })
+                    }
+                    
+                    if (response.data.status === "error") {
+                        this.$swal.fire({
+                            title: "Error",
+                            text: response.data.message,
+                            icon: 'error',
+                            showCancelButton: false,
+                        })
+                    }
+                })
+                .catch( err => console.log(err));
+            }
         },
 
        

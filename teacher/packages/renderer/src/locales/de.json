@@ -12,7 +12,8 @@
         "connected": "verbunden",
         "start": "Exam Server starten",
         "examname": "Name",
-        "pwd": "Passwort"
+        "pwd": "Passwort",
+        "emptypw": "Bitte geben sie einen Namen und ein Passwort an"
     },
     "dashboard":{
         "name": "Name",

@@ -70,8 +70,8 @@ export default {
         return {
             version: this.$route.params.version,
             title: document.title,
-            servername : "Mathe5A",
-            password: "password",
+            servername : config.development ? "Mathe5A":"",
+            password: config.development ? "password":"",
             prod : false,
             serverApiPort: this.$route.params.serverApiPort,
             electron: this.$route.params.electron,
@@ -81,24 +81,29 @@ export default {
     components: {},
     methods: {
         async startServer(){
-            await axios.get(`http://${this.hostname}:${this.serverApiPort}/server/control/start/${this.servername}/${this.password}`)
-            .then( async (response) => {
-                if (response.data.status === "success") {  //directly log in
-                    this.status(response.data.message);
-                    await this.sleep(1000);
-                    if (this.electron){
-                        this.$router.push({  // for some reason this doesn't work on mobile
-                            name: 'dashboard', 
-                            params:{
-                                servername: this.servername, 
-                                passwd: this.password
-                            }
-                        })
+            if (this.servername ==="" || this.password ===""){
+                this.status(this.$t("startserver.emptypw")); 
+            }
+            else {
+                await axios.get(`http://${this.hostname}:${this.serverApiPort}/server/control/start/${this.servername}/${this.password}`)
+                .then( async (response) => {
+                    if (response.data.status === "success") {  //directly log in
+                        this.status(response.data.message);
+                        await this.sleep(1000);
+                        if (this.electron){
+                            this.$router.push({  // for some reason this doesn't work on mobile
+                                name: 'dashboard', 
+                                params:{
+                                    servername: this.servername, 
+                                    passwd: this.password
+                                }
+                            })
+                        }
+                        else {window.location.href = `#/dashboard/${this.servername}/${this.password}`}
                     }
-                    else {window.location.href = `#/dashboard/${this.servername}/${this.password}`}
-                }
-                else { this.status(response.data.message); }
-            }).catch(err => { this.status(err)});
+                    else { this.status(response.data.message); }
+                }).catch(err => { this.status(err)}); 
+            } 
         },
 
         //show status message
