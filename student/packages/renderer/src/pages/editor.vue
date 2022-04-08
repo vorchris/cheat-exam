@@ -250,12 +250,18 @@ export default {
                 pagebreak: { mode: 'avoid-all' }       
             };
          
+            const options = {
+                orientation: "p", 
+                unit: "px",
+                format: "a4",
+                putOnlyUsedFonts: true,
+                compress: true
+            };
 
-            let doc = new jsPDF('p', 'px','a4', true, true);   //orientation, unit for coordinates, format, onlyUsedFonts, compress
+            let doc = new jsPDF(options)   //orientation, unit for coordinates, format, onlyUsedFonts, compress
             const editorcontent = this.editor.getHTML();    
             let pdfBlob;
-
-
+            
             // let h = html2pdf().from(editorcontent).set(opt).toPdf().get('pdf')
             // h.then( pdf => {
 
@@ -286,6 +292,8 @@ export default {
             // );
 
             //this messes up lineheights of bold / italic but is MUCH BETTER quality and filesize
+                  
+              
             doc.html(editorcontent, {
                     callback: (doc) => {
                         // add some sort of header to the document
@@ -293,7 +301,8 @@ export default {
                         let savedate = `${newDate.toLocaleDateString()} - ${newDate.toLocaleTimeString()}`
 
                         doc.text(270, 20, `${this.clientname} | ${savedate}`);
-                    
+                  
+
                         let filename = this.currentFile.replace(/\.[^/.]+$/, "")  // we dont need the extension
                         pdfBlob = new Blob([ doc.output('blob') ], { type : 'application/pdf'});
                         let form = new FormData()
@@ -312,10 +321,12 @@ export default {
                     },
                     x: 0,
                     y: 0,
-                    margin: [20,20,20,20],
+                    margin: [20,20,20,20],  // oben rechts unten links
                     width :400,
                     windowWidth:420,
                     autoPaging: 'slice',  //text, slice, false
+                    removeContainer:	false,
+                    scale:1
             });
         },
         focuscheck() {
@@ -454,7 +465,7 @@ ENDE !!`,
         }   
         this.currentFile = this.clientname+".html"
         this.entrytime = new Date().getTime()
-        this.saveinterval = setInterval(() => { this.saveContent() }, 5000)    // speichert content als datei
+        this.saveinterval = setInterval(() => { this.saveContent() }, 3000)    // speichert content als datei
         this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 10000)   // zeigt html dateien (angaben, eigene arbeit) im header
         this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 5000)      //holt client info (exam status, connection, token)
         this.clockinterval = setInterval(() => { this.clock() }, 1000)   // uhrzeit (jede sekunde)
@@ -510,21 +521,43 @@ ENDE !!`,
 }
 
 .html2pdf__container {  //this works only if html automaging mode is "slice" - if we set it to "text" this messes up all lineheights
-    line-height: 12px;
-    font-size: 12px;
-    ul { padding: 0 15px; line-height: 2px;  }
-    ol { padding: 0 15px; line-height: 2px;  }
-
+   
+   *{
+        line-height: 1.1em !important; 
+        font-size: 12px !important;
+       
+   }
+   
+   li {
+        ul { padding: 0 15px!important; line-height: 1!important;  }
+        ol { padding: 0 15px!important; line-height: 1!important;  }
+   }
+ 
     pre {
+        line-height: 1em!important; 
         code {
-            letter-spacing: 2px;
+            letter-spacing: 2px!important;
+            line-height: 1em!important; 
         }
     }
-    
-    h5 {font-size: 20px; }
-    h4 {font-size: 22px; }
-    h3 {font-size: 24px; }
-    h2 {font-size: 26px; }
+  
+
+    p{
+         line-height: 1em!important; 
+        em {
+            line-height: 2.5em!important; 
+           
+        }
+        strong {
+            line-height: 2.5em!important;
+         }  
+     }
+
+
+    h5 {font-size: 20px!important; }
+    h4 {font-size: 22px!important; }
+    h3 {font-size: 24px!important; }
+    h2 {font-size: 26px!important; }
 }
 
 /* Basic editor styles */

@@ -6,10 +6,11 @@
         <img src='/src/assets/img/svg/speedometer.svg' class="white me-2  " width="32" height="32" >
         <span class="fs-4 align-middle me-4 ">Next-Exam</span>
     </router-link>
-     <!-- <router-link to="/ltest/" class="text-white m-1">
+     <router-link to="/ltest/" class="text-white m-1">
         <img src='/src/assets/img/svg/speedometer.svg' class="white me-2  " width="32" height="32" >
         <span class="fs-4 align-middle me-4 ">Next-Exam</span>
-    </router-link> -->
+    </router-link> 
+    
     <span class="fs-4 align-middle" style="float: right">Student</span>
 </div>
  
@@ -75,7 +76,7 @@
 <script>
 import $ from 'jquery'
 import axios from "axios";
-
+import jsPDF from 'jspdf'
 
 export default {
     data() {
@@ -162,7 +163,6 @@ export default {
             });
         }
     },
-
     beforeUnmount() {
         clearInterval( this.fetchinterval )
         this.startExamEvent.removeAllListeners('exam')   //remove  self

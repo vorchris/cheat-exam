@@ -102,6 +102,11 @@ async function createWindow() {
             console.log('Pressed meta')
             event.preventDefault()
           }
+
+        if ( (input.key.toLowerCase() === "meta" || input.key.toLowerCase() === "super"|| input.key.toLowerCase() === "cmd" ) && input.key.toLowerCase() === "p"   ) {
+            console.log('Pressed meta')
+            event.preventDefault()
+          }
     })
 
 
@@ -118,7 +123,12 @@ async function createWindow() {
 
 app.whenReady()
 .then( () => {
-    globalShortcut.register('Cmd+p', () => {
+    // trying to catch some keyboard shortcuts here
+    globalShortcut.register('Alt+CommandOrControl+I', () => {
+        console.log('Electron loves global shortcuts!')
+        return false
+    })
+    globalShortcut.register('CommandOrControl+P', () => {
         console.log('Electron loves global shortcuts!')
         return false
     })
