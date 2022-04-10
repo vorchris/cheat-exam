@@ -67,7 +67,7 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
         return res.json({ sender: "client", message: t("control.alreadyregistered"), status:"error" })
     }
  
-    await axios.get(`http://${serverip}:${config.serverApiPort}/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}/${version}`)
+    await axios.get(`https://${serverip}:${config.serverApiPort}/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}/${version}`)
     .then(response => {
         if (response.data && response.data.status == "success") { // registration successfull otherwise data would be "false"
           multiCastclient.clientinfo.name = clientname

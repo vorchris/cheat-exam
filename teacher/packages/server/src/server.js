@@ -1,4 +1,5 @@
 import express from "express"
+import https from 'https'
 import cors from 'cors'
 import fileUpload from "express-fileupload";
 import {serverRouter} from './routes/serverroutes.js' 
@@ -10,6 +11,8 @@ import ip from 'ip'
 import multicastClient from './classes/multicastclient.js'
 import fs from 'fs'
 import os from 'os'
+import forge from 'node-forge'
+forge.options.usePureJavaScript = true; 
 
 config.workdirectory = path.join(os.homedir(), config.examdirectory)
 config.tempdirectory = path.join(os.tmpdir(), 'exam-tmp')
@@ -48,16 +51,39 @@ api.use(limiter)
 api.use('/server', serverRouter)
 
 
+let certs = createCACert()
+
+var options = {
+    key: certs.key,
+    cert: certs.cert,
+    requestCert: false,
+    rejectUnauthorized: false
+  };
+
+const server = https.createServer(options, api);
 
 
-
-api.listen(config.serverApiPort, () => {  
+server.listen(config.serverApiPort, () => {  
     console.log(`Express listening on http://${config.hostip}:${config.serverApiPort}`)
     console.log(`Vite-vue listening on http://${config.hostip}:${config.serverVitePort}`)
 })
 
 
+export default server;
 
 
-export default api;
 
+
+function createCACert() {
+    let rsa =  forge.pki.rsa;
+    let pki = forge.pki;
+    let seed = forge.random.getBytesSync(32);
+    let keys = rsa.generateKeyPair({bits: 1024, seed: seed});
+    var cert = pki.createCertificate();
+    cert.publicKey = keys.publicKey;
+    cert.privateKey = keys.privateKey;
+    cert.sign(keys.privateKey);
+    var pem_pkey = pki.privateKeyToPem(keys.privateKey);
+    var pem_cert = pki.certificateToPem(cert);
+    return {key: pem_pkey , cert: pem_cert}
+};

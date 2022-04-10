@@ -85,7 +85,7 @@ export default {
                 this.status(this.$t("startserver.emptypw")); 
             }
             else {
-                await axios.get(`http://${this.hostname}:${this.serverApiPort}/server/control/start/${this.servername}/${this.password}`)
+                await axios.get(`https://${this.hostname}:${this.serverApiPort}/server/control/start/${this.servername}/${this.password}`)
                 .then( async (response) => {
                     if (response.data.status === "success") {  //directly log in
                         this.status(response.data.message);

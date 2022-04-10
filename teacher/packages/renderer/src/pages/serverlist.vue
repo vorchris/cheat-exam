@@ -82,7 +82,7 @@ export default {
     components: { },
     methods: {
         fetchInfo() {
-            axios.get(`http://${this.hostname}:${this.serverApiPort}/server/control/serverlist`)
+            axios.get(`https://${this.hostname}:${this.serverApiPort}/server/control/serverlist`)
             .then( response => {
                 this.serverlist = response.data.serverlist;
             })
@@ -94,7 +94,7 @@ export default {
             if (password === ""){this.status(this.$t("serverlist.nopw") ); }
 
 
-            axios.get(`http://${this.hostname}:${this.serverApiPort}/server/control/checkpasswd/${servername}/${password}`)
+            axios.get(`https://${this.hostname}:${this.serverApiPort}/server/control/checkpasswd/${servername}/${password}`)
             .then(response => { 
                 if (response.data.status === "success") { 
                     if (this.electron){

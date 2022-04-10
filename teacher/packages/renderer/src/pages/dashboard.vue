@@ -177,7 +177,7 @@ export default {
                 return
             }
             console.log("requesting file for downlod ")
-            fetch(`http://${this.serverip}:${this.serverApiPort}/server/data/download/${this.servername}/${this.servertoken}`, { 
+            fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/download/${this.servername}/${this.servertoken}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },
                 body: JSON.stringify({ filename : file.name, path: file.path, type: file.type})
@@ -196,7 +196,7 @@ export default {
         // send a file from dashboard explorer to specific student
         sendFile(file){
             console.log("fetching file")
-            fetch(`http://${this.serverip}:${this.serverApiPort}/server/data/download/${this.servername}/${this.servertoken}`, { 
+            fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/download/${this.servername}/${this.servertoken}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },
                 body: JSON.stringify({ filename : file.name, path: file.path, type: file.type})
@@ -229,7 +229,7 @@ export default {
                         formData.append('files', blob, file.name)  
                         axios({
                             method: "post", 
-                            url: `http://${student.clientip}:${this.clientApiPort}/client/data/receive/${student.token}`, 
+                            url: `https://${student.clientip}:${this.clientApiPort}/client/data/receive/${student.token}`, 
                             data: formData, 
                             headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
                         })
@@ -244,7 +244,7 @@ export default {
         loadPDF(filepath, filename){
             const form = new FormData()
             form.append("filename", filepath)
-            fetch(`http://${this.serverip}:${this.serverApiPort}/server/data/getpdf/${this.servername}/${this.servertoken}`, { method: 'POST', body: form })
+            fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getpdf/${this.servername}/${this.servertoken}`, { method: 'POST', body: form })
                 .then( response => response.arrayBuffer())
                 .then( data => {
                     let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
@@ -261,7 +261,7 @@ export default {
         loadImage(file){
             const form = new FormData()
             form.append("filename", file)
-            fetch(`http://${this.serverip}:${this.serverApiPort}/server/data/getpdf/${this.servername}/${this.servertoken}`, { method: 'POST', body: form })
+            fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getpdf/${this.servername}/${this.servertoken}`, { method: 'POST', body: form })
                 .then( response => response.arrayBuffer())
                 .then( data => {
                     let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
@@ -293,7 +293,7 @@ export default {
         },
 
         getLatest(){
-            fetch(`http://${this.serverip}:${this.serverApiPort}/server/data/getlatest/${this.servername}/${this.servertoken}`, { 
+            fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getlatest/${this.servername}/${this.servertoken}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },
             })
@@ -326,7 +326,7 @@ export default {
 
 
         loadFilelist(directory){
-            fetch(`http://${this.serverip}:${this.serverApiPort}/server/data/getfiles/${this.servername}/${this.servertoken}`, { 
+            fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getfiles/${this.servername}/${this.servertoken}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },
                 body: JSON.stringify({ dir : directory})
@@ -363,7 +363,7 @@ export default {
         // get all information about students status
         fetchInfo() {
             this.now = new Date().getTime()
-            axios.get(`http://${this.serverip}:${this.serverApiPort}/server/control/studentlist/${this.servername}/${this.servertoken}`)
+            axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/studentlist/${this.servername}/${this.servertoken}`)
             .then( response => {
                 this.studentlist = response.data.studentlist;
                 if (this.studentlist && this.studentlist.length > 0){
@@ -423,7 +423,7 @@ export default {
                     this.studentlist.forEach( (student) => {  
                         axios({
                             method: "post", 
-                            url: `http://${student.clientip}:${this.clientApiPort}/client/data/receive/${student.token}`, 
+                            url: `https://${student.clientip}:${this.clientApiPort}/client/data/receive/${student.token}`, 
                             data: formData, 
                             headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
                         })
@@ -437,7 +437,7 @@ export default {
                     let student = who
                     axios({
                         method: "post", 
-                        url: `http://${student.clientip}:${this.clientApiPort}/client/data/receive/${student.token}`, 
+                        url: `https://${student.clientip}:${this.clientApiPort}/client/data/receive/${student.token}`, 
                         data: formData, 
                         headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
                     })
@@ -462,7 +462,7 @@ export default {
             })
             .then((result) => {
                 if (result.isConfirmed) {
-                    axios.get(`http://${this.serverip}:${this.serverApiPort}/server/control/stopserver/${this.servername}/${this.servertoken}`)
+                    axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/stopserver/${this.servername}/${this.servertoken}`)
                     .then( async (response) => {
                         this.status(response.data.message);
                         console.log(response.data);
@@ -492,7 +492,7 @@ export default {
                     this.studentlist.forEach( (student) => {
                         //check exam mode for students - dont initialize twice (right after exam stop it takes a few seconds for the students to update their exam status on the server again)
                         if (student.exammode){ this.status(this.$t("dashboard.exammodeactive")); return; }
-                        axios.get(`http://${student.clientip}:${this.clientApiPort}/client/control/exammode/start/${student.token}/${this.examtype}/${delfolder}`)
+                        axios.get(`https://${student.clientip}:${this.clientApiPort}/client/control/exammode/start/${student.token}/${this.examtype}/${delfolder}`)
                         .then( response => {
                             this.status(response.data.message);
                             console.log(response.data);
@@ -503,7 +503,7 @@ export default {
             else {
                 let student = who
                 if (student.exammode){ this.status(this.$t("dashboard.exammodeactive")); return; }
-                axios.get(`http://${student.clientip}:${this.clientApiPort}/client/control/exammode/start/${student.token}/${this.examtype}/${delfolder}`)
+                axios.get(`https://${student.clientip}:${this.clientApiPort}/client/control/exammode/start/${student.token}/${this.examtype}/${delfolder}`)
                 .then( response => {
                     this.status(response.data.message);
                     console.log(response.data);
@@ -527,7 +527,7 @@ export default {
                 if (result.isConfirmed) {
                     if (who == "all"){
                         this.studentlist.forEach( (student) => {
-                            axios.get(`http://${student.clientip}:${this.clientApiPort}/client/control/exammode/stop/${student.token}`)
+                            axios.get(`https://${student.clientip}:${this.clientApiPort}/client/control/exammode/stop/${student.token}`)
                             .then( async (response) => {
                                 this.status(response.data.message);
                                 console.log(response.data);
@@ -536,7 +536,7 @@ export default {
                     }
                     else {
                         let student = who
-                        axios.get(`http://${student.clientip}:${this.clientApiPort}/client/control/exammode/stop/${student.token}`)
+                        axios.get(`https://${student.clientip}:${this.clientApiPort}/client/control/exammode/stop/${student.token}`)
                         .then( async (response) => {
                             this.status(response.data.message);
                             console.log(response.data);
@@ -554,7 +554,7 @@ export default {
                 this.studentlist.forEach( (student) => {
                     //for some reason this has a 30sec timeout when triggered the second time with method GET only inside "electron"
                     axios({
-                        url:`http://${student.clientip}:${this.clientApiPort}/client/data/abgabe/send/${student.token}`,
+                        url:`https://${student.clientip}:${this.clientApiPort}/client/data/abgabe/send/${student.token}`,
                         method: 'post'
                     })
                     .then( response => {
@@ -565,7 +565,7 @@ export default {
             else {
                 let student = who
                 axios({
-                    url:`http://${student.clientip}:${this.clientApiPort}/client/data/abgabe/send/${student.token}`,
+                    url:`https://${student.clientip}:${this.clientApiPort}/client/data/abgabe/send/${student.token}`,
                     method: 'post'
                 })
                 .then( response => {
@@ -589,14 +589,14 @@ export default {
             .then((result) => {
                 if (result.isConfirmed) {
                      //unregister locally
-                    axios.get(`http://${this.serverip}:${this.serverApiPort}/server/control/kick/${this.servername}/${this.servertoken}/${studenttoken}`)
+                    axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/kick/${this.servername}/${this.servertoken}/${studenttoken}`)
                     .then( response => {
                         console.log(response.data);
                         this.status(response.data.message);
                     }).catch(error => {console.log(error)});
 
                     //inform student
-                    axios.get(`http://${studentip}:${this.clientApiPort}/client/control/kick/${studenttoken}`)
+                    axios.get(`https://${studentip}:${this.clientApiPort}/client/control/kick/${studenttoken}`)
                     .then( response => {
                         console.log(response.data);
                     }).catch(error => {
@@ -609,14 +609,14 @@ export default {
 
           //remove student from exam
         async restore(studenttoken, studentip){
-            axios.get(`http://${this.serverip}:${this.serverApiPort}/server/control/studentlist/statechange/${this.servername}/${studenttoken}/true`)
+            axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/studentlist/statechange/${this.servername}/${studenttoken}/true`)
                 .then( async (response) => {
                     this.status(response.data.message);
                     console.log(response.data);
                 }).catch(error => {console.log(error)});
 
 
-            axios.get(`http://${studentip}:${this.clientApiPort}/client/control/focus/${studenttoken}/true`)
+            axios.get(`https://${studentip}:${this.clientApiPort}/client/control/focus/${studenttoken}/true`)
                 .then( response => { console.log(response.data)  })
                 .catch( err => {console.log(err)});
 
@@ -625,7 +625,7 @@ export default {
 
         // (dummy function - validate a specific token - trigger notification on client)
         async task2(token, ip){
-             axios.get(`http://${ip}:${this.clientApiPort}/client/control/tokencheck/${token}`)
+             axios.get(`https://${ip}:${this.clientApiPort}/client/control/tokencheck/${token}`)
             .then(  response => {
                 console.log(response.data);
             }).catch(error => {console.log(error)});
