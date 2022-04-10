@@ -45,12 +45,12 @@ function addParams(to){
  * um rechtmässig am server den studentstatus updaten zu dürfen das student token
  */
 async function checkToken(to, from){
-    let status = await axios.get(`http://localhost:${config.clientApiPort}/client/control/tokencheck/${to.params.token}`)
+    let status = await axios.get(`https://localhost:${config.clientApiPort}/client/control/tokencheck/${to.params.token}`)
     .then(response => {  return response.data.status  })
     .catch( err => {console.log(err)})
 
     if (status === "success") { 
-        let clientinfo = await axios.get(`http://localhost:${config.clientApiPort}/client/control/getinfo`)
+        let clientinfo = await axios.get(`https://localhost:${config.clientApiPort}/client/control/getinfo`)
         .then(response => {  return response.data.clientinfo  })
         .catch( err => {console.log(err)})
        
