@@ -80,7 +80,7 @@ import fs from 'fs'
 /**
  * checks serverpassword for login via VUE ROUTER
  * @param servername the chosen name (for example "mathe")
- * @param passwd the password needed to enter the dashboard
+ * @param passwd the password needed to enter the dashboard  !!FIXME: use https and proper auth 
  **/
  router.get('/checkpasswd/:servername/:passwd', function (req, res, next) {
     const servername = req.params.servername 
@@ -99,7 +99,7 @@ import fs from 'fs'
             serverip: mcServer.serverinfo.ip
             } 
         } )} 
-        else { return res.send( {sender: "server", message: t("wrongpw"), status: "error"}) }
+        else { return res.send( {sender: "server", message: t("control.wrongpw"), status: "error"}) }
     } 
     else {
         res.send( {sender: "server", message: t("control.notfound"), status: "error"})

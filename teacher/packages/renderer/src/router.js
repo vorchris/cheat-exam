@@ -40,7 +40,7 @@ function addParams(to){
 
 
 
-
+//we double check the password for now..  use proper auth process in the future ;-)
 async function checkPasswd(to){
     let hostname = electron ? "localhost" : window.location.hostname
 

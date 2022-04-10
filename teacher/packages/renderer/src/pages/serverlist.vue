@@ -73,7 +73,7 @@ export default {
             title: document.title,
             fetchinterval: null,
             serverlist: [],
-            password: 'password',
+            password: config.development ? "password":"",
             serverApiPort: this.$route.params.serverApiPort,
             electron: this.$route.params.electron,
             hostname: window.location.hostname
@@ -91,18 +91,30 @@ export default {
 
         login(servername){
             let password = $(`#${servername}`).val()
-            if (this.electron){
-                this.$router.push({  // for some reason this doesn't work on mobile
-                name: 'dashboard', 
-                params:{
-                    servername: servername, 
-                    passwd: password
+            if (password === ""){this.status(this.$t("serverlist.nopw") ); }
+
+
+            axios.get(`http://${this.hostname}:${this.serverApiPort}/server/control/checkpasswd/${servername}/${password}`)
+            .then(response => { 
+                if (response.data.status === "success") { 
+                    if (this.electron){
+                        this.$router.push({  // for some reason this doesn't work on mobile
+                            name: 'dashboard', 
+                            params:{
+                                servername: servername, 
+                                passwd: password
+                            }
+                        })
+                    }
+                    else {  // still preparing for a pure webbased version
+                        window.location.href = `#/dashboard/${servername}/${password}`
+                    }
+                }
+                else {  
+                    this.status(response.data.message);
                 }
             })
-            }
-            else {
-                window.location.href = `#/dashboard/${servername}/${password}`
-            }
+            .catch( err => {console.log(err)})
         },
 
         //show status message
@@ -123,7 +135,7 @@ export default {
         $("#statusdiv").fadeOut("slow")
         this.$nextTick(function () { // Code that will run only after the entire view has been rendered
             this.fetchInfo();
-            this.fetchinterval = setInterval(() => { this.fetchInfo() }, 2000)
+            this.fetchinterval = setInterval(() => { this.fetchInfo() }, 20000)
         })
         
         if (this.electron){

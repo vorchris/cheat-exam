@@ -6,7 +6,8 @@
     "serverlist" : {
         "pwd": "Passwort",
         "name": "Name",
-        "login": "anmelden"
+        "login": "anmelden",
+        "nopw": "Bitte geben sie ein Passwort ein"
     },
     "startserver" : {
         "connected": "verbunden",
