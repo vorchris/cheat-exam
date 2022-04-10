@@ -44,7 +44,7 @@ function addParams(to){
 async function checkPasswd(to){
     let hostname = electron ? "localhost" : window.location.hostname
 
-    let res = await axios.get(`http://${hostname}:${config.serverApiPort}/server/control/checkpasswd/${to.params.servername}/${to.params.passwd}`)
+    let res = await axios.get(`https://${hostname}:${config.serverApiPort}/server/control/checkpasswd/${to.params.servername}/${to.params.passwd}`)
     .then(response => {  return response.data  })
     .catch( err => {console.log(err)})
 

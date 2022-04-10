@@ -74,9 +74,7 @@
 
 
 <script>
-import $ from 'jquery'
 import axios from "axios";
-import jsPDF from 'jspdf'
 
 export default {
     data() {
