@@ -104,7 +104,7 @@
 
      <!-- exam & studentlist start -->
     <div id="content" class="fadeinslow p-3">
-        <div class="btn btn-success m-1 text-start ms-0" style="width:100px;"  @click="startExam('all')">{{$t('dashboard.startexam')}}</div>
+        <div :class="(exammodeReady)? 'disabled':'' " class="btn btn-success m-1 text-start ms-0" style="width:100px;"  @click="startExam('all')">{{$t('dashboard.startexam')}}</div>
         <div class="btn btn-danger m-1 text-start ms-0 " style="width:100px;" @click="endExam('all')" >{{$t('dashboard.stopexam')}}</div>
         <div class="btn btn-info m-1 text-start ms-0 " style="width:100px;" @click="sendFiles('all')">{{$t('dashboard.sendfile')}}</div>
         <div class="btn btn-info m-1 text-start ms-0 " style="width:100px;" @click="getFiles('all')">{{$t('dashboard.getfile')}}</div>
@@ -161,7 +161,8 @@ export default {
             activestudent: null,
             localfiles: null,
             currentpreview: null,
-            currentpreviewname: null
+            currentpreviewname: null,
+            exammodeReady: false
         };
     },
     components: { },
@@ -365,11 +366,16 @@ export default {
             axios.get(`http://${this.serverip}:${this.serverApiPort}/server/control/studentlist/${this.servername}/${this.servertoken}`)
             .then( response => {
                 this.studentlist = response.data.studentlist;
-                if (this.studentlist){
+                if (this.studentlist && this.studentlist.length > 0){
+                    
+                    this.exammodeReady = true;
                     this.studentlist.forEach(student =>{  // on studentlist-receive check focus status and other things
                         if (!student.focus){this.status(`${student.clientname} ${this.$t("dashboard.leftkiosk")}`); }
+                        if (!student.exammode && !student.focus)  {  this.restore(student.token, student.clientip) }
+                           
+
                         if (student.virtualized){this.status(`${student.clientname}${this.$t("control.virtualized")}`)}
-                        //console.log(student.imageurl)
+                        if (!student.exammode) {this.exammodeReady = false}
                     });
                 }
             }).catch( err => {console.log(err)});

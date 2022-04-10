@@ -42,7 +42,7 @@
         "reallykick": "remove student from server",
         "kick": "remove",
         "leftkiosk": "has left the safe exam mode!",
-        "online":"online",
+        "online":"details",
         "secure":"secured",
         "restore":"restore",
         "exammodeactive": "student already in safe exam mode",

@@ -39,13 +39,13 @@
             <div class="input-group  mb-1">
                 <span class="input-group-text col-3" style="min-width:135px;" id="inputGroup-sizing-lg">{{ $t("student.username") }}</span>
                 <div class="col-sm-7"> 
-                    <input v-model="username" type="text" class="form-control" id="user" placeholder="Thomas" style="min-width:135px;">
+                    <input v-model="username" type="text" class="form-control" id="user" placeholder="" style="min-width:135px;">
                 </div>
             </div>   
             <div class="input-group  mb-3"> 
                 <span class="input-group-text col-3" style="min-width:135px;" id="inputGroup-sizing-lg">{{ $t("student.pin") }}</span>
                 <div class="col-sm-7"> 
-                    <input  v-model="pincode" type="text" class="form-control" id="pin" placeholder="1337" style="min-width:135px;">
+                    <input  v-model="pincode" type="number" min="0" oninput="validity.valid||(value='')" class="form-control" id="pin" placeholder="" style="min-width:135px;">
                 </div>
             </div>
         </div>
