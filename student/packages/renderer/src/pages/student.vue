@@ -101,7 +101,7 @@ export default {
     },
     methods: {
         fetchInfo() {
-            axios.get(`http://localhost:${this.clientApiPort}/client/control/getinfo`)
+            axios.get(`https://localhost:${this.clientApiPort}/client/control/getinfo`)
             .then( response => {
                 this.clientinfo = response.data.clientinfo;
                 this.serverlist = response.data.serverlist;
@@ -122,7 +122,7 @@ export default {
              
             }
             else {
-                axios.get(`http://localhost:${this.clientApiPort}/client/control/register/${serverip}/${servername}/${this.pincode}/${this.username}`)
+                axios.get(`https://localhost:${this.clientApiPort}/client/control/register/${serverip}/${servername}/${this.pincode}/${this.username}`)
                 .then( response => { 
                     this.token = response.data.token  // set token immediately for further use (editor , geogebra)
 
