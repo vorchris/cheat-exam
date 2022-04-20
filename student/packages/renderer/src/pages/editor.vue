@@ -352,7 +352,7 @@ export default {
                 this.informTeacher(false)
             }
         },
-        informTeacher(focus){
+        informTeacher(focus){  //value for virtualized can be given here instead of focus (will trigger a different message for teachers)
             console.log(focus)
             console.log("HOUSTON WE HAVE A CHEATER!")
             axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/studentlist/statechange/${this.servername}/${this.token}/${focus}`)

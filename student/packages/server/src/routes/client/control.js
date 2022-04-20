@@ -176,17 +176,17 @@ router.get('/tokencheck/:token', function (req, res, next) {
     const filepath = '/src/assets/img/icons/success.png'
   
     if ( checkToken(token) ) {
-        console.log('Show Notification')
-        nodenotify.notify( {
-                title: 'OSD Notification Test',
-                message: `Hello from Next-Exam Server, ${multiCastclient.clientinfo.name}!`,
-                icon: filepath, // Absolute path (doesn't work on balloons)
-            },
-            function(err, response) {
-                console.log(err)
-                console.log(response)
-            }
-        );
+        // console.log('Show Notification')
+        // nodenotify.notify( {
+        //         title: 'OSD Notification Test',
+        //         message: `Hello from Next-Exam Server, ${multiCastclient.clientinfo.name}!`,
+        //         icon: filepath, // Absolute path (doesn't work on balloons)
+        //     },
+        //     function(err, response) {
+        //         console.log(err)
+        //         console.log(response)
+        //     }
+        // );
        
       res.json({ sender: "client", message: t("control.tokenvalid"), status: "success" })
     }
