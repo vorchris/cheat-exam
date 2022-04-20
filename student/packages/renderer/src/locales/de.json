@@ -3,13 +3,20 @@
         "exams": "Aktive Prüfungen",
         "username": "Benutzername",
         "pin": "Pincode",
+        "ip":"Server Adresse",
+        "examname":"Prüfungsname",
+        "advanced": "fortgeschritten",
+        "simple": "einfach",
         "name": "Name",
         "register": "anmelden",
         "registering": "melde an...",
         "registered": "angemeldet",
+        "connected": "verbunden",
+        "disconnected": "Verbindung unterbrochen",
         "registeredinfo": "Sie haben sich erfolgreich am Server registriert!",
         "started": "Suche gestartet",
-        "nopw": "Falscher Benutzername oder Pincode"
+        "nopw": "Falscher Benutzername oder Pincode",
+        "noip": "Serveradresse oder Prüfungsname fehlt"
     },
     "control": {
         "tokennotvalid": "das token ist ungültig",

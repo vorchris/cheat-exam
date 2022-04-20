@@ -17,6 +17,7 @@
         "emptypw": "Bitte geben sie einen Namen und ein Passwort an"
     },
     "dashboard":{
+        "server": "Server",
         "name": "Name",
         "pin": "Pin",
         "connected": "verbunden",

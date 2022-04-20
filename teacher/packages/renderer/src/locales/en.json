@@ -17,6 +17,7 @@
         "emptypw": "Please provide a valid username and password"
     },
     "dashboard":{
+        "server": "Server",
         "name": "Name",
         "pin": "Pin",
         "connected": "connected",

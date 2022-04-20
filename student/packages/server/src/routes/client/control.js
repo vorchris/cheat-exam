@@ -78,7 +78,12 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
           multiCastclient.clientinfo.focus = true
         }
         res.send(response.data)
-    }).catch(err => console.log(err))
+    }).catch(err => {
+        //we return the servers error message to the ui
+        console.log(err.message)
+        return res.json({ sender: "client", message:err.message , status:"error" })
+        
+    })
 })
 
 

@@ -3,13 +3,20 @@
         "exams": "Active Exams",
         "username": "Username",
         "pin": "Pincode",
+        "ip":"Server address",
+        "examname":"Exam Name",
+        "advanced": "advanced",
+        "simple": "simple",
         "name": "Name",
         "register": "register",
         "registering": "registering...",
         "registered": "registered",
+        "connected": "connected",
+        "disconnected": "disconnected",
         "registeredinfo": "Successfully registered on server",
         "started": "search started",
-        "nopw": "wrong username or pin"
+        "nopw": "wrong username or pin",
+        "noip": "Serveraddresse oder Examname missing"
     },
     "control": {
         "tokennotvalid": "token is not valid",

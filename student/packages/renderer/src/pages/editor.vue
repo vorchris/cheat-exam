@@ -4,13 +4,13 @@
         <div v-if="online" class="text-white m-1">
             <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style="float: left;" />
             <span class="fs-4 align-middle me-1" style="float: left;">{{clientname}}</span>
-            <span class="fs-4 align-middle me-4 green" style="float: left;" >| online</span> 
+            <span class="fs-4 align-middle me-4 green" style="float: left;" >| {{$t('student.connected')}}</span> 
         </div>
         
         <div v-if="!online" class="text-white m-1">
             <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style=" float: left;" />
              <span class="fs-4 align-middle me-1" style=" float: left;"> {{clientname}} </span>
-             <span class="fs-4 align-middle me-4 red" style="float: left;"> | offline </span>  
+             <span class="fs-4 align-middle me-4 red" style="float: left;"> | {{ $t("student.disconnected") }} </span>  
             <button style="float: left;" @click="exit()" class="btn btn-outline-warning ">{{$t('editor.exit')}} </button>
         </div>
 
