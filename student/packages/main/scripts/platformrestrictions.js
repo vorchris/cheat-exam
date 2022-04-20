@@ -82,7 +82,7 @@ const gnomeKeybindings = [
         
         //block important keyboard shortcuts (disable-shortcuts.exe is a selfmade C application - shortcuts are hardcoded there - need to rebuild if adding shortcuts)
         let executable1 = join(__dirname, '../../public/disable-shortcuts.exe')
-        childProcess.execFile(executable1, [], (error, stdout, stderr) => {
+        childProcess.execFile(executable1, [], { detached: true, shell: false, windowsHide: true}, (error, stdout, stderr) => {
             if (stderr) {  console.log(stderr)  }
             if (error)  {  console.log(error)   }
         })
