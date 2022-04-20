@@ -115,6 +115,11 @@ async function createWindow() {
         if (url.startsWith('https:')) shell.openExternal(url)
         return { action: 'deny' }
     })
+
+    win.webContents.session.setCertificateVerifyProc((request, callback) => {
+        var { hostname, certificate, validatedCertificate, verificationResult, errorCode } = request;
+        callback(0);
+    });
 }
 
 
@@ -136,6 +141,14 @@ app.whenReady()
 .then(createWindow)
 
 
+
+// SSL/TSL: this is the self signed certificate support
+app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
+    // On certificate error we disable default behaviour (stop loading the page)
+    // and we then say "it is all fine - true" to the callback
+    event.preventDefault();
+    callback(true);
+});
 
 // if window is closed
 app.on('window-all-closed', () => {

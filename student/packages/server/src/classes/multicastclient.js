@@ -76,7 +76,7 @@ class MulticastClient {
                 //post to /studentlist/update/:token
                 axios({
                     method: "post", 
-                    url: `http://${this.clientinfo.serverip}:${config.serverApiPort}/server/control/studentlist/update`, 
+                    url: `https://${this.clientinfo.serverip}:${config.serverApiPort}/server/control/studentlist/update`, 
                     data: formData, 
                     headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
                 })

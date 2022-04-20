@@ -55,7 +55,7 @@ const { t } = i18n.global
 
         axios({
             method: "post", 
-            url: `http://${serverip}:${config.serverApiPort}/server/data/receive/${servername}/${token}`, 
+            url: `https://${serverip}:${config.serverApiPort}/server/data/receive/${servername}/${token}`, 
             data: form, 
             headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
         })

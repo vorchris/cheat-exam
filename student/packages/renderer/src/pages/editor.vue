@@ -171,7 +171,7 @@ export default {
             this.timesinceentry =  new Date(now - this.entrytime).toISOString().substr(11, 8)
         },
         fetchInfo() {
-            axios.get(`http://localhost:${this.clientApiPort}/client/control/getinfo`)
+            axios.get(`https://localhost:${this.clientApiPort}/client/control/getinfo`)
             .then( response => {
                 this.clientinfo = response.data.clientinfo
                 this.token = this.clientinfo.token
@@ -190,7 +190,7 @@ export default {
 
         }, 
         loadFilelist(){
-            fetch(`http://localhost:${this.clientApiPort}/client/data/getfiles`, { method: 'POST' })
+            fetch(`https://localhost:${this.clientApiPort}/client/data/getfiles`, { method: 'POST' })
             .then( response => response.json() )
             .then( filelist => {
                 this.localfiles = filelist;
@@ -203,7 +203,7 @@ export default {
             this.currentFile = file  //.replace(/\.[^/.]+$/, "")  // this is going to be the name of the file (without extension) when saved as html or pdf (never overwrite another file)
             const form = new FormData()
             form.append("filename", file)
-            fetch(`http://localhost:${this.clientApiPort}/client/data/getfiles`, { method: 'POST', body: form })
+            fetch(`https://localhost:${this.clientApiPort}/client/data/getfiles`, { method: 'POST', body: form })
                 .then( response => response.json())
                 .then( data => {
                     this.editor.commands.clearContent(true)
@@ -215,7 +215,7 @@ export default {
         loadPDF(file){
             const form = new FormData()
             form.append("filename", file)
-            fetch(`http://localhost:${this.clientApiPort}/client/data/getpdf`, { method: 'POST', body: form })
+            fetch(`https://localhost:${this.clientApiPort}/client/data/getpdf`, { method: 'POST', body: form })
                 .then( response => response.arrayBuffer())
                 .then( data => {
                     let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
@@ -281,7 +281,7 @@ export default {
                       
             //             axios({
             //                 method: "post", 
-            //                 url: `http://localhost:${this.clientApiPort}/client/data/store`, 
+            //                 url: `https://localhost:${this.clientApiPort}/client/data/store`, 
             //                 data: form, 
             //                 headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
             //             }).then( async (response) => {
@@ -312,7 +312,7 @@ export default {
                       
                         axios({
                             method: "post", 
-                            url: `http://localhost:${this.clientApiPort}/client/data/store`, 
+                            url: `https://localhost:${this.clientApiPort}/client/data/store`, 
                             data: form, 
                             headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
                         }).then( async (response) => {
@@ -355,13 +355,13 @@ export default {
         informTeacher(focus){
             console.log(focus)
             console.log("HOUSTON WE HAVE A CHEATER!")
-            axios.get(`http://${this.serverip}:${this.serverApiPort}/server/control/studentlist/statechange/${this.servername}/${this.token}/${focus}`)
+            axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/studentlist/statechange/${this.servername}/${this.token}/${focus}`)
             .then( (response) => { console.log(response.data); })
             .catch( err => {console.log(err)});  
            
             if (!focus){
                 //also store focus information locally
-                axios.get(`http://localhost:${this.clientApiPort}/client/control/focus/${this.token}/false`)
+                axios.get(`https://localhost:${this.clientApiPort}/client/control/focus/${this.token}/false`)
                 .then( response => { this.focus = false; console.log(response.data);  })
                 .catch( err => {console.log(err)});
             }

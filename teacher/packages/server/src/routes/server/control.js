@@ -292,7 +292,7 @@ router.get('/serverlist', function (req, res, next) {
     // do not update all of the clientinfo (leave some decisions to the server - like 'focus' for example)
     registeredClient.timestamp = new Date().getTime()
     registeredClient.exammode = exammode  
-    registeredClient.imageurl = `http://${config.hostip}:${config.serverApiPort}/${token}.jpg?ver=${registeredClient.timestamp}`
+    registeredClient.imageurl = `https://${config.hostip}:${config.serverApiPort}/${token}.jpg?ver=${registeredClient.timestamp}`
     res.send({sender: "server", message:t("control.studentupdate"), status:"success" })
 })
 
