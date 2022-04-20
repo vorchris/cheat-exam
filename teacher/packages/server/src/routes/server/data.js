@@ -70,25 +70,27 @@ import archiver from 'archiver'
     //console.log(studentfolders)
 
     // get latest directory of every student (add to array) ATTENTION: this only works with the current file/folder name scheme 
-    // DO NOT CHANGE /Clientname/11:02:23
+    // DO NOT CHANGE /Clientname/11:02:23 - or better get real filedate and make it more robust
     let latestfolders = []
     for (let studentdir of studentfolders) {
-        let latest = "00:00:00"  // we need this for reference
+        let latest = {path:"00_00_00", time:"1000000000000"}  // we need this for reference
         fs.readdirSync(studentdir.path).reduce(function (list, file) {
             const filepath = path.join(studentdir.path, file);
             if (fs.statSync(filepath).isDirectory()) {
-                if ( !isNaN(Date.parse(`2022-01-01 ${file}`))){
-                    if (Date.parse(`2022-01-01 ${file}`) > Date.parse(`2022-01-01 ${latest}`) ) { 
-                        latest = file   
+                let filetime = fs.statSync(filepath).mtime.getTime()
+                if ( !file.includes("focus") ){
+                    if (filetime > latest.time ) { 
+                        latest.time = filetime
+                        latest.path = file
                     }
                 }
             }
         }, []);
-        if (latest === "00:00:00") {continue}
-        const filepath = path.join(studentdir.path, latest);
+        if (latest.time === "1000000000000") {continue}
+        const filepath = path.join(studentdir.path, latest.path);
         latestfolders.push( { path: filepath, parent : studentdir.name })  // we store studentdir.name here because in the next step we need to make sure only the main.pdf (studentsname) is used
     }
-    //console.log(latestfolders)
+    console.log(latestfolders)
 
     // get PDFs from latest directories 
     let files = []
@@ -248,7 +250,8 @@ async function concatPages(pdfsToMerge) {
                     if (!fs.existsSync(studentdirectory)){ fs.mkdirSync(studentdirectory, { recursive: true });  }
 
                     // create archive directory
-                    let studentarchivedir = path.join(studentdirectory, String(time))
+                    let tstring = String(time).replace(/:/g, "_");
+                    let studentarchivedir = path.join(studentdirectory, tstring)
                     if (!fs.existsSync(studentarchivedir)){ fs.mkdirSync(studentarchivedir, { recursive: true }); }
 
                     // extract zip file to archive
