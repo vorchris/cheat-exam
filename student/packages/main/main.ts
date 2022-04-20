@@ -73,8 +73,10 @@ async function createWindow() {
         win?.setKiosk(true)
         win?.minimize()
         win?.focus()
-        win?.addListener('blur', blurevent)  // send blurevent on blur
+
         win?.webContents.send('exam', token, examtype);
+        //on windows we might need a delay here until "enableRestrictions" has finished
+        win?.addListener('blur', blurevent)  // send blurevent on blur
     }); 
 
     ipcMain.on("endexam", (event, token, examtype) =>  {

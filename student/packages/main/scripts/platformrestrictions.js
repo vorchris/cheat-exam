@@ -76,12 +76,7 @@ const gnomeKeybindings = [
     // WINDOWS
     if (process.platform === 'win32') {
 
-        //clear clipboard
-        let executable0 = join(__dirname, '../../public/clear-clipboard.bat')
-        childProcess.execFile(executable0, [], (error, stdout, stderr) => {
-            if (stderr) { console.log(stderr) }
-            if (error) { console.log(error) }
-        })
+
 
 
         
@@ -92,7 +87,12 @@ const gnomeKeybindings = [
             if (error)  {  console.log(error)   }
         })
 
-
+        //clear clipboard
+        let executable0 = join(__dirname, '../../public/clear-clipboard.bat')
+        childProcess.execFile(executable0, [], (error, stdout, stderr) => {
+            if (stderr) { console.log(stderr) }
+            if (error) { console.log(error) }
+        })
 
     }
 
