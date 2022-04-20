@@ -77,7 +77,7 @@
 
     <!-- sidebar start -->
     <div class="p-3 text-white bg-dark h-100 " style="width: 240px; min-width: 240px;">
-        <div class="btn btn-light m-1 text-start">{{$t('dashboard.server')}} <br><b>{{hostname}}</b> </div><br>
+        <div class="btn btn-light m-1 text-start">{{$t('dashboard.server')}} <br><b>{{serverip}}</b> </div><br>
         <div class="btn btn-light m-1 text-start">{{$t('dashboard.name')}} <br><b> {{$route.params.servername}}</b> </div><br>
         <div class="btn btn-light m-1 mb-1 text-start" @click="showpin()">{{$t('dashboard.pin')}}<br><b> {{ $route.params.pin }} </b>  </div><br>
         <div class="btn btn-danger m-1 mb-3 text-start" @click="stopserver()" style="">{{$t('dashboard.stopserver')}}</div><br>
