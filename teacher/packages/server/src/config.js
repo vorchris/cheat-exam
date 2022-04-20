@@ -4,8 +4,7 @@ const config = {
     version: pjson.version,
     workdirectory : "",   // set by server.js (desktop path + examdir)
     tempdirectory : "",   // set by server.js (desktop path + 'tmp')
-    desktop : "",         // set by server.js 
-    home : "",            // set by server.js
+
     examdirectory: "EXAM-TEACHER",
     serverApiPort:22422,
     clientApiPort:11411,  // according to wikipedia and IANA no other service uses this port.. so this is ours ;)

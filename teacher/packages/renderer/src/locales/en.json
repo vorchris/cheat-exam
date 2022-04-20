@@ -43,6 +43,7 @@
         "kick": "remove",
         "leftkiosk": "has left the safe exam mode!",
         "online":"details",
+        "offline":"offline",
         "secure":"secured",
         "restore":"restore",
         "exammodeactive": "student already in safe exam mode",
