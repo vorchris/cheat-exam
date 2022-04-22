@@ -159,7 +159,23 @@ const { t } = i18n.global
 
 
         return res.json({sender: "client", message:t("data.filestored"), status: "success"  })
-     }
+    }
+    else {
+        console.log("saving students work to disk...")
+        for (const [key, file] of Object.entries( req.files)) {
+            let absoluteFilepath = path.join(config.workdirectory, file.name);
+            file.mv(absoluteFilepath, (err) => {  
+                if (err) { errors++; console.log( "client couldn't store file") }
+            });
+        }
+
+
+        return res.json({sender: "client", message:t("data.filestored"), status: "success"  })
+
+
+    }
+
+
 })
 
 
