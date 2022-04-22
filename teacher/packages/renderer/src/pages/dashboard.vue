@@ -89,6 +89,10 @@
             <input v-model="examtype" value="math" class="form-check-input" type="radio" name="examtype" id="examtype2">
             <label class="form-check-label" for="examtype2"> {{$t('dashboard.math')}}  </label>
         </div>
+        <div class="form-check m-1 mb-2">
+            <input v-model="examtype" value="eduvidual" class="form-check-input" type="radio" name="examtype" id="examtype3">
+            <label class="form-check-label" for="examtype3"> {{$t('dashboard.eduvidual')}}  </label>
+        </div>
         <div class="form-check form-switch  m-1 mb-4">
             <input @change="toggleAutoabgabe()"  v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
             <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>

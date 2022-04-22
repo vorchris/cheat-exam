@@ -25,7 +25,7 @@ async function createWindow() {
         title: 'Main window',
         icon: join(__dirname, '../../public/icons/icon.png'),
         width: 1000,
-        height: 600,
+        height: 700,
         minWidth: 800,
         minHeight: 300,
         webPreferences: {

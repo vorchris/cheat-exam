@@ -1,4 +1,22 @@
 /**
+ * @license GPL LICENSE
+ * Copyright (c) 2021-2022 Thomas Michael Weissel
+ * 
+ * This program is free software: you can redistribute it and/or modify it 
+ * under the terms of the GNU General Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * You should have received a copy of the GNU General Public License along with this program.
+ * If not, see <http://www.gnu.org/licenses/>
+ */
+
+
+/**
  * This is the ELECTRON main file that actually opens the electron window
  */
 
@@ -20,6 +38,32 @@ if (!app.requestSingleInstanceLock()) {
   process.exit(0)
 }
 
+let newwin: BrowserWindow | null = null
+
+const newWin = () => {
+    const newwin = new BrowserWindow({
+        title: 'Eduvidual',
+        width: 800,
+        height: 600,
+        alwaysOnTop: true,
+        icon: join(__dirname, '../../public/icons/icon.png'),
+        webPreferences: {
+            //preload: join(__dirname, '../preload/preload.cjs'),
+            
+        },
+        
+    });
+    newwin.removeMenu() 
+    newwin.loadURL('https://eduvidual.at')
+    newwin.webContents.openDevTools()
+    newwin.show();  // we keep focus on the window.. no matter what
+    newwin.moveTop();
+    newwin.focus();
+}
+
+
+
+
 let win: BrowserWindow | null = null
 
 async function createWindow() {
@@ -36,7 +80,8 @@ async function createWindow() {
         minHeight: 600,
         alwaysOnTop: true,
         webPreferences: {
-            preload: join(__dirname, '../preload/preload.cjs')
+            preload: join(__dirname, '../preload/preload.cjs'),
+            //webSecurity: false
         }
     })
 
@@ -69,14 +114,21 @@ async function createWindow() {
     // if we receive "exam" from the express API (via ipcRenderer.send() ) - we inform our renderer (view) 
     // which sets a ipcRenderer listener for the "exam" signal to switch to the correct page (read examtype)  
     ipcMain.on("exam", (event, token, examtype) =>  {
-        enableRestrictions(win)
-        win?.setKiosk(true)
-        win?.minimize()
-        win?.focus()
+   
 
-        win?.webContents.send('exam', token, examtype);
-        //on windows we might need a delay here until "enableRestrictions" has finished
-        win?.addListener('blur', blurevent)  // send blurevent on blur
+        if (examtype === "eduvidual") { 
+            
+            newWin();
+        
+        }
+        else {
+            enableRestrictions(win)
+            win?.setKiosk(true)
+            win?.minimize()
+            win?.focus()
+            win?.webContents.send('exam', token, examtype);
+            win?.addListener('blur', blurevent)  // send blurevent on blur
+        } 
     }); 
 
     ipcMain.on("endexam", (event, token, examtype) =>  {
@@ -90,7 +142,6 @@ async function createWindow() {
     ipcMain.on("save", () =>  {
         win?.webContents.send('save');
     }); 
-
 
 
 
@@ -126,6 +177,12 @@ async function createWindow() {
 
 
 
+
+
+
+
+
+//app.commandLine.appendSwitch('disable-site-isolation-trials')
 
 
 app.whenReady()
