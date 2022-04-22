@@ -81,15 +81,16 @@
         <div class="btn btn-light m-1 text-start">{{$t('dashboard.name')}} <br><b> {{$route.params.servername}}</b> </div><br>
         <div class="btn btn-light m-1 mb-1 text-start" @click="showpin()">{{$t('dashboard.pin')}}<br><b> {{ $route.params.pin }} </b>  </div><br>
         <div class="btn btn-danger m-1 mb-3 text-start" @click="stopserver()" style="">{{$t('dashboard.stopserver')}}</div><br>
-        <div class="form-check m-1">
-            <input v-model="examtype" value="language" class="form-check-input" type="radio" name="examtype" id="examtype1" checked>
-            <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}} </label>
-        </div>
-        <div class="form-check m-1 mb-2">
-            <input v-model="examtype" value="math" class="form-check-input" type="radio" name="examtype" id="examtype2">
+ 
+        <div class="form-check m-1 mb-1">
+            <input v-model="examtype" value="math" class="form-check-input" type="radio" name="examtype" id="examtype2" checked>
             <label class="form-check-label" for="examtype2"> {{$t('dashboard.math')}}  </label>
         </div>
-        <div class="form-check m-1 mb-2">
+        <div class="form-check m-1">
+            <input v-model="examtype" value="language" class="form-check-input" type="radio" name="examtype" id="examtype1">
+            <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}} </label>
+        </div>
+        <div class="form-check m-1 mb-3">
             <input v-model="examtype" value="eduvidual" class="form-check-input" type="radio" name="examtype" id="examtype3">
             <label class="form-check-label" for="examtype3"> {{$t('dashboard.eduvidual')}}  </label>
         </div>
@@ -162,7 +163,7 @@ export default {
             pin : this.$route.params.pin,
             now : null,
             files: null,
-            examtype: 'language',
+            examtype: 'math',
             autoabgabe: false,
             activestudent: null,
             localfiles: null,
@@ -651,8 +652,7 @@ export default {
         // implementing a sleep (wait) function
         sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
-        },
-
+        }
     },
     mounted() {  // when ready
         this.$nextTick(function () { // Code that will run only after the entire view has been rendered

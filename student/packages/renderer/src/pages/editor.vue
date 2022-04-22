@@ -459,9 +459,10 @@ ENDE !!`,
         if (this.electron){
             if (this.token) {  this.blurEvent = ipcRenderer.on('blurevent', this.focuslost, false); } //ipcRenderer seems to be of type nodeEventTarget (on/addlistener returns a reference to the eventTarget)
             this.endExamEvent = ipcRenderer.on('endexam', () => { this.$router.push({ name: 'student'}); }); //redirect to home view // right before we leave vue.js will run beforeUnmount() which removes all listeners this view attached to the window and the ipcrenderer
-            this.saveEvent = ipcRenderer.on('save', () => { 
+            this.saveEvent = ipcRenderer.on('save', () => {  //trigger document save by signal "save" sent from data.js
                 console.log("EVENT RECEIVERD")
-                this.saveContent() });  //trigger document save by signal "save" sent from data.js
+                this.saveContent() 
+            }); 
         }   
         this.currentFile = this.clientname+".html"
         this.entrytime = new Date().getTime()

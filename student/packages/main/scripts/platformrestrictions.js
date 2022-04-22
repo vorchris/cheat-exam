@@ -136,8 +136,9 @@ function disableRestrictions(){
         for (let binding of gnomeKeybindings){
             childProcess.execFile('gsettings', ['reset' ,'org.gnome.desktop.wm.keybindings', `${binding}`])
         }
-
     }
+
+    // TODO: undo restrictions for windows an mac
 }
 
 export {enableRestrictions, disableRestrictions}

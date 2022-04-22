@@ -61,7 +61,7 @@ let certs = createCACert()
 var options = {
     key: certs.key,
     cert: certs.cert,
-    requestCert: false,
+    requestCert: true,
     rejectUnauthorized: false
   };
 

@@ -95,14 +95,17 @@ export default {
         if (this.electron){
             this.blurEvent = ipcRenderer.on('blurevent', this.focuslost, false);  //ipcRenderer seems to be of type nodeEventTarget (on/addlistener returns a reference to the eventTarget)
             this.endExamEvent = ipcRenderer.on('endexam', () => { this.$router.push({ name: 'student'}); }); //redirect to home view // right before we leave vue.js will run beforeUnmount() which removes all listeners this view attached to the window and the ipcrenderer
+            this.saveEvent = ipcRenderer.on('save', () => {  //trigger document save by signal "save" sent from data.js
+                console.log("EVENT RECEIVERD")
+                this.saveContent() 
+            }); 
         }
     
         this.$nextTick(function () { // Code that will run only after the entire view has been rendered
-            this.fetchinterval = setInterval(() => { this.fetchContent() }, 20000)   
+            this.fetchinterval = setInterval(() => { this.saveContent() }, 20000)   
             this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 5000)  
             this.clockinterval = setInterval(() => { this.clock() }, 1000)  
             if (this.token) { this.focuscheck() } 
-
             this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 10000)   // zeigt html dateien (angaben, eigene arbeit) im header
             this.loadFilelist()
         })
@@ -194,7 +197,7 @@ export default {
         },
   
         /** Converts the Editor View into a multipage PDF */
-        async fetchContent() {  
+        async saveContent() {  
             screenshot().then(async (img) => {
                 let doc = new jsPDF('l', 'px','a4', true, true);   //orientation, unit for coordinates, format, onlyUsedFonts, compress
                 

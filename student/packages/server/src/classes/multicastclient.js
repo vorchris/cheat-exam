@@ -42,7 +42,8 @@ class MulticastClient {
             servername: false,
             focus: true,
             exammode: false,
-            timestamp: false
+            timestamp: false,
+            virtualized: false
         }
         this.beaconsLost = 0
     }
