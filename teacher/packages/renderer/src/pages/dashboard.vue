@@ -174,6 +174,98 @@ export default {
     },
     components: { },
     methods: {
+
+
+        // get all information about students status
+        fetchInfo() {
+            this.now = new Date().getTime()
+            axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/studentlist/${this.servername}/${this.servertoken}`)
+            .then( response => {
+                this.studentlist = response.data.studentlist;
+                if (this.studentlist && this.studentlist.length > 0){
+                    
+                    this.exammodeReady = true;
+                    this.studentlist.forEach(student =>{  // on studentlist-receive check focus status and other things
+                        if (!student.focus){this.status(`${student.clientname} ${this.$t("dashboard.leftkiosk")}`); }
+                        if (!student.exammode && !student.focus)  {  this.restore(student.token, student.clientip) }
+                           
+
+                        if (student.virtualized){this.status(`${student.clientname}${this.$t("control.virtualized")}`)}
+                        if (!student.exammode) {this.exammodeReady = false}
+                    });
+                }
+                else {
+                    this.exammodeReady = false
+                }
+            }).catch( err => {console.log(err)});
+        }, 
+
+
+        //triggers exam mode on specified clients
+        startExam(who){
+            let delfolder = $("#delfolder").is(':checked')
+            if (who == "all"){
+                if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); console.log("no clients connected") }
+                else {  
+                    this.studentlist.forEach( (student) => {
+                        //check exam mode for students - dont initialize twice (right after exam stop it takes a few seconds for the students to update their exam status on the server again)
+                        if (student.exammode){ this.status(this.$t("dashboard.exammodeactive")); return; }
+                        axios.get(`https://${student.clientip}:${this.clientApiPort}/client/control/exammode/start/${student.token}/${this.examtype}/${delfolder}`)
+                        .then( response => {
+                            this.status(response.data.message);
+                            console.log(response.data);
+                        }).catch(error => {console.log(error)});
+                    });
+                }
+            }
+            else {
+                let student = who
+                if (student.exammode){ this.status(this.$t("dashboard.exammodeactive")); return; }
+                axios.get(`https://${student.clientip}:${this.clientApiPort}/client/control/exammode/start/${student.token}/${this.examtype}/${delfolder}`)
+                .then( response => {
+                    this.status(response.data.message);
+                    console.log(response.data);
+                }).catch(error => {console.log(error)});
+            }
+        },
+
+        // exit exam mode on all specified cilents
+        endExam(who){
+            if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); return; }
+            
+            this.$swal.fire({
+                title: this.$t("dashboard.sure"),
+                text:  this.$t("dashboard.exitkiosk"),
+                icon: "question",
+                showCancelButton: true,
+                cancelButtonText: this.$t("dashboard.cancel"),
+                reverseButtons: true
+            })
+            .then((result) => {
+                if (result.isConfirmed) {
+                    if (who == "all"){
+                        this.studentlist.forEach( (student) => {
+                            axios.get(`https://${student.clientip}:${this.clientApiPort}/client/control/exammode/stop/${student.token}`)
+                            .then( async (response) => {
+                                this.status(response.data.message);
+                                console.log(response.data);
+                            }).catch(error => {console.log(error)});
+                        }); 
+                    }
+                    else {
+                        let student = who
+                        axios.get(`https://${student.clientip}:${this.clientApiPort}/client/control/exammode/stop/${student.token}`)
+                        .then( async (response) => {
+                            this.status(response.data.message);
+                            console.log(response.data);
+                        }).catch(error => {console.log(error)});
+                    }
+                } 
+            }); 
+        },
+
+
+
         // fetch a file or folder (zip) and open download/save dialog
         downloadFile(file){
             if (file === "current"){   //we want to download the file thats currently displayed in preview
@@ -367,29 +459,7 @@ export default {
         hideStudentview() {
             $("#studentinfocontainer").css("display","none");
         },
-        // get all information about students status
-        fetchInfo() {
-            this.now = new Date().getTime()
-            axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/studentlist/${this.servername}/${this.servertoken}`)
-            .then( response => {
-                this.studentlist = response.data.studentlist;
-                if (this.studentlist && this.studentlist.length > 0){
-                    
-                    this.exammodeReady = true;
-                    this.studentlist.forEach(student =>{  // on studentlist-receive check focus status and other things
-                        if (!student.focus){this.status(`${student.clientname} ${this.$t("dashboard.leftkiosk")}`); }
-                        if (!student.exammode && !student.focus)  {  this.restore(student.token, student.clientip) }
-                           
 
-                        if (student.virtualized){this.status(`${student.clientname}${this.$t("control.virtualized")}`)}
-                        if (!student.exammode) {this.exammodeReady = false}
-                    });
-                }
-                else {
-                    this.exammodeReady = false
-                }
-            }).catch( err => {console.log(err)});
-        }, 
 
         toggleAutoabgabe(){
             if (this.autoabgabe) { this.abgabeinterval = setInterval(() => { this.getFiles('all') }, 60000) }   //trigger getFiles('all') every other minute
@@ -492,70 +562,6 @@ export default {
             })
         },
 
-
-        //triggers exam mode on specified clients
-        startExam(who){
-            let delfolder = $("#delfolder").is(':checked')
-            if (who == "all"){
-                if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); console.log("no clients connected") }
-                else {  
-                    this.studentlist.forEach( (student) => {
-                        //check exam mode for students - dont initialize twice (right after exam stop it takes a few seconds for the students to update their exam status on the server again)
-                        if (student.exammode){ this.status(this.$t("dashboard.exammodeactive")); return; }
-                        axios.get(`https://${student.clientip}:${this.clientApiPort}/client/control/exammode/start/${student.token}/${this.examtype}/${delfolder}`)
-                        .then( response => {
-                            this.status(response.data.message);
-                            console.log(response.data);
-                        }).catch(error => {console.log(error)});
-                    });
-                }
-            }
-            else {
-                let student = who
-                if (student.exammode){ this.status(this.$t("dashboard.exammodeactive")); return; }
-                axios.get(`https://${student.clientip}:${this.clientApiPort}/client/control/exammode/start/${student.token}/${this.examtype}/${delfolder}`)
-                .then( response => {
-                    this.status(response.data.message);
-                    console.log(response.data);
-                }).catch(error => {console.log(error)});
-            }
-        },
-
-        // exit exam mode on all specified cilents
-        endExam(who){
-            if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); return; }
-            
-            this.$swal.fire({
-                title: this.$t("dashboard.sure"),
-                text:  this.$t("dashboard.exitkiosk"),
-                icon: "question",
-                showCancelButton: true,
-                cancelButtonText: this.$t("dashboard.cancel"),
-                reverseButtons: true
-            })
-            .then((result) => {
-                if (result.isConfirmed) {
-                    if (who == "all"){
-                        this.studentlist.forEach( (student) => {
-                            axios.get(`https://${student.clientip}:${this.clientApiPort}/client/control/exammode/stop/${student.token}`)
-                            .then( async (response) => {
-                                this.status(response.data.message);
-                                console.log(response.data);
-                            }).catch(error => {console.log(error)});
-                        }); 
-                    }
-                    else {
-                        let student = who
-                        axios.get(`https://${student.clientip}:${this.clientApiPort}/client/control/exammode/stop/${student.token}`)
-                        .then( async (response) => {
-                            this.status(response.data.message);
-                            console.log(response.data);
-                        }).catch(error => {console.log(error)});
-                    }
-                } 
-            }); 
-        },
-
         // get finished exams (ABGABE) from students
         getFiles(who){
             if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); console.log("no clients connected"); return; }
@@ -617,28 +623,11 @@ export default {
             });  
         },
 
-          //remove student from exam
+        //restore focus state for specific student
         async restore(studenttoken, studentip){
-            axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/studentlist/statechange/${this.servername}/${studenttoken}/true`)
-                .then( async (response) => {
-                    this.status(response.data.message);
-                    console.log(response.data);
-                }).catch(error => {console.log(error)});
-
-
             axios.get(`https://${studentip}:${this.clientApiPort}/client/control/focus/${studenttoken}/true`)
                 .then( response => { console.log(response.data)  })
                 .catch( err => {console.log(err)});
-
-        },
-
-
-        // (dummy function - validate a specific token - trigger notification on client)
-        async task2(token, ip){
-             axios.get(`https://${ip}:${this.clientApiPort}/client/control/tokencheck/${token}`)
-            .then(  response => {
-                console.log(response.data);
-            }).catch(error => {console.log(error)});
         },
 
         // show status message

@@ -77,10 +77,10 @@ async function createWindow() {
 
 
     win.on('close', async  (e) => {   //ask before closing
-        let choice = dialog.showMessageBoxSync(this, {
+        let choice = dialog.showMessageBoxSync(win, {
               type: 'question',
               buttons: ['Yes', 'No'],
-              title: 'Confirm',
+              title: 'Exit',
               message: 'Are you sure?'
         });
         

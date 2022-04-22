@@ -270,7 +270,7 @@ router.get('/serverlist', function (req, res, next) {
 
 
 /**
- * updates the specified students timestamp (used in dashboard to mark user as online)
+ * updates the specified students timestamp (used in dashboard to mark user as online) and other status updates
  * usually triggered by the clients directly from the MultiCastServer (loop)
  * POST Data contains a screenshot of the clients desktop !!
  * @param servername the name of the server at which the student is registered
@@ -278,7 +278,7 @@ router.get('/serverlist', function (req, res, next) {
  */
  router.post('/studentlist/update', function (req, res, next) {
     const clientinfo = JSON.parse(req.body.clientinfo)
-
+    console.log(clientinfo)
     const token = clientinfo.token
     const exammode = clientinfo.exammode
     const servername = clientinfo.servername
@@ -306,11 +306,12 @@ router.get('/serverlist', function (req, res, next) {
         }
     }
     
-    // do not update all of the clientinfo (leave some decisions to the server - like 'focus' for example)
+    registeredClient.focus = clientinfo.focus
     registeredClient.timestamp = new Date().getTime()
     registeredClient.exammode = exammode  
     registeredClient.imageurl = `https://${config.hostip}:${config.serverApiPort}/${token}.jpg?ver=${registeredClient.timestamp}`
-    res.send({sender: "server", message:t("control.studentupdate"), status:"success" })
+    
+    res.send({sender: "server", message:t("control.studentupdate"), status:"success", data: mcServer.serverStatusObject })
 })
 
 
@@ -333,6 +334,8 @@ router.get('/serverlist', function (req, res, next) {
 
     let registeredClient = mcServer.studentList.find(element => element.token === token)
     
+//the whole thing should be obsolete...  change virtualized on client side before update on server 
+
     if (state === "false"){
         registeredClient.focus = false;
         return res.json({ sender: "server", message:t("control.studentleft"), status: "success" })
@@ -346,6 +349,33 @@ router.get('/serverlist', function (req, res, next) {
         return res.json({ sender: "server", message:t("control.virtualized"), status: "success" })
     }
 })
+
+
+
+
+/**
+ * updates the serverstatusobject for specific exam (examode, examtype, and other information for students)
+ * students will get the serverstatus object on every update they send as response
+ *  
+ * @param servername the name of the server at which the student is registered
+ * @param token the students token to search and update the entry in the list
+ */
+ router.post('/serverstatus/:servername/:token', function (req, res, next) {
+    const token = req.params.token
+    const servername = req.params.servername
+    const mcServer = config.examServerList[servername]
+   
+    const serverstatusobject = JSON.parse(req.body.serverstatus)
+
+
+    if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
+    if ( !checkToken(token, "server", mcServer) ) { return res.json({ sender: "server", message:t("control.tokennotvalid"), status: "error" }) } //check if the student is registered on this server
+
+    mcServer.serverStatusObject = serverstatusobject
+
+})
+
+
 
 
 

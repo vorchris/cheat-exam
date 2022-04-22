@@ -101,8 +101,30 @@ class MulticastClient {
                 })
                 .then( response => {
                     //console.log(`MulticastClient: ${response.data.message}`)
-                    if (response.data && response.data.status === "success") { this.beaconsLost = 0 }
                     if (response.data && response.data.status === "error") { this.beaconsLost += 1; console.log("beacon lost..") }
+
+                    if (response.data && response.data.status === "success") { 
+                        this.beaconsLost = 0 
+                        let serverStatusObject = response.data.data
+
+
+                        //react 
+                        if (serverStatusObject.exammode && !this.clientinfo.exammode){
+                            axios.get(`https://localhost:${config.clientApiPort}/client/control/exammode/start/${this.clientinfo.token}/${serverStatusObject.examtype}/${serverStatusObject.delfolder}`)
+                            .then( response => {console.log(response.data);})
+                            .catch(error => {console.log(error)});
+                        }
+                        else if (!serverStatusObject.exammode && this.clientinfo.exammode){
+                            axios.get(`https://localhost:${config.clientApiPort}/client/control/exammode/stop/${this.clientinfo.token}`)
+                            .then( response => {console.log(response.data);})
+                            .catch(error => {console.log(error)});
+                        }
+
+
+
+                 
+                    }
+
                 })
                 .catch(error => {
                     console.log(`MulticastClient: ${error}`) 

@@ -16,6 +16,11 @@ class MulticastServer {
         this.broadcastInterval = null
         this.running = false
         this.studentList = []
+        this.serverStatusObject = { 
+            exammode : false,
+            examtype : 'language',
+            delfolder: false
+        }
     }
 
     /**

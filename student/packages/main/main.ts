@@ -20,7 +20,7 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow, shell, ipcMain, screen, globalShortcut, TouchBar } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, screen, globalShortcut, TouchBar, dialog } from 'electron'
 import { release } from 'os'
 import { join } from 'path'
 import {enableRestrictions, disableRestrictions} from './scripts/platformrestrictions.js';
@@ -138,6 +138,18 @@ async function createWindow() {
         callback(0);
     });
 
+    win.on('close', async  (e) => {   //ask before closing
+        let choice = dialog.showMessageBoxSync(win, {
+              type: 'question',
+              buttons: ['Yes', 'No'],
+              title: 'Exit',
+              message: 'Are you sure?'
+        });
+        
+        if(choice == 1){
+            e.preventDefault();
+        }
+     });
 
 
 

@@ -64,7 +64,7 @@ api.use(cors())
 api.use(express.json())
 api.use(express.static(config.tempdirectory));
 api.use(express.urlencoded({extended: true}));
-api.use(limiter)
+//api.use(limiter)  //disabled for now because this need a lot of testing to find good parameter
 api.use('/server', serverRouter)
 
 
