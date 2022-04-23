@@ -22,6 +22,7 @@
 import { app, BrowserWindow, shell, ipcMain, dialog  } from 'electron'
 import { release } from 'os'
 import { join } from 'path'
+import config from '../server/src/config.js';
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -33,6 +34,7 @@ if (!app.requestSingleInstanceLock()) {
     app.quit()
     process.exit(0)
 }
+
 
 let win: BrowserWindow | null = null
 
@@ -77,21 +79,22 @@ async function createWindow() {
 
 
     win.on('close', async  (e) => {   //ask before closing
-        let choice = dialog.showMessageBoxSync(win, {
-              type: 'question',
-              buttons: ['Yes', 'No'],
-              title: 'Exit',
-              message: 'Are you sure?'
-        });
-        
-        if(choice == 1){
-            e.preventDefault();
+        if (!config.development) {
+            let choice = dialog.showMessageBoxSync(win, {
+                type: 'question',
+                buttons: ['Yes', 'No'],
+                title: 'Exit',
+                message: 'Are you sure?'
+            });
+            
+            if(choice == 1){
+                e.preventDefault();
+            }
         }
      });
 }
 
 app.whenReady().then(createWindow)
-
 
 // SSL/TSL: this is the self signed certificate support
 app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {

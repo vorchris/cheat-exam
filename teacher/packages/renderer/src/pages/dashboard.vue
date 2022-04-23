@@ -639,6 +639,7 @@ export default {
 
 <style scoped>
 
+body {overflow-y: hidden!important;}
 
 #studentslist{
     border-radius: 5px;

@@ -20,13 +20,12 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow, shell, ipcMain, screen, globalShortcut, TouchBar, dialog } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, ipcRenderer, screen, globalShortcut, TouchBar, dialog } from 'electron'
 import { release } from 'os'
 import { join } from 'path'
 import {enableRestrictions, disableRestrictions} from './scripts/platformrestrictions.js';
 import config from '../server/src/config.js';
 import axios from "axios";
-
 
 let clientinfo = false; // we store all necessary information on this object
 let fetchinfointerval; // starts with exam - ends with endexam
@@ -47,7 +46,11 @@ if (!app.requestSingleInstanceLock()) {
 
 let newwin: BrowserWindow | null = null
 
-function newWin() {
+function newWin(examtype, token) {
+    let url = ""
+    if (examtype === "eduvidual"){ url ='https://eduvidual.at'  }
+    else { url = "../renderer/index.html"}
+
     newwin = new BrowserWindow({
         parent: win,
         skipTaskbar:true,
@@ -59,9 +62,17 @@ function newWin() {
         icon: join(__dirname, '../../public/icons/icon.png'),
         webPreferences: { },
     });
+   
+
+    if (app.isPackaged || process.env["DEBUG"]) {
+        newwin.loadFile(join(__dirname, url))
+    } 
+    else {
+        newwin.loadURL(url)
+       // newwin.webContents.openDevTools()
+    }
+
     newwin.removeMenu() 
-    newwin.loadURL('https://eduvidual.at')
-    newwin.webContents.openDevTools()
     newwin.show();  // we keep focus on the window.. no matter what
     newwin.moveTop();
     newwin.focus();
@@ -139,15 +150,17 @@ async function createWindow() {
     });
 
     win.on('close', async  (e) => {   //ask before closing
-        let choice = dialog.showMessageBoxSync(win, {
-              type: 'question',
-              buttons: ['Yes', 'No'],
-              title: 'Exit',
-              message: 'Are you sure?'
-        });
-        
-        if(choice == 1){
-            e.preventDefault();
+        if (!config.development) {
+            let choice = dialog.showMessageBoxSync(win, {
+                type: 'question',
+                buttons: ['Yes', 'No'],
+                title: 'Exit',
+                message: 'Are you sure?'
+            });
+            
+            if(choice == 1){
+                e.preventDefault();
+            }
         }
      });
 
@@ -162,20 +175,21 @@ async function createWindow() {
      * we can call ipcRenderer.send('signal') to send and ipcMain to reveive in mainprocess
      */
     const blurevent = () => { 
-        win?.webContents.send('blurevent'); 
+        win?.webContents.send('focuslost'); 
         win?.show();  // we keep focus on the window.. no matter what
         win?.moveTop();
         win?.focus();
     }
 
+
     // if we receive "exam" from the express API (via ipcRenderer.send() ) - we inform our renderer (view) 
     // which sets a ipcRenderer listener for the "exam" signal to switch to the correct page (read examtype)  
     ipcMain.on("exam", (event, token, examtype) =>  {
-
-        if (examtype === "eduvidual") { 
-            fetchinfointerval = setInterval(() => { fetchInfo() }, 4000)  //always keep clientinfo object up2date
-            newWin();
+        
+        if (examtype === "eduvidual") {    // we are going to move all examtypes to the newWin method
+            newWin(examtype, token);
             newwin?.setKiosk(true)
+            enableRestrictions(newwin)
         }
         else {
             enableRestrictions(win)
@@ -191,8 +205,12 @@ async function createWindow() {
     ipcMain.on("endexam", (event) =>  {
     
         //handle eduvidual case
-        if (newwin){ newwin.close(); newwin.destroy(); newwin = null; }
-        clearInterval(fetchinfointerval)
+        if (newwin){ 
+            newwin.close(); 
+            newwin.destroy(); 
+            newwin = null;
+        }
+       
 
         disableRestrictions()
         win?.setKiosk(false)
@@ -263,39 +281,3 @@ app.on('activate', () => {
         createWindow()
     }
 })
-
-
-
-
-
-
-/////////////////////////////////////
-// other functions
-
-
-function fetchInfo() {
-    console.log("------------------")
-    axios.get(`https://localhost:${config.clientApiPort}/client/control/getinfo`)
-    .then( response => {
-        clientinfo = response.data.clientinfo
-       
-       console.log(clientinfo)
-        if (clientinfo && clientinfo.token){  clientinfo.online = true  }
-        else { clientinfo.online = false  }
-    })
-    .catch( err => {console.log(err)});
-
-    if(clientinfo && clientinfo.virtualized){informTeacher('virtualized') }
-}
-
-
-
-function informTeacher(focus){
-    console.log("HOUSTON WE HAVE A CHEATER!")
-
-    if (!focus){
-        axios.get(`https://localhost:${config.clientApiPort}/client/control/focus/${clientinfo.token}/false`)
-        .then( response => { this.focus = false; console.log(response.data);  })
-        .catch( err => {console.log(err)});
-    }
-}

@@ -2,6 +2,8 @@ import pjson from "../../../package.json"
 
 
 const config = {
+    development: true,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
+
     version: pjson.version,
     workdirectory : "",   // set by server.js (desktop path + examdir)
     tempdirectory : "",   // set by server.js (desktop path + 'tmp')
@@ -13,7 +15,6 @@ const config = {
     serverVitePort:3002,
     multicastClientPort: 6024,
     hostip: "",       // server.js
-    development: true,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
     electron: false,
     virtualized: false
 }

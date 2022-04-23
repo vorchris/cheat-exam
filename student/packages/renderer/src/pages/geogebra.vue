@@ -77,7 +77,7 @@ export default {
             clientApiPort: this.$route.params.clientApiPort,
             geogebrasource: "",
             electron: this.$route.params.electron,
-            virtualized: this.$route.params.virtualized,
+          
             blurEvent : null,
             endExamEvent: null,
             clientinfo: null,
@@ -93,7 +93,6 @@ export default {
         this.entrytime = new Date().getTime()  
                  
         if (this.electron){
-            this.blurEvent = ipcRenderer.on('blurevent', this.focuslost, false);  //ipcRenderer seems to be of type nodeEventTarget (on/addlistener returns a reference to the eventTarget)
             this.endExamEvent = ipcRenderer.on('endexam', () => { this.$router.push({ name: 'student'}); }); //redirect to home view // right before we leave vue.js will run beforeUnmount() which removes all listeners this view attached to the window and the ipcrenderer
             this.saveEvent = ipcRenderer.on('save', () => {  //trigger document save by signal "save" sent from data.js
                 console.log("EVENT RECEIVERD")
@@ -105,7 +104,6 @@ export default {
             this.fetchinterval = setInterval(() => { this.saveContent() }, 20000)   
             this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 5000)  
             this.clockinterval = setInterval(() => { this.clock() }, 1000)  
-            if (this.token) { this.focuscheck() } 
             this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 10000)   // zeigt html dateien (angaben, eigene arbeit) im header
             this.loadFilelist()
         })
@@ -157,45 +155,8 @@ export default {
                 else { this.online = false  }
             })
             .catch( err => {console.log(err)});
-        
-            if(this.virtualized){this.informTeacher('virtualized') }
         }, 
-        focuscheck() {
-            window.addEventListener('beforeunload',         this.focuslost);  // keeps the window open (displays "are you sure in browser")
-            window.addEventListener('blur',                 this.focuslost);  // fires only from vue componend not iframe.. check if focus is now on geogebraframe if so > do not inform teacher 
-            document.addEventListener("visibilityChange",   this.focuslost);  
-        },
-        focuslost(e){   /** inform the teacher immediately */
-            console.log(e)
-            if (e && e.type === "blur") {  
-                let elementInFocus = document.activeElement.id
-                console.log(elementInFocus);
-                if (elementInFocus !== "geogebraframe" && elementInFocus !== "vuexambody" ){
-                   this.informTeacher(false)
-                }
-            }
-            else if (e && e.type === "beforeunload") {
-                e.preventDefault(); 
-                e.returnValue = ''; 
-                this.informTeacher(false)
-            }
-            else {
-                this.informTeacher(false)
-            }
-        },
-        informTeacher(focus){
-            console.log("HOUSTON WE HAVE A CHEATER!")
-            fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/studentlist/statechange/${this.servername}/${this.token}/${focus}`)
-            .then( response => response.json() )
-            .then( (data) => { console.log(data); });  
-
-            if (!focus){
-                axios.get(`https://localhost:${this.clientApiPort}/client/control/focus/${this.token}/false`)
-                .then( response => { this.focus = false; console.log(response.data);  })
-                .catch( err => {console.log(err)});
-            }
-        },
-  
+       
         /** Converts the Editor View into a multipage PDF */
         async saveContent() {  
             screenshot().then(async (img) => {
@@ -232,11 +193,6 @@ export default {
 
         //remove electron ipcRender events
         this.endExamEvent.removeAllListeners('endexam')   //remove endExam listener from window
-        this.blurEvent.removeAllListeners('blurevent')  //Node.js-specific extension to the EventTarget class. If type is specified, removes all registered listeners for type, otherwise removes all registered listeners.
-        //remove window/document events
-        window.removeEventListener("beforeunload",  this.focuslost);
-        window.removeEventListener('blur',          this.focuslost);
-        document.removeEventListener("visibilityChange", this.focuslost); 
     },
 }
 </script>

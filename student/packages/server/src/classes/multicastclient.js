@@ -49,7 +49,7 @@ class MulticastClient {
             focus: true,
             exammode: false,
             timestamp: false,
-            virtualized: false
+            virtualized: config.virtualized   // this config setting is set by simplevmdetect.js (electron preload)
         }
     }
 
@@ -69,6 +69,8 @@ class MulticastClient {
         this.refreshExamsIntervall = setInterval(() => {  this.isDeprecatedInstance()  }, 5000)
         this.updateStudentIntervall = setInterval(() => { this.sendBeacon() }, 5000)
         this.running = true
+
+        this.setListeners()
     }
 
     /**
@@ -112,6 +114,16 @@ class MulticastClient {
         }
     }
 
+    setListeners(){
+        // some listeners for signals from mainprocess
+        ipcRenderer.on('focuslost', () => { 
+            console.log("focus lost");
+            this.clientinfo.focus = false 
+        } ); 
+
+
+
+    }
 
 
 
@@ -226,7 +238,6 @@ class MulticastClient {
         this.clientinfo.exammode = false
         this.clientinfo.focus = true
     }
-
 
 }
 
