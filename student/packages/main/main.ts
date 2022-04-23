@@ -175,6 +175,7 @@ async function createWindow() {
         if (examtype === "eduvidual") { 
             fetchinfointerval = setInterval(() => { fetchInfo() }, 4000)  //always keep clientinfo object up2date
             newWin();
+            newwin?.setKiosk(true)
         }
         else {
             enableRestrictions(win)
@@ -186,10 +187,11 @@ async function createWindow() {
         } 
     })
 
+
     ipcMain.on("endexam", (event) =>  {
     
         //handle eduvidual case
-        if (newwin){newwin.close()}
+        if (newwin){ newwin.close(); newwin.destroy(); newwin = null; }
         clearInterval(fetchinfointerval)
 
         disableRestrictions()
@@ -290,9 +292,6 @@ function fetchInfo() {
 
 function informTeacher(focus){
     console.log("HOUSTON WE HAVE A CHEATER!")
-    fetch(`https://${clientinfo.serverip}:${config.serverApiPort}/server/control/studentlist/statechange/${clientinfo.servername}/${clientinfo.token}/${clientinfo.focus}`)
-    .then( response => response.json() )
-    .then( (data) => { console.log(data); });  
 
     if (!focus){
         axios.get(`https://localhost:${config.clientApiPort}/client/control/focus/${clientinfo.token}/false`)

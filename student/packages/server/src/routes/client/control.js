@@ -104,61 +104,6 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
 })
 
 
-/**
- * Runs a tokencheck and STARTS THE EXAM MODE
- * @param token a csrf token for validation
- */ 
- router.get('/exammode/start/:token/:examtype/:delfolder', function (req, res, next) {
-    const token = req.params.token
-    const examtype = req.params.examtype
-    const delfolder = req.params.delfolder
-    
-    if ( checkToken(token)) {  
-
-        // delete the contents of the students workdirectory
-        if (delfolder === "true") {  //get parameters come as string
-            console.log("cleaning exam workfolder")
-            if (fs.existsSync(config.workdirectory)){ 
-                fs.rmdirSync(config.workdirectory, { recursive: true });
-                fs.mkdirSync(config.workdirectory);
-                
-            }
-        }
-
-        // send the exam signal to the electron base app in order to load kiosk mode and the according vue.js view 
-        if (config.electron){
-          ipcRenderer.send('exam', token, examtype)  //this only works in electron app..switches electron to kiosk and send a signal to the renderer to load given exam page (writer or geogebra)
-        }
-        multiCastclient.clientinfo.exammode = true  // mark this client as active exam 
-        res.json({ sender: "client",message:t("control.examinit"), status:"success" })
-    }
-    else {
-        res.json({ sender: "client", message:t("control.tokennotvalid"), status: "error" })
-    }
-})
-
-
-/**
- * Runs a tokencheck and STOPS THE EXAM MODE
- * @param token a csrf token for validation
- */ 
- router.get('/exammode/stop/:token', function (req, res, next) {
-  const token = req.params.token
-  if ( checkToken(token) ) {
-    if (!multiCastclient.clientinfo.exammode){return res.json({ sender: "client",message:t("control.noexam"), status:"error" })}
-   
-    ipcRenderer.send('endexam')
-   
-    multiCastclient.clientinfo.exammode = false
-    res.json({ sender: "client",message:t("control.examexit"), status:"success" })
-  }
-  else {
-    res.json({ sender: "client", message:t("control.tokennotvalid"), status: "error" })
-  }
-})
-
-
-
 
 
 /**
@@ -193,19 +138,7 @@ router.get('/tokencheck/:token', function (req, res, next) {
     const filepath = '/src/assets/img/icons/success.png'
   
     if ( checkToken(token) ) {
-        // console.log('Show Notification')
-        // nodenotify.notify( {
-        //         title: 'OSD Notification Test',
-        //         message: `Hello from Next-Exam Server, ${multiCastclient.clientinfo.name}!`,
-        //         icon: filepath, // Absolute path (doesn't work on balloons)
-        //     },
-        //     function(err, response) {
-        //         console.log(err)
-        //         console.log(response)
-        //     }
-        // );
-       
-      res.json({ sender: "client", message: t("control.tokenvalid"), status: "success" })
+       res.json({ sender: "client", message: t("control.tokenvalid"), status: "success" })
     }
     else {
       res.json({ sender: "client", message: t("control.tokennotvalid"), status: "error" })
@@ -215,29 +148,10 @@ router.get('/tokencheck/:token', function (req, res, next) {
 
 
 
-/**
- * Runs a specific command in a child process
- */ 
- router.get('/cmd', function (req, res, next) {
-    const filepath = '/src/assets/img/icons/success.png'
-  
 
-    // could  trigger a shellscript or a python script
-    // childProcess.execFile('python3', [filepath], (error, stdout, stderr) => {
-    //   if (stderr) {
-    //     console.log(stderr)
-    //   }
-    //   if (error) {
-    //     console.log(error)
-    //     res.json(error)
-    //   } else {
-    //     res.json(stdout)
-    //   }
-    // })
 
-    return res.json({ status: "doing nothing" })
-  })
-  
+
+
 
 
 

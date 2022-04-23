@@ -44,7 +44,7 @@ async function createWindow() {
         width: 1000,
         height: 700,
         minWidth: 800,
-        minHeight: 300,
+        minHeight: 600,
         webPreferences: {
             preload: join(__dirname, '../preload/preload.cjs')
         },

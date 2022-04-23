@@ -278,14 +278,14 @@ router.get('/serverlist', function (req, res, next) {
  */
  router.post('/studentlist/update', function (req, res, next) {
     const clientinfo = JSON.parse(req.body.clientinfo)
-    console.log(clientinfo)
+  
     const token = clientinfo.token
     const exammode = clientinfo.exammode
     const servername = clientinfo.servername
     const mcServer = config.examServerList[servername]
 
-    if ( !mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
-    if ( !checkToken(token, "server", mcServer) ) {return res.send({ sender: "server", message:t("control.tokennotvalid"), status: "error" }) } //check if the student is registered on this server
+    if ( !mcServer) {  return res.send({sender: "server", message:"notavailable", status: "error"} )  }
+    if ( !checkToken(token, mcServer) ) {return res.send({ sender: "server", message:t("control.tokennotvalid"), status: "error" }) } //check if the student is registered on this server
     if ( !req.files ) {return res.send({sender: "server", message:t("control.nofiles"), status:"error"});  }
     
     let registeredClient = mcServer.studentList.find(element => element.token === token)
@@ -330,11 +330,12 @@ router.get('/serverlist', function (req, res, next) {
     const state = req.params.state
 
     if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
-    if ( !checkToken(token, "server", mcServer) ) { return res.json({ sender: "server", message:t("control.tokennotvalid"), status: "error" }) } //check if the student is registered on this server
+    if ( !checkToken(token, mcServer) ) { return res.json({ sender: "server", message:t("control.tokennotvalid"), status: "error" }) } //check if the student is registered on this server
 
     let registeredClient = mcServer.studentList.find(element => element.token === token)
     
 //the whole thing should be obsolete...  change virtualized on client side before update on server 
+// serever gets all this information from every update cycle
 
     if (state === "false"){
         registeredClient.focus = false;
@@ -354,29 +355,28 @@ router.get('/serverlist', function (req, res, next) {
 
 
 /**
- * updates the serverstatusobject for specific exam (examode, examtype, and other information for students)
- * students will get the serverstatus object on every update they send as response
+ * updates the serverstatusobject for specific exam (examode, examtype) and other information for students
+ * students will get the serverstatus object on every studentupdate (beacon) as response
+ * may contain information about exam, connectionstatus (kick), or fileupload/download requests from the server in the future
+ * (reverting to polling only api)
  *  
  * @param servername the name of the server at which the student is registered
  * @param token the students token to search and update the entry in the list
  */
- router.post('/serverstatus/:servername/:token', function (req, res, next) {
-    const token = req.params.token
+ router.post('/serverstatus/:servername/:csrfservertoken', function (req, res, next) {
+    const csrfservertoken = req.params.csrfservertoken
     const servername = req.params.servername
     const mcServer = config.examServerList[servername]
-   
-    const serverstatusobject = JSON.parse(req.body.serverstatus)
 
-
+    
     if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
-    if ( !checkToken(token, "server", mcServer) ) { return res.json({ sender: "server", message:t("control.tokennotvalid"), status: "error" }) } //check if the student is registered on this server
+    if (csrfservertoken !== mcServer.serverinfo.servertoken) { res.send({sender: "server", message:t("control.tokennotvalid"), status: "error"} )}
 
-    mcServer.serverStatusObject = serverstatusobject
 
+    mcServer.serverStatusObject = req.body   // contains the current status (exammode, examtype, delfolder)  // autoabgabe, fetch/send file etc. in the future
+    res.json({ sender: "server", message:t("general.ok"), status: "success" })
+   
 })
-
-
-
 
 
 
@@ -386,27 +386,21 @@ export default router
 
 
 
+
+
+
 /**
- * Checks if the token is valid in order to process api request
- * Attention: no all api requests check tokens atm!
+ * Checks if the student that sent the request has a valid token (is registered) on the server
+ * in order to process api request
  */
- function checkToken(token, receiver, mcserver){
-    if (receiver === "server"){  //check if the student that wants to send a file is registered on this server
-        let tokenexists = false
-        
-        mcserver.studentList.forEach( (student) => {
-            if (token === student.token) {
-                tokenexists = true
-            }
-        });
-        return tokenexists
-    }
-    else if (receiver === "client"){
-        if (token === multiCastclient.clientinfo.token) {
-            return true
+ function checkToken(token, mcserver){
+    let tokenexists = false
+    mcserver.studentList.forEach( (student) => {
+        if (token === student.token) {
+            tokenexists = true
         }
-        return false
-    }
+    });
+    return tokenexists
 }
 
 

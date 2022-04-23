@@ -1,7 +1,8 @@
 { 
     "general": {
         "startserver":"Start Exam",
-        "slist": "Aktive Exams"
+        "slist": "Aktive Exams",
+        "ok": "ok"
     },
     "serverlist" : {
         "pwd": "Password",

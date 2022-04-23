@@ -21,6 +21,9 @@ import config from '../config.js';  // node not vue (relative path needed)
 import axios from 'axios';
 import FormData from 'form-data';
 import screenshot from 'screenshot-desktop';
+import fs from 'fs' 
+import { ipcRenderer } from 'electron'
+
 
 /**
  * Starts a dgram (udp) socket that listens for mulitcast messages
@@ -30,10 +33,13 @@ class MulticastClient {
         this.PORT = config.multicastClientPort
         this.MULTICAST_ADDR = '239.255.255.250'
         this.client = dgram.createSocket('udp4')
-        this.examServerList = []
+       
         this.address = '0.0.0.0'
         this.refreshExamsIntervall = null
-        this.browser = false
+        this.updateStudentIntervall = null
+        this.beaconsLost = 0
+
+        this.examServerList = []
         this.clientinfo = {
             name: "DemoUser",
             token: false,
@@ -45,12 +51,11 @@ class MulticastClient {
             timestamp: false,
             virtualized: false
         }
-        this.beaconsLost = 0
     }
 
     /**
      * receives messages and stores new exam instances in this.examServerList[]
-     * starts an intervall to check server status by timestamp
+     * starts an intervall to check server status and reacts on information given by the server instance
      */
     init () {
         this.client.on('listening', () => { 
@@ -65,6 +70,52 @@ class MulticastClient {
         this.updateStudentIntervall = setInterval(() => { this.sendBeacon() }, 5000)
         this.running = true
     }
+
+    /**
+     * receives messages and stores new exam instances in this.examServerList[]
+     */
+     messageReceived (message, rinfo) {
+        const serverInfo = JSON.parse(String(message))
+        serverInfo.serverip = rinfo.address
+        serverInfo.serverport = rinfo.port
+        
+        if (this.isNewExamInstance(serverInfo)) {
+            console.log(`Adding new Exam Instance "${serverInfo.servername}" to Serverlist`)
+            this.examServerList.push(serverInfo)
+        }
+    }
+
+    /**
+     * checks if the message came from a new exam instance or an old one that is already registered
+     */
+    isNewExamInstance (obj) {
+        for (let i = 0; i < this.examServerList.length; i++) {
+            if (this.examServerList[i].id === obj.id) {
+                //console.log('existing server - updating timestamp')
+                this.examServerList[i].timestamp = obj.timestamp // existing server - update timestamp
+                return false
+            }
+        }
+        return true
+    }
+
+    /**
+     * checks servertimestamp and removes server from list if older than 1 minute
+     */
+    isDeprecatedInstance () {
+        for (let i = 0; i < this.examServerList.length; i++) {
+            const now = new Date().getTime()
+            if (now - 20000 > this.examServerList[i].timestamp) {
+                console.log('Removing inactive server from list')
+                this.examServerList.splice(i, 1)
+            }
+        }
+    }
+
+
+
+
+
 
 
 
@@ -101,30 +152,27 @@ class MulticastClient {
                 })
                 .then( response => {
                     //console.log(`MulticastClient: ${response.data.message}`)
-                    if (response.data && response.data.status === "error") { this.beaconsLost += 1; console.log("beacon lost..") }
+                    if (response.data && response.data.status === "error") { 
+                        if(response.data.message === "notavailable"){ this.beaconsLost = 4} //server responded but exam is not available anymore (teacher removed it)
+                        this.beaconsLost += 1; 
+                        console.log("beacon lost..") 
+                    }
 
                     if (response.data && response.data.status === "success") { 
                         this.beaconsLost = 0 
                         let serverStatusObject = response.data.data
 
+                        /////////////////////////
+                        //react to server status 
+                        /////////////////////////
 
-                        //react 
-                        if (serverStatusObject.exammode && !this.clientinfo.exammode){
-                            axios.get(`https://localhost:${config.clientApiPort}/client/control/exammode/start/${this.clientinfo.token}/${serverStatusObject.examtype}/${serverStatusObject.delfolder}`)
-                            .then( response => {console.log(response.data);})
-                            .catch(error => {console.log(error)});
+                        if (serverStatusObject.exammode && !this.clientinfo.exammode){ 
+                            this.startExam(serverStatusObject)
                         }
                         else if (!serverStatusObject.exammode && this.clientinfo.exammode){
-                            axios.get(`https://localhost:${config.clientApiPort}/client/control/exammode/stop/${this.clientinfo.token}`)
-                            .then( response => {console.log(response.data);})
-                            .catch(error => {console.log(error)});
+                            this.endExam()
                         }
-
-
-
-                 
                     }
-
                 })
                 .catch(error => {
                     console.log(`MulticastClient: ${error}`) 
@@ -151,48 +199,35 @@ class MulticastClient {
     }
 
 
-    /**
-     * receives messages and stores new exam instances in this.examServerList[]
-     */
-    messageReceived (message, rinfo) {
-        const serverInfo = JSON.parse(String(message))
-        serverInfo.serverip = rinfo.address
-        serverInfo.serverport = rinfo.port
-        
-        if (this.isNewExamInstance(serverInfo)) {
-            console.log(`Adding new Exam Instance "${serverInfo.servername}" to Serverlist`)
-            this.examServerList.push(serverInfo)
-        }
-    }
 
 
-    /**
-     * checks if the message came from a new exam instance or an old one that is already registered
-     */
-    isNewExamInstance (obj) {
-        for (let i = 0; i < this.examServerList.length; i++) {
-            if (this.examServerList[i].id === obj.id) {
-                //console.log('existing server - updating timestamp')
-                this.examServerList[i].timestamp = obj.timestamp // existing server - update timestamp
-                return false
+
+
+
+
+     /////////////////////////////////////
+    // server communication functions
+   /////////////////////////////////////
+
+    startExam(serverstatus){
+       if (serverstatus.delfolder === true){
+            console.log("cleaning exam workfolder")
+            if (fs.existsSync(config.workdirectory)){   // set by server.js (desktop path + examdir)
+                fs.rmdirSync(config.workdirectory, { recursive: true });
+                fs.mkdirSync(config.workdirectory);
             }
-        }
-        return true
+       }
+       ipcRenderer.send('exam', this.clientinfo.token, serverstatus.examtype)  // electran main process will start kioskmode and/or open the requested exam url (eduvidual, geogebra, texteditor)
+       this.clientinfo.exammode = true
+    }
+
+    endExam(){
+        ipcRenderer.send('endexam')  // electron will end kiosk, restrictions, and/or close the exam instance window
+        this.clientinfo.exammode = false
+        this.clientinfo.focus = true
     }
 
 
-    /**
-     * checks servertimestamp and removes server from list if older than 1 minute
-     */
-    isDeprecatedInstance () {
-        for (let i = 0; i < this.examServerList.length; i++) {
-            const now = new Date().getTime()
-            if (now - 20000 > this.examServerList[i].timestamp) {
-                console.log('Removing inactive server from list')
-                this.examServerList.splice(i, 1)
-            }
-        }
-    }
 }
 
 export default new MulticastClient()

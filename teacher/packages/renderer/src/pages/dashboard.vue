@@ -24,8 +24,6 @@
 
                     <b>{{activestudent.clientname}}</b><br>
                     <span style="font-size: 0.7em;">{{activestudent.clientip}}</span>
-                    <div class="col d-inlineblock btn btn-success m-1 btn-sm"   @click="startExam(activestudent)" style="width: 100px">{{$t('dashboard.startexam')}} </div>
-                    <div class="col d-inlineblock btn btn-danger m-1 btn-sm"   @click="endExam(activestudent)"  style="width: 100px">{{$t('dashboard.stopexam')}} </div>
                     <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent)"  style="width: 100px">{{$t('dashboard.sendfile')}}</div>
                     <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="getFiles(activestudent)"  style="width: 100px">{{$t('dashboard.getfile')}}</div>
                     <div class="col d-inlineblock btn btn-warning m-1 btn-sm"    @click='kick(activestudent.token,activestudent.clientip)'  style="width: 100px">{{$t('dashboard.kick')}}</div>
@@ -99,7 +97,7 @@
             <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
         </div>
         <div class="form-check m-1 mb-2">
-            <input @click="delfolder()" value="del" class="form-check-input" type="checkbox" name="delfolder" id="delfolder">
+            <input v-model="delfolder" @click="delfolderquestion()" value="del" class="form-check-input" type="checkbox" name="delfolder" id="delfolder">
             <label class="form-check-label" for="delfolder"> {{$t('dashboard.del')}}  </label>
         </div>
         <div id="statusdiv" class="btn btn-warning m-1"> {{$t('dashboard.connected')}}  </div>
@@ -110,13 +108,13 @@
 
      <!-- exam & studentlist start -->
     <div id="content" class="fadeinslow p-3">
-        <div :class="(exammodeReady)? 'disabledexam':'' " class="btn btn-success m-1 text-start ms-0" style="width:100px;"  @click="startExam('all')">{{$t('dashboard.startexam')}}</div>
-        <div :class="(!exammodeReady)? 'disabledexam':'' " class="btn btn-danger m-1 text-start ms-0 " style="width:100px;" @click="endExam('all')" >{{$t('dashboard.stopexam')}}</div>
+        <div v-if="(!exammode)" class="btn btn-success m-1 text-start ms-0" style="width:204px;"  @click="startExam()">{{$t('dashboard.startexam')}}</div>
+        <div v-if="(exammode)" class="btn btn-danger m-1 text-start ms-0 " style="width:204px;" @click="endExam()" >{{$t('dashboard.stopexam')}}</div>
         <div class="btn btn-info m-1 text-start ms-0 " style="width:100px;" @click="sendFiles('all')">{{$t('dashboard.sendfile')}}</div>
         <div class="btn btn-info m-1 text-start ms-0 " style="width:100px;" @click="getFiles('all')">{{$t('dashboard.getfile')}}</div>
         <div class="col d-inlineblock btn btn-dark m-1 ms-0 " @click="loadFilelist(workdirectory)"  style="width: 100px; ">{{$t('dashboard.showworkfolder')}} </div>
         <div id="studentslist" class="placeholder pt-4"> 
-            <div v-for="student in studentlist" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn border-0 rounded-3 btn-block m-1 ">
+            <div v-for="student in studentlist" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn border-0 rounded-3 btn-block ">
                 <div id="image" class="rounded" :style="(student.imageurl)? `background-image:url(${student.imageurl})`:'background-image:url(person-lines-fill.svg)'" style="position: relative; height:75%; background-size:cover;">
                     <span style="">{{student.clientname}}            
                     <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-2 pe-2 float-end" title="kick user"></button> </span>
@@ -169,70 +167,47 @@ export default {
             localfiles: null,
             currentpreview: null,
             currentpreviewname: null,
-            exammodeReady: false
+            exammode: false,
+            delfolder: false
         };
     },
     components: { },
     methods: {
 
 
-        // get all information about students status
+        // get all information about students status and do some checks
         fetchInfo() {
             this.now = new Date().getTime()
             axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/studentlist/${this.servername}/${this.servertoken}`)
             .then( response => {
                 this.studentlist = response.data.studentlist;
                 if (this.studentlist && this.studentlist.length > 0){
-                    
-                    this.exammodeReady = true;
                     this.studentlist.forEach(student =>{  // on studentlist-receive check focus status and other things
-                        if (!student.focus){this.status(`${student.clientname} ${this.$t("dashboard.leftkiosk")}`); }
-                        if (!student.exammode && !student.focus)  {  this.restore(student.token, student.clientip) }
-                           
-
+                        if (!student.focus){ this.status(`${student.clientname} ${this.$t("dashboard.leftkiosk")}`); }
                         if (student.virtualized){this.status(`${student.clientname}${this.$t("control.virtualized")}`)}
-                        if (!student.exammode) {this.exammodeReady = false}
+                        if (this.activestudent && student.token === this.activestudent.token) { this.activestudent = student}
                     });
-                }
-                else {
-                    this.exammodeReady = false
                 }
             }).catch( err => {console.log(err)});
         }, 
 
 
-        //triggers exam mode on specified clients
-        startExam(who){
-            let delfolder = $("#delfolder").is(':checked')
-            if (who == "all"){
-                if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); console.log("no clients connected") }
-                else {  
-                    this.studentlist.forEach( (student) => {
-                        //check exam mode for students - dont initialize twice (right after exam stop it takes a few seconds for the students to update their exam status on the server again)
-                        if (student.exammode){ this.status(this.$t("dashboard.exammodeactive")); return; }
-                        axios.get(`https://${student.clientip}:${this.clientApiPort}/client/control/exammode/start/${student.token}/${this.examtype}/${delfolder}`)
-                        .then( response => {
-                            this.status(response.data.message);
-                            console.log(response.data);
-                        }).catch(error => {console.log(error)});
-                    });
-                }
-            }
-            else {
-                let student = who
-                if (student.exammode){ this.status(this.$t("dashboard.exammodeactive")); return; }
-                axios.get(`https://${student.clientip}:${this.clientApiPort}/client/control/exammode/start/${student.token}/${this.examtype}/${delfolder}`)
-                .then( response => {
-                    this.status(response.data.message);
-                    console.log(response.data);
-                }).catch(error => {console.log(error)});
-            }
+        // enable exam mode 
+        startExam(){
+            this.exammode = true;
+
+            fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/serverstatus/${this.servername}/${this.servertoken}`, { 
+                method: 'POST',
+                headers: {'Content-Type': 'application/json' },
+                body: JSON.stringify({ exammode: this.exammode, examtype: this.examtype, delfolder: this.delfolder  })
+                })
+            .then( res => res.json())
+            .then( response => { })
+            .catch(err => { console.warn(err) })
         },
 
-        // exit exam mode on all specified cilents
-        endExam(who){
-            if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); return; }
-            
+        // disable exammode 
+        endExam(){
             this.$swal.fire({
                 title: this.$t("dashboard.sure"),
                 text:  this.$t("dashboard.exitkiosk"),
@@ -243,28 +218,29 @@ export default {
             })
             .then((result) => {
                 if (result.isConfirmed) {
-                    if (who == "all"){
-                        this.studentlist.forEach( (student) => {
-                            axios.get(`https://${student.clientip}:${this.clientApiPort}/client/control/exammode/stop/${student.token}`)
-                            .then( async (response) => {
-                                this.status(response.data.message);
-                                console.log(response.data);
-                            }).catch(error => {console.log(error)});
-                        }); 
-                    }
-                    else {
-                        let student = who
-                        axios.get(`https://${student.clientip}:${this.clientApiPort}/client/control/exammode/stop/${student.token}`)
-                        .then( async (response) => {
-                            this.status(response.data.message);
-                            console.log(response.data);
-                        }).catch(error => {console.log(error)});
-                    }
+                    this.exammode = false;
+                    fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/serverstatus/${this.servername}/${this.servertoken}`, { 
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json' },
+                        body: JSON.stringify({ exammode: this.exammode, examtype: this.examtype, delfolder: this.delfolder  })
+                        })
+                    .then( res => res.json())
+                    .then( response => { })
+                    .catch(err => { console.warn(err) })
                 } 
             }); 
         },
 
 
+
+
+
+
+
+
+
+        ////////////////////////
+        // DASHBOARD EXPLORER
 
         // fetch a file or folder (zip) and open download/save dialog
         downloadFile(file){
@@ -379,18 +355,13 @@ export default {
                     });
                }).catch(err => { console.warn(err)});     
         },
-
-
-
-
-
-        // show workfloder
+        // show workfloder  TODO:  the whole workfolder thing is getting to complex.. this should be a standalone vue.js component thats embedded here
         showWorkfolder(){
             $("#preview").css("display","block");
             $("#closefilebrowser").click(function(e) { $("#preview").css("display","none"); });  // the surroundings of #workfolder can be clicked to close the view
             $('#workfolder').click(function(e){ e.stopPropagation(); });    // don't propagate clicks through the div to the preview div (it would hide the view)
         },
-
+        // fetches latest files of all connected students in one combined pdf
         getLatest(){
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getlatest/${this.servername}/${this.servertoken}`, { 
                 method: 'POST',
@@ -416,14 +387,11 @@ export default {
                 //download(lastestpdf, "allInOne.pdf", "application/pdf");
             }).catch(err => { console.warn(err)});
         },
-
         print(){
             var iframe = $('#pdfembed')[0]; 
             iframe.contentWindow.focus();
             iframe.contentWindow.print(); 
         },
-
-
         loadFilelist(directory){
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getfiles/${this.servername}/${this.servertoken}`, { 
                 method: 'POST',
@@ -440,10 +408,11 @@ export default {
             }).catch(err => { console.warn(err)});
         },
 
+
+
         // show warning
-        delfolder(){
-            let delfolder = $("#delfolder").is(':checked')
-            if (delfolder) {
+        delfolderquestion(){
+            if (!this.delfolder) {
                 this.$swal.fire({
                     title: this.$t("dashboard.attention"),
                     text: this.$t("dashboard.delsure"),
@@ -458,14 +427,12 @@ export default {
         },
         hideStudentview() {
             $("#studentinfocontainer").css("display","none");
+            this.activestudent = false
         },
-
-
         toggleAutoabgabe(){
             if (this.autoabgabe) { this.abgabeinterval = setInterval(() => { this.getFiles('all') }, 60000) }   //trigger getFiles('all') every other minute
             else { clearInterval( this.abgabeinterval )} 
         },
-
         //upload files to all students
         sendFiles(who) {
             if (this.studentlist.length === 0) { this.status(this.$t("dashboard.noclients")); return;}
@@ -528,8 +495,6 @@ export default {
                 }
             });    
         },  
-
-
         //stop and clear this exam server instance
         stopserver(){
             this.$swal.fire({
@@ -552,7 +517,6 @@ export default {
                 } 
             });    
         },
-
         //show pincode bid
         showpin(){
             this.$swal.fire({
@@ -561,7 +525,6 @@ export default {
                 icon: "info",
             })
         },
-
         // get finished exams (ABGABE) from students
         getFiles(who){
             if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); console.log("no clients connected"); return; }
@@ -642,6 +605,17 @@ export default {
         sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
+
+
+
+
+
+
+
+
+
+
+        
     },
     mounted() {  // when ready
         this.$nextTick(function () { // Code that will run only after the entire view has been rendered
@@ -664,6 +638,19 @@ export default {
 
 
 <style scoped>
+
+
+#studentslist{
+    border-radius: 5px;
+    width: 100%;
+    height: 90%;
+    /* border: 1px solid rgb(99, 187, 175); */
+    margin-top: 4px;
+    transition:0.1s;
+    overflow-y:auto;
+   
+}
+
 
 .disabledexam {
     filter: contrast(20%) grayscale(100%) brightness(180%);

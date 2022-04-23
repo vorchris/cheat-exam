@@ -1,7 +1,8 @@
 { 
     "general": {
         "startserver":"Exam anlegen",
-        "slist": "Aktive Examen"
+        "slist": "Aktive Examen",
+        "ok": "ok"
     },
     "serverlist" : {
         "pwd": "Passwort",
@@ -33,10 +34,10 @@
         "math": "Mathematik",
         "eduvidual": "Eduvidual",
         "autoget": "auto Abgabe",
-        "startexam": "Prüfung starten",
+        "startexam": "Abgesicherten Modus \naktivieren",
         "sendfile": "Datei senden",
         "getfile": "Abgabe holen",
-        "stopexam": "Prüfung beenden",
+        "stopexam": "Abgesicherten Modus deaktivieren",
         "sure": "Sind sie sicher?",
         "exitexamsure": "Exam Server schließen?",
         "exitexam": "Dies beendet die Prüfung für alle Schüler*innen",
