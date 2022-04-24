@@ -27,6 +27,7 @@ import student from '/src/pages/student.vue'
 import editor from '/src/pages/editor.vue'
 import geogebra from '/src/pages/geogebra.vue'
 
+
 console.log(config)  // config is exposed to the renderer (frontend) in preload.js (it's readonly here!)
 
 // check if we run this app in electron (host is always "localhost" then)
@@ -49,7 +50,7 @@ const routes = [
 
 
 function addParams(to){
-    to.params.version = config.version
+     to.params.version = config.version
     to.params.serverApiPort = config.serverApiPort 
     to.params.clientApiPort = config.clientApiPort
     to.params.electron = electron

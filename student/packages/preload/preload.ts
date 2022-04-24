@@ -24,13 +24,14 @@
 
 import fs from 'fs'
 import { contextBridge, ipcRenderer } from 'electron'
-import api from "../server/src/server.js"
 import config from '../server/src/config.js';
 import screenshot from 'screenshot-desktop';
+
 import virtual from './scripts/simplevmdetect.js';
-
-
 config.virtualized = virtual
+
+
+
 
 
 /** document ready */
@@ -55,9 +56,9 @@ function domReady(condition: DocumentReadyState[] = ['complete', 'interactive'])
 
 // --------- Expose some API to the Renderer process. ---------
 contextBridge.exposeInMainWorld('fs', fs)
-contextBridge.exposeInMainWorld('screenshot', screenshot)
+contextBridge.exposeInMainWorld('screenshot', screenshot)  // used in geogebra view for pdf creation
 contextBridge.exposeInMainWorld('ipcRenderer', withPrototype(ipcRenderer))   // this gives us an option to access the electron mainwindow with an ipc call
-contextBridge.exposeInMainWorld('api', api)   // this finally runs the express API in electron (and exposes it)
+
 contextBridge.exposeInMainWorld('config', config )  // expose configuration (readonly) to the renderer (frontend)
 
  

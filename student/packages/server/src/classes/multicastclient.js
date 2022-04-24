@@ -18,12 +18,6 @@
 
 import dgram from 'dgram';
 import config from '../config.js';  // node not vue (relative path needed)
-import axios from 'axios';
-import FormData from 'form-data';
-import screenshot from 'screenshot-desktop';
-import fs from 'fs' 
-import { ipcRenderer } from 'electron'
-
 
 /**
  * Starts a dgram (udp) socket that listens for mulitcast messages
@@ -64,13 +58,9 @@ class MulticastClient {
         })
         this.client.on('message', (message, rinfo) => { this.messageReceived(message, rinfo) })
         this.client.bind(this.PORT, () => { this.client.addMembership(this.MULTICAST_ADDR) })
-    
+
         //start loops
         this.refreshExamsIntervall = setInterval(() => {  this.isDeprecatedInstance()  }, 5000)
-        this.updateStudentIntervall = setInterval(() => { this.sendBeacon() }, 5000)
-        this.running = true
-
-        this.setListeners()
     }
 
     /**
@@ -114,101 +104,8 @@ class MulticastClient {
         }
     }
 
-    setListeners(){
-        // some listeners for signals from mainprocess
-        ipcRenderer.on('focuslost', () => { 
-            console.log("focus lost");
-            this.clientinfo.focus = false 
-        } ); 
 
 
-
-    }
-
-
-
-
-
-
-
-    /** 
-     * sends heartbeat to registered server and updates screenshot on server 
-     */
-    async sendBeacon(){
-        //check if server connected - get ip
-        if (this.clientinfo.serverip) {
-        
-            //create screenshot
-            screenshot().then(async (img) => {
-                let screenshotfilename = this.clientinfo.token +".jpg"
-                //create formdata
-                const formData = new FormData()
-                
-                if (config.electron){
-                    let blob =  new Blob( [ new Uint8Array(img).buffer], { type: 'image/jpeg' })
-                    formData.append(screenshotfilename, blob, screenshotfilename );
-                }
-                else {
-                    formData.append(screenshotfilename, img, screenshotfilename );
-                }
-                //update timestamp
-                this.clientinfo.timestamp =  new Date().getTime()
-                formData.append('clientinfo', JSON.stringify(this.clientinfo) );
-
-                //post to /studentlist/update/:token
-                axios({
-                    method: "post", 
-                    url: `https://${this.clientinfo.serverip}:${config.serverApiPort}/server/control/studentlist/update`, 
-                    data: formData, 
-                    headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
-                })
-                .then( response => {
-                    //console.log(`MulticastClient: ${response.data.message}`)
-                    if (response.data && response.data.status === "error") { 
-                        if(response.data.message === "notavailable"){ this.beaconsLost = 4} //server responded but exam is not available anymore (teacher removed it)
-                        this.beaconsLost += 1; 
-                        console.log("beacon lost..") 
-                    }
-
-                    if (response.data && response.data.status === "success") { 
-                        this.beaconsLost = 0 
-                        let serverStatusObject = response.data.data
-
-                        /////////////////////////
-                        //react to server status 
-                        /////////////////////////
-
-                        if (serverStatusObject.exammode && !this.clientinfo.exammode){ 
-                            this.startExam(serverStatusObject)
-                        }
-                        else if (!serverStatusObject.exammode && this.clientinfo.exammode){
-                            this.endExam()
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.log(`MulticastClient: ${error}`) 
-                    this.beaconsLost += 1; console.log("beacon lost..")
-                });  //on kick there is a racecondition that leads to a failed fetch here because values are already "false"
-
-
-                if (this.beaconsLost >= 4){ //remove server registration
-                    console.log("Connection to Teacher lost! Removing registration.")
-                    this.beaconsLost = 0
-                    this.clientinfo.serverip = false
-                    this.clientinfo.servername = false
-                    this.clientinfo.token = false
-                    // for (const [key, value] of Object.entries(this.clientinfo)) {
-                    //     this.clientinfo[key] = false   
-                    // }
-                }
-
-            })
-            .catch((err) => {
-                console.log(`MulticastClient: ${err}`)
-            });
-        }
-    }
 
 
 
@@ -221,23 +118,23 @@ class MulticastClient {
     // server communication functions
    /////////////////////////////////////
 
-    startExam(serverstatus){
-       if (serverstatus.delfolder === true){
-            console.log("cleaning exam workfolder")
-            if (fs.existsSync(config.workdirectory)){   // set by server.js (desktop path + examdir)
-                fs.rmdirSync(config.workdirectory, { recursive: true });
-                fs.mkdirSync(config.workdirectory);
-            }
-       }
-       ipcRenderer.send('exam', this.clientinfo.token, serverstatus.examtype)  // electran main process will start kioskmode and/or open the requested exam url (eduvidual, geogebra, texteditor)
-       this.clientinfo.exammode = true
-    }
+    // startExam(serverstatus){
+    //    if (serverstatus.delfolder === true){
+    //         console.log("cleaning exam workfolder")
+    //         if (fs.existsSync(config.workdirectory)){   // set by server.js (desktop path + examdir)
+    //             fs.rmdirSync(config.workdirectory, { recursive: true });
+    //             fs.mkdirSync(config.workdirectory);
+    //         }
+    //    }
+    //    ipcRenderer.send('exam', this.clientinfo.token, serverstatus.examtype)  // electran main process will start kioskmode and/or open the requested exam url (eduvidual, geogebra, texteditor)
+    //    this.clientinfo.exammode = true
+    // }
 
-    endExam(){
-        ipcRenderer.send('endexam')  // electron will end kiosk, restrictions, and/or close the exam instance window
-        this.clientinfo.exammode = false
-        this.clientinfo.focus = true
-    }
+    // endExam(){
+    //     ipcRenderer.send('endexam')  // electron will end kiosk, restrictions, and/or close the exam instance window
+    //     this.clientinfo.exammode = false
+    //     this.clientinfo.focus = true
+    // }
 
 }
 

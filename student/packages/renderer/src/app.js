@@ -20,7 +20,6 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import { createRouter } from './router'
 import i18n from './locales/locales.js'
-
 import VueSweetalert2 from 'vue-sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 const options = {
