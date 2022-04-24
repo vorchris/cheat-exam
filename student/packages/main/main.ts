@@ -36,14 +36,16 @@ import fs from 'fs'
  // APP handling (Backend)
 //////////////////////////
 
-const formData = new FormData()
+
 
 // hide certificate warnings in console.. we know we use a self signed cert and do not validate it
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 const originalEmitWarning = process.emitWarning
 process.emitWarning = (warning, options) => {
     if (warning && warning.includes && warning.includes('NODE_TLS_REJECT_UNAUTHORIZED')) {  return }
     return originalEmitWarning.call(process, warning, options)
 }
+
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -69,11 +71,9 @@ app.whenReady()
     })
   })
 .then(()=>{
-   
     const API = api
     multicastClient.init()
     createWindow()
-   
 })
 
 app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
@@ -125,7 +125,7 @@ app.on('activate', () => {
 
 
 
-
+import eurl from "url"
 
 
 
@@ -140,7 +140,7 @@ function newWin(examtype, token) {
     newwin = new BrowserWindow({
         parent: win,
         skipTaskbar:true,
-        title: 'Eduvidual',
+        title: 'Exam',
         width: 800,
         height: 600,
         closable: false,
@@ -160,7 +160,8 @@ function newWin(examtype, token) {
         url = examtype   // editor || math || tbd.
         
         if (app.isPackaged) {
-            newwin.loadFile(join(__dirname, '../renderer/index.html'))
+            let path = join(__dirname, `../renderer/index.html`)
+            newwin.loadFile(path, {hash: `#/${url}/${token}`})
         } 
         else {
             url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}/#/${url}/${token}/`
@@ -170,16 +171,19 @@ function newWin(examtype, token) {
 
     newwin.webContents.openDevTools() 
     newwin.removeMenu() 
-    newwin.show();  // we keep focus on the window.. no matter what
-    newwin.moveTop();
-    newwin.focus();
+    newwin.once('ready-to-show', () => {
+        newwin?.show()
+        newwin?.moveTop();
+        newwin?.focus();
+    })
+  
+ 
 }
 
 
 
 
 let win: BrowserWindow | null = null
-
 async function createWindow() {
     const display = screen.getPrimaryDisplay();
     const dimensions = display.workAreaSize;
@@ -201,7 +205,7 @@ async function createWindow() {
     if (app.isPackaged || process.env["DEBUG"]) {
         win.removeMenu() 
         win.loadFile(join(__dirname, '../renderer/index.html'))
-        //win.webContents.openDevTools()  // you don't want this in the final build
+        win.webContents.openDevTools()  // you don't want this in the final build
     } 
     else {
         const url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}`

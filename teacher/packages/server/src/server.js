@@ -74,7 +74,8 @@ var options = {
     key: certs.key,
     cert: certs.cert,
     requestCert: false,
-    rejectUnauthorized: false
+    rejectUnauthorized: false,
+    agent: false
   };
 
 const server = https.createServer(options, api);

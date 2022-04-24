@@ -60,8 +60,9 @@ let certs = createCACert()
 var options = {
     key: certs.key,
     cert: certs.cert,
-    requestCert: true,
-    rejectUnauthorized: false
+    requestCert: false,
+    rejectUnauthorized: false,
+    agent: false
   };
 
 const server = https.createServer(options, api);
