@@ -17,7 +17,6 @@ export default defineConfig({
     rollupOptions: {
       external: [
         'electron',
-        'form-data',   //need to exclude this otherwise transpiled version will try to access browser window (which obviously wont work from backend)
         ...builtinModules,
         ...Object.keys(pkg.dependencies || {}),
       ],

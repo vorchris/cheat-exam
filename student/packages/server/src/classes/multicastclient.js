@@ -20,8 +20,10 @@ import dgram from 'dgram';
 import config from '../config.js';  // node not vue (relative path needed)
 
 /**
+ * STORES ALL CLIENT/Server INFORMATION
  * Starts a dgram (udp) socket that listens for mulitcast messages
  */
+
 class MulticastClient {
     constructor () {
         this.PORT = config.multicastClientPort
@@ -58,7 +60,7 @@ class MulticastClient {
         })
         this.client.on('message', (message, rinfo) => { this.messageReceived(message, rinfo) })
         this.client.bind(this.PORT, () => { this.client.addMembership(this.MULTICAST_ADDR) })
-
+        
         //start loops
         this.refreshExamsIntervall = setInterval(() => {  this.isDeprecatedInstance()  }, 5000)
     }
@@ -103,39 +105,6 @@ class MulticastClient {
             }
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-     /////////////////////////////////////
-    // server communication functions
-   /////////////////////////////////////
-
-    // startExam(serverstatus){
-    //    if (serverstatus.delfolder === true){
-    //         console.log("cleaning exam workfolder")
-    //         if (fs.existsSync(config.workdirectory)){   // set by server.js (desktop path + examdir)
-    //             fs.rmdirSync(config.workdirectory, { recursive: true });
-    //             fs.mkdirSync(config.workdirectory);
-    //         }
-    //    }
-    //    ipcRenderer.send('exam', this.clientinfo.token, serverstatus.examtype)  // electran main process will start kioskmode and/or open the requested exam url (eduvidual, geogebra, texteditor)
-    //    this.clientinfo.exammode = true
-    // }
-
-    // endExam(){
-    //     ipcRenderer.send('endexam')  // electron will end kiosk, restrictions, and/or close the exam instance window
-    //     this.clientinfo.exammode = false
-    //     this.clientinfo.focus = true
-    // }
-
 }
 
 export default new MulticastClient()

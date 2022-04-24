@@ -85,7 +85,7 @@
             <label class="form-check-label" for="examtype2"> {{$t('dashboard.math')}}  </label>
         </div>
         <div class="form-check m-1">
-            <input v-model="examtype" value="language" class="form-check-input" type="radio" name="examtype" id="examtype1">
+            <input v-model="examtype" value="editor" class="form-check-input" type="radio" name="examtype" id="examtype1">
             <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}} </label>
         </div>
         <div class="form-check m-1 mb-3">
@@ -115,7 +115,7 @@
         <div class="col d-inlineblock btn btn-dark m-1 ms-0 " @click="loadFilelist(workdirectory)"  style="width: 100px; ">{{$t('dashboard.showworkfolder')}} </div>
         <div id="studentslist" class="placeholder pt-4"> 
             <div v-for="student in studentlist" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn border-0 rounded-3 btn-block ">
-                <div id="image" class="rounded" :style="(student.imageurl)? `background-image:url(${student.imageurl})`:'background-image:url(person-lines-fill.svg)'" style="position: relative; height:75%; background-size:cover;">
+                <div id="image" class="rounded"  :style="(student.imageurl && now - 20000 < student.timestamp)? `background-image:url(${student.imageurl})`:'background-image:url(person-lines-fill.svg)'" style="position: relative; height:75%; background-size:cover;">
                     <span style="">{{student.clientname}}            
                     <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-2 pe-2 float-end" title="kick user"></button> </span>
                 </div>
@@ -577,7 +577,7 @@ export default {
                     //inform student
                     axios.get(`https://${studentip}:${this.clientApiPort}/client/control/kick/${studenttoken}`)
                     .then( response => {
-                        console.log(response.data);
+                        //console.log(response.data);
                     }).catch(error => {
                         console.info("Client not reachable")
                         //console.log(error)
@@ -638,8 +638,6 @@ export default {
 
 
 <style scoped>
-
-body {overflow-y: hidden!important;}
 
 #studentslist{
     border-radius: 5px;

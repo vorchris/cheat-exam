@@ -289,7 +289,7 @@ router.get('/serverlist', function (req, res, next) {
     if ( !req.files ) {return res.send({sender: "server", message:t("control.nofiles"), status:"error"});  }
     
     let registeredClient = mcServer.studentList.find(element => element.token === token)
-
+    //console.log(req.files)
     for (const [key, file] of Object.entries( req.files)) {
         let absoluteFilepath = path.join(config.tempdirectory, file.name); 
         //console.log(absoluteFilepath)

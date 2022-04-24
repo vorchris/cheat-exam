@@ -27,6 +27,8 @@ import { contextBridge, ipcRenderer } from 'electron'
 import config from '../server/src/config.js';
 import screenshot from 'screenshot-desktop';
 
+
+// how does this work with api and everything in backend? re check it !!
 import virtual from './scripts/simplevmdetect.js';
 config.virtualized = virtual
 
@@ -58,7 +60,6 @@ function domReady(condition: DocumentReadyState[] = ['complete', 'interactive'])
 contextBridge.exposeInMainWorld('fs', fs)
 contextBridge.exposeInMainWorld('screenshot', screenshot)  // used in geogebra view for pdf creation
 contextBridge.exposeInMainWorld('ipcRenderer', withPrototype(ipcRenderer))   // this gives us an option to access the electron mainwindow with an ipc call
-
 contextBridge.exposeInMainWorld('config', config )  // expose configuration (readonly) to the renderer (frontend)
 
  

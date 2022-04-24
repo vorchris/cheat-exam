@@ -21,7 +21,7 @@ const router = Router()
 import config from '../../config.js'
 import multiCastclient from '../../classes/multicastclient.js'
 import path from 'path'
-import FormData from 'form-data'
+import FormData from 'form-data/lib/form_data.js'
 import archiver from 'archiver'
 import fs from 'fs' 
 import axios from "axios"

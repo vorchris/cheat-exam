@@ -24,7 +24,7 @@ import config from './config.js';
 import fsExtra from "fs-extra"
 import path from 'path'
 import ip from 'ip'
-import multicastClient from './classes/multicastclient.js'
+
 import fs from 'fs'
 import os from 'os'
 import forge from 'node-forge'

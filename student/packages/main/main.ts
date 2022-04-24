@@ -28,12 +28,15 @@ import config from '../server/src/config.js';
 import axios from "axios";
 import api from "../server/src/server.js"
 import multicastClient from '../server/src/classes/multicastclient.js'
-
+import screenshot from 'screenshot-desktop'
+import FormData from 'form-data/lib/form_data.js';     //we need to import the file directly otherwise it will introduce a "window" variable in the backend and fail
+import fs from 'fs' 
 
   ///////////////////////////
  // APP handling (Backend)
 //////////////////////////
 
+const formData = new FormData()
 
 // hide certificate warnings in console.. we know we use a self signed cert and do not validate it
 const originalEmitWarning = process.emitWarning
@@ -80,6 +83,7 @@ app.on('certificate-error', (event, webContents, url, error, certificate, callba
 });
 
 app.on('window-all-closed', () => {  // if window is closed
+    clearInterval( updateStudentIntervall )
     disableRestrictions()
     win = null
     if (process.platform !== 'darwin') app.quit()
@@ -103,59 +107,7 @@ app.on('activate', () => {
 })
 
 
-/**
- * we create custom listeners here
- * in electron frontend OR express api (import) ipcRenderer is exposed and usable to send or receive messages (see preload/index.ts)
- * we can call ipcRenderer.send('signal') to send and ipcMain to reveive in mainprocess
- */
-const blurevent = () => { 
-    win?.show();  // we keep focus on the window.. no matter what
-    win?.moveTop();
-    win?.focus();
-    multicastClient.clientinfo.focus = false
-}
 
-
-// if we receive "exam" from the express API (via ipcRenderer.send() ) - we inform our renderer (view) 
-// which sets a ipcRenderer listener for the "exam" signal to switch to the correct page (read examtype)  
-ipcMain.on("exam", (event, token, examtype) =>  {
-    
-    // if (examtype === "eduvidual") {    // we are going to move all examtypes to the newWin method
-        newWin(examtype, token);
-        newwin?.setKiosk(true)
-        enableRestrictions(newwin)
-    // }
-    // else {
-    //     enableRestrictions(win)
-    //     win?.setKiosk(true)
-    //     win?.minimize()
-    //     win?.focus()
-    //     win?.webContents.send('exam', token, examtype);
-    //     win?.addListener('blur', blurevent)  // send blurevent on blur
-    // } 
-})
-
-
-ipcMain.on("endexam", (event) =>  {
-
-    //handle eduvidual case
-    if (newwin){ 
-        newwin.close(); 
-        newwin.destroy(); 
-        newwin = null;
-    }
-   
-
-    disableRestrictions()
-    win?.setKiosk(false)
-    win?.removeListener('blur', blurevent)  // do not send blurevent on blur
-    win?.webContents.send('endexam');
-}); 
-
-
-ipcMain.on("save", () =>  {
-    win?.webContents.send('save');
-}); 
 
 
 
@@ -205,13 +157,13 @@ function newWin(examtype, token) {
         newwin.loadURL(url)
     }
     else { 
-        url = "ltest"
+        url = examtype   // editor || math || tbd.
         
-        if (app.isPackaged || process.env["DEBUG"]) {
+        if (app.isPackaged) {
             newwin.loadFile(join(__dirname, '../renderer/index.html'))
         } 
         else {
-            url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}/${url}`
+            url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}/#/${url}/${token}/`
             newwin.loadURL(url)
         }
     }
@@ -303,12 +255,26 @@ async function createWindow() {
 
 
 
+ipcMain.on("save", () =>  {
+    win?.webContents.send('save');
+}); 
 
 
 
-const updateStudentIntervall = setInterval(() => { this.sendBeacon() }, 5000)
 
 
+
+
+
+
+
+  //////////////////////////////////////////////////////
+ // Functions - Student UPDATE handler - Exam handlers 
+///////////////////////////////////////////////////////
+
+
+
+const updateStudentIntervall = setInterval(() => { sendBeacon() }, 5000)
 
 
 
@@ -395,5 +361,54 @@ function sendBeacon(){
 
 
 
+function startExam(serverstatus){
+    if (serverstatus.delfolder === true){
+        console.log("cleaning exam workfolder")
+        if (fs.existsSync(config.workdirectory)){   // set by server.js (desktop path + examdir)
+            fs.rmdirSync(config.workdirectory, { recursive: true });
+            fs.mkdirSync(config.workdirectory);
+        }
+    }
+
+    // if (examtype === "eduvidual") {    // we are going to move all examtypes to the newWin method
+        newWin(serverstatus.examtype, multicastClient.clientinfo.token);
+        newwin?.setKiosk(true)
+        enableRestrictions(newwin)
+    // }
+    // else {
+    //     enableRestrictions(win)
+    //     win?.setKiosk(true)
+    //     win?.minimize()
+    //     win?.focus()
+    //     win?.webContents.send('exam', token, examtype);
+    //     win?.addListener('blur', blurevent)  // send blurevent on blur
+    // } 
+
+    multicastClient.clientinfo.exammode = true
+}
 
 
+function endExam(){
+    //handle eduvidual case
+    if (newwin){ 
+        newwin.close(); 
+        newwin.destroy(); 
+        newwin = null;
+    }
+
+    disableRestrictions()
+    win?.setKiosk(false)
+    win?.removeListener('blur', blurevent)  // do not send blurevent on blur
+    win?.webContents.send('endexam');
+
+    multicastClient.clientinfo.exammode = false
+    multicastClient.clientinfo.focus = true
+}
+
+
+const blurevent = () => { 
+    win?.show();  // we keep focus on the window.. no matter what
+    win?.moveTop();
+    win?.focus();
+    multicastClient.clientinfo.focus = false
+}
