@@ -130,6 +130,7 @@ export default {
     
     },
     methods: {
+        saveContent(){console.log("save")},
         fetchInfo() {
             axios.get(`https://localhost:${this.clientApiPort}/client/control/getinfo`)
             .then( response => {

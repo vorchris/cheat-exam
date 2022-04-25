@@ -23,7 +23,6 @@
         "asar": true,
         "asarUnpack": [
             "node_modules/screenshot-desktop/lib/win32",
-            "node_modules/form-data/lib",
             "public"
         ],
         "directories": {

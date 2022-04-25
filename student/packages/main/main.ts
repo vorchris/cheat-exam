@@ -142,6 +142,7 @@ let newwin: BrowserWindow | null = null
 function newWin(examtype, token) {
     newwin = new BrowserWindow({
         parent: win,
+        modal: true,
         skipTaskbar:true,
         title: 'Exam',
         width: 800,
@@ -276,9 +277,7 @@ async function createWindow() {
 const updateStudentIntervall = setInterval(() => { sendBeacon() }, 5000)
 
 
-ipcMain.on("save", () =>  {
-    win?.webContents.send('save');
-}); 
+
 
 
 /** 
