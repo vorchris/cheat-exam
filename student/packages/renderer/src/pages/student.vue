@@ -42,7 +42,7 @@
 
     <!-- CONTENT -->
     <div id="content" class="fadeinslow p-3">
-        <div class="col-8 mb-2" v-if="!remoterequest">
+        <div class="col-8 mb-2">
             <div class="input-group  mb-1">
                 <span class="input-group-text col-3" style="min-width:135px;" id="inputGroup-sizing-lg">{{ $t("student.username") }}</span>
                 <div class="col-sm-7"> 
@@ -115,7 +115,6 @@ export default {
             pincode: config.development ? "1337":"",
             clientinfo: {},
             serverlist: [],
-            remoterequest: false,
             fetchinterval: null,
             serverApiPort: this.$route.params.serverApiPort,
             clientApiPort: this.$route.params.clientApiPort,
@@ -206,39 +205,17 @@ export default {
                 });
             }
         },
-
-       
-        // implementing a sleep (wait) function
-        sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
     },
-
     mounted() {  
-      
         this.fetchInfo();
         this.fetchinterval = setInterval(() => { this.fetchInfo() }, 2000)
-
-        if (this.electron){
-             this.startExamEvent = ipcRenderer.on('exam', (event, token, examtype) => {
-                if (examtype === "language") {
-                    this.$router.push({ name: 'editor', params:{ token: token } });
-                }
-                else {
-                    this.$router.push({ name: 'math', params:{ token: token } });
-                }
-            });
-        }
     },
     beforeUnmount() {
         clearInterval( this.fetchinterval )
-        this.startExamEvent.removeAllListeners('exam')   //remove  self
     },
 }
 </script>
 
-
-
-
 <style scoped>
+    
 </style>

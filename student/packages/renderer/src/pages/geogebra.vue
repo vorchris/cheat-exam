@@ -93,7 +93,6 @@ export default {
         this.entrytime = new Date().getTime()  
                  
         if (this.electron){
-            this.endExamEvent = ipcRenderer.on('endexam', () => { this.$router.push({ name: 'student'}); }); //redirect to home view // right before we leave vue.js will run beforeUnmount() which removes all listeners this view attached to the window and the ipcrenderer
             this.saveEvent = ipcRenderer.on('save', () => {  //trigger document save by signal "save" sent from data.js
                 console.log("EVENT RECEIVERD")
                 this.saveContent() 

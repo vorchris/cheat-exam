@@ -26,16 +26,17 @@ import { join } from 'path'
 import {enableRestrictions, disableRestrictions} from './scripts/platformrestrictions.js';
 import config from '../server/src/config.js';
 import axios from "axios";
-import api from "../server/src/server.js"
+import server from "../server/src/server.js"
 import multicastClient from '../server/src/classes/multicastclient.js'
 import screenshot from 'screenshot-desktop'
 import FormData from 'form-data/lib/form_data.js';     //we need to import the file directly otherwise it will introduce a "window" variable in the backend and fail
 import fs from 'fs' 
 
-  ///////////////////////////
- // APP handling (Backend)
-//////////////////////////
 
+
+  ////////////////////////////////
+ // APP handling (Backend) START
+////////////////////////////////
 
 
 // hide certificate warnings in console.. we know we use a self signed cert and do not validate it
@@ -45,7 +46,6 @@ process.emitWarning = (warning, options) => {
     if (warning && warning.includes && warning.includes('NODE_TLS_REJECT_UNAUTHORIZED')) {  return }
     return originalEmitWarning.call(process, warning, options)
 }
-
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -57,24 +57,6 @@ if (!app.requestSingleInstanceLock()) {
   app.quit()
   process.exit(0)
 }
-
-app.whenReady()
-.then( () => {
-    // trying to catch some keyboard shortcuts here
-    globalShortcut.register('Alt+CommandOrControl+I', () => {
-        console.log('Electron loves global shortcuts!')
-        return false
-    })
-    globalShortcut.register('CommandOrControl+P', () => {
-        console.log('Electron loves global shortcuts!')
-        return false
-    })
-  })
-.then(()=>{
-    const API = api
-    multicastClient.init()
-    createWindow()
-})
 
 app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
     // On certificate error we disable default behaviour (stop loading the page)and we then say "it is all fine - true" to the callback
@@ -106,6 +88,30 @@ app.on('activate', () => {
     }
 })
 
+app.whenReady()
+.then( () => {
+    // trying to catch some keyboard shortcuts here
+    globalShortcut.register('Alt+CommandOrControl+I', () => {
+        console.log('Electron loves global shortcuts!')
+        return false
+    })
+    globalShortcut.register('CommandOrControl+P', () => {
+        console.log('Electron loves global shortcuts!')
+        return false
+    })
+  })
+.then(()=>{
+    server.listen(config.clientApiPort, () => {  
+        console.log(`Express listening on https://${config.hostip}:${config.clientApiPort}`)
+        console.log(`Vite-vue listening on http://${config.hostip}:${config.clientVitePort}`)
+    })
+    multicastClient.init()
+    createWindow()
+})
+
+  ////////////////////////////////
+ // APP handling (Backend) END
+////////////////////////////////
 
 
 
@@ -125,14 +131,11 @@ app.on('activate', () => {
 
 
 
-import eurl from "url"
 
 
-
-
-  ///////////////////////////////////////////////////
- // Window handling (ipcRenderer Process - Frontend)
-/////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////
+ // Window handling (ipcRenderer Process - Frontend) START
+////////////////////////////////////////////////////////////
 
 let newwin: BrowserWindow | null = null
 
@@ -150,15 +153,13 @@ function newWin(examtype, token) {
             preload: join(__dirname, '../preload/preload.cjs'),
          },
     });
-    let url = ""
    
-    if (examtype === "eduvidual"){ 
-        url ='https://eduvidual.at'  
+    if (examtype === "eduvidual"){    //external page
+        let url ='https://eduvidual.at'  
         newwin.loadURL(url)
     }
     else { 
-        url = examtype   // editor || math || tbd.
-        
+        let url = examtype   // editor || math || tbd.
         if (app.isPackaged) {
             let path = join(__dirname, `../renderer/index.html`)
             newwin.loadFile(path, {hash: `#/${url}/${token}`})
@@ -168,7 +169,6 @@ function newWin(examtype, token) {
             newwin.loadURL(url)
         }
     }
-
     newwin.webContents.openDevTools() 
     newwin.removeMenu() 
     newwin.once('ready-to-show', () => {
@@ -176,8 +176,6 @@ function newWin(examtype, token) {
         newwin?.moveTop();
         newwin?.focus();
     })
-  
- 
 }
 
 
@@ -256,30 +254,31 @@ async function createWindow() {
         }
     });
 }
+  ////////////////////////////////////////////////////////////
+ // Window handling (ipcRenderer Process - Frontend) END
+////////////////////////////////////////////////////////////
 
+
+
+
+
+
+
+
+
+
+
+  //////////////////////////////////////////////////////////////
+ // Functions - Student UPDATE handler - Exam handlers  START
+///////////////////////////////////////////////////////////////
+
+
+const updateStudentIntervall = setInterval(() => { sendBeacon() }, 5000)
 
 
 ipcMain.on("save", () =>  {
     win?.webContents.send('save');
 }); 
-
-
-
-
-
-
-
-
-
-
-  //////////////////////////////////////////////////////
- // Functions - Student UPDATE handler - Exam handlers 
-///////////////////////////////////////////////////////
-
-
-
-const updateStudentIntervall = setInterval(() => { sendBeacon() }, 5000)
-
 
 
 /** 
@@ -325,10 +324,11 @@ function sendBeacon(){
                     multicastClient.beaconsLost = 0 
                     let serverStatusObject = response.data.data
 
-                    /////////////////////////
-                    //react to server status 
-                    /////////////////////////
-
+                    /**
+                     * react to server status 
+                     * this currently only handle startexam & endexam
+                     * could also handle kick, focusrestore, and even trigger file requests
+                     */
                     if (serverStatusObject.exammode && !multicastClient.clientinfo.exammode){ 
                         startExam(serverStatusObject)
                     }
@@ -363,8 +363,13 @@ function sendBeacon(){
 
 
 
-
-
+/**
+ * Starts exam mode for student
+ * deletes workfolder contents (if set)
+ * opens a new window in kiosk mode with the given examtype
+ * enables the blur listener and activates restrictions (disable keyboarshortcuts etc.)
+ * @param serverstatus contains information about exammode, examtype, and other settings from the teacher instance
+ */
 function startExam(serverstatus){
     if (serverstatus.delfolder === true){
         console.log("cleaning exam workfolder")
@@ -374,24 +379,18 @@ function startExam(serverstatus){
         }
     }
 
-    // if (examtype === "eduvidual") {    // we are going to move all examtypes to the newWin method
-        newWin(serverstatus.examtype, multicastClient.clientinfo.token);
-        newwin?.setKiosk(true)
-        enableRestrictions(newwin)
-    // }
-    // else {
-    //     enableRestrictions(win)
-    //     win?.setKiosk(true)
-    //     win?.minimize()
-    //     win?.focus()
-    //     win?.webContents.send('exam', token, examtype);
-    //     win?.addListener('blur', blurevent)  // send blurevent on blur
-    // } 
-
+    newWin(serverstatus.examtype, multicastClient.clientinfo.token);
+    newwin?.setKiosk(true)
+    enableRestrictions(newwin)
+    newwin?.addListener('blur', blurevent)
     multicastClient.clientinfo.exammode = true
 }
 
-
+/**
+ * Disables Exam mode
+ * closes exam window
+ * disables restrictions and blur 
+ */
 function endExam(){
     //handle eduvidual case
     if (newwin){ 
@@ -403,7 +402,7 @@ function endExam(){
     disableRestrictions()
     win?.setKiosk(false)
     win?.removeListener('blur', blurevent)  // do not send blurevent on blur
-    win?.webContents.send('endexam');
+   // win?.webContents.send('endexam');
 
     multicastClient.clientinfo.exammode = false
     multicastClient.clientinfo.focus = true

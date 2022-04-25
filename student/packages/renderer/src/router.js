@@ -50,7 +50,7 @@ const routes = [
 
 
 function addParams(to){
-     to.params.version = config.version
+    to.params.version = config.version
     to.params.serverApiPort = config.serverApiPort 
     to.params.clientApiPort = config.clientApiPort
     to.params.electron = electron
@@ -85,5 +85,5 @@ async function checkToken(to, from){
 
 
 export function createRouter() {
-  return _createRouter({ history:  createWebHashHistory(),  routes })   // use appropriate history implementation for server/client // import.meta.env.SSR is injected by Vite.
+    return _createRouter({ history:  createWebHashHistory(),  routes })   // use appropriate history implementation for server/client // import.meta.env.SSR is injected by Vite.
 }

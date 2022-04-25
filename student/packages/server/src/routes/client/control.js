@@ -22,8 +22,6 @@ import multiCastclient from '../../classes/multicastclient.js'
 import axios from 'axios'
 import nodenotify  from 'node-notifier'
 import ip from 'ip'
-import { ipcRenderer } from 'electron'  // we use this to talk to the electron ipcMain process (send signals)
-import fs from 'fs' 
 
 // the moment i import this here i create some sort of racecondition (reloading the page helps to overcome the error and it works in the final build)
 import i18n from '../../../../renderer/src/locales/locales.js'
@@ -52,7 +50,7 @@ router.get('/focus/:token/:state', function (req, res, next) {
             multiCastclient.clientinfo.focus = false
         }  
         else {
-          multiCastclient.clientinfo.focus = true
+            multiCastclient.clientinfo.focus = true
         }
         res.json({ sender: "client",message:t("control.statechange"), status:"success" })
     }

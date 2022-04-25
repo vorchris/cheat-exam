@@ -25,7 +25,7 @@ import FormData from 'form-data/lib/form_data.js'
 import archiver from 'archiver'
 import fs from 'fs' 
 import axios from "axios"
-import { ipcRenderer } from 'electron'  // we use this to talk to the electron ipcMain process (send signals)
+import { ipcMain} from 'electron'  // we use this to talk to the electron ipcMain process (send signals)
 import fsExtra from "fs-extra"
 import i18n from '../../../../renderer/src/locales/locales.js'
 const { t } = i18n.global
@@ -46,7 +46,7 @@ const { t } = i18n.global
         console.log(`token checked - preparing file to send to server: ${serverip}`)
 
         //save trigger
-        ipcRenderer.send('save')
+        ipcMain.send('save')
         await sleep(1000)  // wait one second before zipping workdirectory (give save some time - unfortunately we have no way to wait for save - we could check the filetime in a "while loop" though)
 
 
