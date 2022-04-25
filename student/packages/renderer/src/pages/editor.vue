@@ -11,7 +11,6 @@
             <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style=" float: left;" />
              <span class="fs-4 align-middle me-1" style=" float: left;"> {{clientname}} </span>
              <span class="fs-4 align-middle me-4 red" style="float: left;"> | {{ $t("student.disconnected") }} </span>  
-            <button style="float: left;" @click="exit()" class="btn btn-outline-warning ">{{$t('editor.exit')}} </button>
         </div>
 
         <span class="fs-4 align-middle" style="">{{servername}}</span>
@@ -154,18 +153,12 @@ export default {
             serverApiPort: this.$route.params.serverApiPort,
             clientApiPort: this.$route.params.clientApiPort,
             electron: this.$route.params.electron,
-          
-            blurEvent : null,
-            endExamEvent: null,
             clientinfo: null,
             entrytime: 0,
             timesinceentry: 0
         }
     },
     methods: {
-        exit(){
-             ipcRenderer.send('endexam')
-        }, 
         clock(){
             let now = new Date().getTime()
             this.timesinceentry =  new Date(now - this.entrytime).toISOString().substr(11, 8)
@@ -186,7 +179,6 @@ export default {
             .catch( err => {console.log(err)});
 
 
-            //if(this.virtualized){this.informTeacher('virtualized') }
 
         }, 
         loadFilelist(){
@@ -433,9 +425,6 @@ ENDE !!`,
         this.loadFilelist()
     },
     beforeUnmount() {
-        //remove electron ipcRender events
-        if (this.endExamEvent){ this.endExamEvent.removeAllListeners('endexam')  } //remove endExam listener from window
-      
         this.editor.destroy()
         clearInterval( this.saveinterval )
         clearInterval( this.loadfilelistinterval )

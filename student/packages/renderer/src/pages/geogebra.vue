@@ -11,7 +11,6 @@
             <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style=" float: left;" />
              <span class="fs-4 align-middle me-1" style=" float: left;"> {{clientname}} </span>
              <span class="fs-4 align-middle me-4 red" style="float: left;"> | {{ $t("student.disconnected") }} </span>  
-            <button style="float: left;" @click="exit()" class="btn btn-outline-warning ">{{$t('math.exit')}} </button>
         </div>
 
         <!-- filelist start - show local files from workfolder (pdf only)-->
@@ -78,8 +77,6 @@ export default {
             geogebrasource: "",
             electron: this.$route.params.electron,
           
-            blurEvent : null,
-            endExamEvent: null,
             clientinfo: null,
             entrytime: 0,
             timesinceentry: 0,
@@ -189,9 +186,6 @@ export default {
         clearInterval( this.fetchinfointerval )
         clearInterval( this.clockinterval )
         clearInterval( this.loadfilelistinterval )
-
-        //remove electron ipcRender events
-        this.endExamEvent.removeAllListeners('endexam')   //remove endExam listener from window
     },
 }
 </script>

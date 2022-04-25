@@ -52,8 +52,6 @@ import fs from 'fs'
             return res.send( {sender: "server", message: t("control.serverexistsLAN"), status: "error"})
         }
      }
-
-
     
     console.log('Initializing new Exam Server')
     let mcs = new multiCastserver();
@@ -188,42 +186,36 @@ router.get('/serverlist', function (req, res, next) {
     const version = req.params.version
     const servername = req.params.servername
     const token = `csrf-${v4()}`
-
     const mcServer = config.examServerList[servername] // get the multicastserver object
+    
     if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
     if (version !== config.version ) {  return res.send({sender: "server", message:t("control.versionmismatch"), status: "error"} )  }  
-
     if (pin === mcServer.serverinfo.pin) {
         let registeredClient = mcServer.studentList.find(element => element.clientname === clientname)
 
         if (!registeredClient) {   // create client object
-        console.log('adding new client')
-        const client = {   
-            clientname: clientname,
-            token: token,
-            clientip: clientip,
-            timestamp: new Date().getTime(),
-            focus: true,
-            exammode: false,
-            imageurl:false,
-            virtualized: false
-        }
+            console.log('adding new client')
+            const client = {    // we have a different representation of the clientobject on the server than on the client - why exactly? we could just send the whole client object via POST (as we already do in /update route )
+                clientname: clientname,
+                token: token,
+                clientip: clientip,
+                timestamp: new Date().getTime(),
+                focus: true,
+                exammode: false,
+                imageurl:false,
+                virtualized: false
+            }
+            //create folder for student
+            let studentfolder =path.join(config.workdirectory, mcServer.serverinfo.servername , clientname);
+            if (!fs.existsSync(studentfolder)){ fs.mkdirSync(studentfolder, { recursive: true }); }
+            if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory, { recursive: true }); }
 
-        console.log(mcServer.serverinfo)
-
-        //create folder for student
-        let studentfolder =path.join(config.workdirectory, mcServer.serverinfo.servername , clientname);
-        if (!fs.existsSync(studentfolder)){ fs.mkdirSync(studentfolder, { recursive: true }); }
-        if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory, { recursive: true }); }
-
-
-        mcServer.studentList.push(client)
-        return res.json({sender: "server", message:t("control.registered"), status: "success", token: token})  // on success return client token (auth needed for server api)
+            mcServer.studentList.push(client)
+            return res.json({sender: "server", message:t("control.registered"), status: "success", token: token})  // on success return client token (auth needed for server api)
         }
         else {
-        return res.json({sender: "server", message:t("control.alreadyregistered"), status: "error"})
+            return res.json({sender: "server", message:t("control.alreadyregistered"), status: "error"})
         }
-    
     }
     else {
         res.json({sender: "server", message:t("control.wrongpin"), status: "error"})
@@ -240,7 +232,6 @@ router.get('/serverlist', function (req, res, next) {
  * @param studenttoken the students token who should be kicked
  */
  router.get('/kick/:servername/:csrfservertoken/:studenttoken', function (req, res, next) {
-  
     const servername = req.params.servername
     const servertoken = req.params.csrfservertoken
     const studenttoken = req.params.studenttoken
@@ -250,14 +241,11 @@ router.get('/serverlist', function (req, res, next) {
     if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {
         let registeredClient = mcServer.studentList.find(element => element.token === studenttoken)
         if (registeredClient) {
-        
-        mcServer.studentList = mcServer.studentList.filter( el => el.token !==  studenttoken);
+            mcServer.studentList = mcServer.studentList.filter( el => el.token !==  studenttoken);  // remove client from studentlist
         }
-
         res.send( {sender: "server", message: t("control.studentremove"), status: "success"} )
     }
     else {
-
         res.send( {sender: "server", message: t("control.actiondenied"), status: "error"} )
     }
 })
@@ -306,49 +294,15 @@ router.get('/serverlist', function (req, res, next) {
         }
     }
     
+    // we have a different representation of the clientobject on the server than on the client
+    console.log(clientinfo)
     registeredClient.focus = clientinfo.focus
-    registeredClient.timestamp = new Date().getTime()
+    registeredClient.virtualized = clientinfo.virtualized
+    registeredClient.timestamp = new Date().getTime()   //last seen 
     registeredClient.exammode = exammode  
     registeredClient.imageurl = `https://${config.hostip}:${config.serverApiPort}/${token}.jpg?ver=${registeredClient.timestamp}`
     
     res.send({sender: "server", message:t("control.studentupdate"), status:"success", data: mcServer.serverStatusObject })
-})
-
-
-
-/**
- * updates the studentlist entry
- * sets FOCUS state 
- * @param servername the name of the server at which the student is registered
- * @param token the students token to search and update the entry in the list
- * @param state focused or unfocused that is the question
- */
- router.get('/studentlist/statechange/:servername/:token/:state', function (req, res, next) {
-    const token = req.params.token
-    const servername = req.params.servername
-    const mcServer = config.examServerList[servername]
-    const state = req.params.state
-
-    if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
-    if ( !checkToken(token, mcServer) ) { return res.json({ sender: "server", message:t("control.tokennotvalid"), status: "error" }) } //check if the student is registered on this server
-
-    let registeredClient = mcServer.studentList.find(element => element.token === token)
-    
-//the whole thing should be obsolete...  change virtualized on client side before update on server 
-// serever gets all this information from every update cycle
-
-    if (state === "false"){
-        registeredClient.focus = false;
-        return res.json({ sender: "server", message:t("control.studentleft"), status: "success" })
-    }
-    else if (state === "true"){
-        registeredClient.focus = true;
-        return res.json({ sender: "server", message:t("control.staterestore"), status: "success" })
-    }
-    else if (state === "virtualized"){
-        registeredClient.virtualized = true;
-        return res.json({ sender: "server", message:t("control.virtualized"), status: "success" })
-    }
 })
 
 
@@ -368,14 +322,11 @@ router.get('/serverlist', function (req, res, next) {
     const servername = req.params.servername
     const mcServer = config.examServerList[servername]
 
-    
     if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
     if (csrfservertoken !== mcServer.serverinfo.servertoken) { res.send({sender: "server", message:t("control.tokennotvalid"), status: "error"} )}
 
-
     mcServer.serverStatusObject = req.body   // contains the current status (exammode, examtype, delfolder)  // autoabgabe, fetch/send file etc. in the future
     res.json({ sender: "server", message:t("general.ok"), status: "success" })
-   
 })
 
 
@@ -390,6 +341,7 @@ export default router
 
 
 /**
+ * Should be used before processing API requests that come from external sources
  * Checks if the student that sent the request has a valid token (is registered) on the server
  * in order to process api request
  */

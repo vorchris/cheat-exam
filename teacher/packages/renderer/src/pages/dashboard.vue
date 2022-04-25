@@ -108,8 +108,8 @@
 
      <!-- exam & studentlist start -->
     <div id="content" class="fadeinslow p-3">
-        <div v-if="(!exammode)" class="btn btn-success m-1 text-start ms-0" style="width:204px;"  @click="startExam()">{{$t('dashboard.startexam')}}</div>
-        <div v-if="(exammode)" class="btn btn-danger m-1 text-start ms-0 " style="width:204px;" @click="endExam()" >{{$t('dashboard.stopexam')}}</div>
+        <div v-if="(!exammode)" class="btn btn-success m-1 text-start ms-0" style="width:100px;"  @click="startExam()">{{$t('dashboard.startexam')}}</div>
+        <div v-if="(exammode)" class="btn btn-danger m-1 text-start ms-0 " style="width:100px;" @click="endExam()" >{{$t('dashboard.stopexam')}}</div>
         <div class="btn btn-info m-1 text-start ms-0 " style="width:100px;" @click="sendFiles('all')">{{$t('dashboard.sendfile')}}</div>
         <div class="btn btn-info m-1 text-start ms-0 " style="width:100px;" @click="getFiles('all')">{{$t('dashboard.getfile')}}</div>
         <div class="col d-inlineblock btn btn-dark m-1 ms-0 " @click="loadFilelist(workdirectory)"  style="width: 100px; ">{{$t('dashboard.showworkfolder')}} </div>

@@ -20,7 +20,7 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow, shell, ipcMain, ipcRenderer, screen, globalShortcut, TouchBar, dialog } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, screen, globalShortcut, TouchBar, dialog } from 'electron'
 import { release } from 'os'
 import { join } from 'path'
 import {enableRestrictions, disableRestrictions} from './scripts/platformrestrictions.js';
@@ -107,6 +107,10 @@ app.whenReady()
     })
     multicastClient.init()
     createWindow()
+   
+   
+
+    
 })
 
   ////////////////////////////////
@@ -149,6 +153,7 @@ function newWin(examtype, token) {
         height: 600,
         closable: false,
         alwaysOnTop: true,
+        show: false,
         icon: join(__dirname, '../../public/icons/icon.png'),
         webPreferences: {
             preload: join(__dirname, '../preload/preload.cjs'),
@@ -273,17 +278,30 @@ async function createWindow() {
  // Functions - Student UPDATE handler - Exam handlers  START
 ///////////////////////////////////////////////////////////////
 
+ipcMain.on('virtualized', () => {  multicastClient.clientinfo.virtualized = true; } )
+
 
 const updateStudentIntervall = setInterval(() => { sendBeacon() }, 5000)
-
-
-
-
 
 /** 
  * sends heartbeat to registered server and updates screenshot on server 
  */
 function sendBeacon(){
+
+
+    if (multicastClient.beaconsLost >= 4){ //remove server registration locally (same as 'kick')
+        console.log("Connection to Teacher lost! Removing registration.")
+        multicastClient.beaconsLost = 0
+    
+        for (const [key, value] of Object.entries(multicastClient.clientinfo)) {
+            multicastClient.clientinfo[key] = false
+        }
+        multicastClient.clientinfo.focus = true // this needs to be set to true otherwise it will immediately warn on reconnect
+
+        gracefullyEndExam()  // this should end kiosk mode, the blur listener and all (keyboard) restrictions
+    }
+
+
     //check if server connected - get ip
     if (multicastClient.clientinfo.serverip) {
     
@@ -300,8 +318,6 @@ function sendBeacon(){
             else {
                 formData.append(screenshotfilename, img, screenshotfilename );
             }
-            //update timestamp
-            multicastClient.clientinfo.timestamp =  new Date().getTime()
             formData.append('clientinfo', JSON.stringify(multicastClient.clientinfo) );
 
             //post to /studentlist/update/:token
@@ -314,51 +330,41 @@ function sendBeacon(){
             .then( response => {
                 //console.log(`MulticastClient: ${response.data.message}`)
                 if (response.data && response.data.status === "error") { 
-                    if(response.data.message === "notavailable"){ multicastClient.beaconsLost = 4} //server responded but exam is not available anymore (teacher removed it)
-                    multicastClient.beaconsLost += 1; 
-                    console.log("beacon lost..") 
+                    if(response.data.message === "notavailable"){ console.log('Exam instance not found'); multicastClient.beaconsLost = 4} //server responded but exam is not available anymore (teacher removed it)
+                    else { multicastClient.beaconsLost += 1;  console.log("beacon lost..") }
                 }
 
-                if (response.data && response.data.status === "success") { 
+                else if (response.data && response.data.status === "success") { 
                     multicastClient.beaconsLost = 0 
-                    let serverStatusObject = response.data.data
-
-                    /**
-                     * react to server status 
-                     * this currently only handle startexam & endexam
-                     * could also handle kick, focusrestore, and even trigger file requests
-                     */
-                    if (serverStatusObject.exammode && !multicastClient.clientinfo.exammode){ 
-                        startExam(serverStatusObject)
-                    }
-                    else if (!serverStatusObject.exammode && multicastClient.clientinfo.exammode){
-                        endExam()
-                    }
+                    processUpdatedServerstatus(response.data.data)
                 }
             })
             .catch(error => {
-                console.log(`MulticastClient: ${error}`) 
+                console.log(`MulticastClient Axios: ${error}`) 
                 multicastClient.beaconsLost += 1; console.log("beacon lost..")
-            });  //on kick there is a racecondition that leads to a failed fetch here because values are already "false"
-
-
-            if (multicastClient.beaconsLost >= 4){ //remove server registration
-                console.log("Connection to Teacher lost! Removing registration.")
-                multicastClient.beaconsLost = 0
-                multicastClient.clientinfo.serverip = false
-                multicastClient.clientinfo.servername = false
-                multicastClient.clientinfo.token = false
-                // for (const [key, value] of Object.entries(this.clientinfo)) {
-                //     this.clientinfo[key] = false   
-                // }
-            }
-
+            });
         })
         .catch((err) => {
-            console.log(`MulticastClient: ${err}`)
+            console.log(`MulticastClient Screenshot: ${err}`)
         });
     }
 }
+
+
+/**
+ * react to server status 
+ * this currently only handle startexam & endexam
+ * could also handle kick, focusrestore, and even trigger file requests
+ */
+function processUpdatedServerstatus(serverStatusObject){
+    if (serverStatusObject.exammode && !multicastClient.clientinfo.exammode){ 
+        startExam(serverStatusObject)
+    }
+    else if (!serverStatusObject.exammode && multicastClient.clientinfo.exammode){
+        endExam()
+    }
+}
+
 
 
 
@@ -399,14 +405,21 @@ function endExam(){
     }
 
     disableRestrictions()
-    win?.setKiosk(false)
-    win?.removeListener('blur', blurevent)  // do not send blurevent on blur
-   // win?.webContents.send('endexam');
 
     multicastClient.clientinfo.exammode = false
     multicastClient.clientinfo.focus = true
 }
 
+
+function gracefullyEndExam(){
+    if (newwin){ 
+        newwin.setKiosk(false)
+        newwin.removeListener('blur', blurevent)  // do not send blurevent on blur
+        multicastClient.clientinfo.focus = true
+        multicastClient.clientinfo.exammode = false
+        disableRestrictions()
+    }
+}
 
 const blurevent = () => { 
     win?.show();  // we keep focus on the window.. no matter what

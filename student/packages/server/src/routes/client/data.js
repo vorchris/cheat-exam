@@ -45,15 +45,12 @@ const { t } = i18n.global
     else {
         console.log(`token checked - preparing file to send to server: ${serverip}`)
 
-        //save trigger
+        //send save trigger to exam window
         let windows  = BrowserWindow.getAllWindows()
         for (let win of windows){
             win.webContents.send('save')
-        }
-        //console.log(windows[0].title)
-        //examwindow.executeJavaScript('saveContent()');
-        
-
+        }    
+        // give it some time
         await sleep(1000)  // wait one second before zipping workdirectory (give save some time - unfortunately we have no way to wait for save - we could check the filetime in a "while loop" though)
 
         //zip config.work directory

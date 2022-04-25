@@ -112,8 +112,9 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
   const token = req.params.token
   if ( checkToken(token) ) {
     for (const [key, value] of Object.entries(multiCastclient.clientinfo)) {
-        multiCastclient.clientinfo[key] = false   
+        multiCastclient.clientinfo[key] = false
     }
+    multiCastclient.clientinfo.focus = true // this needs to be set to true otherwise it will immediately warn on reconnect
     showOSD("Kicked by Server!")
     res.json({ sender: "client", message : t("control.clientunsubscribe"), status: "success" })
   }

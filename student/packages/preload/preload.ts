@@ -28,10 +28,9 @@ import config from '../server/src/config.js';
 import screenshot from 'screenshot-desktop';
 
 
-// how does this work with api and everything in backend? re check it !!
-import virtual from './scripts/simplevmdetect.js';
-config.virtualized = virtual
-
+// has to run in frontend (since we create a webgl insance) > inform backend (mulitcastClient.clientinfo)
+import virtualized from './scripts/simplevmdetect.js';
+if (virtualized){ipcRenderer.send('virtualized')}
 
 
 
