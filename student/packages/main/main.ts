@@ -148,7 +148,7 @@ function newWin(examtype, token) {
         title: 'Exam',
         width: 800,
         height: 600,
-        closable: false,
+        //closable: false,
         alwaysOnTop: true,
         show: false,
         icon: join(__dirname, '../../public/icons/icon.png'),
