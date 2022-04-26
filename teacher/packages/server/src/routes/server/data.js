@@ -25,7 +25,8 @@ import extract from 'extract-zip'
 import i18n from '../../../../renderer/src/locales/locales.js'
 const { t } = i18n.global
 import archiver from 'archiver'
-
+import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied version otherwise we get 1000 sourcemap warnings
+ 
 
 
 
@@ -65,9 +66,6 @@ import archiver from 'archiver'
  * This API Route creates a list of the latest pdf filepaths of all connected students
  * and concats each of the pdfs to one
  */ 
-
- import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied version otherwise we get 1000 sourcemap warnings
- 
  router.post('/getlatest/:servername/:token', async function (req, res, next) {
     const token = req.params.token
     const servername = req.params.servername

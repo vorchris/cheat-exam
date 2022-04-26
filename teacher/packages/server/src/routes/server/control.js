@@ -294,8 +294,7 @@ router.get('/serverlist', function (req, res, next) {
         }
     }
     
-    // we have a different representation of the clientobject on the server than on the client
-    console.log(clientinfo)
+    // we have a different representation of the clientobject on the server than on the client - whytf?
     registeredClient.focus = clientinfo.focus
     registeredClient.virtualized = clientinfo.virtualized
     registeredClient.timestamp = new Date().getTime()   //last seen 

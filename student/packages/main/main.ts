@@ -283,28 +283,33 @@ ipcMain.on('virtualized', () => {  multicastClient.clientinfo.virtualized = true
 
 const updateStudentIntervall = setInterval(() => { sendBeacon() }, 5000)
 
+function resetConnection(){
+    //multicastClient.clientinfo.name= "DemoUser"  // keep name on disconnect (looks weird in edtior or geogebra)
+    multicastClient.clientinfo.token= false
+    multicastClient.clientinfo.ip= false
+    multicastClient.clientinfo.serverip= false
+    multicastClient.clientinfo.servername= false
+    multicastClient.clientinfo.focus= true  // we are focused 
+    multicastClient.clientinfo.exammode= false
+    multicastClient.clientinfo.timestamp= false
+    multicastClient.clientinfo.virtualized= false  
+}
+
+
+
+
 /** 
  * sends heartbeat to registered server and updates screenshot on server 
  */
 function sendBeacon(){
-
-
     if (multicastClient.beaconsLost >= 4){ //remove server registration locally (same as 'kick')
         console.log("Connection to Teacher lost! Removing registration.")
         multicastClient.beaconsLost = 0
-    
-        for (const [key, value] of Object.entries(multicastClient.clientinfo)) {
-            multicastClient.clientinfo[key] = false
-        }
-        multicastClient.clientinfo.focus = true // this needs to be set to true otherwise it will immediately warn on reconnect
-
-        gracefullyEndExam()  // this should end kiosk mode, the blur listener and all (keyboard) restrictions
+        resetConnection()
+        gracefullyEndExam()  // this should end kiosk mode, the blur listener and all (keyboard) restrictions but not kill the window
     }
 
-
-    //check if server connected - get ip
-    if (multicastClient.clientinfo.serverip) {
-    
+    if (multicastClient.clientinfo.serverip) {  //check if server connected - get ip
         //create screenshot
         screenshot().then(async (img) => {
             let screenshotfilename = multicastClient.clientinfo.token +".jpg"
@@ -320,7 +325,7 @@ function sendBeacon(){
             }
             formData.append('clientinfo', JSON.stringify(multicastClient.clientinfo) );
 
-            //post to /studentlist/update/:token
+            //post to /studentlist/update/:token - send update and fetch server status
             axios({
                 method: "post", 
                 url: `https://${multicastClient.clientinfo.serverip}:${config.serverApiPort}/server/control/studentlist/update`, 
@@ -333,7 +338,6 @@ function sendBeacon(){
                     if(response.data.message === "notavailable"){ console.log('Exam instance not found'); multicastClient.beaconsLost = 4} //server responded but exam is not available anymore (teacher removed it)
                     else { multicastClient.beaconsLost += 1;  console.log("beacon lost..") }
                 }
-
                 else if (response.data && response.data.status === "success") { 
                     multicastClient.beaconsLost = 0 
                     processUpdatedServerstatus(response.data.data)
@@ -383,8 +387,9 @@ function startExam(serverstatus){
             fs.mkdirSync(config.workdirectory);
         }
     }
-
-    newWin(serverstatus.examtype, multicastClient.clientinfo.token);
+    if (!newwin){  // why do we check? because exammode is left if the server connection gets lost but students could reconnect while the exam window is still open
+        newWin(serverstatus.examtype, multicastClient.clientinfo.token);
+    }
     newwin?.setKiosk(true)
     enableRestrictions(newwin)
     newwin?.addListener('blur', blurevent)
@@ -403,9 +408,7 @@ function endExam(){
         newwin.destroy(); 
         newwin = null;
     }
-
     disableRestrictions()
-
     multicastClient.clientinfo.exammode = false
     multicastClient.clientinfo.focus = true
 }
