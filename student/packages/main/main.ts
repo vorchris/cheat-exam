@@ -143,12 +143,12 @@ let newwin: BrowserWindow | null = null
 function newWin(examtype, token) {
     newwin = new BrowserWindow({
         parent: win,
-        modal: true,
+        //modal: true,  // this blocks the main window on windows while the exam window is open
         skipTaskbar:true,
         title: 'Exam',
         width: 800,
         height: 600,
-        //closable: false,
+        closable: false,
         alwaysOnTop: true,
         show: false,
         icon: join(__dirname, '../../public/icons/icon.png'),
