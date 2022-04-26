@@ -1,7 +1,8 @@
-import { v4 } from 'uuid'
+
 import { createSocket } from 'dgram'
 import config from '../config.js'
 import ip from 'ip'
+import crypto from 'crypto';
 
 /**
  * Starts a dgram (udp) socket that broadcasts information about this server
@@ -46,9 +47,9 @@ class MulticastServer {
             pin: pin,
             password: password,
             timestamp: 0,
-            id: v4(),
+            id:crypto.randomUUID(),
             ip: ip.address(),
-            servertoken: `server-${v4()}`
+            servertoken: `server-${crypto.randomUUID()}`
         }
         return message
     }

@@ -23,6 +23,8 @@ import { app, BrowserWindow, shell, ipcMain, dialog  } from 'electron'
 import { release } from 'os'
 import { join } from 'path'
 import config from '../server/src/config.js';
+import server from "../server/src/server.js"
+import multicastClient from '../server/src/classes/multicastclient.js'
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -94,7 +96,6 @@ async function createWindow() {
      });
 }
 
-app.whenReady().then(createWindow)
 
 // SSL/TSL: this is the self signed certificate support
 app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
@@ -126,4 +127,16 @@ app.on('activate', () => {
     } else {
         createWindow()
     }
+})
+
+app.whenReady().then(()=>{
+ 
+    server.listen(config.serverApiPort, () => {  
+        console.log(`Express listening on https://${config.hostip}:${config.serverApiPort}`)
+        console.log(`Vite-vue listening on http://${config.hostip}:${config.serverVitePort}`)
+    })
+    
+
+    multicastClient.init()
+    createWindow()
 })

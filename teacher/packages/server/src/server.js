@@ -37,7 +37,6 @@ if (!fs.existsSync(config.workdirectory)){ fs.mkdirSync(config.workdirectory); }
 if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory); }
 
 
-multicastClient.init()
 
 config.hostip = ip.address()  // config is exposed to electron-vue app via context bridge so we can use it in the frontend
 if (typeof window !== 'undefined'){
@@ -80,10 +79,6 @@ var options = {
 
 const server = https.createServer(options, api);
 
-server.listen(config.serverApiPort, () => {  
-    console.log(`Express listening on https://${config.hostip}:${config.serverApiPort}`)
-    console.log(`Vite-vue listening on http://${config.hostip}:${config.serverVitePort}`)
-})
 
 
 export default server;

@@ -19,7 +19,7 @@ import { Router } from 'express'
 const router = Router()
 import multiCastserver from '../../classes/multicastserver.js'
 import multiCastclient from '../../classes/multicastclient.js'
-import { v4 } from 'uuid'
+import crypto from 'crypto';
 import config from '../../config.js'
 import path from 'path'
 import i18n from '../../../../renderer/src/locales/locales.js'
@@ -185,7 +185,7 @@ router.get('/serverlist', function (req, res, next) {
     const pin = req.params.pin
     const version = req.params.version
     const servername = req.params.servername
-    const token = `csrf-${v4()}`
+    const token = `csrf-${crypto.randomUUID()}`
     const mcServer = config.examServerList[servername] // get the multicastserver object
     
     if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }

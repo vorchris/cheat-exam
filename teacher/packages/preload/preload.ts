@@ -22,7 +22,6 @@
 
 import fs from 'fs'
 import { contextBridge, ipcRenderer } from 'electron'
-import api from "../server/src/server.js"
 import config from "../server/src/config.js"
 
 
@@ -50,7 +49,6 @@ function domReady(condition: DocumentReadyState[] = ['complete', 'interactive'])
 // --------- Expose some API to the Renderer process. ---------
 contextBridge.exposeInMainWorld('fs', fs)
 contextBridge.exposeInMainWorld('ipcRenderer', withPrototype(ipcRenderer))
-contextBridge.exposeInMainWorld('api', api)   // this finally runs the express API in electron (and exposes it)
 contextBridge.exposeInMainWorld('config', config )  // expose configuration (readonly) to the renderer (frontend)
 
 
