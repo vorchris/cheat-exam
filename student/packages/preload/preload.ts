@@ -24,16 +24,11 @@
 
 import fs from 'fs'
 import { contextBridge, ipcRenderer } from 'electron'
-
 import screenshot from 'screenshot-desktop';
+import virtualized from './scripts/simplevmdetect.js';  // has to run in frontend (since we create a webgl insance) > inform backend (mulitcastClient.clientinfo)
 
-
-// has to run in frontend (since we create a webgl insance) > inform backend (mulitcastClient.clientinfo)
-import virtualized from './scripts/simplevmdetect.js';
 if (virtualized){ipcRenderer.send('virtualized')}
-
 let config = ipcRenderer.sendSync('getconfig')  // we need to fetch the updated version of the systemconfig from express api (server.js)
-
 
 /** document ready */
 function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {

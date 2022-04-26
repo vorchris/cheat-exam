@@ -46,24 +46,16 @@ const { t } = i18n.global
         console.log(`token checked - preparing file to send to server: ${serverip}`)
 
         //send save trigger to exam window
-
-
-        
         let windows  = BrowserWindow.getAllWindows()
         for (let win of windows){
             win.webContents.send('save')
         } 
-        
-        
-
-
-
         // give it some time
         await sleep(1000)  // wait one second before zipping workdirectory (give save some time - unfortunately we have no way to wait for save - we could check the filetime in a "while loop" though)
 
         //zip config.work directory
         if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory); }
-        fsExtra.emptyDirSync(config.tempdirectory)
+        //fsExtra.emptyDirSync(config.tempdirectory)
         let zipfilename = multiCastclient.clientinfo.name.concat('.zip')
        
 

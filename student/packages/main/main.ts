@@ -31,6 +31,7 @@ import multicastClient from '../server/src/classes/multicastclient.js'
 import screenshot from 'screenshot-desktop'
 import FormData from 'form-data/lib/form_data.js';     //we need to import the file directly otherwise it will introduce a "window" variable in the backend and fail
 import fs from 'fs' 
+import crypto from 'crypto';
 
 
 
@@ -270,15 +271,23 @@ async function createWindow() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
   //////////////////////////////////////////////////////////////
  // Functions - Student UPDATE handler - Exam handlers  START
 ///////////////////////////////////////////////////////////////
 
 ipcMain.on('virtualized', () => {  multicastClient.clientinfo.virtualized = true; } )
-
 ipcMain.on('getconfig', (event) => {   event.returnValue = config   })
-
-
 
 
 const updateStudentIntervall = setInterval(() => { sendBeacon() }, 5000)
@@ -294,9 +303,6 @@ function resetConnection(){
     multicastClient.clientinfo.timestamp = false
     multicastClient.clientinfo.virtualized = false  
 }
-
-
-
 
 /** 
  * sends heartbeat to registered server and updates screenshot on server 
@@ -319,6 +325,11 @@ function sendBeacon(){
                 img =  new Blob( [ new Uint8Array(img).buffer], { type: 'image/jpeg' })   
             }
             formData.append(screenshotfilename, img, screenshotfilename );
+
+            let hash = crypto.createHash('md5').update(img).digest("hex");
+            formData.append('screenshothash', hash);
+            formData.append('screenshotfilename', screenshotfilename);
+
             axios({    //post to /studentlist/update/:token - send update and fetch server status
                 method: "post", 
                 url: `https://${multicastClient.clientinfo.serverip}:${config.serverApiPort}/server/control/update`, 
@@ -327,7 +338,7 @@ function sendBeacon(){
             })
             .then( response => {
                 if (response.data && response.data.status === "error") { 
-                    if(response.data.message === "notavailable"){ console.log('Exam instance not found'); multicastClient.beaconsLost = 4} //server responded but exam is not available anymore (teacher removed it)
+                    if(response.data.message === "notavailable"|| response.data.message === "removed"){ console.log('No Exam or registration!'); multicastClient.beaconsLost = 4} //server responded but exam is not available anymore (teacher removed it)
                     else { multicastClient.beaconsLost += 1;  console.log("beacon lost..") }
                 }
                 else if (response.data && response.data.status === "success") { 

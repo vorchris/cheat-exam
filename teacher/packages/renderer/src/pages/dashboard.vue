@@ -1,6 +1,6 @@
 <template>
 
-
+ 
 <div class="w-100 p-3 text-white bg-dark shadow text-right">
     <router-link to="/" class="text-white m-1">
         <img src="/src/assets/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
@@ -113,9 +113,11 @@
         <div class="btn btn-info m-1 text-start ms-0 " style="width:100px;" @click="sendFiles('all')">{{$t('dashboard.sendfile')}}</div>
         <div class="btn btn-info m-1 text-start ms-0 " style="width:100px;" @click="getFiles('all')">{{$t('dashboard.getfile')}}</div>
         <div class="col d-inlineblock btn btn-dark m-1 ms-0 " @click="loadFilelist(workdirectory)"  style="width: 100px; ">{{$t('dashboard.showworkfolder')}} </div>
+        
         <div id="studentslist" class="placeholder pt-4"> 
             <div v-for="student in studentlist" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn border-0 rounded-3 btn-block ">
-                <div id="image" class="rounded"  :style="(student.imageurl && now - 20000 < student.timestamp)? `background-image:url(${student.imageurl})`:'background-image:url(person-lines-fill.svg)'" style="position: relative; height:75%; background-size:cover;">
+                <div id="image" class="rounded"   style="position: relative; height:150px;">
+                    <div v-cloak><img style="position: relative; height: 150px;" :src="(student.imageurl && now - 20000 < student.timestamp)? `${student.imageurl}`:'person-lines-fill.svg'"></div>
                     <span style="">{{student.clientname}}            
                     <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-2 pe-2 float-end" title="kick user"></button> </span>
                 </div>
@@ -125,8 +127,11 @@
                     <button v-if="(now - 20000 < student.timestamp) && student.exammode && student.focus"  @click='showStudentview(student)' type="button" class="btn btn-outline-warning btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;">{{$t('dashboard.secure')}}</button>
                     <button v-if="(now - 20000 < student.timestamp) && !student.focus "   @click='restore(student.token,student.clientip)' type="button" class="btn btn-danger btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;"> {{$t('dashboard.restore')}} </button>
                 </div>
-            </div>
+                
+            </div>  
+            
         </div>
+
     </div>
     <!-- exam & studentlist end -->
 
@@ -601,7 +606,7 @@ export default {
     beforeUnmount() {  //when leaving
         clearInterval( this.fetchinterval )
         clearInterval( this.abgabeinterval )
-    },
+    }
 }
 
 </script>
@@ -609,6 +614,8 @@ export default {
 
 
 <style scoped>
+
+[v-cloak] { display: none; }
 
 #studentslist{
     border-radius: 5px;

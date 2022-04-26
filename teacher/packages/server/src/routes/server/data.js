@@ -42,7 +42,7 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
   
     const dir =req.body.dir
     console.log(dir)
-    
+
     // ATTENTION!  this currently only makes sense if the server(teacher) runs on the local computer in electron app (re-think for server version )
     let folders = []
     folders.push( {currentdirectory: dir, parentdirectory: path.dirname(dir)})
@@ -249,7 +249,7 @@ async function concatPages(pdfsToMerge) {
         
         if (req.files){
             for (const [key, file] of Object.entries( req.files)) {
-                //console.log(file)
+    
                 let absoluteFilepath = path.join(config.workdirectory, mcServer.serverinfo.servername, file.name);
                 if (file.name.includes(".zip")){  //ABGABE as ZIP
                     let time = new Date(new Date().getTime()).toISOString().substr(11, 8);
@@ -258,7 +258,6 @@ async function concatPages(pdfsToMerge) {
                     mcServer.studentList.forEach( (student) => {
                         if (token === student.token) {
                             studentname = student.clientname
-                            console.log(student)
                         }
                     });
                     
@@ -275,7 +274,7 @@ async function concatPages(pdfsToMerge) {
                     file.mv(absoluteFilepath, (err) => {  
                         if (err) { errors++; console.log( t("data.couldnotstore") ) }
                         extract(absoluteFilepath, { dir: studentarchivedir }).then( () => {
-                            fs.unlink(absoluteFilepath, (err) => {
+                            fs.unlink(absoluteFilepath, (err) => {  // remove zip file after extracting
                                 if (err) console.log(err);
                             });
                         }).catch( err => console.log(err))

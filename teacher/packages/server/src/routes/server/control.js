@@ -296,8 +296,9 @@ router.get('/serverlist', function (req, res, next) {
 
 
 /**
- * updates the specified students timestamp (used in dashboard to mark user as online) and other status updates
- * usually triggered by the clients directly from the MultiCastServer (loop)
+ * UPDATES Clientinfo - the specified students timestamp (used in dashboard to mark user as online) and other status updates
+ * FETCHES Serverstatus & Studentstatus
+ * usually triggered by the clients directly from the Main Process (loop)
  * POST Data contains a screenshot of the clients desktop !!
  * @param servername the name of the server at which the student is registered
  * @param token the students token to search and update the entry in the list
@@ -307,20 +308,28 @@ router.get('/serverlist', function (req, res, next) {
     const studenttoken = clientinfo.token
     const exammode = clientinfo.exammode
     const servername = clientinfo.servername
+
     
     const mcServer = config.examServerList[servername]
     if ( !mcServer) {  return res.send({sender: "server", message:"notavailable", status: "error"} )  }
     
     let student = mcServer.studentList.find(element => element.token === studenttoken)
-    if ( !student ) {return res.send({ sender: "server", message:t("control.invalidregistration"), status: "error" }) } //check if the student is registered on this server
+    if ( !student ) {return res.send({ sender: "server", message:"removed", status: "error" }) } //check if the student is registered on this server
     if ( !req.files ) {return res.send({sender: "server", message:t("control.nofiles"), status:"error"});  }
     
+    
+    // save the freshly delivered screenshot
+    const file = req.files[req.body.screenshotfilename]
+    let hash = crypto.createHash('md5').update(file.data).digest("hex");
 
-    // TODO - check if the file object is complete. (do a md5 hash check or something) (because this happens a lot an displays an error in the ui)
-    for (const [key, file] of Object.entries( req.files)) { // save the freshly delivered screenshot
+    if (hash === req.body.screenshothash) {
         let absoluteFilepath = path.join(config.tempdirectory, file.name); 
-        file.mv(absoluteFilepath, (err) => {  if (err) {  console.log(err)  } });
-        
+        file.mv(absoluteFilepath, (err) => {  
+            if (err) {  console.log(err)  }
+            else { 
+                student.imageurl = `https://${config.hostip}:${config.serverApiPort}/${studenttoken}.jpg?ver=${student.timestamp}`
+            }
+        });
         if (!student.focus){  // archive screenshot if student out of focus for investigation
             console.log("Server Control: Student out of focus - securing screenshots")
             let time = new Date(new Date().getTime()).toISOString().substr(11, 8);
@@ -330,7 +339,8 @@ router.get('/serverlist', function (req, res, next) {
             file.mv(absoluteFilename, (err) => {  if (err) {  console.log(err)  } });
         }
     }
-   
+    else { console.log("md5hash missmatch - do not update file")}
+
     if (clientinfo.focus) { student.status.restorefocusstate = false }  // remove task because its obviously done
 
     //update important student attributes
@@ -338,7 +348,7 @@ router.get('/serverlist', function (req, res, next) {
     student.virtualized = clientinfo.virtualized
     student.timestamp = new Date().getTime()   //last seen 
     student.exammode = exammode  
-    student.imageurl = `https://${config.hostip}:${config.serverApiPort}/${studenttoken}.jpg?ver=${student.timestamp}`
+   
     // return current serverinformation 
     res.send({sender: "server", message:t("control.studentupdate"), status:"success", serverstatus:mcServer.serverstatus, studentstatus: student.status })
 })
