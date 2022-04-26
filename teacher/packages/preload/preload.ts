@@ -22,7 +22,8 @@
 
 import fs from 'fs'
 import { contextBridge, ipcRenderer } from 'electron'
-import config from "../server/src/config.js"
+
+let config = ipcRenderer.sendSync('getconfig')  // we need to fetch the updated version of the systemconfig from express api (server.js)
 
 
 /** document ready */

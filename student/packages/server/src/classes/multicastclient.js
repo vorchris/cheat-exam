@@ -45,7 +45,7 @@ class MulticastClient {
             focus: true,
             exammode: false,
             timestamp: false,
-            virtualized: false   // this config setting is set by simplevmdetect.js (electron preload)
+            virtualized: false,  // this config setting is set by simplevmdetect.js (electron preload)
         }
     }
 

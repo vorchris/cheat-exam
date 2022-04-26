@@ -107,10 +107,6 @@ app.whenReady()
     })
     multicastClient.init()
     createWindow()
-   
-   
-
-    
 })
 
   ////////////////////////////////
@@ -280,19 +276,23 @@ async function createWindow() {
 
 ipcMain.on('virtualized', () => {  multicastClient.clientinfo.virtualized = true; } )
 
+ipcMain.on('getconfig', (event) => {   event.returnValue = config   })
+
+
+
 
 const updateStudentIntervall = setInterval(() => { sendBeacon() }, 5000)
 
 function resetConnection(){
-    //multicastClient.clientinfo.name= "DemoUser"  // keep name on disconnect (looks weird in edtior or geogebra)
-    multicastClient.clientinfo.token= false
-    multicastClient.clientinfo.ip= false
-    multicastClient.clientinfo.serverip= false
-    multicastClient.clientinfo.servername= false
-    multicastClient.clientinfo.focus= true  // we are focused 
-    multicastClient.clientinfo.exammode= false
-    multicastClient.clientinfo.timestamp= false
-    multicastClient.clientinfo.virtualized= false  
+    //multicastClient.clientinfo.name = "DemoUser"  // keep name on disconnect (looks weird in edtior or geogebra)
+    multicastClient.clientinfo.token = false
+    multicastClient.clientinfo.ip = false
+    multicastClient.clientinfo.serverip = false
+    multicastClient.clientinfo.servername = false
+    multicastClient.clientinfo.focus = true  // we are focused 
+    multicastClient.clientinfo.exammode = false
+    multicastClient.clientinfo.timestamp = false
+    multicastClient.clientinfo.virtualized = false  
 }
 
 
@@ -313,44 +313,31 @@ function sendBeacon(){
         //create screenshot
         screenshot().then(async (img) => {
             let screenshotfilename = multicastClient.clientinfo.token +".jpg"
-            //create formdata
-            const formData = new FormData()
-            
-            if (config.electron){
-                let blob =  new Blob( [ new Uint8Array(img).buffer], { type: 'image/jpeg' })
-                formData.append(screenshotfilename, blob, screenshotfilename );
+            const formData = new FormData()  //create formdata
+            formData.append('clientinfo', JSON.stringify(multicastClient.clientinfo) );   //we send the complete clientinfo object
+            if (config.electron){  // in the final electron build this is the only way to do it 
+                img =  new Blob( [ new Uint8Array(img).buffer], { type: 'image/jpeg' })   
             }
-            else {
-                formData.append(screenshotfilename, img, screenshotfilename );
-            }
-            formData.append('clientinfo', JSON.stringify(multicastClient.clientinfo) );
-
-            //post to /studentlist/update/:token - send update and fetch server status
-            axios({
+            formData.append(screenshotfilename, img, screenshotfilename );
+            axios({    //post to /studentlist/update/:token - send update and fetch server status
                 method: "post", 
-                url: `https://${multicastClient.clientinfo.serverip}:${config.serverApiPort}/server/control/studentlist/update`, 
+                url: `https://${multicastClient.clientinfo.serverip}:${config.serverApiPort}/server/control/update`, 
                 data: formData, 
                 headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
             })
             .then( response => {
-                //console.log(`MulticastClient: ${response.data.message}`)
                 if (response.data && response.data.status === "error") { 
                     if(response.data.message === "notavailable"){ console.log('Exam instance not found'); multicastClient.beaconsLost = 4} //server responded but exam is not available anymore (teacher removed it)
                     else { multicastClient.beaconsLost += 1;  console.log("beacon lost..") }
                 }
                 else if (response.data && response.data.status === "success") { 
                     multicastClient.beaconsLost = 0 
-                    processUpdatedServerstatus(response.data.data)
+                    processUpdatedServerstatus(response.data.serverstatus, response.data.studentstatus)
                 }
             })
-            .catch(error => {
-                console.log(`MulticastClient Axios: ${error}`) 
-                multicastClient.beaconsLost += 1; console.log("beacon lost..")
-            });
+            .catch(error => { console.log(`MulticastClient Axios: ${error}`); multicastClient.beaconsLost += 1; console.log("beacon lost..") });
         })
-        .catch((err) => {
-            console.log(`MulticastClient Screenshot: ${err}`)
-        });
+        .catch((err) => { console.log(`MulticastClient Screenshot: ${err}`) });
     }
 }
 
@@ -360,12 +347,19 @@ function sendBeacon(){
  * this currently only handle startexam & endexam
  * could also handle kick, focusrestore, and even trigger file requests
  */
-function processUpdatedServerstatus(serverStatusObject){
-    if (serverStatusObject.exammode && !multicastClient.clientinfo.exammode){ 
-        startExam(serverStatusObject)
+function processUpdatedServerstatus(serverstatus, studentstatus){
+    // global status updates
+    if (serverstatus.exammode && !multicastClient.clientinfo.exammode){ 
+        startExam(serverstatus)
     }
-    else if (!serverStatusObject.exammode && multicastClient.clientinfo.exammode){
+    else if (!serverstatus.exammode && multicastClient.clientinfo.exammode){
         endExam()
+    }
+    // individual status updates
+    if ( studentstatus && Object.keys(studentstatus).length !== 0) {  // we have status updates (tasks) - do it!
+         if (studentstatus.restorefocusstate === true){
+            multicastClient.clientinfo.focus = true
+        }
     }
 }
 

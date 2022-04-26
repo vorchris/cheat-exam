@@ -179,7 +179,6 @@ router.get('/serverlist', function (req, res, next) {
  *  @param clientip the clients ip address for api calls
  */
  router.get('/registerclient/:servername/:pin/:clientname/:clientip/:version', function (req, res, next) {
-    let status = false
     const clientname = req.params.clientname
     const clientip = req.params.clientip
     const pin = req.params.pin
@@ -203,7 +202,8 @@ router.get('/serverlist', function (req, res, next) {
                 focus: true,
                 exammode: false,
                 imageurl:false,
-                virtualized: false
+                virtualized: false,
+                status : {}    // we use this to store (per student) information about whats going on on the serverside (tasklist) and send it back on /update
             }
             //create folder for student
             let studentfolder =path.join(config.workdirectory, mcServer.serverinfo.servername , clientname);
@@ -226,23 +226,19 @@ router.get('/serverlist', function (req, res, next) {
 
 
 /**
- *  find client by token and remove it from the studentList (array)
+ *  KICK client - client will get error response on next update and remove connection automatically
  * @param servename the server that wants to kick the client
  * @param csrfservertoken the servers token to authenticate
  * @param studenttoken the students token who should be kicked
  */
  router.get('/kick/:servername/:csrfservertoken/:studenttoken', function (req, res, next) {
     const servername = req.params.servername
-    const servertoken = req.params.csrfservertoken
     const studenttoken = req.params.studenttoken
     const mcServer = config.examServerList[servername]
 
-    //first check if csrf token is valid and server is allowed to trigger this api request
-    if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {
-        let registeredClient = mcServer.studentList.find(element => element.token === studenttoken)
-        if (registeredClient) {
-            mcServer.studentList = mcServer.studentList.filter( el => el.token !==  studenttoken);  // remove client from studentlist
-        }
+    if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {  //first check if csrf token is valid and server is allowed to trigger this api request
+        let student = mcServer.studentList.find(element => element.token === studenttoken)
+        if (student) {   mcServer.studentList = mcServer.studentList.filter( el => el.token !==  studenttoken); } // remove client from studentlist
         res.send( {sender: "server", message: t("control.studentremove"), status: "success"} )
     }
     else {
@@ -251,8 +247,50 @@ router.get('/serverlist', function (req, res, next) {
 })
 
 
+/**
+ * RESTORE cients focused state 
+ * @param servename the server that wants to kick the client
+ * @param csrfservertoken the servers token to authenticate
+ * @param studenttoken the students token who should be kicked
+ */
+ router.get('/restore/:servername/:csrfservertoken/:studenttoken', function (req, res, next) {
+    const servername = req.params.servername
+    const studenttoken = req.params.studenttoken
+    const mcServer = config.examServerList[servername]
+
+    if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {  //first check if csrf token is valid and server is allowed to trigger this api request
+        let student = mcServer.studentList.find(element => element.token === studenttoken)
+        if (student) {   
+            student.status.restorefocusstate = true
+         }
+        res.send( {sender: "server", message: t("control.studentremove"), status: "success"} )
+    }
+    else {
+        res.send( {sender: "server", message: t("control.actiondenied"), status: "error"} )
+    }
+})
 
 
+/**
+ * Toggle EXAM  (start/stop kiosk mode for students)
+ * req.body should contain the updated serverstatus information
+ * @param servername the name of the server at which the student is registered
+ * @param csrfservertoken servertoken to authenticate before the request is processed
+ */
+ router.post('/exam/:servername/:csrfservertoken', function (req, res, next) {
+    const csrfservertoken = req.params.csrfservertoken
+    const servername = req.params.servername
+    const mcServer = config.examServerList[servername]
+   
+    if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
+    if (csrfservertoken !== mcServer.serverinfo.servertoken) { res.send({sender: "server", message:t("control.tokennotvalid"), status: "error"} )}
+
+    mcServer.serverstatus.exammode = req.body.exammode
+    mcServer.serverstatus.examtype = req.body.examtype
+    mcServer.serverstatus.delfolder = req.body.delfolder
+    
+    res.json({ sender: "server", message:t("general.ok"), status: "success" })
+})
 
 
 
@@ -264,69 +302,51 @@ router.get('/serverlist', function (req, res, next) {
  * @param servername the name of the server at which the student is registered
  * @param token the students token to search and update the entry in the list
  */
- router.post('/studentlist/update', function (req, res, next) {
+ router.post('/update', function (req, res, next) {
     const clientinfo = JSON.parse(req.body.clientinfo)
-  
-    const token = clientinfo.token
+    const studenttoken = clientinfo.token
     const exammode = clientinfo.exammode
     const servername = clientinfo.servername
+    
     const mcServer = config.examServerList[servername]
-
     if ( !mcServer) {  return res.send({sender: "server", message:"notavailable", status: "error"} )  }
-    if ( !checkToken(token, mcServer) ) {return res.send({ sender: "server", message:t("control.tokennotvalid"), status: "error" }) } //check if the student is registered on this server
+    
+    let student = mcServer.studentList.find(element => element.token === studenttoken)
+    if ( !student ) {return res.send({ sender: "server", message:t("control.invalidregistration"), status: "error" }) } //check if the student is registered on this server
     if ( !req.files ) {return res.send({sender: "server", message:t("control.nofiles"), status:"error"});  }
     
-    let registeredClient = mcServer.studentList.find(element => element.token === token)
-    //console.log(req.files)
-    for (const [key, file] of Object.entries( req.files)) {
+
+    // TODO - check if the file object is complete. (do a md5 hash check or something) (because this happens a lot an displays an error in the ui)
+    for (const [key, file] of Object.entries( req.files)) { // save the freshly delivered screenshot
         let absoluteFilepath = path.join(config.tempdirectory, file.name); 
-        //console.log(absoluteFilepath)
         file.mv(absoluteFilepath, (err) => {  if (err) {  console.log(err)  } });
         
-        if (!registeredClient.focus){
+        if (!student.focus){  // archive screenshot if student out of focus for investigation
             console.log("Server Control: Student out of focus - securing screenshots")
             let time = new Date(new Date().getTime()).toISOString().substr(11, 8);
-            let filepath =path.join(config.workdirectory, mcServer.serverinfo.servername, registeredClient.clientname, "focuslost");
+            let filepath =path.join(config.workdirectory, mcServer.serverinfo.servername, student.clientname, "focuslost");
             let absoluteFilename = path.join(filepath,`${time}-${file.name}`)
-
             if (!fs.existsSync(filepath)){ fs.mkdirSync(filepath, { recursive: true } ); }
             file.mv(absoluteFilename, (err) => {  if (err) {  console.log(err)  } });
         }
     }
-    
-    // we have a different representation of the clientobject on the server than on the client - whytf?
-    registeredClient.focus = clientinfo.focus
-    registeredClient.virtualized = clientinfo.virtualized
-    registeredClient.timestamp = new Date().getTime()   //last seen 
-    registeredClient.exammode = exammode  
-    registeredClient.imageurl = `https://${config.hostip}:${config.serverApiPort}/${token}.jpg?ver=${registeredClient.timestamp}`
-    
-    res.send({sender: "server", message:t("control.studentupdate"), status:"success", data: mcServer.serverStatusObject })
+   
+    if (clientinfo.focus) { student.status.restorefocusstate = false }  // remove task because its obviously done
+
+    //update important student attributes
+    student.focus = clientinfo.focus  
+    student.virtualized = clientinfo.virtualized
+    student.timestamp = new Date().getTime()   //last seen 
+    student.exammode = exammode  
+    student.imageurl = `https://${config.hostip}:${config.serverApiPort}/${studenttoken}.jpg?ver=${student.timestamp}`
+    // return current serverinformation 
+    res.send({sender: "server", message:t("control.studentupdate"), status:"success", serverstatus:mcServer.serverstatus, studentstatus: student.status })
 })
 
 
 
 
-/**
- * updates the serverstatusobject for specific exam (examode, examtype) and other information for students
- * students will get the serverstatus object on every studentupdate (beacon) as response
- * may contain information about exam, connectionstatus (kick), or fileupload/download requests from the server in the future
- * (reverting to polling only api)
- *  
- * @param servername the name of the server at which the student is registered
- * @param token the students token to search and update the entry in the list
- */
- router.post('/serverstatus/:servername/:csrfservertoken', function (req, res, next) {
-    const csrfservertoken = req.params.csrfservertoken
-    const servername = req.params.servername
-    const mcServer = config.examServerList[servername]
 
-    if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
-    if (csrfservertoken !== mcServer.serverinfo.servertoken) { res.send({sender: "server", message:t("control.tokennotvalid"), status: "error"} )}
-
-    mcServer.serverStatusObject = req.body   // contains the current status (exammode, examtype, delfolder)  // autoabgabe, fetch/send file etc. in the future
-    res.json({ sender: "server", message:t("general.ok"), status: "success" })
-})
 
 
 

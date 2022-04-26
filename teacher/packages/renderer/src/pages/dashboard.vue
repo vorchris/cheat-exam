@@ -173,8 +173,6 @@ export default {
     },
     components: { },
     methods: {
-
-
         // get all information about students status and do some checks
         fetchInfo() {
             this.now = new Date().getTime()
@@ -183,20 +181,18 @@ export default {
                 this.studentlist = response.data.studentlist;
                 if (this.studentlist && this.studentlist.length > 0){
                     this.studentlist.forEach(student =>{  // on studentlist-receive check focus status and other things
-                        if (!student.focus){ this.status(`${student.clientname} ${this.$t("dashboard.leftkiosk")}`); }
+                        if (!student.focus && (this.now - 20000 < student.timestamp)){ this.status(`${student.clientname} ${this.$t("dashboard.leftkiosk")}`); }
                         if (student.virtualized){this.status(`${student.clientname}${this.$t("control.virtualized")}`)}
                         if (this.activestudent && student.token === this.activestudent.token) { this.activestudent = student}
                     });
                 }
             }).catch( err => {console.log(err)});
         }, 
-
-
         // enable exam mode 
         startExam(){
             this.exammode = true;
 
-            fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/serverstatus/${this.servername}/${this.servertoken}`, { 
+            fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/exam/${this.servername}/${this.servertoken}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },
                 body: JSON.stringify({ exammode: this.exammode, examtype: this.examtype, delfolder: this.delfolder  })
@@ -205,7 +201,6 @@ export default {
             .then( response => { })
             .catch(err => { console.warn(err) })
         },
-
         // disable exammode 
         endExam(){
             this.$swal.fire({
@@ -219,7 +214,7 @@ export default {
             .then((result) => {
                 if (result.isConfirmed) {
                     this.exammode = false;
-                    fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/serverstatus/${this.servername}/${this.servertoken}`, { 
+                    fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/exam/${this.servername}/${this.servertoken}`, { 
                         method: 'POST',
                         headers: {'Content-Type': 'application/json' },
                         body: JSON.stringify({ exammode: this.exammode, examtype: this.examtype, delfolder: this.delfolder  })
@@ -230,8 +225,35 @@ export default {
                 } 
             }); 
         },
-
-
+        //remove student from exam
+        kick(studenttoken, studentip){
+            if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); return; }
+            
+            this.$swal.fire({
+                title: this.$t("dashboard.sure"),
+                text:  this.$t("dashboard.reallykick"),
+                icon: "warning",
+                showCancelButton: true,
+                cancelButtonText: this.$t("dashboard.cancel"),
+                reverseButtons: true
+            })
+            .then((result) => {
+                if (result.isConfirmed) {
+                     //unregister locally
+                    axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/kick/${this.servername}/${this.servertoken}/${studenttoken}`)
+                    .then( response => {
+                        console.log(response.data);
+                        this.status(response.data.message);
+                    }).catch(error => {console.log(error)});
+                } 
+            });  
+        },
+        //restore focus state for specific student -- we tell the client that his status is restored which will then (on the next update) update it's focus state on the server 
+        restore(studenttoken, studentip){
+            axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/restore/${this.servername}/${this.servertoken}/${studenttoken}`)
+                .then( response => { console.log(response.data)  })
+                .catch( err => {console.log(err)});
+        },
 
 
 
@@ -552,47 +574,6 @@ export default {
                 }).catch(error => {console.log(error)});
             }
         },
-
-        //remove student from exam
-        kick(studenttoken, studentip){
-            if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); return; }
-            
-            this.$swal.fire({
-                title: this.$t("dashboard.sure"),
-                text:  this.$t("dashboard.reallykick"),
-                icon: "warning",
-                showCancelButton: true,
-                cancelButtonText: this.$t("dashboard.cancel"),
-                reverseButtons: true
-            })
-            .then((result) => {
-                if (result.isConfirmed) {
-                     //unregister locally
-                    axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/kick/${this.servername}/${this.servertoken}/${studenttoken}`)
-                    .then( response => {
-                        console.log(response.data);
-                        this.status(response.data.message);
-                    }).catch(error => {console.log(error)});
-
-                    //inform student
-                    axios.get(`https://${studentip}:${this.clientApiPort}/client/control/kick/${studenttoken}`)
-                    .then( response => {
-                        //console.log(response.data);
-                    }).catch(error => {
-                        console.info("Client not reachable")
-                        //console.log(error)
-                    });
-                } 
-            });  
-        },
-
-        //restore focus state for specific student
-        async restore(studenttoken, studentip){
-            axios.get(`https://${studentip}:${this.clientApiPort}/client/control/focus/${studenttoken}/true`)
-                .then( response => { console.log(response.data)  })
-                .catch( err => {console.log(err)});
-        },
-
         // show status message
         async status(text){  
             $("#statusdiv").text(text)
@@ -605,16 +586,6 @@ export default {
         sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
-
-
-
-
-
-
-
-
-
-
         
     },
     mounted() {  // when ready
@@ -649,7 +620,9 @@ export default {
     overflow-y:auto;
    
 }
-
+.studentwidget{
+    margin-right: 4px!important;
+}
 
 .disabledexam {
     filter: contrast(20%) grayscale(100%) brightness(180%);

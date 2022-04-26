@@ -140,3 +140,6 @@ app.whenReady().then(()=>{
     multicastClient.init()
     createWindow()
 })
+
+
+ipcMain.on('getconfig', (event) => {   event.returnValue = config   })

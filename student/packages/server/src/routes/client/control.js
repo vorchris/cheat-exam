@@ -22,8 +22,6 @@ import multiCastclient from '../../classes/multicastclient.js'
 import axios from 'axios'
 import nodenotify  from 'node-notifier'
 import ip from 'ip'
-
-// the moment i import this here i create some sort of racecondition (reloading the page helps to overcome the error and it works in the final build)
 import i18n from '../../../../renderer/src/locales/locales.js'
 const { t } = i18n.global
  
@@ -36,32 +34,6 @@ router.get('/getinfo', function (req, res, next) {
     res.send({serverlist:multiCastclient.examServerList, clientinfo: multiCastclient.clientinfo})
 })
   
-
-
-/**
- * Stores focus state of client (only the teachers focus state counts but the client also gets informed)
- */ 
-router.get('/focus/:token/:state', function (req, res, next) {
-    const token = req.params.token
-    const state = req.params.state
-  
-    if ( checkToken(token)) {  
-        if (state === "false"){
-            multiCastclient.clientinfo.focus = false
-        }  
-        else {
-            multiCastclient.clientinfo.focus = true
-        }
-        res.json({ sender: "client",message:t("control.statechange"), status:"success" })
-    }
-    else {
-        res.json({ sender: "client", message:t("control.tokennotvalid"), status: "error" })
-    }
-})
-
-
-
-
 
 
 /**
@@ -103,58 +75,20 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
 
 
 
+// /**
+//  * Runs a tokencheck and returns true or false
+//  * @param token a csrf token for validation
+//  */ 
+// router.get('/tokencheck/:token', function (req, res, next) {
+//     const token = req.params.token
 
-/**
- * Runs a tokencheck and removes the SERVER REGISTRATION
- * @param token a csrf token for validation
- */ 
- router.get('/kick/:token', function (req, res, next) {
-  const token = req.params.token
-  if ( checkToken(token) ) {
-    for (const [key, value] of Object.entries(multiCastclient.clientinfo)) {
-        multiCastclient.clientinfo[key] = false
-    }
-    multiCastclient.clientinfo.focus = true // this needs to be set to true otherwise it will immediately warn on reconnect
-    showOSD("Kicked by Server!")
-    res.json({ sender: "client", message : t("control.clientunsubscribe"), status: "success" })
-  }
-  else {
-    res.json({ sender: "client",  message:t("control.tokennotvalid"), status: "error" })
-  }
-})
-
-
-
-
-
-
-/**
- * Runs a tokencheck and returns true or false
- * @param token a csrf token for validation
- */ 
-router.get('/tokencheck/:token', function (req, res, next) {
-    const token = req.params.token
-    const filepath = '/src/assets/img/icons/success.png'
-  
-    if ( checkToken(token) ) {
-       res.json({ sender: "client", message: t("control.tokenvalid"), status: "success" })
-    }
-    else {
-      res.json({ sender: "client", message: t("control.tokennotvalid"), status: "error" })
-    }
-})
-
-
-
-
-
-
-
-
-
-
-
-
+//     if ( checkToken(token) ) {
+//        res.json({ sender: "client", message: t("control.tokenvalid"), status: "success" })
+//     }
+//     else {
+//       res.json({ sender: "client", message: t("control.tokennotvalid"), status: "error" })
+//     }
+// })
 
 
 

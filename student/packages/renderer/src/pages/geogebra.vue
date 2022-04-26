@@ -130,10 +130,7 @@ export default {
         setsource(source){
             if (source === "geometry") { this.geogebrasource = `./geogebra/suite.html`}
             if (source === "graphing") { this.geogebrasource = `./geogebra/graphing.html`}
-        },
-        exit(){
-             ipcRenderer.send('endexam')
-        },     
+        },  
         clock(){
             let now = new Date().getTime()
             this.timesinceentry =  new Date(now - this.entrytime).toISOString().substr(11, 8)

@@ -39,8 +39,10 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
     const mcServer = config.examServerList[servername] // get the multicastserver object
     if ( token !== mcServer.serverinfo.servertoken ) { return res.json({ status: t("data.tokennotvalid") }) }
 
+  
     const dir =req.body.dir
-
+    console.log(dir)
+    
     // ATTENTION!  this currently only makes sense if the server(teacher) runs on the local computer in electron app (re-think for server version )
     let folders = []
     folders.push( {currentdirectory: dir, parentdirectory: path.dirname(dir)})

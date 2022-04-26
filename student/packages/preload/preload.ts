@@ -24,7 +24,7 @@
 
 import fs from 'fs'
 import { contextBridge, ipcRenderer } from 'electron'
-import config from '../server/src/config.js';
+
 import screenshot from 'screenshot-desktop';
 
 
@@ -32,7 +32,7 @@ import screenshot from 'screenshot-desktop';
 import virtualized from './scripts/simplevmdetect.js';
 if (virtualized){ipcRenderer.send('virtualized')}
 
-
+let config = ipcRenderer.sendSync('getconfig')  // we need to fetch the updated version of the systemconfig from express api (server.js)
 
 
 /** document ready */

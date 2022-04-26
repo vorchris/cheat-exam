@@ -69,6 +69,7 @@
     },
     "control": {
         "tokennotvalid": "token is not valid",
+        "invalidregistration": "no serverside registration found",
         "statechange": "statechange",
         "alreadyregistered": "student already registered",
         "registered": "student registered",

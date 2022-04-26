@@ -6,6 +6,7 @@ import crypto from 'crypto';
 
 /**
  * Starts a dgram (udp) socket that broadcasts information about this server
+ * one multicastServer instance for every exam (holds all student information and serverstatus)
  */
 class MulticastServer {
     constructor () {
@@ -17,11 +18,7 @@ class MulticastServer {
         this.broadcastInterval = null
         this.running = false
         this.studentList = []
-        this.serverStatusObject = { 
-            exammode : false,
-            examtype : 'language',
-            delfolder: false
-        }
+        this.serverstatus = {}
     }
 
     /**

@@ -67,7 +67,8 @@
         "send": "versenden"
     },
     "control": {
-        "tokennotvalid": "das token ist ungültig",
+        "tokennotvalid": "Das Token ist ungültig",
+        "invalidregistration": "Keine Registrierung vorgefunden",
         "statechange": "Vertrauensstellung geändert",
         "alreadyregistered": "Schüler*in unter diesem Namen bereits angemeldet",
         "registered": "Schüler*in angemeldet",
