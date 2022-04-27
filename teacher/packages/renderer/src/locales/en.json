@@ -44,7 +44,7 @@
         "exitkiosk": "exit safe exam mode",
         "reallykick": "remove student from server",
         "kick": "remove",
-        "leftkiosk": "has left the safe exam mode!",
+        "leftkiosk": "safemode left",
         "online":"details",
         "offline":"offline",
         "secure":"secured",
@@ -64,12 +64,12 @@
         "download": "download",
         "print": "print",
         "preview": "preview",
-        "send": "send"
-
+        "send": "send",
+        "virtualized": "virtual environment detected"
     },
     "control": {
         "tokennotvalid": "token is not valid",
-        "invalidregistration": "no serverside registration found",
+        "invalidregistration": "no serverside registration",
         "statechange": "statechange",
         "alreadyregistered": "student already registered",
         "registered": "student registered",

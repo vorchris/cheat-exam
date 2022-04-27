@@ -41,10 +41,10 @@
         "sure": "Sind sie sicher?",
         "exitexamsure": "Exam Server schließen?",
         "exitexam": "Dies beendet die Prüfung für alle Schüler*innen",
-        "exitkiosk": "Abesicherten Modus beenden",
+        "exitkiosk": "Abgesicherten Modus beenden",
         "reallykick": "Schüler*in vom Exam Server entfernen",
         "kick": "Verbindung trennen",
-        "leftkiosk": "hat den abgesicherten Modus verlassen!",
+        "leftkiosk": "Absicherung verlassen",
         "online":"Info",
         "offline": "offline",
         "secure":"abgesichert",
@@ -64,7 +64,8 @@
         "download": "herunterladen",
         "print": "drucken",
         "preview": "ansehen",
-        "send": "versenden"
+        "send": "versenden",
+        "virtualized": "virtualiserte Arbeitsumgebung"
     },
     "control": {
         "tokennotvalid": "Das Token ist ungültig",

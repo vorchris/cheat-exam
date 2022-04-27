@@ -40,18 +40,14 @@
         <div class="col-7">
             <div class="input-group  mb-1">
                 <span class="input-group-text col-4" style="width:135px;" id="inputGroup-sizing-lg">{{$t("startserver.examname")}}</span>
-                <div class="col-sm-7"> 
-                    <input v-model="servername" type="text" class="form-control" id="servername" placeholder="Mathematik-5a" style="min-width:135px;">
-                </div>
+                <input v-model="servername" type="text" class="form-control" id="servername" placeholder="Mathematik-5a" style="width:135px;max-width:135px;min-width:135px;">
             </div>   
             <div class="input-group  mb-3"> 
                 <span class="input-group-text col-4" style="width:135px;" id="inputGroup-sizing-lg">{{$t("startserver.pwd")}}</span>
-                <div class="col-sm-7"> 
-                    <input v-model="password" type="text" class="form-control" id="password" placeholder="password" style="min-width:135px;">
-                </div>
+                <input v-model="password" type="text" class="form-control " id="password" placeholder="password" style="width:135px;max-width:135px;min-width:135px;">
             </div>
             <div class="col mb-4" >
-                <button @click="startServer()" id="examstart" class="btn btn-success" value="start exam">{{$t("startserver.start")}}</button>
+                <button @click="startServer()" id="examstart" class="btn btn-success" value="start exam" style="width:135px;">{{$t("startserver.start")}}</button>
             </div>
         </div>
         <div id="list" class="placeholder"></div>

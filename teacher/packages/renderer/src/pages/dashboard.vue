@@ -6,7 +6,9 @@
         <img src="/src/assets/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
         <span class="fs-4 align-middle me-4 ">Next-Exam</span>
     </router-link>
-    <span class="fs-4 align-middle" style="float: right">Dashboard</span>
+   
+    <span class="fs-4 align-middle ms-3" style="float: right">Dashboard</span>
+     <div class="btn btn-sm btn-danger m-0 mt-1" @click="stopserver()" style="float: right">{{$t('dashboard.stopserver')}}</div>
 </div>
  
 
@@ -15,13 +17,11 @@
 
 <div id="wrapper" class="w-100 h-100 d-flex" >
     
-
     <div id="studentinfocontainer" class="fadeinslow p-4">
         <div v-if="activestudent!= null" id="studentinfodiv"  class="studentinfoimage" :style="`background-image:url(${activestudent.imageurl})`">
             <div style="height:100%">
                 <div id="controlbuttons" style="text-align: center;">
                     <button class="btn btn-close  btn-close-white align-right" @click="hideStudentview()"  style="width: 100px"></button>
-
                     <b>{{activestudent.clientname}}</b><br>
                     <span style="font-size: 0.7em;">{{activestudent.clientip}}</span>
                     <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent)"  style="width: 100px">{{$t('dashboard.sendfile')}}</div>
@@ -44,17 +44,14 @@
             <div v-for="file in localfiles" class="d-inline">
                 <!-- files -->
                 <div v-if="(file.type == 'file')" class="btn btn-info pe-3 ps-3 me-3 mb-2 btn-sm" @click="" style=" max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><img src="/src/assets/img/svg/document.svg" class="" width="22" height="22" > {{file.name}} </div>
-                
                 <div v-if="(file.type == 'file')"  :class="(studentlist.length == 0)? 'disabled':''"  class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="sendFile(file)" :title="$t('dashboard.send')"><img src="/src/assets/img/svg/document-send.svg" class="" width="22" height="22" ></div>
                 <div v-if="(file.type == 'file')" class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="downloadFile(file)" :title="$t('dashboard.download')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" ></div>
                 <div v-if="(file.type == 'file' && file.ext === '.pdf')" class="btn btn-dark me-1 mb-2 btn-sm" style="float: right;" @click="loadPDF(file.path, file.name)" :title="$t('dashboard.preview')"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
                 <div v-if="(file.type == 'file' && (file.ext === '.png'|| file.ext === '.jpg'|| file.ext === '.webp'|| file.ext === '.jpeg' ))" class="btn btn-dark me-1 mb-2 btn-sm" style="float: right;" @click="loadImage(file.path)" :title="$t('dashboard.preview')"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
-              
                 <!-- folders -->
                 <div v-if="(file.type == 'dir')" class="btn btn-success pe-3 ps-3 me-3 mb-2 btn-sm" @click="loadFilelist(file.path)"><img src="/src/assets/img/svg/folder-open.svg" class="" width="22" height="22" > {{file.name}} </div>
                 <div v-if="(file.type == 'dir')" class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="downloadFile(file)" :title="$t('dashboard.download')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" ></div>
-                  <hr>
-               
+                <hr>
            </div>
         </div>
     </div>
@@ -75,11 +72,10 @@
 
     <!-- sidebar start -->
     <div class="p-3 text-white bg-dark h-100 " style="width: 240px; min-width: 240px;">
-        <div class="btn btn-light m-1 text-start">{{$t('dashboard.server')}} <br><b>{{serverip}}</b> </div><br>
-        <div class="btn btn-light m-1 text-start">{{$t('dashboard.name')}} <br><b> {{$route.params.servername}}</b> </div><br>
-        <div class="btn btn-light m-1 mb-1 text-start" @click="showpin()">{{$t('dashboard.pin')}}<br><b> {{ $route.params.pin }} </b>  </div><br>
-        <div class="btn btn-danger m-1 mb-3 text-start" @click="stopserver()" style="">{{$t('dashboard.stopserver')}}</div><br>
- 
+        <div class="btn btn-light m-1 text-start infobutton" @click="showinfo()">{{$t('dashboard.name')}} <br><b> {{$route.params.servername}}</b> </div><br>
+        <div class="btn btn-light m-1 text-start infobutton" @click="showinfo()">{{$t('dashboard.server')}} <br><b>{{serverip}}</b> </div><br>
+        <div class="btn btn-light m-1 mb-3 text-start infobutton" @click="showinfo()">{{$t('dashboard.pin')}}<br><b> {{ $route.params.pin }} </b>  </div><br>
+        
         <div class="form-check m-1 mb-1">
             <input v-model="examtype" value="math" class="form-check-input" type="radio" name="examtype" id="examtype2" checked>
             <label class="form-check-label" for="examtype2"> {{$t('dashboard.math')}}  </label>
@@ -106,34 +102,37 @@
     <!-- sidebar end -->
 
 
-     <!-- exam & studentlist start -->
+   
     <div id="content" class="fadeinslow p-3">
-        <div v-if="(!exammode)" class="btn btn-success m-1 text-start ms-0" style="width:100px;"  @click="startExam()">{{$t('dashboard.startexam')}}</div>
-        <div v-if="(exammode)" class="btn btn-danger m-1 text-start ms-0 " style="width:100px;" @click="endExam()" >{{$t('dashboard.stopexam')}}</div>
+        <!-- control buttons start -->
+        <div v-if="(!exammode)" class="btn btn-success m-1 text-start ms-0" style="width:100px;"  @click="startExam()">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
+        <div v-if="(exammode)" class="btn btn-danger m-1 text-start ms-0 " style="width:100px;" @click="endExam()" >{{numberOfConnections}} {{$t('dashboard.stopexam')}}</div>
         <div class="btn btn-info m-1 text-start ms-0 " style="width:100px;" @click="sendFiles('all')">{{$t('dashboard.sendfile')}}</div>
         <div class="btn btn-info m-1 text-start ms-0 " style="width:100px;" @click="getFiles('all')">{{$t('dashboard.getfile')}}</div>
         <div class="col d-inlineblock btn btn-dark m-1 ms-0 " @click="loadFilelist(workdirectory)"  style="width: 100px; ">{{$t('dashboard.showworkfolder')}} </div>
-        
-        <div id="studentslist" class="placeholder pt-4"> 
+        <!-- control buttons end -->
+
+        <!-- studentlist start -->
+        <div id="studentslist" class="placeholder pt-1"> 
             <div v-for="student in studentlist" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn border-0 rounded-3 btn-block ">
-                <div id="image" class="rounded"   style="position: relative; height:150px;">
-                    <div v-cloak><img style="position: relative; height: 150px;" :src="(student.imageurl && now - 20000 < student.timestamp)? `${student.imageurl}`:'person-lines-fill.svg'"></div>
+                <div id="image" class="rounded"   style="position: relative; height:132px;">
+                    <div v-cloak><img style="position: relative; height: 132px;" :src="(student.imageurl && now - 20000 < student.timestamp)? `${student.imageurl}`:'person-lines-fill.svg'"></div>
+                    <div v-if="student.virtualized" class="virtualizedinfo" >{{$t("dashboard.virtualized")}}</div>
+                    <div v-if="!student.focus" class="kioskwarning" >{{$t("dashboard.leftkiosk")}}</div>
                     <span style="">{{student.clientname}}            
                     <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-2 pe-2 float-end" title="kick user"></button> </span>
-                </div>
+               </div>
                 <div class="btn-group pt-0" role="group">
                     <button v-if="(now - 20000 < student.timestamp)" @click="showStudentview(student)" type="button" class="btn btn-outline-success btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">{{$t('dashboard.online')}} </button>
                     <button v-if="(now - 20000 > student.timestamp)" type="button" class="btn btn-outline-danger btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">{{$t('dashboard.offline')}} </button>
                     <button v-if="(now - 20000 < student.timestamp) && student.exammode && student.focus"  @click='showStudentview(student)' type="button" class="btn btn-outline-warning btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;">{{$t('dashboard.secure')}}</button>
                     <button v-if="(now - 20000 < student.timestamp) && !student.focus "   @click='restore(student.token,student.clientip)' type="button" class="btn btn-danger btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;"> {{$t('dashboard.restore')}} </button>
                 </div>
-                
             </div>  
-            
         </div>
-
+        <!-- studentlist end -->
     </div>
-    <!-- exam & studentlist end -->
+  
 
 </div>
 </template>
@@ -173,7 +172,8 @@ export default {
             currentpreview: null,
             currentpreviewname: null,
             exammode: false,
-            delfolder: false
+            delfolder: false,
+            numberOfConnections: 0
         };
     },
     components: { },
@@ -184,10 +184,9 @@ export default {
             axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/studentlist/${this.servername}/${this.servertoken}`)
             .then( response => {
                 this.studentlist = response.data.studentlist;
+                this.numberOfConnections = this.studentlist.length
                 if (this.studentlist && this.studentlist.length > 0){
-                    this.studentlist.forEach(student =>{  // on studentlist-receive check focus status and other things
-                        if (!student.focus && (this.now - 20000 < student.timestamp)){ this.status(`${student.clientname} ${this.$t("dashboard.leftkiosk")}`); }
-                        if (student.virtualized){this.status(`${student.clientname}${this.$t("control.virtualized")}`)}
+                    this.studentlist.forEach(student =>{  // on studentlist-receive update active student (for student-details)
                         if (this.activestudent && student.token === this.activestudent.token) { this.activestudent = student}
                     });
                 }
@@ -544,12 +543,14 @@ export default {
                 } 
             });    
         },
-        //show pincode bid
-        showpin(){
-            this.$swal.fire({
-                title: this.pin,
-                text: "Pincode",
-                icon: "info",
+        //show pincode 
+        showinfo(){
+            let info = `<span> IP: <strong>${this.serverip}</strong> \nName: ${this.servername}  \nPin: ${this.pin} </span>`
+            this.$swal.fire({ 
+                title: `<span style="font-weight:normal"> IP:</span>  ${this.serverip} </span> 
+                        <span style="font-weight:normal"> Name:</span>  ${this.servername}  
+                        <span style="font-weight:normal"> Pin:</span> ${this.pin}`,
+                icon: "info"
             })
         },
         // get finished exams (ABGABE) from students
@@ -611,21 +612,57 @@ export default {
 
 </script>
 
-
-
 <style scoped>
 
 [v-cloak] { display: none; }
+.virtualizedinfo {
+    position: absolute;
+    top:30px;
+    left:0;
+    background-color: #ffc107c7;
+    font-size: 0.7em;
+    padding: 2px;
+    padding-left: 4px;
+    padding-right: 10px;
+    border-bottom-right-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.kioskwarning {
+    position: absolute;
+    top:6px;
+    left:0;
+    background-color: #dc3545c7;
+    color:white;
+    font-size: 0.7em;
+    padding: 2px;
+    padding-left: 4px;
+    padding-right: 10px;
+    border-bottom-right-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+
+#content {
+    background-color: whitesmoke;
+}
+
+.infobutton{
+    width: 240px;
+    min-width: 240px;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    background-color: whitesmoke;
+}
 
 #studentslist{
     border-radius: 5px;
     width: 100%;
     height: 90%;
     /* border: 1px solid rgb(99, 187, 175); */
-    margin-top: 4px;
+  
     transition:0.1s;
     overflow-y:auto;
-   
 }
 .studentwidget{
     margin-right: 4px!important;
