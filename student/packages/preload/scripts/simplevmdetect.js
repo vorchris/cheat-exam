@@ -21,8 +21,8 @@ const gl = canvas.getContext('webgl');
 const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
 const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL).toLowerCase();
 const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL).toLowerCase();
-console.log(vendor)
-console.log(renderer)
+//console.log(vendor)
+//console.log(renderer)
 
 const keywords = ['vmware','virtualbox','parallels','solarwinds','qemu','hyper-v','bootcamp', 'swiftshader']
 

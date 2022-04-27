@@ -154,6 +154,7 @@ function newWin(examtype, token) {
         icon: join(__dirname, '../../public/icons/icon.png'),
         webPreferences: {
             preload: join(__dirname, '../preload/preload.cjs'),
+            spellcheck: false
          },
     });
    
@@ -199,6 +200,7 @@ async function createWindow() {
         alwaysOnTop: true,
         webPreferences: {
             preload: join(__dirname, '../preload/preload.cjs'),
+            spellcheck: false
             //webSecurity: false
         }
     })
