@@ -18,7 +18,9 @@
 <div id="wrapper" class="w-100 h-100 d-flex" >
     
     <div id="studentinfocontainer" class="fadeinslow p-4">
-        <div v-if="activestudent!= null" id="studentinfodiv"  class="studentinfoimage" :style="`background-image:url(${activestudent.imageurl})`">
+        <div v-if="activestudent!= null" id="studentinfodiv">
+            <div v-cloak><img style="position: absolute; height: 100%" :src="(activestudent.imageurl && now - 20000 < activestudent.timestamp)? `${activestudent.imageurl}`:'person-lines-fill.svg'"></div>
+
             <div style="height:100%">
                 <div id="controlbuttons" style="text-align: center;">
                     <button class="btn btn-close  btn-close-white align-right" @click="hideStudentview()"  style="width: 100px"></button>
@@ -755,10 +757,12 @@ export default {
     position: absolute;
     top: 0;
     left: 0;
-    width:100vw;
+    width:100%;
     height: 100vh;
     background-size:cover;
     background-repeat: no-repeat;
+    overflow:hidden;
+    background-color: #343a40;
 }
 #controlbuttons {
     backdrop-filter: blur(3px);
