@@ -54,7 +54,7 @@ read /info/concept.md !!
 
 ![projectstructure](/info/structure.jpg)
 
-![screenshot](/info/screenshot.jpg)
+![screenshot](/info/screenshot.png)
 
 
 
