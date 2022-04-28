@@ -28,10 +28,13 @@ class MulticastServer {
      */
     init (servername, pin, password) {
         this.server = createSocket('udp4')
+     
         this.serverinfo = this.initMessage(servername, pin, password)
         this.server.bind(this.SRC_PORT, () => { // Add the HOST_IP_ADDRESS for reliability
             this.broadcastInterval = setInterval(() => { this.multicastNew() }, 2000)
             console.log(`UDP MC Server listening on http://${config.hostip}:${this.server.address().port}`)
+            this.server.setMulticastTTL(128)
+            this.server.setTTL(128)
         })
     }
 

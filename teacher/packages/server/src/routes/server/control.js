@@ -145,7 +145,7 @@ router.get('/serverlist', function (req, res, next) {
         serverlist.push({servername: server.serverinfo.servername, serverip: server.serverinfo.ip}) 
     });
     
-    res.send({serverlist:serverlist})
+    res.send({serverlist:serverlist, status: "success"})
 })
 
 

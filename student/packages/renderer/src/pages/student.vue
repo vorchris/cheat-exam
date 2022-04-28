@@ -6,10 +6,6 @@
         <img src='/src/assets/img/svg/speedometer.svg' class="white me-2  " width="32" height="32" >
         <span class="fs-4 align-middle me-4 ">Next-Exam</span>
     </router-link>
-     <!-- <router-link to="/ltest/" class="text-white m-1">
-        <img src='/src/assets/img/svg/speedometer.svg' class="white me-2  " width="32" height="32" >
-        <span class="fs-4 align-middle me-4 ">Next-Exam</span>
-    </router-link>  -->
     <span class="fs-4 align-middle  ms-3" style="float: right">Student</span>
     <div v-if="token" id="adv" class="btn btn-success btn-sm m-0  mt-1 " style="cursor: unset; float: right">{{ $t("student.connected") }}</div>
 
@@ -20,7 +16,7 @@
 
     <!-- SIDEBAR -->
     <div class="p-3 text-white bg-dark h-100" style="width: 240px; min-width: 240px;">
-        <div class="btn btn-light m-0 text-start infobutton" @click="showinfo()"><img src='/src/assets/img/svg/server.svg' class="me-2"  width="16" height="16" > {{$t('student.exams')}} </div><br>
+        <div class="btn btn-light m-0 text-start infobutton"><img src='/src/assets/img/svg/server.svg' class="me-2"  width="16" height="16" > {{$t('student.exams')}} </div><br>
         <div v-if="!advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("student.advanced") }}</div>
         <div v-if="advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("student.simple") }}</div>
         <span style="position: absolute; bottom:2px; left: 4px; font-size:0.8em">{{version}}</span>
@@ -41,11 +37,6 @@
                 <span class="input-group-text col-3" style="width:135px;" id="inputGroup-sizing-lg">{{ $t("student.ip") }}</span>
                 <input  v-model="serverip" class="form-control" id="serverip" placeholder="" style="width:135px;max-width:135px;min-width:135px;">
             </div>
-             <div v-if="advanced" class="input-group  mb-2"> 
-                <span class="input-group-text col-3" style="width:135px;" id="inputGroup-sizing-lg">{{ $t("student.examname") }}</span>
-                <input  v-model="servername" class="form-control" id="servername" placeholder="" style="width:135px;max-width:135px;min-width:135px;">
-            </div>
-        <div  v-if="advanced" class="btn btn-success" @click="registerClient()">{{ $t("student.register") }}</div> <br>
         </div>
 
 
@@ -57,12 +48,12 @@
         
         
         
-        <h4 v-if="!advanced">{{ $t("student.exams") }}</h4>
+        <h4>{{ $t("student.exams") }}</h4>
       
  
         <div id="list" class="placeholder" style="overflow-y:auto; height: 369px; display:flex; flex-wrap: wrap; flex-direction: row;">
 
-            <div v-if="!advanced" v-for="server in serverlist" class="row p-3 m-0 mb-2 border bg-light" style="margin-right: 10px !important; min-height:130px; max-height:140px;  min-width:270px; max-width: 270px;">
+            <div  v-for="server in serverlist" class="row p-3 m-0 mb-2 border bg-light" style="margin-right: 10px !important; min-height:130px; max-height:140px;  min-width:270px; max-width: 270px;">
                 <dl class="row">
                     <dt class="col-sm-4">{{ $t("student.name") }}</dt>
                     <dd class="col-sm-9">{{server.servername}}</dd>
@@ -81,6 +72,7 @@
 
 <script>
 import axios from "axios";
+import validator from 'validator'
 
 export default {
     data() {
@@ -101,55 +93,44 @@ export default {
             servername: ""
         };
     },
-
-    components: {
-    
-    },
     methods: {
         saveContent(){console.log("save")},
         fetchInfo() {
             axios.get(`https://localhost:${this.clientApiPort}/client/control/getinfo`)
             .then( response => {
                 this.clientinfo = response.data.clientinfo;
-                this.serverlist = response.data.serverlist;
                 this.token = this.clientinfo.token;
+
+                if (response.data.serverlist.length  === 0) {
+                    if (validator.isIP(this.serverip) || validator.isFQDN(this.serverip)){
+                        console.log("fetching exams from server")
+                        axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/serverlist`)
+                        .then( response => { if (response.data && response.data.status == "success") {  this.serverlist = response.data.serverlist} }) 
+                        .catch(err => { console.log(err.message)}) 
+                    }
+                    else { this.serverlist = response.data.serverlist;  }
+                }
+                else { this.serverlist = response.data.serverlist;   }
             })
             .catch( err => {console.log(err)});
         },  
         
         toggleAdvanced(){
             if (this.advanced) {this.advanced = false} else {this.advanced = true}
+            this.serverip = ""
         },
         
         /** register client on the server **/
         registerClient(serverip, servername){
            if (this.username === "" || this.pincode ===""){
                this.$swal.fire({
-                            title: "Error",
-                            text: this.$t("student.nopw"),
-                            icon: 'error',
-                            showCancelButton: false,
-                        })
-             
+                    title: "Error",
+                    text: this.$t("student.nopw"),
+                    icon: 'error',
+                    showCancelButton: false,
+                })
             }
             else {
-                // we allow students to manually insert domain/ip - just in case multicast is blocked for some reason
-                if (this.advanced){
-                    if (this.serverip === "" || this.servername ===""){
-                        this.$swal.fire({
-                            title: "Error",
-                            text: this.$t("student.noip"),
-                            icon: 'error',
-                            showCancelButton: false,
-                        })
-                        return;
-                    }
-                    serverip = this.serverip;
-                    servername = this.servername;
-                    console.log(serverip)
-                }
-             
-
                 axios.get(`https://localhost:${this.clientApiPort}/client/control/register/${serverip}/${servername}/${this.pincode}/${this.username}`)
                 .then( response => { 
                     this.token = response.data.token  // set token immediately for further use (editor , geogebra)
@@ -162,7 +143,6 @@ export default {
                             showCancelButton: false,
                         })
                     }
-                    
                     if (response.data.status === "error") {
                         this.$swal.fire({
                             title: "Error",
@@ -174,11 +154,11 @@ export default {
                 })
                 .catch( err => {
                     this.$swal.fire({
-                            title: "Error",
-                            text: err.data.message,
-                            icon: 'error',
-                            showCancelButton: false,
-                        })
+                        title: "Error",
+                        text: err.data.message,
+                        icon: 'error',
+                        showCancelButton: false,
+                    })
                 });
             }
         },

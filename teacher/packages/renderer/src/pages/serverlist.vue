@@ -21,10 +21,12 @@
                 </router-link >
             </li>
             <li>
-                <router-link to="serverlist" id="serverlist" class="nav-link active">
-                <img src="/src/assets/img/svg/person-lines-fill.svg" class="white me-2"  width="16" height="16" >
-                {{$t("general.slist")}}
-                </router-link>
+                <div class="btn btn-light m-0 text-start infobutton">
+                    <img src='/src/assets/img/svg/person-lines-fill.svg' class="me-2"  width="16" height="16" > 
+                
+                      {{$t("general.slist")}}
+                </div><br>
+
             </li>
         </ul>
         <div class="m-2">
@@ -154,6 +156,17 @@ export default {
 
 <style scoped>
 
+#content {
+    background-color: whitesmoke;
+    min-width: 680px;
+}
 
+.infobutton{
+    width: 240px;
+    min-width: 240px;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    background-color: whitesmoke;
+}
 
 </style>

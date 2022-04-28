@@ -28,7 +28,7 @@
                     <span style="font-size: 0.7em;">{{activestudent.clientip}}</span>
                     <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent)"  style="width: 100px">{{$t('dashboard.sendfile')}}</div>
                     <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="getFiles(activestudent)"  style="width: 100px">{{$t('dashboard.getfile')}}</div>
-                    <div class="col d-inlineblock btn btn-warning m-1 btn-sm"    @click='kick(activestudent.token,activestudent.clientip)'  style="width: 100px">{{$t('dashboard.kick')}}</div>
+                    <div class="col d-inlineblock btn btn-warning m-1 btn-sm"   @click='kick(activestudent.token,activestudent.clientip)'  style="width: 100px">{{$t('dashboard.kick')}}</div>
                 </div>
             </div>
         </div>
@@ -74,7 +74,7 @@
 
     <!-- sidebar start -->
     <div class="p-3 text-white bg-dark h-100 " style="width: 240px; min-width: 240px;">
-        <div class="btn btn-light m-1 text-start infobutton" @click="showinfo()">{{$t('dashboard.name')}} <br><b> {{$route.params.servername}}</b> </div><br>
+        <div class="btn btn-light m-1 mt-0 text-start infobutton" @click="showinfo()">{{$t('dashboard.name')}} <br><b> {{$route.params.servername}}</b> </div><br>
         <div class="btn btn-light m-1 text-start infobutton" @click="showinfo()">{{$t('dashboard.server')}} <br><b>{{serverip}}</b> </div><br>
         <div class="btn btn-light m-1 mb-3 text-start infobutton" @click="showinfo()">{{$t('dashboard.pin')}}<br><b> {{ $route.params.pin }} </b>  </div><br>
         
@@ -107,11 +107,11 @@
    
     <div id="content" class="fadeinslow p-3">
         <!-- control buttons start -->
-        <div v-if="(!exammode)" class="btn btn-success m-1 text-start ms-0" style="width:100px;"  @click="startExam()">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
-        <div v-if="(exammode)" class="btn btn-danger m-1 text-start ms-0 " style="width:100px;" @click="endExam()" >{{numberOfConnections}} {{$t('dashboard.stopexam')}}</div>
-        <div class="btn btn-info m-1 text-start ms-0 " style="width:100px;" @click="sendFiles('all')">{{$t('dashboard.sendfile')}}</div>
-        <div class="btn btn-info m-1 text-start ms-0 " style="width:100px;" @click="getFiles('all')">{{$t('dashboard.getfile')}}</div>
-        <div class="col d-inlineblock btn btn-dark m-1 ms-0 " @click="loadFilelist(workdirectory)"  style="width: 100px; ">{{$t('dashboard.showworkfolder')}} </div>
+        <div v-if="(!exammode)" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px;"  @click="startExam()">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
+        <div v-if="(exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:100px;" @click="endExam()" >{{numberOfConnections}} {{$t('dashboard.stopexam')}}</div>
+        <div class="btn btn-info m-1 mt-0 text-start ms-0 " style="width:100px;" @click="sendFiles('all')">{{$t('dashboard.sendfile')}}</div>
+        <div class="btn btn-info m-1 mt-0 text-start ms-0 " style="width:100px;" @click="getFiles('all')">{{$t('dashboard.getfile')}}</div>
+        <div class="col d-inlineblock btn btn-dark m-1 mt-0 text-start ms-0 " @click="loadFilelist(workdirectory)"  style="width: 100px; ">{{$t('dashboard.showworkfolder')}} </div>
         <!-- control buttons end -->
 
         <!-- studentlist start -->
@@ -540,7 +540,7 @@ export default {
                         this.status(response.data.message);
                         console.log(response.data);
                         await this.sleep(2000);
-                        this.$router.push({ path: '/serverlist' })
+                        this.$router.push({ path: '/startserver' })
                     }).catch( err => {console.log(err)});
                 } 
             });    

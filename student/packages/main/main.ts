@@ -197,11 +197,10 @@ async function createWindow() {
         height: 600,
         minWidth: 760,
         minHeight: 600,
-        alwaysOnTop: true,
+        show: false,
         webPreferences: {
             preload: join(__dirname, '../preload/preload.cjs'),
             spellcheck: false
-            //webSecurity: false
         }
     })
 
@@ -258,6 +257,13 @@ async function createWindow() {
             }
         }
     });
+
+    win.once('ready-to-show', () => {
+        win?.show()
+        win?.moveTop();
+        win?.focus();
+    })
+
 }
   ////////////////////////////////////////////////////////////
  // Window handling (ipcRenderer Process - Frontend) END
