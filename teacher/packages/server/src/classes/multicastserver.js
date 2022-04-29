@@ -30,11 +30,15 @@ class MulticastServer {
         this.server = createSocket('udp4')
      
         this.serverinfo = this.initMessage(servername, pin, password)
-        this.server.bind(this.SRC_PORT, () => { // Add the HOST_IP_ADDRESS for reliability
-            this.broadcastInterval = setInterval(() => { this.multicastNew() }, 2000)
-            console.log(`UDP MC Server listening on http://${config.hostip}:${this.server.address().port}`)
+        this.server.bind(this.SRC_PORT,'0.0.0.0',  () => { // Add the HOST_IP_ADDRESS for reliability
+          
+            this.server.setBroadcast(true)
             this.server.setMulticastTTL(128)
             this.server.setTTL(128)
+            this.server.addMembership(this.MULTICAST_ADDR); 
+
+            this.broadcastInterval = setInterval(() => { this.multicastNew() }, 2000)
+            console.log(`UDP MC Server listening on http://${config.hostip}:${this.server.address().port}`)
         })
     }
 
@@ -68,7 +72,7 @@ class MulticastServer {
         const preparedMessage = JSON.stringify(message)
         //broadcast to clients
         this.server.send(preparedMessage, 0, preparedMessage.length, this.ClientPORT, this.MULTICAST_ADDR)
-        //broadcast to other server(clients)
+        //broadcast to other server(clients) - servers also want to know what other servers are in the network
         this.server.send(preparedMessage, 0, preparedMessage.length, config.multicastServerClientPort, this.MULTICAST_ADDR)
     }
 }
