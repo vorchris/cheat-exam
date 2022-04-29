@@ -27,7 +27,7 @@
                     <b>{{activestudent.clientname}}</b><br>
                     <span style="font-size: 0.7em;">{{activestudent.clientip}}</span>
                     <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent)"  style="width: 100px">{{$t('dashboard.sendfile')}}</div>
-                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="getFiles(activestudent)"  style="width: 100px">{{$t('dashboard.getfile')}}</div>
+                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="getFiles(activestudent.token)"  style="width: 100px">{{$t('dashboard.getfile')}}</div>
                     <div class="col d-inlineblock btn btn-warning m-1 btn-sm"   @click='kick(activestudent.token,activestudent.clientip)'  style="width: 100px">{{$t('dashboard.kick')}}</div>
                 </div>
             </div>
@@ -360,7 +360,7 @@ export default {
                     });
                }).catch(err => { console.warn(err)});     
         },
-           // fetch file from disc - show preview
+        // fetch file from disc - show preview
         loadImage(file){
             const form = new FormData()
             form.append("filename", file)
@@ -558,29 +558,34 @@ export default {
         // get finished exams (ABGABE) from students
         getFiles(who){
             if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); console.log("no clients connected"); return; }
-            if (who == "all"){
-                this.status(this.$t("dashboard.abgaberequest"));
-                this.studentlist.forEach( (student) => {
-                    //for some reason this has a 30sec timeout when triggered the second time with method GET only inside "electron"
-                    axios({
-                        url:`https://${student.clientip}:${this.clientApiPort}/client/data/abgabe/send/${student.token}`,
-                        method: 'post'
-                    })
-                    .then( response => {
-                        console.log(response.data.message);
-                    }).catch(error => {console.log(error)});
-                });
-            }
-            else {
-                let student = who
-                axios({
-                    url:`https://${student.clientip}:${this.clientApiPort}/client/data/abgabe/send/${student.token}`,
-                    method: 'post'
-                })
-                .then( response => {
-                    console.log(response.data.message);
-                }).catch(error => {console.log(error)});
-            }
+            axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/fetch/${this.servername}/${this.servertoken}/${who}`)  //who is either all or token
+            .then( async (response) => { this.status(response.data.message); })
+            .catch( err => {console.log(err)});
+            
+            
+            // if (who == "all"){
+            //     this.status(this.$t("dashboard.abgaberequest"));
+            //     this.studentlist.forEach( (student) => {
+            //         //for some reason this has a 30sec timeout when triggered the second time with method GET only inside "electron"
+            //         axios({
+            //             url:`https://${student.clientip}:${this.clientApiPort}/client/data/abgabe/send/${student.token}`,
+            //             method: 'post'
+            //         })
+            //         .then( response => {
+            //             console.log(response.data.message);
+            //         }).catch(error => {console.log(error)});
+            //     });
+            // }
+            // else {
+            //     let student = who
+            //     axios({
+            //         url:`https://${student.clientip}:${this.clientApiPort}/client/data/abgabe/send/${student.token}`,
+            //         method: 'post'
+            //     })
+            //     .then( response => {
+            //         console.log(response.data.message);
+            //     }).catch(error => {console.log(error)});
+            // }
         },
         // show status message
         async status(text){  

@@ -88,10 +88,6 @@ import fs from 'fs'
 })
 
 
-
-
-
-
 /**
  * checks serverpassword for login via VUE ROUTER
  * @param servername the chosen name (for example "mathe")
@@ -122,22 +118,8 @@ import fs from 'fs'
 })
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 /**
  *  sends a list of all running exam servers
- *  TODO: serverlist should contain ALL servers in a local network
- *  use multicastclient on serverside to fill serverlist too (not just for clients)
  */
 router.get('/serverlist', function (req, res, next) {
     let serverlist = []
@@ -166,8 +148,6 @@ router.get('/serverlist', function (req, res, next) {
         res.send({sender: "server", message:t("control.notfound"), status: "error"} )
     }
 })
-
-
 
 
 /**
@@ -223,8 +203,6 @@ router.get('/serverlist', function (req, res, next) {
 })
 
 
-
-
 /**
  *  KICK client - client will get error response on next update and remove connection automatically
  * @param servename the server that wants to kick the client
@@ -263,13 +241,38 @@ router.get('/serverlist', function (req, res, next) {
         if (student) {   
             student.status.restorefocusstate = true
          }
-        res.send( {sender: "server", message: t("control.studentremove"), status: "success"} )
+        res.send( {sender: "server", message: t("control.staterestore"), status: "success"} )
     }
     else {
         res.send( {sender: "server", message: t("control.actiondenied"), status: "error"} )
     }
 })
 
+/**
+ * FETCH EXAMS from connected clients 
+ * @param servename the server that wants to kick the client
+ * @param csrfservertoken the servers token to authenticate
+ * @param studenttoken the students token who should send the exam (false means everybody)
+ */
+ router.get('/fetch/:servername/:csrfservertoken/:studenttoken', function (req, res, next) {
+    const servername = req.params.servername
+    const studenttoken = req.params.studenttoken
+    const mcServer = config.examServerList[servername]
+
+    if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {  //first check if csrf token is valid and server is allowed to trigger this api request
+        if (studenttoken === "all"){
+            for (let student of mcServer.studentList){ student.status['sendexam'] = true  }
+        }
+        else {
+            let student = mcServer.studentList.find(element => element.token === studenttoken)
+            if (student) {  student.status['sendexam']= true  }   
+        }
+        res.send( {sender: "server", message: t("control.examrequest"), status: "success"} )
+    }
+    else {
+        res.send( {sender: "server", message: t("control.actiondenied"), status: "error"} )
+    }
+})
 
 /**
  * Toggle EXAM  (start/stop kiosk mode for students)

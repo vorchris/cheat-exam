@@ -53,11 +53,6 @@ class MulticastClient {
      * starts an intervall to check server status and reacts on information given by the server instance
      */
     init () {
-        // this.client.on('listening', () => { 
-        //     this.address = this.client.address()
-            
-        // })
-
         this.client.bind(this.PORT, '0.0.0.0',  () => { 
             this.client.setBroadcast(true)
             this.client.setMulticastTTL(128); 

@@ -260,7 +260,7 @@ function zipDirectory(sourceDir, outPath) {
       stream.on('close', () => resolve());
       archive.finalize();
     });
-  }
+}
 
 // timeout 
 function sleep(ms) {

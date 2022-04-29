@@ -23,8 +23,7 @@
             <li>
                 <div class="btn btn-light m-0 text-start infobutton">
                     <img src='/src/assets/img/svg/person-lines-fill.svg' class="me-2"  width="16" height="16" > 
-                
-                      {{$t("general.slist")}}
+                    {{$t("general.slist")}}
                 </div><br>
 
             </li>

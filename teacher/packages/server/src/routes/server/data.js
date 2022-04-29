@@ -233,36 +233,30 @@ async function concatPages(pdfsToMerge) {
 
 /**
  * Stores file(s) to the workdirectory (files coming FROM CLIENTS (finished EXAMS) )
- * @param token the students token - this has to be valid (coming from a registered user) 
+ * @param studenttoken the students token - this has to be valid (coming from a registered user) 
+ * @param servername the server-exam instance the students token belongs to
  * in order to process the request - DO NOT STORE FILES COMING from anywhere.. always check if token belongs to a registered student (or server)
- * TODO: if receiver is "server" it should unzip and store with files with timestamp and username
  */
- router.post('/receive/:servername/:token', async (req, res, next) => {  
-    const token = req.params.token
+ router.post('/receive/:servername/:studenttoken', async (req, res, next) => {  
+    const studenttoken = req.params.studenttoken
     const servername = req.params.servername
     const mcServer = config.examServerList[servername] // get the multicastserver object
   
-    if ( !checkToken(token, mcServer ) ) { res.json({ status: t("data.tokennotvalid") }) }
+    if ( !checkToken(studenttoken, mcServer ) ) { res.json({ status: t("data.tokennotvalid") }) }
     else {
         console.log("Server: Receiving File(s)...")
         let errors = 0
+        let time = new Date(new Date().getTime()).toISOString().substr(11, 8);
+        let student = mcServer.studentList.find(element => element.token === studenttoken) // get student from token
         
         if (req.files){
             for (const [key, file] of Object.entries( req.files)) {
-    
                 let absoluteFilepath = path.join(config.workdirectory, mcServer.serverinfo.servername, file.name);
                 if (file.name.includes(".zip")){  //ABGABE as ZIP
-                    let time = new Date(new Date().getTime()).toISOString().substr(11, 8);
-                    let studentname = ""
-                    // get username
-                    mcServer.studentList.forEach( (student) => {
-                        if (token === student.token) {
-                            studentname = student.clientname
-                        }
-                    });
+                    
                     
                     // create user abgabe directory
-                    let studentdirectory =  path.join(config.workdirectory, mcServer.serverinfo.servername, studentname)
+                    let studentdirectory =  path.join(config.workdirectory, mcServer.serverinfo.servername, student.clientname)
                     if (!fs.existsSync(studentdirectory)){ fs.mkdirSync(studentdirectory, { recursive: true });  }
 
                     // create archive directory
@@ -273,24 +267,24 @@ async function concatPages(pdfsToMerge) {
                     // extract zip file to archive
                     file.mv(absoluteFilepath, (err) => {  
                         if (err) { errors++; console.log( t("data.couldnotstore") ) }
-                        extract(absoluteFilepath, { dir: studentarchivedir }).then( () => {
-                            fs.unlink(absoluteFilepath, (err) => {  // remove zip file after extracting
-                                if (err) console.log(err);
-                            });
-                        }).catch( err => console.log(err))
+                        else {
+                            extract(absoluteFilepath, { dir: studentarchivedir }).then( () => {
+                                if (student) {  student.status['sendexam']= false  } //we received the exam - remove exam request from student status
+                                fs.unlink(absoluteFilepath, (err) => { if (err) console.log(err); }); // remove zip file after extracting
+                            }).catch( err => console.log(err))
+                        }                     
                     });
                 }
-                else {
-                    // this is another file (most likely a screenshot as we do not yet transfer other files)
+                else { // this is another file (most likely a screenshot as we do not yet transfer other files)
                     file.mv(absoluteFilepath, (err) => {  
                         if (err) { errors++; console.log( t("data.couldnotstore") ) }
                     });
                 }
             }
-            res.json({ status:"success", sender: "server", message:t("data.filereceived"), errors: errors, clienttoken: token  })
+            res.json({ status:"success", sender: "server", message:t("data.filereceived"), errors: errors  })
         }
         else {
-            res.json({ status:"error",  sender: "server", message:t("data.nofilereceived"), errors: errors, clienttoken: token  })
+            res.json({ status:"error",  sender: "server", message:t("data.nofilereceived"), errors: errors })
         }
     }
 })

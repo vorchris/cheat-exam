@@ -88,7 +88,8 @@
         "studentleft": "Schüler*in hat den Exam Server verlassen",
         "staterestore": "Vertrauensstellung wiederhergestellt",
         "virtualized": ": Die Prüfungsumgebung wird in einer virtuellen Maschine ausgeführt",
-        "versionmismatch": "Die Programmversionen stimmen nicht überein"
+        "versionmismatch": "Die Programmversionen stimmen nicht überein",
+        "examrequest": "Abgaben wurden angefordert"
     },  
     "data": {
         "tokennotvalid": "das token ist ungültig",

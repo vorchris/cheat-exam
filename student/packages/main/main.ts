@@ -32,7 +32,7 @@ import screenshot from 'screenshot-desktop'
 import FormData from 'form-data/lib/form_data.js';     //we need to import the file directly otherwise it will introduce a "window" variable in the backend and fail
 import fs from 'fs' 
 import crypto from 'crypto';
-
+import archiver from 'archiver'
 
 
   ////////////////////////////////
@@ -376,8 +376,11 @@ function processUpdatedServerstatus(serverstatus, studentstatus){
     }
     // individual status updates
     if ( studentstatus && Object.keys(studentstatus).length !== 0) {  // we have status updates (tasks) - do it!
-         if (studentstatus.restorefocusstate === true){
+        if (studentstatus.restorefocusstate === true){
             multicastClient.clientinfo.focus = true
+        }
+        if (studentstatus.sendexam === true){
+            sendExamToTeacher()
         }
     }
 }
@@ -442,4 +445,71 @@ const blurevent = () => {
     win?.moveTop();
     win?.focus();
     multicastClient.clientinfo.focus = false
+}
+
+
+async function sendExamToTeacher(){
+   //send save trigger to exam window
+   let windows  = BrowserWindow.getAllWindows()
+   for (let win of windows){
+       win.webContents.send('save')
+   } 
+   // give it some time
+   await sleep(1000)  // wait one second before zipping workdirectory (give save some time - unfortunately we have no way to wait for save - we could check the filetime in a "while loop" though)
+
+   //zip config.work directory
+   if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory); }
+   //fsExtra.emptyDirSync(config.tempdirectory)
+   let zipfilename = multicastClient.clientinfo.name.concat('.zip')
+   let servername = multicastClient.clientinfo.servername
+   let serverip = multicastClient.clientinfo.serverip
+   let token = multicastClient.clientinfo.token
+   let zipfilepath = join(config.tempdirectory, zipfilename);
+
+   await zipDirectory(config.workdirectory, zipfilepath)
+   let file = await fs.readFileSync(zipfilepath);
+   const form = new FormData()
+
+   if (config.electron){
+       let blob =  new Blob( [ new Uint8Array(file).buffer], { type: 'application/zip' })
+       form.append(zipfilename, blob, zipfilename );
+   } 
+   else {
+       form.append(zipfilename, file, {contentType: 'application/zip', filename: zipfilename });
+   }
+
+   axios({
+       method: "post", 
+       url: `https://${serverip}:${config.serverApiPort}/server/data/receive/${servername}/${token}`, 
+       data: form, 
+       headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
+   })
+   .then(response =>{ console.log(response.data.message)  })
+   .catch( err =>{console.log(`Main - sendExam: ${err}`) })
+
+}
+
+// timeout 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+/**
+ * @param {String} sourceDir: /some/folder/to/compress
+ * @param {String} outPath: /path/to/created.zip
+ * @returns {Promise}
+ */
+function zipDirectory(sourceDir, outPath) {
+    const archive = archiver('zip', { zlib: { level: 9 }});
+    const stream = fs.createWriteStream(outPath);
+    return new Promise((resolve, reject) => {
+      archive
+        .directory(sourceDir, false)
+        .on('error', err => reject(err))
+        .pipe(stream)
+      ;
+      stream.on('close', () => resolve());
+      archive.finalize();
+    });
 }

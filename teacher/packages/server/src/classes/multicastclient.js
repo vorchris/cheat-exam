@@ -18,20 +18,14 @@ class MulticastClient {
      * starts an intervall to check server status by timestamp
      */
     init () {
-        // this.client.on('listening', () => { 
-        //     this.address = this.client.address()
-        // })
-        
         this.client.bind(this.PORT, '0.0.0.0', () => { 
             this.client.setBroadcast(true)
             this.client.setMulticastTTL(128); 
             this.client.addMembership(this.MULTICAST_ADDR)
             console.log(`UDP MC Client listening on http://${config.hostip}:${this.client.address().port}`)
-         })
-
+        })
 
         this.client.on('message', (message, rinfo) => { this.messageReceived(message, rinfo) })
-
         //start loops
         this.refreshExamsIntervall = setInterval(() => {  this.isDeprecatedInstance()  }, 5000)
     }
