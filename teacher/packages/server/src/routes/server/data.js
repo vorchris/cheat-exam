@@ -26,7 +26,6 @@ import i18n from '../../../../renderer/src/locales/locales.js'
 const { t } = i18n.global
 import archiver from 'archiver'
 import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied version otherwise we get 1000 sourcemap warnings
- 
 
 
 
@@ -37,13 +36,10 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
     const token = req.params.token
     const servername = req.params.servername
     const mcServer = config.examServerList[servername] // get the multicastserver object
-    if ( token !== mcServer.serverinfo.servertoken ) { return res.json({ status: t("data.tokennotvalid") }) }
-
-  
     const dir =req.body.dir
-    console.log(dir)
-
-    // ATTENTION!  this currently only makes sense if the server(teacher) runs on the local computer in electron app (re-think for server version )
+    
+    if ( token !== mcServer.serverinfo.servertoken ) { return res.json({ status: t("data.tokennotvalid") }) }
+   
     let folders = []
     folders.push( {currentdirectory: dir, parentdirectory: path.dirname(dir)})
     fs.readdirSync(dir).reduce(function (list, file) {
@@ -192,32 +188,40 @@ async function concatPages(pdfsToMerge) {
 
 /**
  * GET ANY File/Folder from EXAM directory - download !
+ * Can be triggered by TEACHER (dashboard explorer) or STUDENT (filerequest)
  * @param filename if set the content of the file is returned
  */ 
  router.post('/download/:servername/:token', async (req, res, next) => {
     const token = req.params.token
     const servername = req.params.servername
     const mcServer = config.examServerList[servername] // get the multicastserver object
-    if ( token !== mcServer.serverinfo.servertoken ) { return res.json({ status: t("data.tokennotvalid") }) }
-
-    console.log(req.body)
+    const type = req.body.type  // file, dir, studentfilerequest
     const filename = req.body.filename
     const filepath = req.body.path
-    const type = req.body.type
+    const files = req.body.files  // in case of studentfilerequest 'files' is an array of fileobjects [ {name:file.name, path:file.path }, {name:file.name, path:file.path } ] 
 
-    if (type === "file") {
+    if ( token !== mcServer.serverinfo.servertoken && !checkToken(token, mcServer )) { return res.json({ status: t("data.tokennotvalid") }) }
+   
+
+   
+    if (type === "studentfilerequest") {
+        // if this request came from a student reset studentstatus
+        let student = mcServer.studentList.find(element => element.token === token) // get student from token
+        if (student) {  
+            student.status['fetchfiles'] = false  //reset filerequest status for student // it is theoretically possible that the client sends a second file request and fetches the file twice before this setting is reset but i guess this doen't really matter
+            student.status['files'] = []          // therer is no control system in place to re-check if the file was actually received
+            res.zip({files: files});  
+        } 
+    }  
+    else if (type === "file") {
             res.setHeader('Content-disposition', 'attachment; filename=' + filename);
-            res.download(filepath, filename);       
+            res.download(filepath);  
     }
     else if (type === "dir") {
         //zip folder and then send
-    
         let zipfilename = filename.concat('.zip')
         let zipfilepath = path.join(config.tempdirectory, zipfilename);
         await zipDirectory(filepath, zipfilepath)
-
-        console.log(zipfilepath)
-
         res.setHeader('Content-disposition', 'attachment; filename=' + filename);
         res.download(zipfilepath,filename); 
     }
@@ -254,7 +258,6 @@ async function concatPages(pdfsToMerge) {
                 let absoluteFilepath = path.join(config.workdirectory, mcServer.serverinfo.servername, file.name);
                 if (file.name.includes(".zip")){  //ABGABE as ZIP
                     
-                    
                     // create user abgabe directory
                     let studentdirectory =  path.join(config.workdirectory, mcServer.serverinfo.servername, student.clientname)
                     if (!fs.existsSync(studentdirectory)){ fs.mkdirSync(studentdirectory, { recursive: true });  }
@@ -290,6 +293,66 @@ async function concatPages(pdfsToMerge) {
 })
 
 
+/**
+ * UPLOADS Files from the Teacher Frontend and 
+ * stores the files into the workdirectory
+ * then updates student.status.fetchfiles in order to trigger a filerequest from the student(s) 
+ */
+
+router.post('/upload/:servername/:servertoken/:studenttoken', async (req, res, next) => {  
+    const servertoken = req.params.servertoken
+    const servername = req.params.servername
+    const mcServer = config.examServerList[servername] // get the multicastserver object
+    const studenttoken = req.params.studenttoken
+
+    if ( servertoken !== mcServer.serverinfo.servertoken ) { return res.json({ status: t("data.tokennotvalid") }) }
+
+    // create user abgabe directory
+    let uploaddirectory =  path.join(config.workdirectory, mcServer.serverinfo.servername, 'UPLOADS')
+    if (!fs.existsSync(uploaddirectory)){ fs.mkdirSync(uploaddirectory, { recursive: true });  }
+
+
+
+    if (req.files){
+        let filesArray = []  // depending on the number of files this comes as array of objects or object
+        if (!Array.isArray(req.files.files)){ filesArray.push(req.files.files)}
+        else {filesArray = req.files.files}
+
+        let files = []        
+    
+        for await (let file of  filesArray) {
+            let absoluteFilepath = path.join(uploaddirectory, file.name);
+            await file.mv(absoluteFilepath, (err) => {  
+                if (err) { console.log( t("data.couldnotstore") ) }
+            }); 
+            files.push({ name:file.name , path:absoluteFilepath });
+        }
+
+       
+        // inform students about this send-file request so that they trigger a download request for the given files
+        if (studenttoken === "all"){
+            for (let student of mcServer.studentList){ 
+                student.status['fetchfiles'] = true  
+                student.status['files'] =  files
+            }
+        }
+        else {
+            let student = mcServer.studentList.find(element => element.token === studenttoken)
+            if (student) {  
+                student.status['fetchfiles']= true 
+                student.status['files'] = files
+            }   
+        }
+        res.json({ status:"success", sender: "server", message:t("data.filereceived")  })
+    }
+    else {
+        res.json({ status:"error",  sender: "server", message:t("data.nofilereceived") })
+    }
+    
+})
+
+
+
 
 
 export default router
@@ -300,38 +363,32 @@ export default router
  * Checks if the token is valid in order to process api request
  * Attention: no all api requests check tokens atm!
  */
- function checkToken(token, mcserver){
-    
-        let tokenexists = false
-        console.log("checking if student is registered on this server")
-        mcserver.studentList.forEach( (student) => {
-            if (token === student.token) {
-                tokenexists = true
-            }
-        });
-        return tokenexists
-  
-  }
-
-
+function checkToken(token, mcserver){
+    let tokenexists = false
+    console.log("checking if student is registered on this server")
+    mcserver.studentList.forEach( (student) => {
+        if (token === student.token) {
+            tokenexists = true
+        }
+    });
+    return tokenexists
+}
 
 /**
  * @param {String} sourceDir: /some/folder/to/compress
  * @param {String} outPath: /path/to/created.zip
  * @returns {Promise}
  */
- function zipDirectory(sourceDir, outPath) {
+function zipDirectory(sourceDir, outPath) {
     const archive = archiver('zip', { zlib: { level: 9 }});
     const stream = fs.createWriteStream(outPath);
-  
     return new Promise((resolve, reject) => {
       archive
         .directory(sourceDir, false)
         .on('error', err => reject(err))
         .pipe(stream)
       ;
-  
       stream.on('close', () => resolve());
       archive.finalize();
     });
-  }
+}

@@ -26,7 +26,7 @@
                     <button class="btn btn-close  btn-close-white align-right" @click="hideStudentview()"  style="width: 100px"></button>
                     <b>{{activestudent.clientname}}</b><br>
                     <span style="font-size: 0.7em;">{{activestudent.clientip}}</span>
-                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent)"  style="width: 100px">{{$t('dashboard.sendfile')}}</div>
+                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent.token)"  style="width: 100px">{{$t('dashboard.sendfile')}}</div>
                     <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="getFiles(activestudent.token)"  style="width: 100px">{{$t('dashboard.getfile')}}</div>
                     <div class="col d-inlineblock btn btn-warning m-1 btn-sm"   @click='kick(activestudent.token,activestudent.clientip)'  style="width: 100px">{{$t('dashboard.kick')}}</div>
                 </div>
@@ -46,7 +46,7 @@
             <div v-for="file in localfiles" class="d-inline">
                 <!-- files -->
                 <div v-if="(file.type == 'file')" class="btn btn-info pe-3 ps-3 me-3 mb-2 btn-sm" @click="" style=" max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><img src="/src/assets/img/svg/document.svg" class="" width="22" height="22" > {{file.name}} </div>
-                <div v-if="(file.type == 'file')"  :class="(studentlist.length == 0)? 'disabled':''"  class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="sendFile(file)" :title="$t('dashboard.send')"><img src="/src/assets/img/svg/document-send.svg" class="" width="22" height="22" ></div>
+                <div v-if="(file.type == 'file')"  :class="(studentlist.length == 0)? 'disabled':''"  class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="dashboardExplorerSendFile(file)" :title="$t('dashboard.send')"><img src="/src/assets/img/svg/document-send.svg" class="" width="22" height="22" ></div>
                 <div v-if="(file.type == 'file')" class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="downloadFile(file)" :title="$t('dashboard.download')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" ></div>
                 <div v-if="(file.type == 'file' && file.ext === '.pdf')" class="btn btn-dark me-1 mb-2 btn-sm" style="float: right;" @click="loadPDF(file.path, file.name)" :title="$t('dashboard.preview')"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
                 <div v-if="(file.type == 'file' && (file.ext === '.png'|| file.ext === '.jpg'|| file.ext === '.webp'|| file.ext === '.jpeg' ))" class="btn btn-dark me-1 mb-2 btn-sm" style="float: right;" @click="loadImage(file.path)" :title="$t('dashboard.preview')"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
@@ -270,6 +270,14 @@ export default {
         ////////////////////////
         // DASHBOARD EXPLORER
 
+
+
+        // show workfloder  TODO:  the whole workfolder thing is getting to complex.. this should be a standalone vue.js component thats embedded here
+        showWorkfolder(){
+            $("#preview").css("display","block");
+            $("#closefilebrowser").click(function(e) { $("#preview").css("display","none"); });  // the surroundings of #workfolder can be clicked to close the view
+            $('#workfolder').click(function(e){ e.stopPropagation(); });    // don't propagate clicks through the div to the preview div (it would hide the view)
+        },
         // fetch a file or folder (zip) and open download/save dialog
         downloadFile(file){
             if (file === "current"){   //we want to download the file thats currently displayed in preview
@@ -295,70 +303,51 @@ export default {
             })
            .catch(err => { console.warn(err)});
         },
-
         // send a file from dashboard explorer to specific student
-        sendFile(file){
-            console.log("fetching file")
-            fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/download/${this.servername}/${this.servertoken}`, { 
-                method: 'POST',
-                headers: {'Content-Type': 'application/json' },
-                body: JSON.stringify({ filename : file.name, path: file.path, type: file.type})
+        dashboardExplorerSendFile(file){
+            const inputOptions = new Promise((resolve) => {  // prepare input options for radio buttons
+                let connectedStudents = {}
+                this.studentlist.forEach( (student) => { connectedStudents[student.token]=student.clientname });
+                resolve(connectedStudents)
             })
-            .then( res => res.blob() )
-            .then( blob => {
-                // prepare input options for radio buttons
-                const inputOptions = new Promise((resolve) => {
-                    let connectedStudents = {}
-                    this.studentlist.forEach( (student) => {  
-                        connectedStudents[student.token]=student.clientname
-                    });
-                    resolve(connectedStudents)
-                })
-                this.$swal.fire({
-                    title: this.$t("dashboard.choosestudent"),
-                    input: 'select',
-                    icon: 'success',
-                    showCancelButton: true,
-                    reverseButtons: true,
-                    inputOptions: inputOptions,
-                    inputValidator: (value) => {
-                        if (!value) { return this.$t("dashboard.chooserequire") }
-                    }
-                })
-                .then((input) => {
-                    if (input.isConfirmed) {
-                        let student = this.studentlist.find(element => element.token === input.value)  // fetch cerrect student that belongs to the token
-                        const formData = new FormData()  //prepare form to send file
-                        formData.append('files', blob, file.name)  
-                        axios({
-                            method: "post", 
-                            url: `https://${student.clientip}:${this.clientApiPort}/client/data/receive/${student.token}`, 
-                            data: formData, 
-                            headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
-                        })
-                        .then( (response) => { if (response.data.status === "success"){  this.status( this.$t("dashboard.filessent") )} })
-                        .catch( err =>{    console.log(`${err}`) })
-                    }
-                });
+            this.$swal.fire({
+                title: this.$t("dashboard.choosestudent"),
+                input: 'select',
+                icon: 'success',
+                showCancelButton: true,
+                reverseButtons: true,
+                inputOptions: inputOptions,
+                inputValidator: (value) => { if (!value) { return this.$t("dashboard.chooserequire") } }
             })
-            .catch(err => { console.warn(err)});
+            .then((input) => {
+                if (input.isConfirmed) {
+                    let student = this.studentlist.find(element => element.token === input.value)  // fetch cerrect student that belongs to the token
+                    fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/sendtoclient/${this.servername}/${this.servertoken}/${student.token}`, { 
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json' },
+                        body: JSON.stringify({ files:[ {name:file.name, path:file.path } ] })
+                    })
+                    .then( res => res.json() )
+                    .then( result => { console.log(result)});
+                }
+            });
         },
         // fetch file from disc - show preview
         loadPDF(filepath, filename){
             const form = new FormData()
             form.append("filename", filepath)
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getpdf/${this.servername}/${this.servertoken}`, { method: 'POST', body: form })
-                .then( response => response.arrayBuffer())
-                .then( data => {
-                    let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
-                    this.currentpreview = url   //needed for preview buttons
-                    this.currentpreviewname = filename   //needed for preview buttons
-                    $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
-                    $("#pdfpreview").css("display","block");
-                    $("#pdfpreview").click(function(e) {
-                         $("#pdfpreview").css("display","none");
-                    });
-               }).catch(err => { console.warn(err)});     
+            .then( response => response.arrayBuffer())
+            .then( data => {
+                let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
+                this.currentpreview = url   //needed for preview buttons
+                this.currentpreviewname = filename   //needed for preview buttons
+                $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
+                $("#pdfpreview").css("display","block");
+                $("#pdfpreview").click(function(e) {
+                    $("#pdfpreview").css("display","none");
+                });
+             }).catch(err => { console.warn(err)});     
         },
         // fetch file from disc - show preview
         loadImage(file){
@@ -383,12 +372,6 @@ export default {
                     });
                }).catch(err => { console.warn(err)});     
         },
-        // show workfloder  TODO:  the whole workfolder thing is getting to complex.. this should be a standalone vue.js component thats embedded here
-        showWorkfolder(){
-            $("#preview").css("display","block");
-            $("#closefilebrowser").click(function(e) { $("#preview").css("display","none"); });  // the surroundings of #workfolder can be clicked to close the view
-            $('#workfolder').click(function(e){ e.stopPropagation(); });    // don't propagate clicks through the div to the preview div (it would hide the view)
-        },
         // fetches latest files of all connected students in one combined pdf
         getLatest(){
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getlatest/${this.servername}/${this.servertoken}`, { 
@@ -397,7 +380,6 @@ export default {
             })
             .then( response => response.arrayBuffer() )
             .then( lastestpdf => {
-               
                 if (lastestpdf.byteLength === 0){
                     this.status(` ${this.$t("dashboard.nopdf")}`);
                     return
@@ -409,10 +391,7 @@ export default {
                 $("#pdfpreview").css("display","block");
                 $("#pdfpreview").click(function(e) {
                         $("#pdfpreview").css("display","none");
-
                 });
-
-                //download(lastestpdf, "allInOne.pdf", "application/pdf");
             }).catch(err => { console.warn(err)});
         },
         print(){
@@ -428,13 +407,15 @@ export default {
             })
             .then( response => response.json() )
             .then( filelist => {
-                console.log(filelist)
                 this.localfiles = filelist;
                 this.currentdirectory = directory
                 this.currentdirectoryparent = filelist[0].parentdirectory // the currentdirectory and parentdirectory properties are always on [0]
                 if (directory === this.workdirectory) {this.showWorkfolder(); }
             }).catch(err => { console.warn(err)});
         },
+ 
+         // DASHBOARD EXPLORER END
+        ////////////////////////////
 
 
 
@@ -461,6 +442,9 @@ export default {
             if (this.autoabgabe) { this.abgabeinterval = setInterval(() => { this.getFiles('all') }, 60000) }   //trigger getFiles('all') every other minute
             else { clearInterval( this.abgabeinterval )} 
         },
+
+
+
         //upload files to all students
         sendFiles(who) {
             if (this.studentlist.length === 0) { this.status(this.$t("dashboard.noclients")); return;}
@@ -494,33 +478,14 @@ export default {
                     formData.append('files', this.files[i])  // single file is sent as object.. multiple files as array..
                 }
 
-                if (who == "all"){
-                    this.studentlist.forEach( (student) => {  
-                        axios({
-                            method: "post", 
-                            url: `https://${student.clientip}:${this.clientApiPort}/client/data/receive/${student.token}`, 
-                            data: formData, 
-                            headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
-                        })
-                        .then( (response) => {
-                            console.log(response)
-                        })
-                        .catch( err =>{    console.log(`${err}`) })
-                    });
-                }
-                else {
-                    let student = who
-                    axios({
-                        method: "post", 
-                        url: `https://${student.clientip}:${this.clientApiPort}/client/data/receive/${student.token}`, 
-                        data: formData, 
-                        headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
-                    })
-                    .then( (response) => {
-                        console.log(response)
-                    })
-                    .catch( err =>{    console.log(`${err}`) })
-                }
+                axios({
+                    method: "post", 
+                    url: `https://${this.serverip}:${this.serverApiPort}/server/data/upload/${this.servername}/${this.servertoken}/${who}`, 
+                    data: formData, 
+                    headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
+                })
+                .then( (response) => {console.log(response.data) })
+                .catch( err =>{ console.log(`${err}`) })
             });    
         },  
         //stop and clear this exam server instance
@@ -561,31 +526,6 @@ export default {
             axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/fetch/${this.servername}/${this.servertoken}/${who}`)  //who is either all or token
             .then( async (response) => { this.status(response.data.message); })
             .catch( err => {console.log(err)});
-            
-            
-            // if (who == "all"){
-            //     this.status(this.$t("dashboard.abgaberequest"));
-            //     this.studentlist.forEach( (student) => {
-            //         //for some reason this has a 30sec timeout when triggered the second time with method GET only inside "electron"
-            //         axios({
-            //             url:`https://${student.clientip}:${this.clientApiPort}/client/data/abgabe/send/${student.token}`,
-            //             method: 'post'
-            //         })
-            //         .then( response => {
-            //             console.log(response.data.message);
-            //         }).catch(error => {console.log(error)});
-            //     });
-            // }
-            // else {
-            //     let student = who
-            //     axios({
-            //         url:`https://${student.clientip}:${this.clientApiPort}/client/data/abgabe/send/${student.token}`,
-            //         method: 'post'
-            //     })
-            //     .then( response => {
-            //         console.log(response.data.message);
-            //     }).catch(error => {console.log(error)});
-            // }
         },
         // show status message
         async status(text){  

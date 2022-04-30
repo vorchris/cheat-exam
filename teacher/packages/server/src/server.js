@@ -25,13 +25,13 @@ import fsExtra from "fs-extra"
 import path from 'path'
 import rateLimit  from 'express-rate-limit'  //simple ddos protection
 import ip from 'ip'
-import multicastClient from './classes/multicastclient.js'
+import zip from 'express-easy-zip'
 import fs from 'fs'
 import os from 'os'
 import forge from 'node-forge'
 forge.options.usePureJavaScript = true; 
 
-config.workdirectory = path.join(os.homedir(), config.examdirectory)
+config.workdirectory = path.join(os.homedir(), config.examdirectory)  //Attention! In Electron this makes sense. the WEBserver version will most likely need another Workdirectory
 config.tempdirectory = path.join(os.tmpdir(), 'exam-tmp')
 if (!fs.existsSync(config.workdirectory)){ fs.mkdirSync(config.workdirectory); }
 if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory); }
@@ -57,7 +57,7 @@ fsExtra.emptyDirSync(config.tempdirectory)
 
 // init express API
 const api = express()
-
+api.use(zip())
 api.use(fileUpload())  //When you upload a file, the file will be accessible from req.files (init before routes)
 api.use(cors())
 api.use(express.json())

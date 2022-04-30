@@ -26,6 +26,8 @@ import { join } from 'path'
 import {enableRestrictions, disableRestrictions} from './scripts/platformrestrictions.js';
 import config from '../server/src/config.js';
 import axios from "axios";
+
+
 import server from "../server/src/server.js"
 import multicastClient from '../server/src/classes/multicastclient.js'
 import screenshot from 'screenshot-desktop'
@@ -33,7 +35,7 @@ import FormData from 'form-data/lib/form_data.js';     //we need to import the f
 import fs from 'fs' 
 import crypto from 'crypto';
 import archiver from 'archiver'
-
+import extract from 'extract-zip'
 
   ////////////////////////////////
  // APP handling (Backend) START
@@ -382,10 +384,40 @@ function processUpdatedServerstatus(serverstatus, studentstatus){
         if (studentstatus.sendexam === true){
             sendExamToTeacher()
         }
+        if (studentstatus.fetchfiles === true){
+            requestFileFromServer(studentstatus.files)
+        }
     }
 }
 
 
+function requestFileFromServer(files){
+    let servername = multicastClient.clientinfo.servername
+    let serverip = multicastClient.clientinfo.serverip
+    let token = multicastClient.clientinfo.token
+
+    let data = JSON.stringify({ 'files' : files, 'type': 'studentfilerequest'})
+    axios({
+        method: "post", 
+        url: `https://${serverip}:${config.serverApiPort}/server/data/download/${servername}/${token}`, 
+        data: data, 
+        responseType: 'arraybuffer',
+        headers: { 'Content-Type': 'application/json' }  
+    })
+    .then(response =>{ 
+        let absoluteFilepath = join(config.tempdirectory, token.concat('.zip'));
+        fs.writeFile(absoluteFilepath, response.data, (err) => {
+            if (err){console.log(err);}
+            else {
+                extract(absoluteFilepath, { dir: config.workdirectory }, ()=>{ 
+                    console.log("files extracted")
+                    fs.unlink(absoluteFilepath, (err) => { if (err) console.log(err); }); // remove zip file after extracting
+                })
+            }
+        });
+    })
+    .catch( err =>{console.log(`Main - requestFileFromServer: ${err}`) })   
+}
 
 
 /**

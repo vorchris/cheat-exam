@@ -126,7 +126,6 @@ router.get('/serverlist', function (req, res, next) {
     Object.values(config.examServerList).forEach( server => {
         serverlist.push({servername: server.serverinfo.servername, serverip: server.serverinfo.ip}) 
     });
-    
     res.send({serverlist:serverlist, status: "success"})
 })
 
@@ -203,6 +202,65 @@ router.get('/serverlist', function (req, res, next) {
 })
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * INFORM Client(s) about a "sendfile" request from the server (clients should download the file(s) via /data/download/... route) 
+ * @param servename the server that wants to kick the client
+ * @param csrfservertoken the servers token to authenticate
+ * @param studenttoken the students token who should send the exam (false means everybody)
+ */
+ router.post('/sendtoclient/:servername/:csrfservertoken/:studenttoken', function (req, res, next) {
+    const servername = req.params.servername
+    const studenttoken = req.params.studenttoken
+    const mcServer = config.examServerList[servername]
+    const files = req.body.files   //  { files:[ {name:file.name, path:file.path }, {name:file.name, path:file.path } ] }
+   
+
+    if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {  //first check if csrf token is valid and server is allowed to trigger this api request
+        if (studenttoken === "all"){
+            for (let student of mcServer.studentList){ 
+                student.status['fetchfiles'] = true  
+                student.status['files'] =  files
+            }
+        }
+        else {
+            let student = mcServer.studentList.find(element => element.token === studenttoken)
+            if (student) {  
+                student.status['fetchfiles']= true 
+                student.status['files'] = files
+            }   
+        }
+        res.send( {sender: "server", message: t("control.examrequest"), status: "success"} )
+    }
+    else {
+        res.send( {sender: "server", message: t("control.actiondenied"), status: "error"} )
+    }
+})
+
+
+
+
+
+
+
+
+
+
 /**
  *  KICK client - client will get error response on next update and remove connection automatically
  * @param servename the server that wants to kick the client
@@ -239,7 +297,7 @@ router.get('/serverlist', function (req, res, next) {
     if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {  //first check if csrf token is valid and server is allowed to trigger this api request
         let student = mcServer.studentList.find(element => element.token === studenttoken)
         if (student) {   
-            student.status.restorefocusstate = true
+            student.status.restorefocusstate = true  // set student.status so that the student can restore its focus state on the next update
          }
         res.send( {sender: "server", message: t("control.staterestore"), status: "success"} )
     }
@@ -249,7 +307,7 @@ router.get('/serverlist', function (req, res, next) {
 })
 
 /**
- * FETCH EXAMS from connected clients 
+ * FETCH EXAMS from connected clients (set student.status - students will then send their workdirectory to /data/receive)
  * @param servename the server that wants to kick the client
  * @param csrfservertoken the servers token to authenticate
  * @param studenttoken the students token who should send the exam (false means everybody)
