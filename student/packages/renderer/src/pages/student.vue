@@ -39,6 +39,11 @@
             </div>
         </div>
 
+    <textarea style="width:300px; height:200px">
+          auto House Hauhs  Tier tier tir 
+
+          Autho Auto Haus haus ich bin i am 
+    </textarea>
 
   
        
@@ -63,6 +68,7 @@
 <script>
 import axios from "axios";
 import validator from 'validator'
+
 
 export default {
     data() {

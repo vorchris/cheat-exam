@@ -60,12 +60,15 @@
         "choosestudent": "Wählen sie eine Person",
         "chooserequire": "Sie müssen eine Option wählen!",
         "nopdf": "Keine Schülerarbeiten gefunden",
-        "summarizepdf": "Neueste Abgaben \nals zusammengefasstes PDF \nherunterladen",
+        "summarizepdf": "Neueste Arbeiten \nals zusammengefasstes PDF \nherunterladen",
+        "summarizepdfshort": "Neueste Arbeiten als PDF",
         "download": "herunterladen",
         "print": "drucken",
         "preview": "ansehen",
         "send": "versenden",
-        "virtualized": "virtualiserte Arbeitsumgebung"
+        "virtualized": "virtualiserte Arbeitsumgebung",
+        "delete": "löschen",
+        "filedelete": "Wollen sie die Datei/den Ordner wirklich löschen?"
     },
     "control": {
         "tokennotvalid": "Das Token ist ungültig",
@@ -99,6 +102,7 @@
         "filessent": "Dateien gesendet",
         "couldnotstore": "Schüler*in konnte die Datei nicht speichern",
         "filereceived": "Daten erhalten",
-        "nofliereceived": "Keine Dateien erhalten"
+        "nofliereceived": "Keine Dateien erhalten",
+        "fdeleted": "gelöscht"
     }
 }

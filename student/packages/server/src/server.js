@@ -50,7 +50,7 @@ const api = express()
 api.use(fileUpload())  //When you upload a file, the file will be accessible from req.files (init before routes)
 api.use(cors())
 api.use(express.json())
-api.use(express.static(config.tempdirectory));
+api.use(express.static('public'));
 api.use(express.urlencoded({extended: true}));
 api.use('/client', clientRouter)
 

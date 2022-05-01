@@ -162,7 +162,27 @@ async function concatPages(pdfsToMerge) {
 
 
 
+/**
+ * DELETE File from EXAM directory
+ */ 
+ router.post('/delete/:servername/:token', function (req, res, next) {
+    const token = req.params.token
+    const servername = req.params.servername
+    const mcServer = config.examServerList[servername] // get the multicastserver object
+    if ( token !== mcServer.serverinfo.servertoken ) { return res.json({ status: t("data.tokennotvalid") }) }
 
+  
+    const filepath = req.body.filepath
+    if (filepath) { //return specific file
+        if (fs.statSync(filepath).isDirectory()){
+            fs.rmSync(filepath, { recursive: true, force: true });
+        }
+        else {
+            fs.unlink(filepath, (err) => { if (err) console.log(err); })
+        }
+        res.json({ status:"success", sender: "server", message:t("data.fdeleted"),  })
+    }
+})
 
 
 

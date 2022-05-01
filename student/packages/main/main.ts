@@ -20,14 +20,12 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow, shell, ipcMain, screen, globalShortcut, TouchBar, dialog } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, screen, globalShortcut, dialog, Menu, MenuItem } from 'electron'
 import { release } from 'os'
 import { join } from 'path'
 import {enableRestrictions, disableRestrictions} from './scripts/platformrestrictions.js';
 import config from '../server/src/config.js';
 import axios from "axios";
-
-
 import server from "../server/src/server.js"
 import multicastClient from '../server/src/classes/multicastclient.js'
 import screenshot from 'screenshot-desktop'
@@ -36,6 +34,10 @@ import fs from 'fs'
 import crypto from 'crypto';
 import archiver from 'archiver'
 import extract from 'extract-zip'
+
+
+
+
 
   ////////////////////////////////
  // APP handling (Backend) START
@@ -182,6 +184,9 @@ function newWin(examtype, token) {
         newwin?.moveTop();
         newwin?.focus();
     })
+
+   
+    
 }
 
 
@@ -202,7 +207,7 @@ async function createWindow() {
         show: false,
         webPreferences: {
             preload: join(__dirname, '../preload/preload.cjs'),
-            spellcheck: false
+            spellcheck: true
         }
     })
 
@@ -246,6 +251,7 @@ async function createWindow() {
         callback(0);
     });
 
+
     win.on('close', async  (e) => {   //ask before closing
         if (!config.development) {
             let choice = dialog.showMessageBoxSync(win, {
@@ -266,6 +272,24 @@ async function createWindow() {
         win?.focus();
     })
 
+
+    const possibleLanguages = win.webContents.session.availableSpellCheckerLanguages
+    console.log(possibleLanguages)
+    win.webContents.session.setSpellCheckerLanguages(['fr'])
+    win.webContents.session.setSpellCheckerDictionaryDownloadURL('https://localhost:11411/dicts/')
+
+    win.webContents.on('context-menu', (event, params) => {
+        const menu = new Menu()
+      
+        // Add each spelling suggestion
+        for (const suggestion of params.dictionarySuggestions) {
+          menu.append(new MenuItem({
+            label: suggestion,
+            click: () => win.webContents.replaceMisspelling(suggestion)
+          }))
+        }
+        menu.popup()
+    })
 }
   ////////////////////////////////////////////////////////////
  // Window handling (ipcRenderer Process - Frontend) END
@@ -298,6 +322,10 @@ async function createWindow() {
 
 ipcMain.on('virtualized', () => {  multicastClient.clientinfo.virtualized = true; } )
 ipcMain.on('getconfig', (event) => {   event.returnValue = config   })
+
+
+
+
 
 
 const updateStudentIntervall = setInterval(() => { sendBeacon() }, 5000)
