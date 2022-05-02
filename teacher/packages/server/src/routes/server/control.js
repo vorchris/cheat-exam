@@ -349,6 +349,8 @@ router.get('/serverlist', function (req, res, next) {
     mcServer.serverstatus.exammode = req.body.exammode
     mcServer.serverstatus.examtype = req.body.examtype
     mcServer.serverstatus.delfolder = req.body.delfolder
+    mcServer.serverstatus.spellcheck = req.body.spellcheck
+    mcServer.serverstatus.spellchecklang = req.body.spellchecklang
     
     res.json({ sender: "server", message:t("general.ok"), status: "success" })
 })

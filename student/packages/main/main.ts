@@ -271,25 +271,6 @@ async function createWindow() {
         win?.moveTop();
         win?.focus();
     })
-
-
-    const possibleLanguages = win.webContents.session.availableSpellCheckerLanguages
-    console.log(possibleLanguages)
-    win.webContents.session.setSpellCheckerLanguages(['fr'])
-    win.webContents.session.setSpellCheckerDictionaryDownloadURL('https://localhost:11411/dicts/')
-
-    win.webContents.on('context-menu', (event, params) => {
-        const menu = new Menu()
-      
-        // Add each spelling suggestion
-        for (const suggestion of params.dictionarySuggestions) {
-          menu.append(new MenuItem({
-            label: suggestion,
-            click: () => win.webContents.replaceMisspelling(suggestion)
-          }))
-        }
-        menu.popup()
-    })
 }
   ////////////////////////////////////////////////////////////
  // Window handling (ipcRenderer Process - Frontend) END
@@ -463,12 +444,37 @@ function startExam(serverstatus){
             fs.mkdirSync(config.workdirectory);
         }
     }
+
+
+
     if (!newwin){  // why do we check? because exammode is left if the server connection gets lost but students could reconnect while the exam window is still open
         newWin(serverstatus.examtype, multicastClient.clientinfo.token);
     }
     newwin?.setKiosk(true)
     enableRestrictions(newwin)
     newwin?.addListener('blur', blurevent)
+
+
+    if (serverstatus.spellcheck){
+        console.log(serverstatus.spellchecklang)
+        newwin?.webContents.session.setSpellCheckerLanguages(['fr'])
+        newwin?.webContents.session.setSpellCheckerDictionaryDownloadURL('https://localhost:11411/dicts/')
+        newwin?.webContents.on('context-menu', (event, params) => {
+            const menu = new Menu()
+          
+            // Add each spelling suggestion
+            for (const suggestion of params.dictionarySuggestions) {
+              menu.append(new MenuItem({
+                label: suggestion,
+                click: () => newwin?.webContents.replaceMisspelling(suggestion)
+              }))
+            }
+            menu.popup()
+        })
+    }
+
+
+
     multicastClient.clientinfo.exammode = true
 }
 
