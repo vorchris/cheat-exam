@@ -103,7 +103,7 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
         const filepath = path.join(studentdir.path, latest.path);
         latestfolders.push( { path: filepath, parent : studentdir.name })  // we store studentdir.name here because in the next step we need to make sure only the main.pdf (studentsname) is used
     }
-    console.log(latestfolders)
+    //console.log(latestfolders)
 
     // get PDFs from latest directories 
     let files = []

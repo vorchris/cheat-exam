@@ -27,7 +27,7 @@
                     <b>{{activestudent.clientname}}</b><br>
                     <span style="font-size: 0.7em;">{{activestudent.clientip}}</span>
                     <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent.token)"  style="width: 100px">{{$t('dashboard.sendfile')}}</div>
-                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="getFiles(activestudent.token)"  style="width: 100px">{{$t('dashboard.getfile')}}</div>
+                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="getFiles(activestudent.token, true)"  style="width: 100px">{{$t('dashboard.getfile')}}</div>
                     <div class="col d-inlineblock btn btn-warning m-1 btn-sm"   @click='kick(activestudent.token,activestudent.clientip)'  style="width: 100px">{{$t('dashboard.kick')}}</div>
                 </div>
             </div>
@@ -121,7 +121,7 @@
         <div v-if="(!exammode)" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px;"  @click="startExam()">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
         <div v-if="(exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:100px;" @click="endExam()" >{{numberOfConnections}} {{$t('dashboard.stopexam')}}</div>
         <div class="btn btn-info m-1 mt-0 text-start ms-0 " style="width:100px;" @click="sendFiles('all')">{{$t('dashboard.sendfile')}}</div>
-        <div class="btn btn-info m-1 mt-0 text-start ms-0 " style="width:100px;" @click="getFiles('all')">{{$t('dashboard.getfile')}}</div>
+        <div class="btn btn-info m-1 mt-0 text-start ms-0 " style="width:100px;" @click="getFiles('all', true)">{{$t('dashboard.getfile')}}</div>
         <div class="col d-inlineblock btn btn-dark m-1 mt-0 text-start ms-0 " @click="loadFilelist(workdirectory)"  style="width: 100px; ">{{$t('dashboard.showworkfolder')}} </div>
         <!-- control buttons end -->
 
@@ -139,7 +139,7 @@
                     <button v-if="(now - 20000 < student.timestamp)" @click="showStudentview(student)" type="button" class="btn btn-outline-success btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">{{$t('dashboard.online')}} </button>
                     <button v-if="(now - 20000 > student.timestamp)" type="button" class="btn btn-outline-danger btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">{{$t('dashboard.offline')}} </button>
                     <button v-if="(now - 20000 < student.timestamp) && student.exammode && student.focus"  @click='showStudentview(student)' type="button" class="btn btn-outline-warning btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;">{{$t('dashboard.secure')}}</button>
-                    <button v-if="(now - 20000 < student.timestamp) && !student.focus "   @click='restore(student.token,student.clientip)' type="button" class="btn btn-danger btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;"> {{$t('dashboard.restore')}} </button>
+                    <button v-if="(now - 20000 < student.timestamp) && !student.focus "   @click='restore(student.token)' type="button" class="btn btn-danger btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;"> {{$t('dashboard.restore')}} </button>
                 </div>
             </div>  
         </div>
@@ -162,8 +162,6 @@ import FormData from 'form-data'
  /** use this as visible feedback for some actions
  
  this.$swal.fire({
-        title: 'Auto close alert!',
-        html: 'I will close in  milliseconds.',
         timer: 2000,
         timerProgressBar: true,
         didOpen: () => { this.$swal.showLoading() }
@@ -226,7 +224,7 @@ export default {
         // enable exam mode 
         startExam(){
             this.exammode = true;
-
+            this.visualfeedback(this.$t("dashboard.startexam"))
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/exam/${this.servername}/${this.servertoken}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },
@@ -284,12 +282,20 @@ export default {
             });  
         },
         //restore focus state for specific student -- we tell the client that his status is restored which will then (on the next update) update it's focus state on the server 
-        restore(studenttoken, studentip){
+        restore(studenttoken){
+            this.visualfeedback(this.$t("dashboard.restore"),2000)
             axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/restore/${this.servername}/${this.servertoken}/${studenttoken}`)
                 .then( response => { console.log(response.data)  })
                 .catch( err => {console.log(err)});
         },
-
+        visualfeedback(message, timeout=1000){
+             this.$swal.fire({
+                text: message,
+                timer: timeout,
+                timerProgressBar: true,
+                didOpen: () => { this.$swal.showLoading() }
+            });
+        },
 
 
 
@@ -301,7 +307,6 @@ export default {
 
         //delete file or folder
         fdelete(file){
-
             this.$swal.fire({
                 title: this.$t("dashboard.sure"),
                 text:  this.$t("dashboard.filedelete"),
@@ -427,6 +432,7 @@ export default {
         },
         // fetches latest files of all connected students in one combined pdf
         getLatest(){
+            this.visualfeedback(this.$t("dashboard.summarizepdf"))
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getlatest/${this.servername}/${this.servertoken}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },
@@ -483,14 +489,12 @@ export default {
                         max: 20,
                         step: 1
                     },
-                    inputValue: 5
+                    inputValue: this.abgabeintervalPause
                 }).then((input) => {
                     this.abgabeintervalPause= input.value
                 })
             }
         },
-
-
         async activateSpellcheck(){
             if (!this.spellcheck) {
                 const inputOptions = new Promise((resolve) => {
@@ -622,10 +626,11 @@ export default {
             })
         },
         // get finished exams (ABGABE) from students
-        getFiles(who){
+        getFiles(who, feedfack=false){
+           
             if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); console.log("no clients connected"); return; }
             axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/fetch/${this.servername}/${this.servertoken}/${who}`)  //who is either all or token
-            .then( async (response) => { this.status(response.data.message); })
+            .then( async (response) => { if (feedfack){ this.visualfeedback(response.data.message, 2000) }else { this.status(response.data.message); } })  // we do not want intrusive feedback on automated tasks })
             .catch( err => {console.log(err)});
         },
         // show status message
