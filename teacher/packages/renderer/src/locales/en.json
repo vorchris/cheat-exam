@@ -68,7 +68,15 @@
         "send": "send",
         "virtualized": "virtual environment detected",
         "delete": "delete",
-        "filedelete": "Do you really want to delete this file/folder?"
+        "filedelete": "Do you really want to delete this file/folder?",
+        "spellcheck": "ASpellcheck",
+        "spellcheckchoose": "Please choose a language",
+        "de": "German",
+        "en":"English",
+        "es":"Spanish",
+        "fr":"French",
+        "abgabeauto":"Automatic Retreival",
+        "abgabeautoquestion":"Please set the interval for automatic retreival?"
     },
     "control": {
         "tokennotvalid": "token is not valid",

@@ -93,14 +93,22 @@
             <input v-model="examtype" value="eduvidual" class="form-check-input" type="radio" name="examtype" id="examtype3">
             <label class="form-check-label" for="examtype3"> {{$t('dashboard.eduvidual')}}  </label>
         </div>
-        <div class="form-check form-switch  m-1 mb-4">
-            <input @change="toggleAutoabgabe()"  v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
+
+
+        <div class="form-check form-switch  m-1 mb-2">
+            <input @change="toggleAutoabgabe()"  @click="setAbgabeInterval()" v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
             <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
         </div>
-        <div class="form-check m-1 mb-2">
+        <div class="form-check form-switch m-1 mb-2">
             <input v-model="delfolder" @click="delfolderquestion()" value="del" class="form-check-input" type="checkbox" name="delfolder" id="delfolder">
             <label class="form-check-label" for="delfolder"> {{$t('dashboard.del')}}  </label>
         </div>
+        <div class="form-check form-switch m-1 mb-2">
+            <input v-model="spellcheck" @click="activateSpellcheck()" value="false" class="form-check-input" type="checkbox" name="spellcheck" id="spellcheck">
+            <label class="form-check-label" for="spellcheck"> {{$t('dashboard.spellcheck')}}  </label>
+        </div>
+
+
         <div id="statusdiv" class="btn btn-warning m-1"> {{$t('dashboard.connected')}}  </div>
         <span style="position: absolute; bottom:2px; left: 4px; font-size:0.8em">{{version}}</span>
     </div>
@@ -149,6 +157,21 @@ import $ from 'jquery'
 import axios from "axios"
 import FormData from 'form-data'
 
+
+
+ /** use this as visible feedback for some actions
+ 
+ this.$swal.fire({
+        title: 'Auto close alert!',
+        html: 'I will close in  milliseconds.',
+        timer: 2000,
+        timerProgressBar: true,
+        didOpen: () => { this.$swal.showLoading() }
+    });
+*/
+
+
+
 export default {
     data() {
         return {
@@ -156,6 +179,7 @@ export default {
             title: document.title,
             fetchinterval: null,
             abgabeinterval: null,
+            abgabeintervalPause:5,
             studentlist: [],
             workdirectory: `${this.$route.params.workdirectory}/${this.$route.params.servername}`,
             currentdirectory: this.$route.params.workdirectory,
@@ -178,7 +202,9 @@ export default {
             currentpreviewname: null,
             exammode: false,
             delfolder: false,
-            numberOfConnections: 0
+            numberOfConnections: 0,
+            spellcheck: false,
+            spellchecklang: 'de'
         };
     },
     components: { },
@@ -445,6 +471,54 @@ export default {
         ////////////////////////////
 
 
+        async setAbgabeInterval(){
+            if (!this.autoabgabe) {
+                this.$swal.fire({
+                    title: this.$t("dashboard.abgabeauto"),
+                    icon: 'question',
+                    input: 'range',
+                    inputLabel: this.$t("dashboard.abgabeautoquestion"),
+                    inputAttributes: {
+                        min: 1,
+                        max: 20,
+                        step: 1
+                    },
+                    inputValue: 5
+                }).then((input) => {
+                    this.abgabeintervalPause= input.value
+                })
+            }
+        },
+
+
+        async activateSpellcheck(){
+            if (!this.spellcheck) {
+                const inputOptions = new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve({
+                            'de': this.$t("dashboard.de"),
+                            'en': this.$t("dashboard.en"),
+                            'fr': this.$t("dashboard.fr"),
+                            'es': this.$t("dashboard.es"),
+                        })
+                    }, 100)
+                })
+                const { value: language } = await this.$swal.fire({
+                    title: this.$t("dashboard.spellcheck"),
+                    text: this.$t("dashboard.spellcheckchoose"),
+                    input: 'select',
+                    inputOptions: inputOptions,
+                    inputValidator: (value) => {
+                        if (!value) {
+                        return 'You need to choose something!'
+                        }
+                    }
+                })
+                if (language) {
+                    this.spellchecklang = language
+                }
+            }
+        },
 
         // show warning
         delfolderquestion(){
@@ -466,7 +540,7 @@ export default {
             this.activestudent = false
         },
         toggleAutoabgabe(){
-            if (this.autoabgabe) { this.abgabeinterval = setInterval(() => { this.getFiles('all') }, 60000) }   //trigger getFiles('all') every other minute
+            if (this.autoabgabe) { this.abgabeinterval = setInterval(() => { this.getFiles('all') }, 60000 * this.abgabeintervalPause) }   //trigger getFiles('all') every other minute
             else { clearInterval( this.abgabeinterval )} 
         },
 
