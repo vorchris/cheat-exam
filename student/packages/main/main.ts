@@ -158,7 +158,7 @@ function newWin(examtype, token) {
         icon: join(__dirname, '../../public/icons/icon.png'),
         webPreferences: {
             preload: join(__dirname, '../preload/preload.cjs'),
-            spellcheck: false
+            spellcheck: true
          },
     });
    
@@ -207,7 +207,7 @@ async function createWindow() {
         show: false,
         webPreferences: {
             preload: join(__dirname, '../preload/preload.cjs'),
-            spellcheck: true
+            spellcheck: false
         }
     })
 
@@ -457,7 +457,7 @@ function startExam(serverstatus){
 
     if (serverstatus.spellcheck){
         console.log(serverstatus.spellchecklang)
-        newwin?.webContents.session.setSpellCheckerLanguages(['fr'])
+        newwin?.webContents.session.setSpellCheckerLanguages([serverstatus.spellchecklang])
         newwin?.webContents.session.setSpellCheckerDictionaryDownloadURL('https://localhost:11411/dicts/')
         newwin?.webContents.on('context-menu', (event, params) => {
             const menu = new Menu()

@@ -497,7 +497,7 @@ export default {
                     setTimeout(() => {
                         resolve({
                             'de': this.$t("dashboard.de"),
-                            'en': this.$t("dashboard.en"),
+                            'en-GB': this.$t("dashboard.en"),
                             'fr': this.$t("dashboard.fr"),
                             'es': this.$t("dashboard.es"),
                         })
