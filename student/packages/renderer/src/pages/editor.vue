@@ -23,8 +23,10 @@
 
     <div class="w-100 p-2 m-0 text-white shadow-sm text-center" style=" top: 66px; z-index: 10001 !important; background-color: white;">
         
+
+
         <!-- toolbar start -->
-        <div v-if="editor" class="m-2" id="editortoolbar">
+        <div v-if="editor" class="m-2" id="editortoolbar"> 
             <button @click="editor.chain().focus().undo().run()" class="btn btn-outline-warning p-1 me-1 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-undo.svg" class="white" width="22" height="22" ></button>
             <button @click="editor.chain().focus().redo().run()" class="btn btn-outline-warning p-1 me-1 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-redo.svg" class="white" width="22" height="22" > </button>
             <button @click="editor.chain().focus().clearNodes().run()" class="btn btn-outline-warning p-1 me-3 mb-1 btn-sm"><img src="/src/assets/img/svg/format-remove-node.svg" class="white" width="22" height="22" ></button>
@@ -92,6 +94,9 @@
         <div id="editorcontainer" class="shadow" style="border-radius:0; margin-top:20px; width: 90vw; margin-left:5vw;">
             <editor-content :editor="editor" class='p-0' id="editorcontent" style="background-color: #fff; border-radius:0;" />
         </div>
+        <div id="statusbar">
+             <span> {{ $t("editor.chars") }}: {{charcount}}</span>
+        </div>
     </div>
     <!-- EDITOR END -->
 </template>
@@ -119,6 +124,7 @@ import Subscript from '@tiptap/extension-subscript'
 import Superscript from '@tiptap/extension-superscript'
 import Dropcursor from '@tiptap/extension-dropcursor'
 import Gapcursor from '@tiptap/extension-gapcursor'
+import CharacterCount from  "@tiptap/extension-character-count"
 import History from '@tiptap/extension-history'
 import { lowlight } from "lowlight/lib/common.js";
 import jsPDF from 'jspdf'
@@ -155,11 +161,13 @@ export default {
             electron: this.$route.params.electron,
             clientinfo: null,
             entrytime: 0,
-            timesinceentry: 0
+            timesinceentry: 0,
+            charcount : 0
         }
     },
     methods: {
         clock(){
+            this.charcount = this.editor.storage.characterCount.characters()
             let now = new Date().getTime()
             this.timesinceentry =  new Date(now - this.entrytime).toISOString().substr(11, 8)
         },
@@ -344,6 +352,7 @@ export default {
                 Dropcursor,
                 Gapcursor,
                 History,
+                CharacterCount,
                 TextAlign.configure({
                 types: ['heading', 'paragraph'],
                 }),
@@ -366,7 +375,7 @@ export default {
 </p>
 <ul>
     <li>Free Open Source Software</li>
-    <li>Plattform independent</li>
+    <li>Platform independent</li>
 </ul>
 <p>Let’s try a code block:</p>
 <pre><code class="language-css">
@@ -435,6 +444,20 @@ ENDE !!`,
 </script>
 
 <style lang="scss">
+#statusbar {
+    position: fixed;
+    bottom:0px; 
+    width:100%; 
+    height: 24px; 
+    background-color: #eeeefa;
+    padding: 2px;
+    padding-left:6px;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+    font-size:0.9em;
+}
+
+
+
 
 #preview {
     display: none;

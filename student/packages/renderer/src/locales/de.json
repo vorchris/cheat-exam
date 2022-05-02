@@ -41,7 +41,8 @@
         "replacecontent": "Wollen sie den Inhalt des Editors durch den Inhalt dieser Datei ersetzen?",
         "exit":"Abgesicherten Modus beenden",
         "cancel":"Abbrechen",
-        "replace":"Ersetzen"
+        "replace":"Ersetzen",
+        "chars": "Zeichen"
     },
     "math": {
         "exit":"Abgesicherten Modus beenden"

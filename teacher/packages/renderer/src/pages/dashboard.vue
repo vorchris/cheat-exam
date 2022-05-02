@@ -105,7 +105,7 @@
         </div>
         <div class="form-check form-switch m-1 mb-2">
             <input v-model="spellcheck" @click="activateSpellcheck()" value="false" class="form-check-input" type="checkbox" name="spellcheck" id="spellcheck">
-            <label class="form-check-label" for="spellcheck"> {{$t('dashboard.spellcheck')}}  </label>
+            <label class="form-check-label" for="spellcheck"> {{$t('dashboard.spellcheck')}}  ({{spellchecklang}})</label>
         </div>
 
 

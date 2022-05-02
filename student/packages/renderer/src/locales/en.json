@@ -41,7 +41,8 @@
         "replacecontent": "Do you want to replace the content of the editor with the content of the file?",
         "exit":"Exit safe exam mode",
         "cancel":"Cancel",
-        "replace":"Replace"
+        "replace":"Replace",
+        "chars": "chars"
     },
     "math": {
         "exit":"Exit safe exam mode"
