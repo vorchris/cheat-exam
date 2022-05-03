@@ -95,6 +95,21 @@ app.on('activate', () => {
 
 app.whenReady()
 .then( () => {
+
+
+    let displays = screen.getAllDisplays()
+    let primary = screen.getPrimaryDisplay()
+    console.log(primary)
+
+    if (!config.development) {
+        for (let display of displays){
+            if ( display.id !== primary.id ) {
+                let blockwin: BrowserWindow | null = null
+                newBlockWin(display)
+            }
+        }
+    }
+    
     // trying to catch some keyboard shortcuts here
     globalShortcut.register('Alt+CommandOrControl+I', () => {
         console.log('Electron loves global shortcuts!')
@@ -142,6 +157,51 @@ app.whenReady()
  // Window handling (ipcRenderer Process - Frontend) START
 ////////////////////////////////////////////////////////////
 
+function newBlockWin(display, blockwin) {
+    blockwin = new BrowserWindow({
+        x: display.bounds.x + 0,
+        y: display.bounds.y + 0,
+        parent: win,
+        skipTaskbar:true,
+        title: 'Next-Exam',
+       
+        closable: false,
+        alwaysOnTop: true,
+        show: false,
+      
+        minimizable: false,
+        resizable:false,
+        movable: false,
+    
+        icon: join(__dirname, '../../public/icons/icon.png'),
+       
+    });
+   
+    let url = ""
+    if (app.isPackaged) {
+        let path = join(__dirname, `../renderer/index.html`)
+        blockwin.loadFile(path, {hash: `#/${url}/`})
+    } 
+    else {
+        url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}/#/${url}/`
+        blockwin.loadURL(url)
+    }
+
+
+    blockwin.removeMenu() 
+    blockwin.once('ready-to-show', () => {
+        blockwin?.show()
+        blockwin?.moveTop();
+        blockwin?.focus();
+        blockwin?.setKiosk(true)
+    })
+}
+
+
+
+
+
+
 let newwin: BrowserWindow | null = null
 
 function newWin(examtype, token) {
@@ -184,9 +244,6 @@ function newWin(examtype, token) {
         newwin?.moveTop();
         newwin?.focus();
     })
-
-   
-    
 }
 
 
