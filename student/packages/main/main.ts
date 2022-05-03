@@ -472,6 +472,9 @@ function startExam(serverstatus){
             menu.popup()
         })
     }
+    else {
+        newwin?.webContents.session.setSpellCheckerLanguages([])
+    }
 
 
 
