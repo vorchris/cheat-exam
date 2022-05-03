@@ -95,21 +95,6 @@ app.on('activate', () => {
 
 app.whenReady()
 .then( () => {
-
-
-    let displays = screen.getAllDisplays()
-    let primary = screen.getPrimaryDisplay()
-    console.log(primary)
-
-    if (!config.development) {
-        for (let display of displays){
-            if ( display.id !== primary.id ) {
-                let blockwin: BrowserWindow | null = null
-                newBlockWin(display)
-            }
-        }
-    }
-    
     // trying to catch some keyboard shortcuts here
     globalShortcut.register('Alt+CommandOrControl+I', () => {
         console.log('Electron loves global shortcuts!')
@@ -156,28 +141,31 @@ app.whenReady()
   ////////////////////////////////////////////////////////////
  // Window handling (ipcRenderer Process - Frontend) START
 ////////////////////////////////////////////////////////////
+let blockwindows = []
 
-function newBlockWin(display, blockwin) {
-    blockwin = new BrowserWindow({
+function newBlockWin(display) {
+   
+    let blockwin = new BrowserWindow({
         x: display.bounds.x + 0,
         y: display.bounds.y + 0,
-        parent: win,
+        parent: newwin,
         skipTaskbar:true,
         title: 'Next-Exam',
-       
+        width: display.bounds.width,
+        height: display.bounds.height,
         closable: false,
         alwaysOnTop: true,
-        show: false,
-      
+        focusable: false,   //doesn't work with kiosk mode (no kiosk mode possible.. why?)
         minimizable: false,
         resizable:false,
         movable: false,
-    
         icon: join(__dirname, '../../public/icons/icon.png'),
-       
+        webPreferences: {
+            preload: join(__dirname, '../preload/preload.cjs'),
+         },
     });
    
-    let url = ""
+    let url = "notfound"
     if (app.isPackaged) {
         let path = join(__dirname, `../renderer/index.html`)
         blockwin.loadFile(path, {hash: `#/${url}/`})
@@ -186,15 +174,11 @@ function newBlockWin(display, blockwin) {
         url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}/#/${url}/`
         blockwin.loadURL(url)
     }
-
-
     blockwin.removeMenu() 
-    blockwin.once('ready-to-show', () => {
-        blockwin?.show()
-        blockwin?.moveTop();
-        blockwin?.focus();
-        blockwin?.setKiosk(true)
-    })
+    blockwin?.moveTop();
+    blockwin?.setKiosk(true)
+    blockwin?.show()
+    return blockwin
 }
 
 
@@ -422,9 +406,9 @@ function sendBeacon(){
                     processUpdatedServerstatus(response.data.serverstatus, response.data.studentstatus)
                 }
             })
-            .catch(error => { console.log(`MulticastClient Axios: ${error}`); multicastClient.beaconsLost += 1; console.log("beacon lost..") });
+            .catch(error => { console.log(`SendBeacon Axios: ${error}`); multicastClient.beaconsLost += 1; console.log("beacon lost..") });
         })
-        .catch((err) => { console.log(`MulticastClient Screenshot: ${err}`) });
+        .catch((err) => { console.log(`SendBeacon Screenshot: ${err}`) });
     }
 }
 
@@ -502,8 +486,6 @@ function startExam(serverstatus){
         }
     }
 
-
-
     if (!newwin){  // why do we check? because exammode is left if the server connection gets lost but students could reconnect while the exam window is still open
         newWin(serverstatus.examtype, multicastClient.clientinfo.token);
     }
@@ -511,7 +493,16 @@ function startExam(serverstatus){
     enableRestrictions(newwin)
     newwin?.addListener('blur', blurevent)
 
-
+    let displays = screen.getAllDisplays()
+    let primary = screen.getPrimaryDisplay()
+    if (!config.development) {
+        for (let display of displays){
+            if ( display.id !== primary.id ) {
+                let newblockwindow = newBlockWin(display)
+                blockwindows.push(newblockwindow)
+            }
+        }
+    }
     if (serverstatus.spellcheck){
         console.log(serverstatus.spellchecklang)
         newwin?.webContents.session.setSpellCheckerLanguages([serverstatus.spellchecklang])
@@ -533,8 +524,6 @@ function startExam(serverstatus){
         newwin?.webContents.session.setSpellCheckerLanguages([])
     }
 
-
-
     multicastClient.clientinfo.exammode = true
 }
 
@@ -549,6 +538,13 @@ function endExam(){
         newwin.close(); 
         newwin.destroy(); 
         newwin = null;
+
+        for (let blockwindow of blockwindows){
+            blockwindow.close(); 
+            blockwindow.destroy(); 
+            blockwindow = null;
+        }
+       blockwindows = []
     }
     disableRestrictions()
     multicastClient.clientinfo.exammode = false
@@ -567,6 +563,7 @@ function gracefullyEndExam(){
 }
 
 const blurevent = () => { 
+    console.log("blur")
     win?.show();  // we keep focus on the window.. no matter what
     win?.moveTop();
     win?.focus();

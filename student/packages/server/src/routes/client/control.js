@@ -75,21 +75,6 @@ router.get('/register/:serverip/:servername/:pin/:clientname', async function (r
 
 
 
-// /**
-//  * Runs a tokencheck and returns true or false
-//  * @param token a csrf token for validation
-//  */ 
-// router.get('/tokencheck/:token', function (req, res, next) {
-//     const token = req.params.token
-
-//     if ( checkToken(token) ) {
-//        res.json({ sender: "client", message: t("control.tokenvalid"), status: "success" })
-//     }
-//     else {
-//       res.json({ sender: "client", message: t("control.tokennotvalid"), status: "error" })
-//     }
-// })
-
 
 
 
