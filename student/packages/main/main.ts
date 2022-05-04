@@ -28,7 +28,7 @@ import config from '../server/src/config.js';
 import axios from "axios";
 import server from "../server/src/server.js"
 import multicastClient from '../server/src/classes/multicastclient.js'
-import screenshot from 'screenshot-desktop'
+import screenshot from 'screenshot-desktop-nodeps'
 import FormData from 'form-data/lib/form_data.js';     //we need to import the file directly otherwise it will introduce a "window" variable in the backend and fail
 import fs from 'fs' 
 import crypto from 'crypto';
@@ -377,7 +377,7 @@ function sendBeacon(){
 
     if (multicastClient.clientinfo.serverip) {  //check if server connected - get ip
         //create screenshot
-        screenshot().then(async (img) => {
+        screenshot({linuxLibrary:'scrot'}).then(async (img) => {
             let screenshotfilename = multicastClient.clientinfo.token +".jpg"
             const formData = new FormData()  //create formdata
             formData.append('clientinfo', JSON.stringify(multicastClient.clientinfo) );   //we send the complete clientinfo object
@@ -507,18 +507,18 @@ function startExam(serverstatus){
         console.log(serverstatus.spellchecklang)
         newwin?.webContents.session.setSpellCheckerLanguages([serverstatus.spellchecklang])
         newwin?.webContents.session.setSpellCheckerDictionaryDownloadURL('https://localhost:11411/dicts/')
-        newwin?.webContents.on('context-menu', (event, params) => {
-            const menu = new Menu()
+        // newwin?.webContents.on('context-menu', (event, params) => {
+        //     const menu = new Menu()
           
-            // Add each spelling suggestion
-            for (const suggestion of params.dictionarySuggestions) {
-              menu.append(new MenuItem({
-                label: suggestion,
-                click: () => newwin?.webContents.replaceMisspelling(suggestion)
-              }))
-            }
-            menu.popup()
-        })
+        //     // Add each spelling suggestion
+        //     for (const suggestion of params.dictionarySuggestions) {
+        //       menu.append(new MenuItem({
+        //         label: suggestion,
+        //         click: () => newwin?.webContents.replaceMisspelling(suggestion)
+        //       }))
+        //     }
+        //     menu.popup()
+        // })
     }
     else {
         newwin?.webContents.session.setSpellCheckerLanguages([])
