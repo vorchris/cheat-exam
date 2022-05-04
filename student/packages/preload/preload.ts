@@ -24,7 +24,7 @@
 
 import fs from 'fs'
 import { contextBridge, ipcRenderer, webFrame } from 'electron'
-import screenshot from 'screenshot-desktop-nodeps';
+import screenshot from 'screenshot-desktop';
 import virtualized from './scripts/simplevmdetect.js';  // has to run in frontend (since we create a webgl insance) > inform backend (mulitcastClient.clientinfo)
 
 

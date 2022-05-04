@@ -28,7 +28,7 @@ import config from '../server/src/config.js';
 import axios from "axios";
 import server from "../server/src/server.js"
 import multicastClient from '../server/src/classes/multicastclient.js'
-import screenshot from 'screenshot-desktop-nodeps'
+import screenshot from 'screenshot-desktop'
 import FormData from 'form-data/lib/form_data.js';     //we need to import the file directly otherwise it will introduce a "window" variable in the backend and fail
 import fs from 'fs' 
 import crypto from 'crypto';
@@ -377,7 +377,7 @@ function sendBeacon(){
 
     if (multicastClient.clientinfo.serverip) {  //check if server connected - get ip
         //create screenshot
-        screenshot({linuxLibrary:'scrot'}).then(async (img) => {
+        screenshot().then(async (img) => {
             let screenshotfilename = multicastClient.clientinfo.token +".jpg"
             const formData = new FormData()  //create formdata
             formData.append('clientinfo', JSON.stringify(multicastClient.clientinfo) );   //we send the complete clientinfo object
