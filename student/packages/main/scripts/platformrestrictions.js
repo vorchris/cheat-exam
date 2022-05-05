@@ -139,6 +139,7 @@ function disableRestrictions(){
         for (let binding of gnomeKeybindings){
             childProcess.execFile('gsettings', ['reset' ,'org.gnome.desktop.wm.keybindings', `${binding}`])
         }
+        childProcess.execFile('gsettings', ['reset' ,'org.gnome.mutter', `overlay-key`])
     }
 
     // TODO: undo restrictions for windows an mac
