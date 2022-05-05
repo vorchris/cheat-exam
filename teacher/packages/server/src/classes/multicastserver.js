@@ -52,7 +52,7 @@ class MulticastServer {
             password: password,
             timestamp: 0,
             id:crypto.randomUUID(),
-            ip: ip.address(),
+            ip: config.hostip,
             servertoken: `server-${crypto.randomUUID()}`
         }
         return message

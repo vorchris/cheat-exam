@@ -30,6 +30,9 @@ import fs from 'fs'
 import os from 'os'
 import forge from 'node-forge'
 forge.options.usePureJavaScript = true; 
+import defaultGateway from'default-gateway';
+
+
 
 config.workdirectory = path.join(os.homedir(), config.examdirectory)  //Attention! In Electron this makes sense. the WEBserver version will most likely need another Workdirectory
 config.tempdirectory = path.join(os.tmpdir(), 'exam-tmp')
@@ -38,10 +41,16 @@ if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory); }
 
 
 
-config.hostip = ip.address()  // config is exposed to electron-vue app via context bridge so we can use it in the frontend
+const {gateway, interface: iface} =  defaultGateway.v4.sync();
+config.hostip = ip.address(iface)    // this returns the ip of the interface that has a default gateway..  should work in MOST cases.  probably provide "ip-options" in UI ?
+
+
+
 if (typeof window !== 'undefined'){
     if (window.process.type == "renderer") config.electron = true
 }
+
+
 
 const limiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minutes
@@ -50,10 +59,8 @@ const limiter = rateLimit({
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   })
 
-
 // clean temp directory
 fsExtra.emptyDirSync(config.tempdirectory)
-
 
 // init express API
 const api = express()
