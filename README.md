@@ -29,8 +29,11 @@ Node v16.15.0
 ## build next-exam 
 
 ```npm run build```
+```npm run build:win```
+ ```npm run build:mac```
 
-attention : build for windows on windows ```npm run build:win``` and for mac an macs  ```npm run build:mac```
+attention : build for windows on windows and for mac on macs 
+#
 on linux "imagemagick" has to be installed for taking screenshots  ```sudo apt install imagemagick```
 
 ## download latest builds
