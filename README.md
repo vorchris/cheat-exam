@@ -44,7 +44,7 @@ https://life-edu.eu/next-exam/
 
 ## more information
 
-read ![info](/info/concept.md)  !!
+read [concept.md](/info/concept.md)
 
 
 
