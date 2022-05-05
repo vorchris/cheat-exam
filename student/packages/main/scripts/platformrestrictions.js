@@ -76,6 +76,9 @@ const gnomeKeybindings = [
             childProcess.execFile('gsettings', ['set' ,'org.gnome.desktop.wm.keybindings', `${binding}`, `['']`])
         }
 
+        childProcess.execFile('gsettings', ['set' ,'org.gnome.mutter', `overlay-key`, `''`])
+
+
         // clier clipboard gnome and x11  (this will fail unless xclip or xsell are installed)
         childProcess.exec('xclip -i /dev/null')
         childProcess.exec('xclip -selection clipboard')
