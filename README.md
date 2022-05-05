@@ -2,11 +2,6 @@
 
 the next iteration of the life-exam project
 
-basic communication between teacher and client instances is reduced to simple API calls over http
-networking is moved from twisted to node express
-
-service discovery is done with a simple multicastserver/client which stores necessary information in it's 'clientinfo' or 'serverinfo' object.
-
 # technologies used
 * electron
 * vite
@@ -17,7 +12,7 @@ service discovery is done with a simple multicastserver/client which stores nece
 * jquery
 
 
-Node v16.14.0
+Node v16.15.0
 
 ## install necessary modules 
 
@@ -27,7 +22,7 @@ Node v16.14.0
 
 ```npm run dev```
 
-## run next-exam webversion
+## run next-exam webversion (teacher only wip)
 
 ```npm run dev:web```
 
@@ -35,8 +30,8 @@ Node v16.14.0
 
 ```npm run build```
 
-attention : in order to build for windows on linux you need to ```apt install wine```
-
+attention : build for windows on windows ```npm run build:win``` and for mac an macs  ```npm run build:mac```
+on linux "imagemagick" has to be installed for taking screenshots  ```sudo apt install imagemagick```
 
 ## download latest builds
 https://life-edu.eu/next-exam/
