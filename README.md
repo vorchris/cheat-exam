@@ -32,7 +32,7 @@ Node v16.15.0
 ```npm run build:win```
  ```npm run build:mac```
 
-attention : build for windows on windows and for mac on macs 
+attention : build for windows on windows and for mac on macos 
 #
 on linux "imagemagick" has to be installed for taking screenshots  ```sudo apt install imagemagick```
 
@@ -44,7 +44,7 @@ https://life-edu.eu/next-exam/
 
 ## more information
 
-read /info/concept.md !!
+read ![info](/info/concept.md)  !!
 
 
 

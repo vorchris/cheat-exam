@@ -16,14 +16,13 @@ teacherinstanz erstellt ein crfs token für den client und sendet dieses bei kor
 bei der server api sollten wir aufpassen dass sie nicht missbraucht werden kann.. (siehe crfs token bei der client api)  - zu diesem zeitpunkt aber denke ich, dass zb. die route /start/ durchaus von überall her offen sein sollte.. dies ermöglicht es das ganze node programm am schulserver laufen zu lassen und jeder lehrer connected einfach von irgendeinem webbrowser aus (dadurch würde das teacher programm plattformübergreifend funktionieren)
 
 ## multicastserver (broadcasting)
-broadcastet exam object {name, timestamp} an alle
+broadcastet exam object {name, timestamp} an alle (multicast ist nicht in jedem netz verfügbar daher zeigt das teacher dashboard die IP an und das studend UI erlaubt die eingabe von IP oder domain und holt automatisch verfügbare prüfungen)
 
 
-## teacher webfrontend
+## teacher frontend
 
 formular um exam name zu wählen... startet über #teacher api den #multicastserver (beliebig viele multicast server)
 
-TODO: es wäre sinnvoll bei den broadcasts zuerst nachzusehen ob der exam name nicht schon im netz gebroadcastet wird um zu verhindern dass der selbe exam name 2fach im netz vorkommt (bei mehreren servern theoretisch möglich)
 
 - File Upload [File Upload ](https://github.com/richardgirges/express-fileupload)
   achtung: electron erwartet beim file upload formdata einen BLOB
@@ -36,7 +35,17 @@ TODO: es wäre sinnvoll bei den broadcasts zuerst nachzusehen ob der exam name n
 
 # student
 ## client api (clientroutes)
-wartet auf befehle vom #teacherUI (api calls) um zb. zu speichern, oder in den exam mode zu wechseln, oder einen screenshot zu machen
+sollte eigentlich wegfallen. sämtilche kommunikation mit dem teacher wurde auf pull nachrichten umgestellt.
+der client (main.ts) macht alle 4 sek ein update an die /server/control/update route und holt sich aktuelle tasks und informationen
+
+api wird derzeit nur für kommunikation zwischen client ui und client backend genutzt, was auf ipcMain und ipcRenderer calls umgestellt werden sollte
+damit ist die client api obsolete
+
+pull von files:
+teacher uploaded files (dateien werden im prüfungsordner/UPLOADS abgelegt und für die students ein vermerk zum abholen hinterlegt (filepath))
+student erhält beim nachsten update diesen vermerk und macht einen api call an /server/data/download und übergibt die erhaltenen dateipfade.
+student erhält die dateien und der server streicht den vermerk
+
 
 die #client api darf keinen api call annehmen bevor der client sich nicht am server registriert hat und sein crfs token erhalten und gespeichert hat.. die #client api muss bei jedem request zuerst das übermittelte crfs token überprüfen 
 
@@ -45,7 +54,7 @@ startet automatisch... jede exam instanz ist automatsch auch "listening" für an
 
 hört auf die broadcasts der multicastserver und trägt empfangene infos von exam instanzen in seine    examServerList[]   ein..
 
-## student webfrontend
+## student frontend
 fragt über die #client api ab ob der #multicastclient schon eine exam instanz gefunden hat und zeigt sie als button an
 
 auf klick wird ein PIN abgefragt und dieser pin mit client name und client ID an die gewählte exam instanz #teacherapi gesandt
@@ -57,7 +66,7 @@ es wird ein einzigartiges token für den client generiert und dieses an den clie
 dadurch kann man dann über die client ip die ensprechende #clientapi sicher ansprechen
 
 
-eventuell können am client externe programme, skripte getriggert werden um das system noch weiter abzusperren 
-auch wenn ich zu diesem zeitpunkt gar nicht denke dass das notwendig ist, da der teacher sowieso immer verständigt wird wenn ein schüler es schafft den exam mode irgendwie zu verlassen
+für den exam mode werden am client externe programme, skripte getriggert werden um das system noch weiter abzusperren 
+der teacher wird immer verständigt wenn ein schüler es schafft den exam mode irgendwie zu verlassen und screenshots werden aufgezeichnet
 
 [child_process_execfile documentation](https://nodejs.org/api/child_process.html#child_process_child_process_execfile_file_args_options_callback)
