@@ -202,7 +202,8 @@ export default {
             delfolder: false,
             numberOfConnections: 0,
             spellcheck: false,
-            spellchecklang: 'de'
+            spellchecklang: 'de',
+            suggestions: false
         };
     },
     components: { },
@@ -228,7 +229,7 @@ export default {
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/exam/${this.servername}/${this.servertoken}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },
-                body: JSON.stringify({ exammode: this.exammode, examtype: this.examtype, delfolder: this.delfolder, spellcheck: this.spellcheck, spellchecklang:this.spellchecklang  })
+                body: JSON.stringify({ exammode: this.exammode, examtype: this.examtype, delfolder: this.delfolder, spellcheck: this.spellcheck, spellchecklang:this.spellchecklang, suggestions: this.suggestions  })
                 })
             .then( res => res.json())
             .then( response => { })
@@ -510,12 +511,20 @@ export default {
                 const { value: language } = await this.$swal.fire({
                     title: this.$t("dashboard.spellcheck"),
                     text: this.$t("dashboard.spellcheckchoose"),
+                    html: `${this.$t("dashboard.spellcheckchoose")}<br><br>
+                    <div >
+                        <input class="form-check-input" type="checkbox" id="checkboxsuggestions">
+                        <label class="form-check-label" for="checkboxsuggestions"> Show suggestions  </label>
+                    </div>`,
                     input: 'select',
                     inputOptions: inputOptions,
                     inputValidator: (value) => {
                         if (!value) {
                         return 'You need to choose something!'
                         }
+                    },preConfirm: () => {
+                        this.suggestions = document.getElementById('checkboxsuggestions').checked;
+                       
                     }
                 })
                 if (language) {

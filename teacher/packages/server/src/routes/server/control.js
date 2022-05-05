@@ -351,6 +351,7 @@ router.get('/serverlist', function (req, res, next) {
     mcServer.serverstatus.delfolder = req.body.delfolder
     mcServer.serverstatus.spellcheck = req.body.spellcheck
     mcServer.serverstatus.spellchecklang = req.body.spellchecklang
+    mcServer.serverstatus.suggestions = req.body.suggestions
     
     res.json({ sender: "server", message:t("general.ok"), status: "success" })
 })
@@ -378,31 +379,36 @@ router.get('/serverlist', function (req, res, next) {
     
     let student = mcServer.studentList.find(element => element.token === studenttoken)
     if ( !student ) {return res.send({ sender: "server", message:"removed", status: "error" }) } //check if the student is registered on this server
-    if ( !req.files ) {return res.send({sender: "server", message:t("control.nofiles"), status:"error"});  }
+    //if ( !req.files ) {return res.send({sender: "server", message:t("control.nofiles"), status:"error"});  }
     
-    
-    // save the freshly delivered screenshot
-    const file = req.files[req.body.screenshotfilename]
-    let hash = crypto.createHash('md5').update(file.data).digest("hex");
+    if ( req.files ) {
+        // save the freshly delivered screenshot
+        const file = req.files[req.body.screenshotfilename]
+        let hash = crypto.createHash('md5').update(file.data).digest("hex");
 
-    if (hash === req.body.screenshothash) {
-        let absoluteFilepath = path.join(config.tempdirectory, file.name); 
-        file.mv(absoluteFilepath, (err) => {  
-            if (err) {  console.log(err)  }
-            else { 
-                student.imageurl = `https://${config.hostip}:${config.serverApiPort}/${studenttoken}.jpg?ver=${student.timestamp}`
+        if (hash === req.body.screenshothash) {
+            let absoluteFilepath = path.join(config.tempdirectory, file.name); 
+            file.mv(absoluteFilepath, (err) => {  
+                if (err) {  console.log(err)  }
+                else { 
+                    student.imageurl = `https://${config.hostip}:${config.serverApiPort}/${studenttoken}.jpg?ver=${student.timestamp}`
+                }
+            });
+            if (!student.focus){  // archive screenshot if student out of focus for investigation
+                console.log("Server Control: Student out of focus - securing screenshots")
+                let time = new Date(new Date().getTime()).toISOString().substr(11, 8);
+                let filepath =path.join(config.workdirectory, mcServer.serverinfo.servername, student.clientname, "focuslost");
+                let absoluteFilename = path.join(filepath,`${time}-${file.name}`)
+                if (!fs.existsSync(filepath)){ fs.mkdirSync(filepath, { recursive: true } ); }
+                file.mv(absoluteFilename, (err) => {  if (err) {  console.log(err)  } });
             }
-        });
-        if (!student.focus){  // archive screenshot if student out of focus for investigation
-            console.log("Server Control: Student out of focus - securing screenshots")
-            let time = new Date(new Date().getTime()).toISOString().substr(11, 8);
-            let filepath =path.join(config.workdirectory, mcServer.serverinfo.servername, student.clientname, "focuslost");
-            let absoluteFilename = path.join(filepath,`${time}-${file.name}`)
-            if (!fs.existsSync(filepath)){ fs.mkdirSync(filepath, { recursive: true } ); }
-            file.mv(absoluteFilename, (err) => {  if (err) {  console.log(err)  } });
         }
+        else { console.log("md5hash missmatch - do not update file")}
     }
-    else { console.log("md5hash missmatch - do not update file")}
+    else {
+        console.log("no screenshot received - probably missing image library (imagemagick)")
+    }
+    
 
     if (clientinfo.focus) { student.status.restorefocusstate = false }  // remove task because its obviously done
 

@@ -190,13 +190,13 @@ let newwin: BrowserWindow | null = null
 
 function newWin(examtype, token) {
     newwin = new BrowserWindow({
-        parent: win,
-        //modal: true,  // this blocks the main window on windows while the exam window is open
+        // parent: win,  //this doesnt work together with kiosk on ubuntu gnome ?? wtf
+        // modal: true,  // this blocks the main window on windows while the exam window is open
         skipTaskbar:true,
         title: 'Exam',
         width: 800,
         height: 600,
-        closable: false,
+        // closable: false,  // if we can't define 'parent' this window has to be closable
         alwaysOnTop: true,
         show: false,
         icon: join(__dirname, '../../public/icons/icon.png'),
@@ -367,7 +367,7 @@ function resetConnection(){
 /** 
  * sends heartbeat to registered server and updates screenshot on server 
  */
-function sendBeacon(){
+async function sendBeacon(){
     if (multicastClient.beaconsLost >= 4){ //remove server registration locally (same as 'kick')
         console.log("Connection to Teacher lost! Removing registration.")
         multicastClient.beaconsLost = 0
@@ -376,39 +376,41 @@ function sendBeacon(){
     }
 
     if (multicastClient.clientinfo.serverip) {  //check if server connected - get ip
-        //create screenshot
-        screenshot().then(async (img) => {
+        //create screenshot ATTENTION! "imagemagick" has to be installed for linux !!
+        let img = await screenshot().catch((err) => { console.log(`SendBeacon Screenshot: ${err}`) });
+        const formData = new FormData()  //create formdata
+        formData.append('clientinfo', JSON.stringify(multicastClient.clientinfo) );   //we send the complete clientinfo object
+
+        if (Buffer.isBuffer(img)){
+            //console.log('adding image to formdata')
             let screenshotfilename = multicastClient.clientinfo.token +".jpg"
-            const formData = new FormData()  //create formdata
-            formData.append('clientinfo', JSON.stringify(multicastClient.clientinfo) );   //we send the complete clientinfo object
+            
             if (config.electron){  // in the final electron build this is the only way to do it 
                 img =  new Blob( [ new Uint8Array(img).buffer], { type: 'image/jpeg' })   
             }
             formData.append(screenshotfilename, img, screenshotfilename );
-
             let hash = crypto.createHash('md5').update(img).digest("hex");
             formData.append('screenshothash', hash);
             formData.append('screenshotfilename', screenshotfilename);
+        }
 
-            axios({    //post to /studentlist/update/:token - send update and fetch server status
-                method: "post", 
-                url: `https://${multicastClient.clientinfo.serverip}:${config.serverApiPort}/server/control/update`, 
-                data: formData, 
-                headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
-            })
-            .then( response => {
-                if (response.data && response.data.status === "error") { 
-                    if(response.data.message === "notavailable"|| response.data.message === "removed"){ console.log('No Exam or registration!'); multicastClient.beaconsLost = 4} //server responded but exam is not available anymore (teacher removed it)
-                    else { multicastClient.beaconsLost += 1;  console.log("beacon lost..") }
-                }
-                else if (response.data && response.data.status === "success") { 
-                    multicastClient.beaconsLost = 0 
-                    processUpdatedServerstatus(response.data.serverstatus, response.data.studentstatus)
-                }
-            })
-            .catch(error => { console.log(`SendBeacon Axios: ${error}`); multicastClient.beaconsLost += 1; console.log("beacon lost..") });
+        axios({    //post to /studentlist/update/:token - send update and fetch server status
+            method: "post", 
+            url: `https://${multicastClient.clientinfo.serverip}:${config.serverApiPort}/server/control/update`, 
+            data: formData, 
+            headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
         })
-        .catch((err) => { console.log(`SendBeacon Screenshot: ${err}`) });
+        .then( response => {
+            if (response.data && response.data.status === "error") { 
+                if(response.data.message === "notavailable"|| response.data.message === "removed"){ console.log('No Exam or registration!'); multicastClient.beaconsLost = 4} //server responded but exam is not available anymore (teacher removed it)
+                else { multicastClient.beaconsLost += 1;  console.log("beacon lost..") }
+            }
+            else if (response.data && response.data.status === "success") { 
+                multicastClient.beaconsLost = 0 
+                processUpdatedServerstatus(response.data.serverstatus, response.data.studentstatus)
+            }
+        })
+        .catch(error => { console.log(`SendBeacon Axios: ${error}`); multicastClient.beaconsLost += 1; console.log("beacon lost..") });
     }
 }
 
@@ -507,18 +509,22 @@ function startExam(serverstatus){
         console.log(serverstatus.spellchecklang)
         newwin?.webContents.session.setSpellCheckerLanguages([serverstatus.spellchecklang])
         newwin?.webContents.session.setSpellCheckerDictionaryDownloadURL('https://localhost:11411/dicts/')
-        // newwin?.webContents.on('context-menu', (event, params) => {
-        //     const menu = new Menu()
-          
-        //     // Add each spelling suggestion
-        //     for (const suggestion of params.dictionarySuggestions) {
-        //       menu.append(new MenuItem({
-        //         label: suggestion,
-        //         click: () => newwin?.webContents.replaceMisspelling(suggestion)
-        //       }))
-        //     }
-        //     menu.popup()
-        // })
+
+        if (serverstatus.suggestions){
+            newwin?.webContents.on('context-menu', (event, params) => {
+                const menu = new Menu()
+            
+                // Add each spelling suggestion
+                for (const suggestion of params.dictionarySuggestions) {
+                menu.append(new MenuItem({
+                    label: suggestion,
+                    click: () => newwin?.webContents.replaceMisspelling(suggestion)
+                }))
+                }
+                menu.popup()
+            })
+        }
+   
     }
     else {
         newwin?.webContents.session.setSpellCheckerLanguages([])
