@@ -259,6 +259,7 @@ async function createWindow() {
     } 
     else {
         const url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}`
+        
         win.removeMenu() 
         win.loadURL(url)
         win.webContents.openDevTools()
@@ -530,6 +531,42 @@ function startExam(serverstatus){
         newwin?.webContents.session.setSpellCheckerLanguages([])
     }
 
+
+    if (serverstatus.examtype === "eduvidual"){
+        newwin?.webContents.on('did-navigate', (event, url) => {
+            newwin?.webContents.executeJavaScript(` 
+                const warning = document.createElement('div')
+                warning.setAttribute('id', 'nextexamwaring')
+                warning.setAttribute('style', 'display: none');
+
+                const background = document.createElement('div');
+                background.setAttribute('id', 'embedbackground')
+                background.setAttribute('style', 'display: none');
+                const embed = document.createElement('embed');` , true)
+                .catch(err => console.log(err))
+        })
+
+        newwin?.webContents.on('will-navigate', (event, url) => {
+            console.log(url)
+            if (url.includes('resource/view')&& !url.includes('forceview')){
+                event.preventDefault()
+                newwin?.webContents.executeJavaScript(` 
+                    background.onclick = function() {  document.getElementById('embedbackground').style = "display: none;" };
+                    background.setAttribute('style', 'display: block; position: fixed; top:0; left: 0; width:100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.4); z-index:100000;');
+                    document.body.appendChild(background); 
+                
+                    embed.setAttribute('src', '${url}');
+                    embed.setAttribute('style', 'position: absolute; top: 50%; left: 50%; margin-left: -30vw; margin-top: -45vh; width:60vw; height: 90vh; padding: 10px; background-color: rgba(255, 255, 255, 1);  box-shadow: 0 0 15px rgba(22, 9, 9, 0.589); padding: 10px; border-radius: 6px;');
+                    background.appendChild(embed); ` , true)
+                    .catch(err => console.log(err))
+            }
+        })
+    }
+
+  
+
+
+
     multicastClient.clientinfo.exammode = true
 }
 
@@ -544,7 +581,6 @@ function endExam(){
         newwin.close(); 
         newwin.destroy(); 
         newwin = null;
-
         for (let blockwindow of blockwindows){
             blockwindow.close(); 
             blockwindow.destroy(); 
@@ -570,10 +606,20 @@ function gracefullyEndExam(){
 
 const blurevent = () => { 
     console.log("blur")
-    win?.show();  // we keep focus on the window.. no matter what
-    win?.moveTop();
-    win?.focus();
+    newwin?.show();  // we keep focus on the window.. no matter what
+    newwin?.moveTop();
+    newwin?.focus();
     multicastClient.clientinfo.focus = false
+
+
+    // this only triggers in eduvidual mode because otherwise there is no element "warning"
+    newwin?.webContents.executeJavaScript(` 
+                    document.body.appendChild(warning); 
+                    document.getElementById('nextexamwaring').innerHTML = "External URL not allowed";
+                    warning.setAttribute('style', 'text-align: center; padding: 20px;display: block; background-color:#ffc107; border-radius:5px;  z-index:100000; position: absolute; top: 50%; left: 50%; margin-left: -10vw; margin-top: -5vh;width:20vw; height: 10vh; box-shadow: 0 0 10px rgba(0,0,0,0.4); ');
+                    setTimeout( ()=>{ document.getElementById('nextexamwaring').style.display = 'none'  } , 5000);
+                    ` , true)
+    .catch(err => console.log(err))
 }
 
 
