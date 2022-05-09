@@ -152,7 +152,7 @@ import WindowHandler from './windowhandler.js'
 
         let displays = screen.getAllDisplays()
         let primary = screen.getPrimaryDisplay()
-        if (this.config.development) {
+        if (!this.config.development) {
             for (let display of displays){
                 if ( display.id !== primary.id ) {
                     WindowHandler.newBlockWin(display) 
