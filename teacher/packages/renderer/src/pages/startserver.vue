@@ -6,7 +6,8 @@
         <img src="/src/assets/img/svg/shield-lock-fill.svg" class="white me-2  " width="32" height="32" >
         <span class="fs-4 align-middle me-1 ">Next-Exam</span>
     </router-link>
-    <span class="fs-4 align-middle" style="float: right">Teacher</span>
+    <span class="fs-4 align-middle ms-3" style="float: right">Teacher</span>
+    <div v-if="!hostip" id="adv" class="btn btn-danger btn-sm m-0  mt-1 " style="cursor: unset; float: right">{{ $t("general.offline") }}</div>
 </div>
  
 
@@ -46,7 +47,7 @@
                 <span class="input-group-text col-4" style="width:135px;" id="inputGroup-sizing-lg">{{$t("startserver.pwd")}}</span>
                 <input v-model="password" type="text" class="form-control " id="password" placeholder="password" style="width:135px;max-width:135px;min-width:135px;">
             </div>
-            <div class="col mb-4" >
+            <div  v-if="hostip" class="col mb-4" >
                 <button @click="startServer()" id="examstart" class="btn btn-success" value="start exam" style="width:135px;">{{$t("startserver.start")}}</button>
             </div>
         </div>
@@ -71,7 +72,8 @@ export default {
             prod : false,
             serverApiPort: this.$route.params.serverApiPort,
             electron: this.$route.params.electron,
-            hostname: window.location.hostname
+            hostname: window.location.hostname,
+            hostip: config.hostip
         };
     },
     components: {},

@@ -2,7 +2,8 @@
     "general": {
         "startserver":"Exam anlegen",
         "slist": "Aktive Examen",
-        "ok": "ok"
+        "ok": "ok",
+        "offline": "Keine Netzwerkverbindung"
     },
     "serverlist" : {
         "pwd": "Passwort",

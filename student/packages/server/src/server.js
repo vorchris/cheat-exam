@@ -29,6 +29,9 @@ import fs from 'fs'
 import os from 'os'
 import forge from 'node-forge'
 forge.options.usePureJavaScript = true; 
+import defaultGateway from'default-gateway';
+
+
 
 config.workdirectory = path.join(os.homedir(), config.examdirectory)
 config.tempdirectory = path.join(os.tmpdir(), 'exam-tmp')
@@ -36,7 +39,17 @@ if (!fs.existsSync(config.workdirectory)){ fs.mkdirSync(config.workdirectory); }
 if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory); }
 
 
-config.hostip = ip.address()  // config is exposed to electron-vue app via context bridge so we can use it in the frontend
+try {
+    const {gateway, interface: iface} =  defaultGateway.v4.sync()
+    config.hostip = ip.address(iface)    // this returns the ip of the interface that has a default gateway..  should work in MOST cases.  probably provide "ip-options" in UI ?
+ }
+ catch (e) {
+   console.log(e)
+   config.hostip = false
+ }
+
+
+
 if (typeof window !== 'undefined'){
     if (window.process.type == "renderer") config.electron = true
 }

@@ -130,14 +130,15 @@ app.on('activate', () => {
 })
 
 app.whenReady().then(()=>{
- 
     server.listen(config.serverApiPort, () => {  
         console.log(`Express listening on https://${config.hostip}:${config.serverApiPort}`)
         console.log(`Vite-vue listening on http://${config.hostip}:${config.serverVitePort}`)
     })
-    
-
-    multicastClient.init()
+})
+.then(()=>{
+    if (config.hostip) {
+        multicastClient.init()
+    }
     createWindow()
 })
 

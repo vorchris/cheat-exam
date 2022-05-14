@@ -100,13 +100,18 @@ app.whenReady()
         console.log('Electron loves global shortcuts!')
         return false
     })
-  })
-.then(()=>{
-    server.listen(config.clientApiPort, () => {  
+   server.listen(config.clientApiPort, () => {  
         console.log(`Express listening on https://${config.hostip}:${config.clientApiPort}`)
         console.log(`Vite-vue listening on http://${config.hostip}:${config.clientVitePort}`)
     })
-    multicastClient.init()
+
+  })
+.then(()=>{
+    if (config.hostip) {
+        multicastClient.init()
+    }
+
+   
     WindowHandler.createMainWindow()
 })
 

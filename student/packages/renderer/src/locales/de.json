@@ -16,7 +16,8 @@
         "registeredinfo": "Sie haben sich erfolgreich am Server registriert!",
         "started": "Suche gestartet",
         "nopw": "Falscher Benutzername oder Pincode",
-        "noip": "Serveradresse oder Prüfungsname fehlt"
+        "noip": "Serveradresse oder Prüfungsname fehlt",
+        "offline": "Keine Netzwerkverbindung"
     },
     "control": {
         "tokennotvalid": "das token ist ungültig",

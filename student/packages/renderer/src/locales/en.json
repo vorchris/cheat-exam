@@ -16,7 +16,8 @@
         "registeredinfo": "Successfully registered on server",
         "started": "search started",
         "nopw": "wrong username or pin",
-        "noip": "Serveraddresse oder Examname missing"
+        "noip": "Serveraddresse oder Examname missing",
+        "offline": "No Network Connection"
     },
     "control": {
         "tokennotvalid": "token is not valid",

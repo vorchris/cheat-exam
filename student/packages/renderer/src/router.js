@@ -51,6 +51,7 @@ function addParams(to){
     to.params.serverApiPort = config.serverApiPort 
     to.params.clientApiPort = config.clientApiPort
     to.params.electron = electron
+    to.params.config = config
 }
 
 

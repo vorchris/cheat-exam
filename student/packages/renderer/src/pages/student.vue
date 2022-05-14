@@ -8,6 +8,7 @@
     </router-link>
     <span class="fs-4 align-middle  ms-3" style="float: right">Student</span>
     <div v-if="token" id="adv" class="btn btn-success btn-sm m-0  mt-1 " style="cursor: unset; float: right">{{ $t("student.connected") }}</div>
+    <div v-if="!hostip" id="adv" class="btn btn-danger btn-sm m-0  mt-1 " style="cursor: unset; float: right">{{ $t("student.offline") }}</div>
 
 </div>
  
@@ -63,7 +64,6 @@
 import axios from "axios";
 import validator from 'validator'
 
-
 export default {
     data() {
         return {
@@ -80,7 +80,9 @@ export default {
             startExamEvent: null,
             advanced: false,
             serverip: "",
-            servername: ""
+            servername: "",
+            hostip: config.hostip
+            
         };
     },
     methods: {

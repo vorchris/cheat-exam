@@ -6,7 +6,8 @@
         <img src="/src/assets/img/svg/shield-lock-fill.svg" class="white me-2  " width="32" height="32" >
         <span class="fs-4 align-middle me-4 ">Next-Exam</span>
     </router-link>
-    <span class="fs-4 align-middle" style="float: right">Teacher</span>
+    <span class="fs-4 align-middle ms-3" style="float: right">Teacher</span>
+     <div v-if="!hostip" id="adv" class="btn btn-danger btn-sm m-0  mt-1 " style="cursor: unset; float: right">{{ $t("general.offline") }}</div>
 </div>
  
  
@@ -77,7 +78,8 @@ export default {
             password: config.development ? "password":"",
             serverApiPort: this.$route.params.serverApiPort,
             electron: this.$route.params.electron,
-            hostname: window.location.hostname
+            hostname: window.location.hostname,
+            hostip: config.hostip
         };
     },
     components: { },
