@@ -155,7 +155,8 @@ class WindowHandler {
                 }
             })
         }
-        this.examwindow.webContents.openDevTools() 
+        if (this.config.development) { this.examwindow.webContents.openDevTools()  }
+
         this.examwindow.removeMenu() 
         this.examwindow.once('ready-to-show', () => {
             this.examwindow.setKiosk(true)
@@ -194,7 +195,9 @@ class WindowHandler {
         if (app.isPackaged || process.env["DEBUG"]) {
             this.mainwindow.removeMenu() 
             this.mainwindow.loadFile(join(__dirname, '../renderer/index.html'))
-            this.mainwindow.webContents.openDevTools()  // you don't want this in the final build
+
+            if (this.config.development) { this.mainwindow.webContents.openDevTools()  } // you don't want this in the final build
+
         } 
         else {
             const url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}`
