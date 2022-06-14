@@ -242,7 +242,9 @@ import WindowHandler from './windowhandler.js'
 
     async sendExamToTeacher(){
         //send save trigger to exam window
-        WindowHandler.examwindow.webContents.send('save')
+        if (WindowHandler.examwindow){
+            WindowHandler.examwindow.webContents.send('save')
+        }
         // give it some time
         await this.sleep(1000)  // wait one second before zipping workdirectory (give save some time - unfortunately we have no way to wait for save - we could check the filetime in a "while loop" though)
      
