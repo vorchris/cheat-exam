@@ -2,10 +2,14 @@
 
 
 <div class="w-100 p-3 text-white bg-dark shadow text-right">
-    <router-link to="/" class="text-white m-1">
+    <router-link v-if="!electron" to="/" class="text-white m-1">
         <img src="/src/assets/img/svg/shield-lock-fill.svg" class="white me-2  " width="32" height="32" >
         <span class="fs-4 align-middle me-1 ">Next-Exam</span>
     </router-link>
+    <span v-if="electron" class="text-white m-1">
+        <img src="/src/assets/img/svg/shield-lock-fill.svg" class="white me-2  " width="32" height="32" >
+        <span class="fs-4 align-middle me-1 ">Next-Exam</span>
+    </span>
     <span class="fs-4 align-middle ms-3" style="float: right">Teacher</span>
     <div v-if="!hostip" id="adv" class="btn btn-danger btn-sm m-0  mt-1 " style="cursor: unset; float: right">{{ $t("general.offline") }}</div>
 </div>
@@ -23,7 +27,7 @@
                 </div><br>
             </li>
             <li>
-                <router-link to="serverlist" id="serverlist" class="nav-link">
+                <router-link v-if="!electron" to="serverlist" id="serverlist" class="nav-link">
                     <img src="/src/assets/img/svg/person-lines-fill.svg" class="white me-2"  width="16" height="16" >
                     {{$t("general.slist")}}
                 </router-link> 
@@ -41,9 +45,9 @@
         <div class="col-7">
             <div class="input-group  mb-1">
                 <span class="input-group-text col-4" style="width:135px;" id="inputGroup-sizing-lg">{{$t("startserver.examname")}}</span>
-                <input v-model="servername" type="text" class="form-control" id="servername" placeholder="Mathematik-5a" style="width:135px;max-width:135px;min-width:135px;">
+                <input v-model="servername" type="text" class="form-control" id="servername" placeholder="Mathe-5a" style="width:135px;max-width:135px;min-width:135px;">
             </div>   
-            <div class="input-group  mb-3"> 
+            <div class="input-group  mb-3" :class="(electron) ? 'hidden':''"> <!-- we do not need to display the password in electron standalone version because no other exams are ever listed and you can not leave the exam without ending the server -->
                 <span class="input-group-text col-4" style="width:135px;" id="inputGroup-sizing-lg">{{$t("startserver.pwd")}}</span>
                 <input v-model="password" type="text" class="form-control " id="password" placeholder="password" style="width:135px;max-width:135px;min-width:135px;">
             </div>
@@ -68,7 +72,7 @@ export default {
             version: this.$route.params.version,
             title: document.title,
             servername : config.development ? "Mathe5A":"",
-            password: config.development ? "password":"",
+            password: config.development ? "password": Math.floor(1000 + Math.random() * 9000), 
             prod : false,
             serverApiPort: this.$route.params.serverApiPort,
             electron: this.$route.params.electron,
@@ -79,7 +83,10 @@ export default {
     components: {},
     methods: {
         async startServer(){
-            if (this.servername ==="" || this.password ===""){
+            if (this.servername ==="" ){
+                this.status(this.$t("startserver.emptyname")); 
+            }
+            else if (this.password ===""){
                 this.status(this.$t("startserver.emptypw")); 
             }
             else {

@@ -11,7 +11,7 @@
 </div>
  
  
-<div id="wrapper" class="w-100 h-100 d-flex" >
+<div v-if="!electron" id="wrapper" class="w-100 h-100 d-flex" >
 
     <div class="p-3 text-white bg-dark h-100 " style="width: 240px; min-width: 240px;">
         <ul class="nav nav-pills flex-column mb-auto ">

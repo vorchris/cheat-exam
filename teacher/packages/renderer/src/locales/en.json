@@ -13,10 +13,11 @@
     },
     "startserver" : {
         "connected": "connected",
-        "start": "Start Exam Server",
+        "start": "Start Exam",
         "examname": "Name",
         "pwd": "Password",
-        "emptypw": "Please provide a valid username and password"
+        "emptypw": "Please provide a valid password",
+        "emptyname": "Please provide a valid username"
     },
     "dashboard":{
         "server": "Server",

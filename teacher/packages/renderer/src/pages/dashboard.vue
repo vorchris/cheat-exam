@@ -2,11 +2,15 @@
 
  
 <div class="w-100 p-3 text-white bg-dark shadow text-right">
-    <router-link to="/" class="text-white m-1">
+    <router-link v-if="!electron" to="/" class="text-white m-1">
         <img src="/src/assets/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
-        <span class="fs-4 align-middle me-4 ">Next-Exam</span>
+        <span class="fs-4 align-middle me-1 ">Next-Exam</span>
     </router-link>
-   
+    <span v-if="electron" class="text-white m-1">
+        <img src="/src/assets/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
+        <span class="fs-4 align-middle me-1 ">Next-Exam</span>
+    </span>
+
     <span class="fs-4 align-middle ms-3" style="float: right">Dashboard</span>
      <div class="btn btn-sm btn-danger m-0 mt-1" @click="stopserver()" style="float: right">{{$t('dashboard.stopserver')}}</div>
 </div>
