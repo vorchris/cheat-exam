@@ -221,9 +221,9 @@ class WindowHandler {
             if (!this.config.development) {
                 let choice = dialog.showMessageBoxSync(this.mainwindow, {
                     type: 'question',
-                    buttons: ['Yes', 'No'],
-                    title: 'Exit',
-                    message: 'Are you sure?'
+                    buttons: ['Ja', 'Nein'],
+                    title: 'Programm Beenden',
+                    message: 'Sind sie sicher?'
                 });
                 if(choice == 1){ e.preventDefault(); }
             }

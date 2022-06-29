@@ -86,9 +86,9 @@ async function createWindow() {
         if (!config.development) {
             let choice = dialog.showMessageBoxSync(win, {
                 type: 'question',
-                buttons: ['Yes', 'No'],
-                title: 'Exit',
-                message: 'Are you sure?'
+                buttons: ['Ja', 'Nein'],
+                title: 'Programm beenden',
+                message: 'Sind sie sicher?'
             });
             
             if(choice == 1){
