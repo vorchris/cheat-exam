@@ -60,6 +60,8 @@ const gnomeKeybindings = [
 
         // Temporarily deactivate ALL global keyboardshortcuts 
         childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'true'])
+        // Temporarily deactivate ALL 3d Effects (present window, change desktop, etc.) 
+        childProcess.execFile('qdbus', ['org.kde.KWin' ,'/Compositor', 'org.kde.kwin.Compositing.suspend'])
         // Clear Clipboard history 
         childProcess.execFile('qdbus', ['org.kde.klipper' ,'/klipper', 'org.kde.klipper.klipper.clearClipboardHistory'])
         // wayland
@@ -134,6 +136,9 @@ function disableRestrictions(){
     if (process.platform === 'linux') {
         // reset all shortcuts KDE
         childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'false'])
+        // activate ALL 3d Effects (present window, change desktop, etc.) 
+        childProcess.execFile('qdbus', ['org.kde.KWin' ,'/Compositor', 'org.kde.kwin.Compositing.resume'])
+
 
         // reset specific shortcuts GNOME
         for (let binding of gnomeKeybindings){
