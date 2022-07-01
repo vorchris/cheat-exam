@@ -23,11 +23,11 @@
         "tokennotvalid": "das token ist ungültig",
         "tokenvalid": "das token ist gültig",
         "statechange": "Vertrauensstellung geändert",
-        "alreadyregistered": "Schüler*in unter diesem Namen bereits angemeldet",
+        "alreadyregistered": "Schüler:in unter diesem Namen bereits angemeldet",
         "examinit":"Abgesicherter Modus gestartet",
         "examexit":"Abgesicherter Modus beendet",
         "noexam": "Abgesicherter Modus nicht aktiv",
-        "clientunsubscribe": "Schüler*in entfernt"
+        "clientunsubscribe": "Schüler:in entfernt"
        
     },
     "data": {
