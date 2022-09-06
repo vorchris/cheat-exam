@@ -146,12 +146,14 @@ import WindowHandler from './windowhandler.js'
             }
         }
 
-        if (!WindowHandler.examwindow){  // why do we check? because exammode is left if the server connection gets lost but students could reconnect while the exam window is still open
-            WindowHandler.createExamWindow(serverstatus.examtype, this.multicastClient.clientinfo.token, serverstatus);
-        }
-
         let displays = screen.getAllDisplays()
         let primary = screen.getPrimaryDisplay()
+
+
+        if (!WindowHandler.examwindow){  // why do we check? because exammode is left if the server connection gets lost but students could reconnect while the exam window is still open
+            WindowHandler.createExamWindow(serverstatus.examtype, this.multicastClient.clientinfo.token, serverstatus, primary);
+        }
+
         if (!this.config.development) {
             for (let display of displays){
                 if ( display.id !== primary.id ) {
@@ -191,10 +193,24 @@ import WindowHandler from './windowhandler.js'
     gracefullyEndExam(){
         if (WindowHandler.examwindow){ 
             WindowHandler.examwindow.setKiosk(false)
-            WindowHandler.examwindow.removeListener('blur', WindowHandler.blurevent)  // do not send blurevent on blur
+
+            WindowHandler.examwindow.setAlwaysOnTop(false)
+            WindowHandler.examwindow.alwaysOnTop = false
+
+            console.log("removing blur listener")
+            // WindowHandler.examwindow.removeListener('blur', WindowHandler.blurevent)  // do not send blurevent on blur
+
+            WindowHandler.examwindow.removeListener('blur', () => { WindowHandler.blurevent(WindowHandler)}) // do not send blurevent on blur
+
             this.multicastClient.clientinfo.focus = true
             this.multicastClient.clientinfo.exammode = false
             disableRestrictions()
+            for (let blockwindow of WindowHandler.blockwindows){
+                blockwindow.close(); 
+                blockwindow.destroy(); 
+                blockwindow = null;
+            }
+            WindowHandler.blockwindows = []
         }
     }
 

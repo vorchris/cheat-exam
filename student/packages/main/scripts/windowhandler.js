@@ -75,8 +75,10 @@ class WindowHandler {
      * @param token student token
      * @param serverstatus the serverstatus object containing info about spellcheck language etc. 
      */
-    createExamWindow(examtype, token, serverstatus) {
+    createExamWindow(examtype, token, serverstatus, primarydisplay) {
         this.examwindow = new BrowserWindow({
+            x: primarydisplay.bounds.x + 0,
+            y: primarydisplay.bounds.y + 0,
             // parent: win,  //this doesnt work together with kiosk on ubuntu gnome ?? wtf
             // modal: true,  // this blocks the main window on windows while the exam window is open
             skipTaskbar:true,
