@@ -54,11 +54,13 @@ import WindowHandler from './windowhandler.js'
      * sends heartbeat to registered server and updates screenshot on server 
      */
     async sendBeacon(){
-        if (this.multicastClient.beaconsLost >= 1 && this.multicastClient.clientinfo.exammode === true ){ //remove server registration locally (same as 'kick')
+        if (this.multicastClient.beaconsLost >= 1 ){ //remove server registration locally (same as 'kick')
             console.log("Connection to Teacher lost! Removing registration.")
             this.multicastClient.beaconsLost = 0
             this.resetConnection()
-            this.gracefullyEndExam()  // this should end kiosk mode, the blur listener and all (keyboard) restrictions but not kill the window
+            if (this.multicastClient.clientinfo.exammode === true) {
+                this.gracefullyEndExam()  // this should end kiosk mode, the blur listener and all (keyboard) restrictions but not kill the window
+            }
         }
 
         if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip

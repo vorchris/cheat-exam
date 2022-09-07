@@ -193,7 +193,16 @@ router.get('/serverlist', function (req, res, next) {
             return res.json({sender: "server", message:t("control.registered"), status: "success", token: token})  // on success return client token (auth needed for server api)
         }
         else {
-            return res.json({sender: "server", message:t("control.alreadyregistered"), status: "error"})
+
+            let now = new Date().getTime()
+            if (now - 20000 > registeredClient.timestamp) { // student probably went offline (teacher connection loss) but is coming back now
+                registeredClient.timestamp = now
+                console.log("student reconnected")
+                return res.json({sender: "server", message:t("control.registered"), status: "success", token: registeredClient.token})  //send back old token
+            }
+            else {
+                return res.json({sender: "server", message:t("control.alreadyregistered"), status: "error"})
+            }  
         }
     }
     else {
