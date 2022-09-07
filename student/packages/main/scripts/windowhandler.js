@@ -164,6 +164,7 @@ class WindowHandler {
             this.examwindow.setKiosk(true)
             this.examwindow?.show()
             this.examwindow?.moveTop();
+            this.examwindow?.setAlwaysOnTop(true, "screen-saver", 1) 
             this.examwindow?.focus();
            
         })
