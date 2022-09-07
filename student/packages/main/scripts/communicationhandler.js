@@ -17,7 +17,7 @@
 
 
 import axios from "axios";
-import {disableRestrictions} from './platformrestrictions.js';
+import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 import fs from 'fs' 
 import crypto from 'crypto';
 import archiver from 'archiver'
@@ -161,6 +161,7 @@ import WindowHandler from './windowhandler.js'
         }
 
         WindowHandler.addBlurListener();
+        enableRestrictions(WindowHandler.examwindow)
 
         if (!this.config.development) {
             for (let display of displays){
