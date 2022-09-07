@@ -1,5 +1,5 @@
 
-import { app, BrowserWindow, shell, dialog, Menu, MenuItem } from 'electron'
+import { app, BrowserWindow, shell, dialog, Menu, MenuItem, screen } from 'electron'
 import { join } from 'path'
 import {enableRestrictions} from './platformrestrictions.js';
 
@@ -168,21 +168,30 @@ class WindowHandler {
            
         })
 
-        // Handle BLUR event
-        this.examwindow.addListener('blur', () => { this.blurevent(this)})
         enableRestrictions(WindowHandler.examwindow)
     }
 
+    addBlurListener(){
+        console.log("adding blur listener")
+        this.examwindow.addListener('blur', () => this.blurevent(this))
+    }
 
-
+    removeBlurListener(){
+        console.log("removing blur listener")
+        this.examwindow.removeAllListeners('blur')
+    }
 
     /**
      * the main window
      */
     async createMainWindow() {
+        let primarydisplay = screen.getPrimaryDisplay()
+
         this.mainwindow = new BrowserWindow({
             title: 'Main window',
             icon: join(__dirname, '../../public/icons/icon.png'),
+            x: primarydisplay.bounds.x + 0,
+            y: primarydisplay.bounds.y + 0,
             width: 1000,
             height: 600,
             minWidth: 760,

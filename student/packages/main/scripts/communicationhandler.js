@@ -38,6 +38,7 @@ import WindowHandler from './windowhandler.js'
        this.multicastClient = null
        this.config = null
        this.updateStudentIntervall = null
+       this.WindowHandler = null
      }
  
   
@@ -53,7 +54,7 @@ import WindowHandler from './windowhandler.js'
      * sends heartbeat to registered server and updates screenshot on server 
      */
     async sendBeacon(){
-        if (this.multicastClient.beaconsLost >= 4){ //remove server registration locally (same as 'kick')
+        if (this.multicastClient.beaconsLost >= 1){ //remove server registration locally (same as 'kick')
             console.log("Connection to Teacher lost! Removing registration.")
             this.multicastClient.beaconsLost = 0
             this.resetConnection()
@@ -150,14 +151,20 @@ import WindowHandler from './windowhandler.js'
         let primary = screen.getPrimaryDisplay()
 
 
-        if (!WindowHandler.examwindow){  // why do we check? because exammode is left if the server connection gets lost but students could reconnect while the exam window is still open
+        if (!WindowHandler.examwindow){  // why do we check? because exammode is left if the server connection gets lost but students could reconnect while the exam window is still open and we don't want to create a second one
             WindowHandler.createExamWindow(serverstatus.examtype, this.multicastClient.clientinfo.token, serverstatus, primary);
         }
+
+        if (WindowHandler.examwindow){  //broken connection - exam window still open
+            WindowHandler.examwindow.setFullScreen(true)  //go fullscreen again
+        }
+
+        WindowHandler.addBlurListener();
 
         if (!this.config.development) {
             for (let display of displays){
                 if ( display.id !== primary.id ) {
-                    WindowHandler.newBlockWin(display) 
+                    WindowHandler.newBlockWin(display)  // add blockwindows for additional displays
                 }
             }
         }
@@ -197,10 +204,8 @@ import WindowHandler from './windowhandler.js'
             WindowHandler.examwindow.setAlwaysOnTop(false)
             WindowHandler.examwindow.alwaysOnTop = false
 
-            console.log("removing blur listener")
-            // WindowHandler.examwindow.removeListener('blur', WindowHandler.blurevent)  // do not send blurevent on blur
-
-            WindowHandler.examwindow.removeListener('blur', () => { WindowHandler.blurevent(WindowHandler)}) // do not send blurevent on blur
+            // remove listener
+            WindowHandler.removeBlurListener();
 
             this.multicastClient.clientinfo.focus = true
             this.multicastClient.clientinfo.exammode = false
