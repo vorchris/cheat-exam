@@ -1,5 +1,5 @@
 
-import { createI18n } from 'vue-i18n'
+import { createI18n } from 'vue-i18n/dist/vue-i18n.cjs.prod'
 
 import en from './en.json'
 import de from './de.json'
