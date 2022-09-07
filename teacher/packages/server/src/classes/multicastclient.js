@@ -34,6 +34,9 @@ class MulticastClient {
      * receives messages and stores new exam instances in this.examServerList[]
      */
     messageReceived (message, rinfo) {
+    
+        console.log(String(message))
+        
         const serverInfo = JSON.parse(String(message))
         serverInfo.serverip = rinfo.address
         serverInfo.serverport = rinfo.port

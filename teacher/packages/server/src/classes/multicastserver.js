@@ -69,7 +69,14 @@ class MulticastServer {
             id: this.serverinfo.id,
             ip: this.serverinfo.ip
         }
-        const preparedMessage = JSON.stringify(message)
+        //const preparedMessage = JSON.stringify(message)
+
+        const preparedMessage = new Buffer.from(JSON.stringify(message))
+
+        
+        console.log(preparedMessage)
+
+
         //broadcast to clients
         this.server.send(preparedMessage, 0, preparedMessage.length, this.ClientPORT, this.MULTICAST_ADDR)
         //broadcast to other server(clients) - servers also want to know what other servers are in the network
