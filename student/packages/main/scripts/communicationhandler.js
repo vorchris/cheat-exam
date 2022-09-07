@@ -54,7 +54,7 @@ import WindowHandler from './windowhandler.js'
      * sends heartbeat to registered server and updates screenshot on server 
      */
     async sendBeacon(){
-        if (this.multicastClient.beaconsLost >= 1 ){ //remove server registration locally (same as 'kick')
+        if (this.multicastClient.beaconsLost >= 4 ){ //remove server registration locally (same as 'kick')
             console.log("Connection to Teacher lost! Removing registration.")
             this.multicastClient.beaconsLost = 0
             this.resetConnection()
