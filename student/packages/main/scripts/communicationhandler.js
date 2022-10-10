@@ -259,7 +259,7 @@ import WindowHandler from './windowhandler.js'
         this.multicastClient.clientinfo.serverip = false
         this.multicastClient.clientinfo.servername = false
         this.multicastClient.clientinfo.focus = true  // we are focused 
-        this.multicastClient.clientinfo.exammode = false
+        //this.multicastClient.clientinfo.exammode = false
         this.multicastClient.clientinfo.timestamp = false
         this.multicastClient.clientinfo.virtualized = false  
     }
