@@ -20,7 +20,7 @@
  */
 
 
-import fs from 'fs'
+//import fs from 'fs'
 import { contextBridge, ipcRenderer } from 'electron'
 
 let config = ipcRenderer.sendSync('getconfig')  // we need to fetch the updated version of the systemconfig from express api (server.js)
@@ -48,7 +48,7 @@ function domReady(condition: DocumentReadyState[] = ['complete', 'interactive'])
 
 
 // --------- Expose some API to the Renderer process. ---------
-contextBridge.exposeInMainWorld('fs', fs)
+//contextBridge.exposeInMainWorld('fs', fs)
 contextBridge.exposeInMainWorld('ipcRenderer', withPrototype(ipcRenderer))
 contextBridge.exposeInMainWorld('config', config )  // expose configuration (readonly) to the renderer (frontend)
 

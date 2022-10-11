@@ -34,6 +34,9 @@ import fs from 'fs'
 WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow
 CommHandler.init(multicastClient, config)    // starts "beacon" intervall and fetches information from the teacher - acts on it (startexam, stopexam, sendfile, getfile)
 
+//still trying to get rid of self-signed cert errors but electron 21 ignores this switch
+app.commandLine.appendSwitch('ignore-certificate-errors')
+app.commandLine.appendSwitch('allow-insecure-localhost', 'true');
 
 
 
@@ -43,7 +46,7 @@ CommHandler.init(multicastClient, config)    // starts "beacon" intervall and fe
 
 
 // hide certificate warnings in console.. we know we use a self signed cert and do not validate it
-process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
 const originalEmitWarning = process.emitWarning
 process.emitWarning = (warning, options) => {
     if (warning && warning.includes && warning.includes('NODE_TLS_REJECT_UNAUTHORIZED')) {  return }
@@ -66,6 +69,7 @@ app.on('certificate-error', (event, webContents, url, error, certificate, callba
     event.preventDefault();
     callback(true);
 });
+
 
 app.on('window-all-closed', () => {  // if window is closed
     clearInterval( CommHandler.updateStudentIntervall )
@@ -126,12 +130,8 @@ app.whenReady()
 ipcMain.on('virtualized', () => {  multicastClient.clientinfo.virtualized = true; } )
 ipcMain.on('getconfig', (event) => {   event.returnValue = config   })
 ipcMain.on('printpdf', (event, args) => { 
-
       if (WindowHandler.examwindow){
-        //app.commandLine.appendSwitch('expose_wasm');
-
         var options = {
-            
             marginsType: 0,
             pageSize: 'A4',
             printBackground: true,
@@ -143,14 +143,9 @@ ipcMain.on('printpdf', (event, args) => {
             preferCSSPageSize: false
         }
 
-        
         const pdffilepath = join(config.workdirectory, args.filename);
-
         WindowHandler.examwindow.webContents.printToPDF(options).then(data => {
-            console.log("writing pdf")
             fs.writeFile(pdffilepath, data, function (err) { if (err) {console.log(err); }  } );
         }).catch(error => { console.log(error)});
-
     }
-
 })
