@@ -76,9 +76,22 @@ class WindowHandler {
      * @param serverstatus the serverstatus object containing info about spellcheck language etc. 
      */
     createExamWindow(examtype, token, serverstatus, primarydisplay) {
+        // just to be sure we check some important vars here
+        if (examtype !== "eduvidual" && examtype !== "editor" && examtype !== "math" || !token){  // for now.. we probably should stop everything here
+            console.log("missing parameters for exam-mode!")
+            examtype = "editor" 
+        } 
+        
+        let px = 0
+        let py = 0
+        if (primarydisplay && primarydisplay.bounds && primarydisplay.bounds.x) {
+            px = primarydisplay.bounds.x
+            py = primarydisplay.bounds.y
+        }
+
         this.examwindow = new BrowserWindow({
-            x: primarydisplay.bounds.x + 0,
-            y: primarydisplay.bounds.y + 0,
+            x: px + 0,
+            y: py + 0,
             // parent: win,  //this doesnt work together with kiosk on ubuntu gnome ?? wtf
             // modal: true,  // this blocks the main window on windows while the exam window is open
             skipTaskbar:true,
