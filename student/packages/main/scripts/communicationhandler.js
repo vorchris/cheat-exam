@@ -152,7 +152,9 @@ import WindowHandler from './windowhandler.js'
         let displays = screen.getAllDisplays()
         let primary = screen.getPrimaryDisplay()
 
-
+        if (!primary || primary === "" || !primary.id){
+            primary = displays[0]
+        }       
         if (!WindowHandler.examwindow){  // why do we check? because exammode is left if the server connection gets lost but students could reconnect while the exam window is still open and we don't want to create a second one
             WindowHandler.createExamWindow(serverstatus.examtype, this.multicastClient.clientinfo.token, serverstatus, primary);
         }
