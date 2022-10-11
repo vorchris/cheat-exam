@@ -54,6 +54,10 @@ import WindowHandler from './windowhandler.js'
      * sends heartbeat to registered server and updates screenshot on server 
      */
     async sendBeacon(){
+
+      
+
+
         if (this.multicastClient.beaconsLost >= 4 ){ //remove server registration locally (same as 'kick')
             console.log("Connection to Teacher lost! Removing registration.")
             this.multicastClient.beaconsLost = 0
@@ -159,15 +163,15 @@ import WindowHandler from './windowhandler.js'
             WindowHandler.createExamWindow(serverstatus.examtype, this.multicastClient.clientinfo.token, serverstatus, primary);
         }
 
-        if (WindowHandler.examwindow){  //broken connection - exam window still open
-            WindowHandler.examwindow.setFullScreen(true)  //go fullscreen again
-            WindowHandler.examwindow.setAlwaysOnTop(true, "screen-saver", 1)  //make sure the window is 1 level above everything
-        }
+        if (!this.config.development) { 
+            if (WindowHandler.examwindow){  //broken connection - exam window still open
+                WindowHandler.examwindow.setFullScreen(true)  //go fullscreen again
+                WindowHandler.examwindow.setAlwaysOnTop(true, "screen-saver", 1)  //make sure the window is 1 level above everything
+            }
 
-        WindowHandler.addBlurListener();
-        enableRestrictions(WindowHandler.examwindow)
+            WindowHandler.addBlurListener();
+            enableRestrictions(WindowHandler.examwindow)
 
-        if (!this.config.development) {
             for (let display of displays){
                 if ( display.id !== primary.id ) {
                     WindowHandler.newBlockWin(display)  // add blockwindows for additional displays

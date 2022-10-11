@@ -28,6 +28,8 @@ import CommHandler from './scripts/communicationhandler.js'
 import config from '../server/src/config.js';
 import server from "../server/src/server.js"
 import multicastClient from '../server/src/classes/multicastclient.js'
+import { join } from 'path'
+import fs from 'fs' 
 
 WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow
 CommHandler.init(multicastClient, config)    // starts "beacon" intervall and fetches information from the teacher - acts on it (startexam, stopexam, sendfile, getfile)
@@ -123,3 +125,32 @@ app.whenReady()
 
 ipcMain.on('virtualized', () => {  multicastClient.clientinfo.virtualized = true; } )
 ipcMain.on('getconfig', (event) => {   event.returnValue = config   })
+ipcMain.on('printpdf', (event, args) => { 
+
+      if (WindowHandler.examwindow){
+        //app.commandLine.appendSwitch('expose_wasm');
+
+        var options = {
+            
+            marginsType: 0,
+            pageSize: 'A4',
+            printBackground: true,
+            printSelectionOnly: false,
+            landscape: args.landscape,
+            displayHeaderFooter:true,
+            footerTemplate: "<div style='height:12px; font-size:8px; text-align: right; width:100%; margin-right: 20px;'><span class=pageNumber></span>|<span class=totalPages></span></div>",
+            headerTemplate: `<div style='height:12px; font-size:8px; text-align: right; width:100%; margin-right: 20px;'><span class=date></span>|<span>${args.clientname}</span></div>`,
+            preferCSSPageSize: false
+        }
+
+        
+        const pdffilepath = join(config.workdirectory, args.filename);
+
+        WindowHandler.examwindow.webContents.printToPDF(options).then(data => {
+            console.log("writing pdf")
+            fs.writeFile(pdffilepath, data, function (err) { if (err) {console.log(err); }  } );
+        }).catch(error => { console.log(error)});
+
+    }
+
+})

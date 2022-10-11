@@ -43,7 +43,8 @@
         "exit":"Exit safe exam mode",
         "cancel":"Cancel",
         "replace":"Replace",
-        "chars": "chars"
+        "chars": "chars",
+        "words": "words"
     },
     "math": {
         "exit":"Exit safe exam mode"

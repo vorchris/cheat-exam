@@ -22,9 +22,9 @@
  */
 
 
-import fs from 'fs'
+//import fs from 'fs'
 import { contextBridge, ipcRenderer, webFrame } from 'electron'
-import screenshot from 'screenshot-desktop';
+//import screenshot from 'screenshot-desktop';
 import virtualized from './scripts/simplevmdetect.js';  // has to run in frontend (since we create a webgl insance) > inform backend (mulitcastClient.clientinfo)
 
 
@@ -53,8 +53,8 @@ function domReady(condition: DocumentReadyState[] = ['complete', 'interactive'])
 
 
 // --------- Expose some API to the Renderer process. ---------
-contextBridge.exposeInMainWorld('fs', fs)
-contextBridge.exposeInMainWorld('screenshot', screenshot)  // used in geogebra view for pdf creation
+//contextBridge.exposeInMainWorld('fs', fs)
+//contextBridge.exposeInMainWorld('screenshot', screenshot)  // used in geogebra view for pdf creation
 contextBridge.exposeInMainWorld('ipcRenderer', withPrototype(ipcRenderer))   // this gives us an option to access the electron mainwindow with an ipc call
 contextBridge.exposeInMainWorld('config', config )  // expose configuration (readonly) to the renderer (frontend)
 

@@ -49,13 +49,13 @@ const { t } = i18n.global
 
         fs.writeFile(htmlfile, htmlContent, (err) => {if (err) console.log(err); }); 
 
-        for (const [key, file] of Object.entries( req.files)) {
-            let absoluteFilepath = path.join(config.workdirectory, file.name);
-            file.mv(absoluteFilepath, (err) => {  
-            if (err) { errors++; console.log( "client couldn't store file") }
+        // for (const [key, file] of Object.entries( req.files)) {
+        //     let absoluteFilepath = path.join(config.workdirectory, file.name);
+        //     file.mv(absoluteFilepath, (err) => {  
+        //     if (err) { errors++; console.log( "client couldn't store file") }
                   
-            });
-        }
+        //     });
+        // }
         return res.json({sender: "client", message:t("data.filestored"), status: "success"  })
     }
     else {

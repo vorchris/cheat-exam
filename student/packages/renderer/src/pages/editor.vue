@@ -1,6 +1,7 @@
  <template>
+
     <!-- HEADER START -->
-    <div class="w-100 p-3 text-white bg-dark  text-center" style=" z-index: 10000 !important">
+    <div id="editorheader" class="w-100 p-3 text-white bg-dark  text-center" style=" z-index: 10000 !important">
         <div v-if="online" class="text-white m-1">
             <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style="float: left;" />
             <span class="fs-4 align-middle me-1" style="float: left;">{{clientname}}</span>
@@ -91,11 +92,11 @@
 
     <!-- EDITOR START -->
     <div d="editormaincontainer" style="position: relative; height: 100%; overflow:hidden; overflow-y: scroll; background-color: #eeeefa;">
-        <div id="editorcontainer" class="shadow" style="border-radius:0; margin-top:20px; width: 90vw; margin-left:5vw;">
+        <div id="editorcontainer" class="shadow" style="">
             <editor-content :editor="editor" class='p-0' id="editorcontent" style="background-color: #fff; border-radius:0;" />
         </div>
         <div id="statusbar">
-             <span> {{ $t("editor.chars") }}: {{charcount}}</span>
+             <span> {{ $t("editor.chars") }}: {{charcount}}</span> | <span> {{ $t("editor.words") }}: {{wordcount}}</span>
         </div>
     </div>
     <!-- EDITOR END -->
@@ -162,12 +163,14 @@ export default {
             clientinfo: null,
             entrytime: 0,
             timesinceentry: 0,
-            charcount : 0
+            charcount : 0,
+            wordcount : 0
         }
     },
     methods: {
         clock(){
             this.charcount = this.editor.storage.characterCount.characters()
+            this.wordcount = this.editor.storage.characterCount.words()
             let now = new Date().getTime()
             this.timesinceentry =  new Date(now - this.entrytime).toISOString().substr(11, 8)
         },
@@ -239,95 +242,26 @@ export default {
 
         /** Converts the Editor View into a multipage PDF */
         async saveContent() {     
-    
+            // inform mainprocess to save webcontent as pdf (see @media css query for adjustments for pdf)
+        
+            let filename = this.currentFile.replace(/\.[^/.]+$/, "")  // we dont need the extension
+            ipcRenderer.send('printpdf', {clientname:this.clientname, filename: `${filename}.pdf` })
 
-            var opt = {
-                margin: 1, 
-                filename: 'ontract.pdf',
-                image: { type: 'webp', quality: 0.98 },
-                html2canvas: {scale:1 },
-                jsPDF: { unit: 'cm', format: 'A4', orientation: 'portrait' },
-                pagebreak: { mode: 'avoid-all' }       
-            };
-         
-            const options = {
-                orientation: "p", 
-                unit: "px",
-                format: "a4",
-                putOnlyUsedFonts: true,
-                compress: true
-            };
-
-            let doc = new jsPDF(options)   //orientation, unit for coordinates, format, onlyUsedFonts, compress
-            const editorcontent = this.editor.getHTML();    
-            let pdfBlob;
+            //also save editorcontent as *html file - used to re-populate the editor window in case something went completely wrong
+            let editorcontent = this.editor.getHTML(); 
             
-            // let h = html2pdf().from(editorcontent).set(opt).toPdf().get('pdf')
-            // h.then( pdf => {
-
-   
-            //         // add some sort of header to the document
-            //         let newDate = new Date(Date.now())
-            //         let savedate = `${newDate.toLocaleDateString()} - ${newDate.toLocaleTimeString()}`
-
-            //         pdf.text(270, 20, `${this.clientname} | ${savedate}`);
-
-            //             let filename = this.currentFile.replace(/\.[^/.]+$/, "")  // we dont need the extension
-            //             pdfBlob = new Blob([ pdf.output('blob') ], { type : 'application/pdf'});
-            //             let form = new FormData()
-            //             form.append("file", pdfBlob,  `${filename}.pdf` );
-            //             form.append("editorcontent", editorcontent)
-            //             form.append("currentfilename", filename)
-                      
-            //             axios({
-            //                 method: "post", 
-            //                 url: `https://localhost:${this.clientApiPort}/client/data/store`, 
-            //                 data: form, 
-            //                 headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
-            //             }).then( async (response) => {
-            //                 //console.log(response.data)
-            //             }).catch(err => { console.warn(err)});
-                
-            //     }
-            // );
-
-            //this messes up lineheights of bold / italic but is MUCH BETTER quality and filesize
-                  
-              
-            doc.html(editorcontent, {
-                    callback: (doc) => {
-                        // add some sort of header to the document
-                        let newDate = new Date(Date.now())
-                        let savedate = `${newDate.toLocaleDateString()} - ${newDate.toLocaleTimeString()}`
-
-                        doc.text(270, 20, `${this.clientname} | ${savedate}`);
-                  
-
-                        let filename = this.currentFile.replace(/\.[^/.]+$/, "")  // we dont need the extension
-                        pdfBlob = new Blob([ doc.output('blob') ], { type : 'application/pdf'});
-                        let form = new FormData()
-                        form.append("file", pdfBlob,  `${filename}.pdf` );
-                        form.append("editorcontent", editorcontent)
-                        form.append("currentfilename", filename)
-                      
-                        axios({
-                            method: "post", 
-                            url: `https://localhost:${this.clientApiPort}/client/data/store`, 
-                            data: form, 
-                            headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
-                        }).then( async (response) => {
-                            //console.log(response.data)
-                        }).catch(err => { console.warn(err)});
-                    },
-                    x: 0,
-                    y: 0,
-                    margin: [20,20,20,20],  // oben rechts unten links
-                    width :400,
-                    windowWidth:420,
-                    autoPaging: 'slice',  //text, slice, false
-                    removeContainer:	false,
-                    scale:1
-            });
+            let form = new FormData()
+            form.append("editorcontent", editorcontent)
+            form.append("currentfilename", filename)
+            
+            axios({
+                method: "post", 
+                url: `https://localhost:${this.clientApiPort}/client/data/store`, 
+                data: form, 
+                headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
+            }).then( async (response) => {
+                //console.log(response.data)
+            }).catch(err => { console.warn(err)});
         },
     },
     mounted() {
@@ -444,6 +378,68 @@ ENDE !!`,
 </script>
 
 <style lang="scss">
+
+@media print{
+    #statusbar, #editortoolbar, #editorheader {
+        display: none !important;
+    }
+
+    #editorcontainer {
+        width: 100% !important;
+        margin: 0px !important;
+        border-radius:0px !important;
+        background-color: white !important;
+        overflow: hidden !important;
+    }
+
+    #editormaincontainer {
+        overflow: hidden !important;
+        margin: 0 !important;
+        border-radius:0px !important;
+        background-color: white !important;
+    }
+    #vueexambody {
+        overflow: hidden !important;
+        height: 100% !important;
+        border-radius:0px !important;
+     
+    }
+
+    #app {
+        display:block !important;
+        height: 100% !important;
+        overflow: hidden !important;
+          
+    }
+
+    .ProseMirror{
+       padding: 4px !important;
+       border-radius: 0 !important; 
+       outline: 0 !important;
+        overflow: hidden !important;
+    }
+
+    ::-webkit-scrollbar {
+                display: none;
+            }
+
+
+   // p { page-break-after: always; }
+    .footer { position: fixed; bottom: 0px; }
+
+
+
+}
+
+#editorcontainer {
+    border-radius:0; 
+    margin-top:20px; 
+    width: 90vw; 
+    margin-left:5vw;
+}
+
+
+
 #statusbar {
     position: fixed;
     bottom:0px; 
@@ -486,45 +482,6 @@ ENDE !!`,
     border-radius: 6px;
 }
 
-.html2pdf__container {  //this works only if html automaging mode is "slice" - if we set it to "text" this messes up all lineheights
-   
-   *{
-        line-height: 1.1em !important; 
-        font-size: 12px !important;
-       
-   }
-   
-   li {
-        ul { padding: 0 15px!important; line-height: 1!important;  }
-        ol { padding: 0 15px!important; line-height: 1!important;  }
-   }
- 
-    pre {
-        line-height: 1em!important; 
-        code {
-            letter-spacing: 2px!important;
-            line-height: 1em!important; 
-        }
-    }
-  
-
-    p{
-         line-height: 1em!important; 
-        em {
-            line-height: 2.5em!important; 
-           
-        }
-        strong {
-            line-height: 2.5em!important;
-         }  
-     }
-
-
-    h5 {font-size: 20px!important; }
-    h4 {font-size: 22px!important; }
-    h3 {font-size: 24px!important; }
-    h2 {font-size: 26px!important; }
-}
 
 /* Basic editor styles */
 

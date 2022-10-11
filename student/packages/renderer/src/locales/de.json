@@ -43,7 +43,8 @@
         "exit":"Abgesicherten Modus beenden",
         "cancel":"Abbrechen",
         "replace":"Ersetzen",
-        "chars": "Zeichen"
+        "chars": "Zeichen",
+        "words": "Wörter"
     },
     "math": {
         "exit":"Abgesicherten Modus beenden"

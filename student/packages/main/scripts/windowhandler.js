@@ -104,7 +104,7 @@ class WindowHandler {
             icon: join(__dirname, '../../public/icons/icon.png'),
             webPreferences: {
                 preload: join(__dirname, '../preload/preload.cjs'),
-                spellcheck: true
+                spellcheck: true,  
             },
         });
     
@@ -174,12 +174,13 @@ class WindowHandler {
 
         this.examwindow.removeMenu() 
         this.examwindow.once('ready-to-show', () => {
-            this.examwindow.setKiosk(true)
+            if (!this.config.development) { 
+                this.examwindow.setKiosk(true)
+                this.examwindow?.moveTop();
+                this.examwindow?.setAlwaysOnTop(true, "screen-saver", 1) 
+            }
             this.examwindow?.show()
-            this.examwindow?.moveTop();
-            this.examwindow?.setAlwaysOnTop(true, "screen-saver", 1) 
-            this.examwindow?.focus();
-           
+            this.examwindow?.focus(); 
         })
 
         enableRestrictions(WindowHandler.examwindow)

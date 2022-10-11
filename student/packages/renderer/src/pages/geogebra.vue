@@ -51,7 +51,6 @@
 
 <script>
 
-import jsPDF from 'jspdf'
 import axios from "axios";
 import $ from 'jquery'
 
@@ -97,7 +96,7 @@ export default {
         }
     
         this.$nextTick(function () { // Code that will run only after the entire view has been rendered
-            this.fetchinterval = setInterval(() => { this.saveContent() }, 20000)   
+            this.fetchinterval = setInterval(() => { this.saveContent() }, 5000)   
             this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 5000)  
             this.clockinterval = setInterval(() => { this.clock() }, 1000)  
             this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 10000)   // zeigt html dateien (angaben, eigene arbeit) im header
@@ -152,30 +151,8 @@ export default {
        
         /** Converts the Editor View into a multipage PDF */
         async saveContent() {  
-            screenshot().then(async (img) => {
-                let doc = new jsPDF('l', 'px','a4', true, true);   //orientation, unit for coordinates, format, onlyUsedFonts, compress
-                
-                // berechne die korrekte höhe des bildes proportional zu seiner breite (volle pdf breite)
-                const imgProps= doc.getImageProperties(img);
-                const width = doc.internal.pageSize.getWidth();
-                const height = (imgProps.height * width) / imgProps.width;
-               
-                doc.addImage(img, 'JPEG', 0, 0, width, height )
-
-                let pdfBlob = new Blob([ doc.output('blob') ], { type : 'application/pdf'});  // electron arbeitet nur mit blobs
-                let form = new FormData()
-                form.append("file", pdfBlob,  `${this.currentFile}.pdf` );
-                form.append("currentfilename", this.currentFile)
-                
-                axios({
-                    method: "post", 
-                    url: `https://localhost:${this.clientApiPort}/client/data/store`, 
-                    data: form, 
-                    headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
-                }).then( async (response) => {
-                    //console.log(response.data)
-                }).catch(err => { console.warn(err)});
-            });
+            let filename = this.currentFile.replace(/\.[^/.]+$/, "")  // we dont need the extension
+            ipcRenderer.send('printpdf', {clientname:this.clientname, filename: `${filename}.pdf`, landscape: true })
         },
     },
     beforeUnmount() {
@@ -188,6 +165,35 @@ export default {
 </script>
 
 <style scoped>
+
+
+@media print{
+    #apphead {
+        display: none !important;
+    }
+    #content {
+        height: 100vh !important;
+        border-radius:0px !important;
+    }
+    #geogebraframe{
+        overflow: visible !important;
+        height: 100% !important;
+        width: 100% !important;
+        border-radius:0px !important;
+    }
+    #app {
+        display:block !important;
+        height: 100% !important;
+       
+    }
+    ::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+
+
+
 #localfiles {
     position: relative;
    
