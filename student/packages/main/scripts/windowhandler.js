@@ -110,7 +110,7 @@ class WindowHandler {
     
         // Load correct url 
         if (examtype === "eduvidual"){    //external page
-            let url ='https://eduvidual.at'  
+            let url =`https://eduvidual.at/mod/quiz/view.php?id=${serverstatus.testid}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287  (only "test" is supported right now// teacher has to provide more info (activetest, quiz, offlinetest, flexiblequiz)
             this.examwindow.loadURL(url)
         }
         else { 
@@ -144,7 +144,8 @@ class WindowHandler {
 
         // HANDLE EDUVIDUAL pdf embed
         if (serverstatus.examtype === "eduvidual"){
-            this.examwindow.webContents.on('did-navigate', (event, url) => {
+
+            this.examwindow.webContents.on('did-navigate', (event, url) => {  //create a new div called "nextexamwarning" and "embedbackground"
                 this.examwindow.webContents.executeJavaScript(` 
                     const warning = document.createElement('div')
                     warning.setAttribute('id', 'nextexamwaring')
@@ -155,8 +156,13 @@ class WindowHandler {
                     const embed = document.createElement('embed');` , true)
                     .catch(err => console.log(err))
             })
-            this.examwindow.webContents.on('will-navigate', (event, url) => {
+            this.examwindow.webContents.on('will-navigate', (event, url) => {  // if a resource (pdf) is openend create an embed element and embed the pdf
                 console.log(url)
+                // here we could check every url and if a given "test-id" is recognized we register that the exam has been entered and block every other url
+                
+                if (!url.includes(serverstatus.testid) && ( !url.includes("login") && !url.includes("microsoft")) ){
+                    event.preventDefault()
+                }
                 if (url.includes('resource/view')&& !url.includes('forceview')){
                     event.preventDefault()
                     this.examwindow.webContents.executeJavaScript(` 
@@ -273,7 +279,7 @@ class WindowHandler {
         winhandler.examwindow.focus();
         winhandler.multicastClient.clientinfo.focus = false
     
-        // this only triggers in "eduvidual" mode because otherwise there is no element "warning" to append
+        // this only works in "eduvidual" mode because otherwise there is no element "warning" to append (clicking on an external link is considered a blur event)
         winhandler.examwindow.webContents.executeJavaScript(` 
                     if (typeof warning !== 'undefined'){
                         document.body.appendChild(warning); 

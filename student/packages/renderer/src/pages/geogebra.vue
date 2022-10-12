@@ -96,7 +96,7 @@ export default {
         }
     
         this.$nextTick(function () { // Code that will run only after the entire view has been rendered
-            this.fetchinterval = setInterval(() => { this.saveContent() }, 5000)   
+            this.fetchinterval = setInterval(() => { this.saveContent() }, 20000)   
             this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 5000)  
             this.clockinterval = setInterval(() => { this.clock() }, 1000)  
             this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 10000)   // zeigt html dateien (angaben, eigene arbeit) im header
@@ -166,20 +166,18 @@ export default {
 
 <style scoped>
 
-
 @media print{
     #apphead {
         display: none !important;
     }
     #content {
         height: 100vh !important;
+        width: 100vw !important;
         border-radius:0px !important;
     }
     #geogebraframe{
-        overflow: visible !important;
         height: 100% !important;
         width: 100% !important;
-        border-radius:0px !important;
     }
     #app {
         display:block !important;

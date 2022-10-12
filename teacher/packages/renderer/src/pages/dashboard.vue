@@ -94,7 +94,7 @@
             <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}} </label>
         </div>
         <div class="form-check m-1 mb-3">
-            <input v-model="examtype" value="eduvidual" class="form-check-input" type="radio" name="examtype" id="examtype3">
+            <input v-model="examtype" @click="getTestID()" value="eduvidual" class="form-check-input" type="radio" name="examtype" id="examtype3">
             <label class="form-check-label" for="examtype3"> {{$t('dashboard.eduvidual')}}  </label>
         </div>
 
@@ -207,7 +207,8 @@ export default {
             numberOfConnections: 0,
             spellcheck: false,
             spellchecklang: 'de',
-            suggestions: false
+            suggestions: false,
+            moodleTestId: null
         };
     },
     components: { },
@@ -233,7 +234,7 @@ export default {
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/exam/${this.servername}/${this.servertoken}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },
-                body: JSON.stringify({ exammode: this.exammode, examtype: this.examtype, delfolder: this.delfolder, spellcheck: this.spellcheck, spellchecklang:this.spellchecklang, suggestions: this.suggestions  })
+                body: JSON.stringify({ exammode: this.exammode, examtype: this.examtype, delfolder: this.delfolder, spellcheck: this.spellcheck, spellchecklang:this.spellchecklang, suggestions: this.suggestions, testid: this.moodleTestId  })
                 })
             .then( res => res.json())
             .then( response => { })
@@ -481,14 +482,13 @@ export default {
          // DASHBOARD EXPLORER END
         ////////////////////////////
 
-
         async setAbgabeInterval(){
             if (!this.autoabgabe) {
                 this.$swal.fire({
                     title: this.$t("dashboard.abgabeauto"),
                     icon: 'question',
                     input: 'range',
-                    inputLabel: this.$t("dashboard.abgabeautoquestion"),
+                    html: `${this.$t("dashboard.abgabeautoquestion")} <br>  ${this.$t("dashboard.abgabeautohint")}`,
                     inputAttributes: {
                         min: 1,
                         max: 20,
@@ -497,6 +497,22 @@ export default {
                     inputValue: this.abgabeintervalPause
                 }).then((input) => {
                     this.abgabeintervalPause= input.value
+                })
+            }
+        },
+        async getTestID(){
+            if (!this.autoabgabe) {
+                this.$swal.fire({
+                    title: this.$t("dashboard.eduvidualid"),
+                    icon: 'question',
+                    input: 'number',
+                    html: `${this.$t("dashboard.eduvidualidhint")} <br> <span style="font-size:0.8em">(https://www.eduvidual.at/mod/quiz/view.php?id=<span style="background-color: lightblue; padding:0 3px 0 3px;">4172287</span>)</span>`,
+                    inputValidator: (value) => {
+                        if (!value) {return 'No ID given!'}
+                    }
+                }).then((input) => {
+                    if (!input.value) {document.getElementById('examtype2').checked = true;}
+                    this.moodleTestId = input.value
                 })
             }
         },

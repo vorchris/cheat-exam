@@ -377,7 +377,7 @@ ENDE !!`,
 
 <style lang="scss">
 
-@media print{  //this controls how the editor view is printed (to pdf)
+@media print {  //this controls how the editor view is printed (to pdf)
     
     #editortoolbar, #editorheader {
         display: none !important;

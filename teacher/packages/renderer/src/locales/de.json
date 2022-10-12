@@ -78,7 +78,10 @@
         "es":"Spanisch",
         "fr":"Französisch",
         "abgabeauto":"Automatische Abgabe",
-        "abgabeautoquestion":"In welchen Abständen sollen die Arbeiten geholt werden?"
+        "abgabeautoquestion":"In welchen Abständen sollen die Arbeiten geholt werden?",
+        "abgabeautohint":"(Zeitangabe in Minuten)",
+        "eduvidualid": "Eduvidual Test ID",
+        "eduvidualidhint": "Bitte geben sie eine gültige ID ein!"
     },
     "control": {
         "tokennotvalid": "Das Token ist ungültig",

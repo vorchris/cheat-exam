@@ -78,7 +78,10 @@
         "es":"Spanish",
         "fr":"French",
         "abgabeauto":"Automatic Retreival",
-        "abgabeautoquestion":"Please set the interval for automatic retreival?"
+        "abgabeautoquestion":"Please set the interval for automatic retreival?",
+        "abgabeautohint":"(Timeframe in minutes)",
+        "eduvidualid": "Eduvidual Test ID",
+        "eduvidualidhint": "Please enter a valid id!"
     },
     "control": {
         "tokennotvalid": "token is not valid",

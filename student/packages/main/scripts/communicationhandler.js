@@ -54,10 +54,7 @@ import WindowHandler from './windowhandler.js'
      * sends heartbeat to registered server and updates screenshot on server 
      */
     async sendBeacon(){
-
-      
-
-
+        
         if (this.multicastClient.beaconsLost >= 4 ){ //remove server registration locally (same as 'kick')
             console.log("Connection to Teacher lost! Removing registration.")
             this.multicastClient.beaconsLost = 0
@@ -147,18 +144,18 @@ import WindowHandler from './windowhandler.js'
     startExam(serverstatus){
         if (serverstatus.delfolder === true){
             console.log("cleaning exam workfolder")
-            if (fs.existsSync(this.config.workdirectory)){   // set by server.js (desktop path + examdir)
-                fs.rmdirSync(this.config.workdirectory, { recursive: true });
-                fs.mkdirSync(this.config.workdirectory);
-            }
+            try {
+                if (fs.existsSync(this.config.workdirectory)){   // set by server.js (desktop path + examdir)
+                    fs.rmdirSync(this.config.workdirectory, { recursive: true });
+                    fs.mkdirSync(this.config.workdirectory);
+                }
+            } catch (error) { console.error(error); }
         }
 
         let displays = screen.getAllDisplays()
         let primary = screen.getPrimaryDisplay()
-
-        if (!primary || primary === "" || !primary.id){
-            primary = displays[0]
-        }       
+        if (!primary || primary === "" || !primary.id){ primary = displays[0] }       
+       
         if (!WindowHandler.examwindow){  // why do we check? because exammode is left if the server connection gets lost but students could reconnect while the exam window is still open and we don't want to create a second one
             WindowHandler.createExamWindow(serverstatus.examtype, this.multicastClient.clientinfo.token, serverstatus, primary);
         }
