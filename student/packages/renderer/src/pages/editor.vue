@@ -128,12 +128,10 @@ import Gapcursor from '@tiptap/extension-gapcursor'
 import CharacterCount from  "@tiptap/extension-character-count"
 import History from '@tiptap/extension-history'
 import { lowlight } from "lowlight/lib/common.js";
-import jsPDF from 'jspdf'
 
 import FormData from 'form-data';
 import axios from "axios";
 import $ from 'jquery'
-import html2pdf from "html2pdf-jspdf2"
 
 export default {
     components: {
@@ -379,9 +377,15 @@ ENDE !!`,
 
 <style lang="scss">
 
-@media print{
-    #statusbar, #editortoolbar, #editorheader {
+@media print{  //this controls how the editor view is printed (to pdf)
+    
+    #editortoolbar, #editorheader {
         display: none !important;
+    }
+
+    #statusbar {
+        position: relative !important;
+        box-shadow: 0px 0px 0px transparent !important;
     }
 
     #editorcontainer {
