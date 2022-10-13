@@ -73,6 +73,7 @@
         "filedelete": "Wollen sie die Datei/den Ordner wirklich löschen?",
         "spellcheck": "Rechtschreibhilfe",
         "spellcheckchoose": "Bitte wählen sie eine Sprache",
+        "none": "Rechtschreibhilfe deaktiviert",
         "de": "Deutsch",
         "en":"Englisch",
         "es":"Spanisch",

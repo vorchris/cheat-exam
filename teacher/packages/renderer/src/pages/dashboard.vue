@@ -91,7 +91,7 @@
         </div>
         <div class="form-check m-1">
             <input v-model="examtype" @click="activateSpellcheck()" value="editor" class="form-check-input" type="radio" name="examtype" id="examtype1">
-            <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}}  ({{spellchecklang}})</label>
+            <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}} <span v-if="(spellcheck)">({{spellchecklang}})</span></label>
         </div>
         <div class="form-check m-1 mb-3">
             <input v-model="examtype" @click="getTestID()" value="eduvidual" class="form-check-input" type="radio" name="examtype" id="examtype3">
@@ -107,10 +107,6 @@
             <input v-model="delfolder" @click="delfolderquestion()" value="del" class="form-check-input" type="checkbox" name="delfolder" id="delfolder">
             <label class="form-check-label" for="delfolder"> {{$t('dashboard.del')}}  </label>
         </div>
-        <!-- <div class="form-check form-switch m-1 mb-2">
-            <input v-model="spellcheck" @click="activateSpellcheck()" value="false" class="form-check-input" type="checkbox" name="spellcheck" id="spellcheck">
-            <label class="form-check-label" for="spellcheck"> {{$t('dashboard.spellcheck')}}  ({{spellchecklang}})</label>
-        </div> -->
 
 
         <div id="statusdiv" class="btn btn-warning m-1"> {{$t('dashboard.connected')}}  </div>
@@ -535,40 +531,42 @@ export default {
             }
         },
         async activateSpellcheck(){
-            if (!this.spellcheck) {
-                const inputOptions = new Promise((resolve) => {
-                    setTimeout(() => {
-                        resolve({
-                            'de': this.$t("dashboard.de"),
-                            'en-GB': this.$t("dashboard.en"),
-                            'fr': this.$t("dashboard.fr"),
-                            'es': this.$t("dashboard.es"),
-                        })
-                    }, 100)
-                })
-                const { value: language } = await this.$swal.fire({
-                    title: this.$t("dashboard.spellcheck"),
-                    text: this.$t("dashboard.spellcheckchoose"),
-                    html: `${this.$t("dashboard.spellcheckchoose")}<br><br>
-                    <div >
-                        <input class="form-check-input" type="checkbox" id="checkboxsuggestions">
-                        <label class="form-check-label" for="checkboxsuggestions"> Show suggestions  </label>
-                    </div>`,
-                    input: 'select',
-                    inputOptions: inputOptions,
-                    inputValidator: (value) => {
-                        if (!value) {
-                        return 'You need to choose something!'
-                        }
-                    },
-                    preConfirm: () => {
-                        this.suggestions = document.getElementById('checkboxsuggestions').checked; 
+            const inputOptions = new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve({
+                        'none':this.$t("dashboard.none"),
+                        'de': this.$t("dashboard.de"),
+                        'en-GB': this.$t("dashboard.en"),
+                        'fr': this.$t("dashboard.fr"),
+                        'es': this.$t("dashboard.es"),
+                    })
+                }, 100)
+            })
+            const { value: language } = await this.$swal.fire({
+                title: this.$t("dashboard.spellcheck"),
+                html: `<div>
+                    <input class="form-check-input" type="checkbox" id="checkboxsuggestions">
+                    <label class="form-check-label" for="checkboxsuggestions"> Show suggestions  </label>
+                    <br><br>
+                    <span>${this.$t("dashboard.spellcheckchoose")}</span>
+                </div>`,
+                input: 'select',
+                inputOptions: inputOptions,
+                inputValidator: (value) => {
+                    if (!value) {
+                    return 'You need to choose something!'
                     }
-                })
-                if (language) {
-                    this.spellchecklang = language
+                },
+                preConfirm: () => {
+                    this.suggestions = document.getElementById('checkboxsuggestions').checked; 
                 }
+            })
+            if (language) {
+                this.spellcheck = true
+                this.spellchecklang = language
+                if (language === 'none'){this.spellcheck = false}
             }
+            
         },
 
         // show warning
