@@ -1,7 +1,7 @@
 
 import { app, BrowserWindow, shell, dialog, Menu, MenuItem, screen } from 'electron'
 import { join } from 'path'
-import {enableRestrictions} from './platformrestrictions.js';
+import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 
   ////////////////////////////////////////////////////////////
  // Window handling (ipcRenderer Process - Frontend) START
@@ -69,6 +69,10 @@ class WindowHandler {
 
 
 
+
+
+
+
     /**
      * Examwindow
      * @param examtype eduvidual, math, language
@@ -98,7 +102,7 @@ class WindowHandler {
             title: 'Exam',
             width: 800,
             height: 600,
-            // closable: false,  // if we can't define 'parent' this window has to be closable
+            // closable: false,  // if we can't define 'parent' this window has to be closable - why?
             alwaysOnTop: true,
             show: false,
             icon: join(__dirname, '../../public/icons/icon.png'),
@@ -194,6 +198,18 @@ class WindowHandler {
             this.examwindow?.focus(); 
         })
 
+        this.examwindow.on('close', async  (e) => {   // window should not be closed manually.. ever! but if you do make sure to clean examwindow variable and end exam for the client
+            if (this.multicastClient.clientinfo.exammode) {
+                e.preventDefault();
+            }
+            else {
+                this.examwindow.destroy(); 
+                this.examwindow = null;
+                disableRestrictions()
+                this.multicastClient.clientinfo.exammode = false
+                this.multicastClient.clientinfo.focus = true
+            }  
+        });
         enableRestrictions(WindowHandler.examwindow)
     }
 
@@ -206,6 +222,11 @@ class WindowHandler {
         console.log("removing blur listener")
         this.examwindow.removeAllListeners('blur')
     }
+
+
+
+
+
 
     /**
      * the main window

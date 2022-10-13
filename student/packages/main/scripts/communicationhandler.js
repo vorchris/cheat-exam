@@ -25,7 +25,7 @@ import extract from 'extract-zip'
 import screenshot from 'screenshot-desktop'
 import FormData from 'form-data/lib/form_data.js';     //we need to import the file directly otherwise it will introduce a "window" variable in the backend and fail
 import { join } from 'path'
-import {  BrowserWindow, screen  } from 'electron'
+import {  BrowserWindow, screen, dialog  } from 'electron'
 
 import WindowHandler from './windowhandler.js'
 
@@ -160,15 +160,28 @@ import WindowHandler from './windowhandler.js'
             WindowHandler.createExamWindow(serverstatus.examtype, this.multicastClient.clientinfo.token, serverstatus, primary);
         }
 
+
+        if (WindowHandler.examwindow){ 
+            try {
+                WindowHandler.examwindow.show()  // this is used to test if there is an exam window 
+            }
+            catch (e) { //examwindow variable is still set but the window is not managable anymore (manually closed ?)
+                console.error("communicationhandler: no functional examwindow found.. resetting")
+                WindowHandler.examwindow = null;
+                disableRestrictions()
+                this.multicastClient.clientinfo.exammode = false
+                this.multicastClient.clientinfo.focus = true
+                return
+            }
+        }
+
         if (!this.config.development) { 
             if (WindowHandler.examwindow){  //broken connection - exam window still open
                 WindowHandler.examwindow.setFullScreen(true)  //go fullscreen again
                 WindowHandler.examwindow.setAlwaysOnTop(true, "screen-saver", 1)  //make sure the window is 1 level above everything
             }
-
             WindowHandler.addBlurListener();
             enableRestrictions(WindowHandler.examwindow)
-
             for (let display of displays){
                 if ( display.id !== primary.id ) {
                     WindowHandler.newBlockWin(display)  // add blockwindows for additional displays
@@ -210,9 +223,10 @@ import WindowHandler from './windowhandler.js'
                 WindowHandler.examwindow.setKiosk(false)
                 WindowHandler.examwindow.setAlwaysOnTop(false)
                 WindowHandler.examwindow.alwaysOnTop = false
-            } catch (e) { console.error(e)}
-            // remove listener
-            WindowHandler.removeBlurListener();
+                  // remove listener
+                WindowHandler.removeBlurListener();
+            } catch (e) { console.error("communicationhandler: no functional examwindow to handle")}
+          
 
             this.multicastClient.clientinfo.focus = true
             this.multicastClient.clientinfo.exammode = false
