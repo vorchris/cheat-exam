@@ -48,7 +48,12 @@ const gnomeKeybindings = [
     'lower','move-to-monitor-up','move-to-workspace-6','set-spew-mark','switch-to-workspace-12','switch-to-workspace-up',     
     'maximize','move-to-side-e','move-to-workspace-7','show-desktop','switch-to-workspace-2','switch-windows'  
 ]
+const gnomeShellKeybindings = ['focus-active-notification','open-application-menu','screenshot','screenshot-window','shift-overview-down',
+    'shift-overview-up','switch-to-application-1','switch-to-application-2','switch-to-application-3','switch-to-application-4','switch-to-application-5',
+    'switch-to-application-6','switch-to-application-7','switch-to-application-8','switch-to-application-9','show-screenshot-ui','show-screen-recording-ui',
+    'toggle-application-view','toggle-message-tray','toggle-overview'  ]
 
+const gnomeMutterKeybindings = ['rotate-monitor','switch-monitor','tab-popup-cancel','tab-popup-select','toggle-tiled-left','toggle-tiled-right']
 
  function enableRestrictions(win){
 
@@ -78,6 +83,14 @@ const gnomeKeybindings = [
             childProcess.execFile('gsettings', ['set' ,'org.gnome.desktop.wm.keybindings', `${binding}`, `['']`])
         }
 
+        for (let binding of gnomeShellKeybindings){
+            childProcess.execFile('gsettings', ['set' ,'org.gnome.shell.keybindings', `${binding}`, `['']`])
+        }
+
+        for (let binding of gnomeMutterKeybindings){
+            childProcess.execFile('gsettings', ['set' ,'org.gnome.mutter.keybindings', `${binding}`, `['']`])
+        }
+
         childProcess.execFile('gsettings', ['set' ,'org.gnome.mutter', `overlay-key`, `''`])
 
 
@@ -89,11 +102,6 @@ const gnomeKeybindings = [
 
     // WINDOWS
     if (process.platform === 'win32') {
-
-
-
-
-        
         //block important keyboard shortcuts (disable-shortcuts.exe is a selfmade C application - shortcuts are hardcoded there - need to rebuild if adding shortcuts)
         let executable1 = join(__dirname, '../../public/disable-shortcuts.exe')
         childProcess.execFile(executable1, [], { detached: true, shell: false, windowsHide: true}, (error, stdout, stderr) => {
@@ -144,6 +152,13 @@ function disableRestrictions(){
         for (let binding of gnomeKeybindings){
             childProcess.execFile('gsettings', ['reset' ,'org.gnome.desktop.wm.keybindings', `${binding}`])
         }
+        for (let binding of gnomeShellKeybindings){
+            childProcess.execFile('gsettings', ['reset' ,'org.gnome.shell.keybindings', `${binding}`])
+        }
+        for (let binding of gnomeMutterKeybindings){
+            childProcess.execFile('gsettings', ['reset' ,'org.gnome.mutter.keybindings', `${binding}`])
+        }
+
         childProcess.execFile('gsettings', ['reset' ,'org.gnome.mutter', `overlay-key`])
     }
 
