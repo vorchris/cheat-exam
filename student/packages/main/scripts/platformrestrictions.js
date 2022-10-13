@@ -32,7 +32,7 @@ import { join } from 'path'
 import childProcess from 'child_process'   //needed to run bash commands on linux 
 import { TouchBar } from 'electron'
 
-
+// unfortunately there is no convenient way for gnome-shell to un-set ALL shortcuts
 const gnomeKeybindings = [  
     'activate-window-menu','maximize-horizontally','move-to-side-n','move-to-workspace-8','switch-applications','switch-to-workspace-3','switch-windows-backward',
     'always-on-top','maximize-vertically','move-to-side-s','move-to-workspace-9','switch-applications-backward','  switch-to-workspace-4','toggle-above',
@@ -55,7 +55,16 @@ const gnomeShellKeybindings = ['focus-active-notification','open-application-men
 
 const gnomeMutterKeybindings = ['rotate-monitor','switch-monitor','tab-popup-cancel','tab-popup-select','toggle-tiled-left','toggle-tiled-right']
 
- function enableRestrictions(win){
+const gnomeDashToDockKeybindings = ['app-ctrl-hotkey-1','app-ctrl-hotkey-10','app-ctrl-hotkey-2','app-ctrl-hotkey-3','app-ctrl-hotkey-4','app-ctrl-hotkey-5',
+    'app-ctrl-hotkey-6','app-ctrl-hotkey-7','app-ctrl-hotkey-8','app-ctrl-hotkey-9',
+    'app-hotkey-1','app-hotkey-10','app-hotkey-2','app-hotkey-3','app-hotkey-4','app-hotkey-5','app-hotkey-6','app-hotkey-7','app-hotkey-8','app-hotkey-9',
+    'app-shift-hotkey-1','app-shift-hotkey-10','app-shift-hotkey-2','app-shift-hotkey-3','app-shift-hotkey-4','app-shift-hotkey-5',
+    'app-shift-hotkey-6','app-shift-hotkey-7','app-shift-hotkey-8','app-shift-hotkey-9','shortcut']
+
+
+
+
+function enableRestrictions(win){
 
     // PLASMA/KDE
     if (process.platform === 'linux') {
@@ -89,6 +98,10 @@ const gnomeMutterKeybindings = ['rotate-monitor','switch-monitor','tab-popup-can
 
         for (let binding of gnomeMutterKeybindings){
             childProcess.execFile('gsettings', ['set' ,'org.gnome.mutter.keybindings', `${binding}`, `['']`])
+        }
+
+        for (let binding of gnomeDashToDockKeybindings){  // we could use gsettings reset-recursively org.gnome.shell to reset everything
+            childProcess.execFile('gsettings', ['set' ,'org.gnome.shell.extensions.dash-to-dock', `${binding}`, `['']`])
         }
 
         childProcess.execFile('gsettings', ['set' ,'org.gnome.mutter', `overlay-key`, `''`])
@@ -157,6 +170,9 @@ function disableRestrictions(){
         }
         for (let binding of gnomeMutterKeybindings){
             childProcess.execFile('gsettings', ['reset' ,'org.gnome.mutter.keybindings', `${binding}`])
+        }
+        for (let binding of gnomeDashToDockKeybindings){
+            childProcess.execFile('gsettings', ['reset' ,'org.gnome.shell.extensions.dash-to-dock', `${binding}`])
         }
 
         childProcess.execFile('gsettings', ['reset' ,'org.gnome.mutter', `overlay-key`])
