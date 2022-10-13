@@ -181,7 +181,7 @@ class WindowHandler {
                 }
             })
         }
-        if (this.config.development) { this.examwindow.webContents.openDevTools()  }
+        if (this.config.showdevtools) { this.examwindow.webContents.openDevTools()  }
 
         this.examwindow.removeMenu() 
         this.examwindow.once('ready-to-show', () => {
@@ -232,16 +232,14 @@ class WindowHandler {
         if (app.isPackaged || process.env["DEBUG"]) {
             this.mainwindow.removeMenu() 
             this.mainwindow.loadFile(join(__dirname, '../renderer/index.html'))
-
-            if (this.config.development) { this.mainwindow.webContents.openDevTools()  } // you don't want this in the final build
-
         } 
         else {
             const url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}`
             this.mainwindow.removeMenu() 
             this.mainwindow.loadURL(url)
-            this.mainwindow.webContents.openDevTools()
         }
+
+        if (this.config.showdevtools) { this.mainwindow.webContents.openDevTools()  } // you don't want this in the final build
 
         // Make all links open with the browser, not with the application // this would trigger blur event in exam mode
         this.mainwindow.webContents.setWindowOpenHandler(({ url }) => {

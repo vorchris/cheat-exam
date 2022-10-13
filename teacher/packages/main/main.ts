@@ -57,9 +57,6 @@ async function createWindow() {
     if (app.isPackaged || process.env["DEBUG"]) {
         win.removeMenu() 
         win.loadFile(join(__dirname, '../renderer/index.html'))
-
-        if (config.development) { win.webContents.openDevTools()  }
-
     } 
     else {
         const url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}`
@@ -67,6 +64,8 @@ async function createWindow() {
         win.loadURL(url)
         win.webContents.openDevTools()
     }
+
+    if (config.showdevtools) { win.webContents.openDevTools()  }
 
 
     // Make all links open with the browser, not with the application

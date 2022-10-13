@@ -90,8 +90,8 @@
             <label class="form-check-label" for="examtype2"> {{$t('dashboard.math')}}  </label>
         </div>
         <div class="form-check m-1">
-            <input v-model="examtype" value="editor" class="form-check-input" type="radio" name="examtype" id="examtype1">
-            <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}} </label>
+            <input v-model="examtype" @click="activateSpellcheck()" value="editor" class="form-check-input" type="radio" name="examtype" id="examtype1">
+            <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}}  ({{spellchecklang}})</label>
         </div>
         <div class="form-check m-1 mb-3">
             <input v-model="examtype" @click="getTestID()" value="eduvidual" class="form-check-input" type="radio" name="examtype" id="examtype3">
@@ -107,10 +107,10 @@
             <input v-model="delfolder" @click="delfolderquestion()" value="del" class="form-check-input" type="checkbox" name="delfolder" id="delfolder">
             <label class="form-check-label" for="delfolder"> {{$t('dashboard.del')}}  </label>
         </div>
-        <div class="form-check form-switch m-1 mb-2">
+        <!-- <div class="form-check form-switch m-1 mb-2">
             <input v-model="spellcheck" @click="activateSpellcheck()" value="false" class="form-check-input" type="checkbox" name="spellcheck" id="spellcheck">
             <label class="form-check-label" for="spellcheck"> {{$t('dashboard.spellcheck')}}  ({{spellchecklang}})</label>
-        </div>
+        </div> -->
 
 
         <div id="statusdiv" class="btn btn-warning m-1"> {{$t('dashboard.connected')}}  </div>
