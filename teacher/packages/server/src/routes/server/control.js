@@ -362,6 +362,7 @@ router.get('/serverlist', function (req, res, next) {
     mcServer.serverstatus.spellchecklang = req.body.spellchecklang
     mcServer.serverstatus.suggestions = req.body.suggestions
     mcServer.serverstatus.testid = req.body.testid
+    mcServer.serverstatus.moodleTestType = req.body.moodleTestType
     
     res.json({ sender: "server", message:t("general.ok"), status: "success" })
 })

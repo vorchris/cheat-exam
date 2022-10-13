@@ -206,11 +206,11 @@ import WindowHandler from './windowhandler.js'
     // this is triggered if connection is lost during exam - we allow the student to get out of the kiosk mode but keep his work in the editor
     gracefullyEndExam(){
         if (WindowHandler.examwindow){ 
-            WindowHandler.examwindow.setKiosk(false)
-
-            WindowHandler.examwindow.setAlwaysOnTop(false)
-            WindowHandler.examwindow.alwaysOnTop = false
-
+            try {
+                WindowHandler.examwindow.setKiosk(false)
+                WindowHandler.examwindow.setAlwaysOnTop(false)
+                WindowHandler.examwindow.alwaysOnTop = false
+            } catch (e) { console.error(e)}
             // remove listener
             WindowHandler.removeBlurListener();
 

@@ -208,7 +208,8 @@ export default {
             spellcheck: false,
             spellchecklang: 'de',
             suggestions: false,
-            moodleTestId: null
+            moodleTestId: null,
+            moodleTestType: null
         };
     },
     components: { },
@@ -234,7 +235,7 @@ export default {
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/exam/${this.servername}/${this.servertoken}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },
-                body: JSON.stringify({ exammode: this.exammode, examtype: this.examtype, delfolder: this.delfolder, spellcheck: this.spellcheck, spellchecklang:this.spellchecklang, suggestions: this.suggestions, testid: this.moodleTestId  })
+                body: JSON.stringify({ exammode: this.exammode, examtype: this.examtype, delfolder: this.delfolder, spellcheck: this.spellcheck, spellchecklang:this.spellchecklang, suggestions: this.suggestions, testid: this.moodleTestId, moodleTestType: this.moodleTestType  })
                 })
             .then( res => res.json())
             .then( response => { })
@@ -506,13 +507,30 @@ export default {
                     title: this.$t("dashboard.eduvidualid"),
                     icon: 'question',
                     input: 'number',
-                    html: `${this.$t("dashboard.eduvidualidhint")} <br> <span style="font-size:0.8em">(https://www.eduvidual.at/mod/quiz/view.php?id=<span style="background-color: lightblue; padding:0 3px 0 3px;">4172287</span>)</span>`,
+                    html: `
+                
+                     <div style="text-align:left; width: 140px; margin: auto auto;">
+                        <input class="form-check-input" name=etesttype type="radio" id="quiz" value="quiz" checked>
+                        <label class="form-check-label" for="quiz"> <img src="/src/assets/img/svg/quiz.svg" class="" width="24" height="24" > Test </label>
+                         <br>
+                        <input class="form-check-input"  name=etesttype type="radio" id="activequiz" value="activequiz">
+                        <label class="form-check-label" for="activequiz"> <img src="/src/assets/img/svg/activequiz.svg" class="" width="24" height="24" > LiveTest</label>
+                    </div>
+
+
+                    <br>
+                    ${this.$t("dashboard.eduvidualidhint")} <br>
+                    <span style="font-size:0.8em">(https://www.eduvidual.at/mod/quiz/view.php?id=<span style="background-color: lightblue; padding:0 3px 0 3px;">4172287</span>)</span>`,
                     inputValidator: (value) => {
                         if (!value) {return 'No ID given!'}
+                    },
+                    preConfirm: () => {
+                        this.moodleTestType =  document.querySelector('input[name="etesttype"]:checked').value;  
                     }
                 }).then((input) => {
                     if (!input.value) {document.getElementById('examtype2').checked = true;}
                     this.moodleTestId = input.value
+                    console.log(this.moodleTestType)
                 })
             }
         },
@@ -542,9 +560,9 @@ export default {
                         if (!value) {
                         return 'You need to choose something!'
                         }
-                    },preConfirm: () => {
-                        this.suggestions = document.getElementById('checkboxsuggestions').checked;
-                       
+                    },
+                    preConfirm: () => {
+                        this.suggestions = document.getElementById('checkboxsuggestions').checked; 
                     }
                 })
                 if (language) {

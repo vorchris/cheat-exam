@@ -110,7 +110,7 @@ class WindowHandler {
     
         // Load correct url 
         if (examtype === "eduvidual"){    //external page
-            let url =`https://eduvidual.at/mod/quiz/view.php?id=${serverstatus.testid}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287  (only "test" is supported right now// teacher has to provide more info (activetest, quiz, offlinetest, flexiblequiz)
+            let url =`https://eduvidual.at/mod/${serverstatus.moodleTestType}/view.php?id=${serverstatus.testid}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287  
             this.examwindow.loadURL(url)
         }
         else { 
@@ -158,9 +158,14 @@ class WindowHandler {
             })
             this.examwindow.webContents.on('will-navigate', (event, url) => {  // if a resource (pdf) is openend create an embed element and embed the pdf
                 console.log(url)
-                // here we could check every url and if a given "test-id" is recognized we register that the exam has been entered and block every other url
-                
-                if (!url.includes(serverstatus.testid) && ( !url.includes("login") && !url.includes("microsoft")) ){
+             
+                if (!url.includes(serverstatus.testid) //we block everything except pages that contain the following keyword-combinations
+                    && ( !url.includes("startattempt.php") && !url.includes("eduvidual.at"))
+                    && ( !url.includes("processattempt.php") && !url.includes("eduvidual.at"))
+                    && ( !url.includes("login") && !url.includes("microsoft")) 
+                    && ( !url.includes("logout") && !url.includes("eduvidual.at"))
+                    && ( !url.includes("lookup") && !url.includes("google"))  
+                    ){
                     event.preventDefault()
                 }
                 if (url.includes('resource/view')&& !url.includes('forceview')){

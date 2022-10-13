@@ -80,7 +80,7 @@
         "abgabeauto":"Automatic Retreival",
         "abgabeautoquestion":"Please set the interval for automatic retreival?",
         "abgabeautohint":"(Timeframe in minutes)",
-        "eduvidualid": "Eduvidual Test ID",
+        "eduvidualid": "Eduvidual Test",
         "eduvidualidhint": "Please enter a valid id!"
     },
     "control": {
