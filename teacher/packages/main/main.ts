@@ -133,7 +133,7 @@ app.whenReady().then(()=>{
     server.listen(config.serverApiPort, () => {  
         console.log(`Express listening on https://${config.hostip}:${config.serverApiPort}`)
         console.log(`Vite-vue listening on http://${config.hostip}:${config.serverVitePort}`)
-    })
+    }) 
 })
 .then(()=>{
     if (config.hostip) {

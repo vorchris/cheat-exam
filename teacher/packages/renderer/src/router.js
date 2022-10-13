@@ -1,15 +1,15 @@
 /** 
  * VUE.js Frontend - Routing 
 */
-import {  createMemoryHistory,  createRouter as _createRouter,  createWebHistory ,createWebHashHistory } from 'vue-router'
+import { createRouter as _createRouter, createWebHashHistory } from 'vue-router'
 import axios from 'axios'
 import notfound from '/src/pages/notfound.vue'
 import startserver from '/src/pages/startserver.vue'
 import dashboard from '/src/pages/dashboard.vue'
 import serverlist from '/src/pages/serverlist.vue'
 
-
-console.log(config)  // config is exposed to the renderer (frontend) in preload.js (it's readonly here!)
+import config from "../../server/src/config.js"  //importing this here (for web) does a clean import before server.js can populate important variables in the config object
+console.log(config)  // config is exposed to the renderer (frontend) in preload.js (it's readonly here!) but only in electron (not for web)
 
 
 // check if we run this app in electron (host is always "localhost" then)
@@ -33,6 +33,7 @@ function addParams(to){
     to.params.clientApiPort = config.clientApiPort
     to.params.electron = electron
     to.params.workdirectory = config.workdirectory   //attention.. this is the server base workdirectory > we add servername to get the actual exam workdirectory in the view
+    to.params.config = config
 }
 
 
