@@ -132,7 +132,7 @@ ipcMain.on('getconfig', (event) => {   event.returnValue = config   })
 ipcMain.on('printpdf', (event, args) => { 
       if (WindowHandler.examwindow){
         var options = {
-            marginsType: 0,
+            margins: {top:0.5, right:0.5, bottom:0.5, left:0.5 },
             pageSize: 'A4',
             printBackground: true,
             printSelectionOnly: false,

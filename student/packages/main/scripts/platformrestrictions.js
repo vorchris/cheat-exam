@@ -32,7 +32,7 @@ import { join } from 'path'
 import childProcess from 'child_process'   //needed to run bash commands on linux 
 import { TouchBar } from 'electron'
 
-// unfortunately there is no convenient way for gnome-shell to un-set ALL shortcuts
+// unfortunately there is no convenient way for gnome-shell to un-set ALL shortcuts at once
 const gnomeKeybindings = [  
     'activate-window-menu','maximize-horizontally','move-to-side-n','move-to-workspace-8','switch-applications','switch-to-workspace-3','switch-windows-backward',
     'always-on-top','maximize-vertically','move-to-side-s','move-to-workspace-9','switch-applications-backward','  switch-to-workspace-4','toggle-above',
