@@ -86,7 +86,8 @@ async function createWindow() {
                 type: 'question',
                 buttons: ['Ja', 'Nein'],
                 title: 'Programm beenden',
-                message: 'Sind sie sicher?'
+                message: 'Sind sie sicher?',
+                cancelId: 1
             });
             
             if(choice == 1){
