@@ -21,6 +21,12 @@
  */
 
 import { app, BrowserWindow, ipcMain, globalShortcut } from 'electron'
+
+if (!app.requestSingleInstanceLock()) {
+    app.quit()
+    process.exit(0)
+}
+
 import { release } from 'os'
 import { disableRestrictions} from './scripts/platformrestrictions.js';
 import WindowHandler from './scripts/windowhandler.js'
@@ -59,10 +65,6 @@ if (release().startsWith('6.1')) app.disableHardwareAcceleration()
 // Set application name for Windows 10+ notifications
 if (process.platform === 'win32') {  app.setAppUserModelId(app.getName())}
 
-if (!app.requestSingleInstanceLock()) {
-  app.quit()
-  process.exit(0)
-}
 
 app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
     // On certificate error we disable default behaviour (stop loading the page)and we then say "it is all fine - true" to the callback
