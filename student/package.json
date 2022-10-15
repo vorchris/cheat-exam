@@ -49,6 +49,9 @@
                 ]
             }
         },
+        "portable": {                
+            "unpackDirName": true
+        },
         "win": {
             "icon": "public/icons/icon.ico",
             "target": [

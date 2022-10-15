@@ -25,7 +25,8 @@ import { app, BrowserWindow, ipcMain, globalShortcut } from 'electron'
 if (!app.requestSingleInstanceLock()) {
     app.quit()
     process.exit(0)
-}
+ }
+
 
 import { release } from 'os'
 import { disableRestrictions} from './scripts/platformrestrictions.js';
