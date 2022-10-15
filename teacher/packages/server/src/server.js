@@ -31,7 +31,7 @@ import os from 'os'
 import forge from 'node-forge'
 forge.options.usePureJavaScript = true; 
 import defaultGateway from'default-gateway';
-
+import multicastClient from './classes/multicastclient.js'
 
 
 config.workdirectory = path.join(os.homedir(), config.examdirectory)  //Attention! In Electron this makes sense. the WEBserver version will most likely need another Workdirectory
@@ -49,7 +49,7 @@ try {
    config.hostip = false
  }
 
-
+console.log(config)
 if (typeof window !== 'undefined'){
     if (window.process.type == "renderer") config.electron = true
 }
@@ -78,7 +78,7 @@ api.use(express.urlencoded({extended: true}));
 api.use('/server', serverRouter)
 
 
-let certs = createCACert()
+let certs = createCACert()  // we can not use self signed certs for web (fallback to let's encrypt!)
 
 var options = {
     key: certs.key,
@@ -90,6 +90,18 @@ var options = {
 
 const server = https.createServer(options, api);
 
+if (config.buildforWEB){  // the api is started by the electron main process - for web we do it here
+    server.listen(config.serverApiPort, () => {  
+        console.log(`Express listening on https://${config.hostip}:${config.serverApiPort}`)
+        console.log(`Vite-vue listening on http://${config.hostip}:${config.serverVitePort}`)
+    })
+    if (config.hostip) {
+        multicastClient.init()
+    }
+}
+
+ 
+ 
 
 
 export default server;

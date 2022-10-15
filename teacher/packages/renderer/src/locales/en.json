@@ -73,6 +73,7 @@
         "filedelete": "Do you really want to delete this file/folder?",
         "spellcheck": "ASpellcheck",
         "spellcheckchoose": "Please choose a language",
+        "none": "none",
         "de": "German",
         "en":"English",
         "es":"Spanish",

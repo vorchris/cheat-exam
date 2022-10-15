@@ -12,7 +12,7 @@
         "build:win": "node scripts/build.mjs && electron-builder -w",
         "build:mac": "node scripts/build.mjs && electron-builder -m -c.mac.identity=null",
         "dev:web": "vite ./packages/renderer --host | npm run serve  ",
-        "serve": "nodemon packages/server/src/server",
+        "serve": "nodemon --experimental-json-modules --trace-warnings packages/server/src/server",
         "vite": "vite ./packages/renderer --host"
     },
     "build": {

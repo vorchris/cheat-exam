@@ -279,7 +279,8 @@ class WindowHandler {
                     type: 'question',
                     buttons: ['Ja', 'Nein'],
                     title: 'Programm Beenden',
-                    message: 'Sind sie sicher?'
+                    message: 'Sind sie sicher?',
+                    cancelId: 1
                 });
                 if(choice == 1){ e.preventDefault(); }
             }

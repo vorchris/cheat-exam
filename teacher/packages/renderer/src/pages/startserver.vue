@@ -71,13 +71,13 @@ export default {
         return {
             version: this.$route.params.version,
             title: document.title,
-            servername : config.development ? "Mathe5A":"",
-            password: config.development ? "password": Math.floor(1000 + Math.random() * 9000), 
+            servername : this.$route.params.config.development ? "Mathe5A":"",
+            password: this.$route.params.config.development ? "password": Math.floor(1000 + Math.random() * 9000), 
             prod : false,
             serverApiPort: this.$route.params.serverApiPort,
             electron: this.$route.params.electron,
             hostname: window.location.hostname,
-            hostip: config.hostip
+            hostip: this.$route.params.config.hostip
         };
     },
     components: {},

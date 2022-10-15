@@ -62,7 +62,6 @@ async function createWindow() {
         const url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}`
         win.removeMenu() 
         win.loadURL(url)
-        win.webContents.openDevTools()
     }
 
     if (config.showdevtools) { win.webContents.openDevTools()  }
@@ -87,7 +86,8 @@ async function createWindow() {
                 type: 'question',
                 buttons: ['Ja', 'Nein'],
                 title: 'Programm beenden',
-                message: 'Sind sie sicher?'
+                message: 'Sind sie sicher?',
+                cancelId: 1
             });
             
             if(choice == 1){
@@ -134,7 +134,7 @@ app.whenReady().then(()=>{
     server.listen(config.serverApiPort, () => {  
         console.log(`Express listening on https://${config.hostip}:${config.serverApiPort}`)
         console.log(`Vite-vue listening on http://${config.hostip}:${config.serverVitePort}`)
-    })
+    }) 
 })
 .then(()=>{
     if (config.hostip) {
