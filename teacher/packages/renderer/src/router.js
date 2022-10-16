@@ -8,7 +8,7 @@ import startserver from '/src/pages/startserver.vue'
 import dashboard from '/src/pages/dashboard.vue'
 import serverlist from '/src/pages/serverlist.vue'
 
-import config from "../../server/src/config.js"  //importing this here (for web) does a clean import before server.js can populate important variables in the config object
+//import config from "../../server/src/config.js"  //importing this here (for web) does a clean import before server.js can populate important variables in the config object
 console.log(config)  // config is exposed to the renderer (frontend) in preload.js (it's readonly here!) but only in electron (not for web)
 
 
