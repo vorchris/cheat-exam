@@ -1,0 +1,15 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\dist",
+    "\\dist\\main",
+    "\\dist\\preload",
+    "\\dist\\renderer",
+    "\\packages",
+    "\\packages\\main",
+    "\\public",
+    "\\scripts"
+  ],
+  "SelectedNode": "\\public\\clear-clipboard.bat",
+  "PreviewInSolutionExplorer": false
+}
