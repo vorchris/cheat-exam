@@ -417,9 +417,9 @@ ENDE !!`,
     }
 
     .ProseMirror{
-       padding: 4px !important;
-       border-radius: 0 !important; 
-       outline: 0 !important;
+        padding: 4px !important;
+        border-radius: 0 !important; 
+        outline: 0 !important;
         overflow: hidden !important;
         margin-right: 40px;
     }
