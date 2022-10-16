@@ -359,7 +359,7 @@ ENDE !!`,
         }   
         this.currentFile = this.clientname+".html"
         this.entrytime = new Date().getTime()
-        this.saveinterval = setInterval(() => { this.saveContent() }, 20000)    // speichert content als datei
+        this.saveinterval = setInterval(() => { this.saveContent() }, 4000)    // speichert content als datei
         this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 10000)   // zeigt html dateien (angaben, eigene arbeit) im header
         this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 5000)      //holt client info (exam status, connection, token)
         this.clockinterval = setInterval(() => { this.clock() }, 1000)   // uhrzeit (jede sekunde)
@@ -417,10 +417,11 @@ ENDE !!`,
     }
 
     .ProseMirror{
-       padding: 4px !important;
-       border-radius: 0 !important; 
-       outline: 0 !important;
+        padding: 4px !important;
+        border-radius: 0 !important; 
+        outline: 0 !important;
         overflow: hidden !important;
+        margin-right: 40px;
     }
 
     ::-webkit-scrollbar {
