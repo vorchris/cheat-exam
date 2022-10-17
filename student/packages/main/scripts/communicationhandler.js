@@ -300,7 +300,7 @@ import WindowHandler from './windowhandler.js'
         let zipfilepath = join(this.config.tempdirectory, zipfilename);
      
         await this.zipDirectory(this.config.workdirectory, zipfilepath)
-        let file = await fs.readFileSync(zipfilepath);
+        let file = fs.readFileSync(zipfilepath);
         const form = new FormData()
      
         if (this.config.electron){

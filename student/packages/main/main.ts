@@ -20,7 +20,7 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow, ipcMain, globalShortcut } from 'electron'
+import { app, BrowserWindow, globalShortcut } from 'electron'
 
 if (!app.requestSingleInstanceLock()) {
     app.quit()
@@ -32,14 +32,17 @@ import { release } from 'os'
 import { disableRestrictions} from './scripts/platformrestrictions.js';
 import WindowHandler from './scripts/windowhandler.js'
 import CommHandler from './scripts/communicationhandler.js'
+import IpcHandler from './scripts/ipchandler.js'
 import config from '../server/src/config.js';
 import server from "../server/src/server.js"
 import multicastClient from '../server/src/classes/multicastclient.js'
-import { join } from 'path'
-import fs from 'fs' 
+
+
 
 WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow
 CommHandler.init(multicastClient, config)    // starts "beacon" intervall and fetches information from the teacher - acts on it (startexam, stopexam, sendfile, getfile)
+IpcHandler.init(multicastClient, config, WindowHandler)  //controll all Inter Process Communication
+
 
 //still trying to get rid of self-signed cert errors but electron 21 ignores this switch
 app.commandLine.appendSwitch('ignore-certificate-errors')
@@ -127,29 +130,3 @@ app.whenReady()
   ////////////////////////////////
  // APP handling (Backend) END
 ////////////////////////////////
-
-
-
-ipcMain.on('virtualized', () => {  multicastClient.clientinfo.virtualized = true; } )
-ipcMain.on('getconfig', (event) => {   event.returnValue = config   })
-ipcMain.on('printpdf', (event, args) => { 
-      if (WindowHandler.examwindow){
-        var options = {
-            margins: {top:0.5, right:0.5, bottom:0.5, left:0.5 },
-            pageSize: 'A4',
-            printBackground: true,
-            printSelectionOnly: false,
-            landscape: args.landscape,
-            displayHeaderFooter:true,
-            footerTemplate: "<div style='height:12px; font-size:8px; text-align: right; width:100%; margin-right: 20px;'><span class=pageNumber></span>|<span class=totalPages></span></div>",
-            headerTemplate: `<div style='height:12px; font-size:8px; text-align: right; width:100%; margin-right: 20px;'><span class=date></span>|<span>${args.clientname}</span></div>`,
-            preferCSSPageSize: false
-        }
-
-        const pdffilepath = join(config.workdirectory, args.filename);
-        WindowHandler.examwindow.webContents.printToPDF(options).then(data => {
-            fs.writeFile(pdffilepath, data, function (err) { if (err) {console.log(err); }  } );
-        }).catch(error => { console.log(error)});
-    }
-})
-ipcMain.on('getinfo', (event) => {   event.returnValue = {serverlist:multicastClient.examServerList, clientinfo: multicastClient.clientinfo}   })

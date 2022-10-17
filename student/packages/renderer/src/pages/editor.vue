@@ -173,22 +173,17 @@ export default {
             this.timesinceentry =  new Date(now - this.entrytime).toISOString().substr(11, 8)
         },
         fetchInfo() {
-            axios.get(`https://localhost:${this.clientApiPort}/client/control/getinfo`)
-            .then( response => {
-                this.clientinfo = response.data.clientinfo
-                this.token = this.clientinfo.token
-                this.focus = this.clientinfo.focus
-                this.clientname = this.clientinfo.name
-                this.exammode = this.clientinfo.exammode
-        
-                if (!this.focus){  this.entrytime = new Date().getTime()}
-                if (this.clientinfo && this.clientinfo.token){  this.online = true  }
-                else { this.online = false  }
-            })
-            .catch( err => {console.log(err)});
+            let getinfo = ipcRenderer.sendSync('getinfo')  // we need to fetch the updated version of the systemconfig from express api (server.js)
+            
+            this.clientinfo = getinfo.clientinfo;
+            this.token = this.clientinfo.token
+            this.focus = this.clientinfo.focus
+            this.clientname = this.clientinfo.name
+            this.exammode = this.clientinfo.exammode
 
-
-
+            if (!this.focus){  this.entrytime = new Date().getTime()}
+            if (this.clientinfo && this.clientinfo.token){  this.online = true  }
+            else { this.online = false  }
         }, 
         loadFilelist(){
             fetch(`https://localhost:${this.clientApiPort}/client/data/getfiles`, { method: 'POST' })

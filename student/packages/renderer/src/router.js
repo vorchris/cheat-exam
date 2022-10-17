@@ -60,9 +60,12 @@ function addParams(to){
  * um rechtmässig am server den studentstatus updaten zu dürfen das student token
  */
 async function fetchInfo(to, from){
-    let clientinfo = await axios.get(`https://localhost:${config.clientApiPort}/client/control/getinfo`)
-    .then(response => {  return response.data.clientinfo  })
-    .catch( err => {console.log(err)})
+    let response = ipcRenderer.sendSync('getinfo')
+    let clientinfo = response.clientinfo
+    
+    // await axios.get(`https://localhost:${config.clientApiPort}/client/control/getinfo`)
+    // .then(response => {  return response.data.clientinfo  })
+    // .catch( err => {console.log(err)})
     
     to.params.serverip = clientinfo.serverip
     to.params.servername = clientinfo.servername 

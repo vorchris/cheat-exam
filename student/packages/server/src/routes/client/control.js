@@ -29,10 +29,10 @@ const { t } = i18n.global
 /**
  * Returns all found Servers and the information about this client
  */ 
-router.get('/getinfo', function (req, res, next) {
-    if (!requestSourceAllowed(req, res)) return //this api route should not deliver if the requestsource is not the same as the api host
-    res.send({serverlist:multiCastclient.examServerList, clientinfo: multiCastclient.clientinfo})
-})
+// router.get('/getinfo', function (req, res, next) {
+//     if (!requestSourceAllowed(req, res)) return //this api route should not deliver if the requestsource is not the same as the api host
+//     res.send({serverlist:multiCastclient.examServerList, clientinfo: multiCastclient.clientinfo})
+// })
   
 
 
