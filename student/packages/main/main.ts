@@ -152,3 +152,4 @@ ipcMain.on('printpdf', (event, args) => {
         }).catch(error => { console.log(error)});
     }
 })
+ipcMain.on('getinfo', (event) => {   event.returnValue = {serverlist:multicastClient.examServerList, clientinfo: multicastClient.clientinfo}   })

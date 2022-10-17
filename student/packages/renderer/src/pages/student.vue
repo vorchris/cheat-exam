@@ -86,25 +86,22 @@ export default {
         };
     },
     methods: {
-        saveContent(){console.log("save")},
         fetchInfo() {
-            axios.get(`https://localhost:${this.clientApiPort}/client/control/getinfo`)
-            .then( response => {
-                this.clientinfo = response.data.clientinfo;
-                this.token = this.clientinfo.token;
+            let getinfo = ipcRenderer.sendSync('getinfo')  // we need to fetch the updated version of the systemconfig from express api (server.js)
+            
+            this.clientinfo = getinfo.clientinfo;
+            this.token = this.clientinfo.token;
 
-                if (response.data.serverlist.length  === 0) {
-                    if (validator.isIP(this.serverip) || validator.isFQDN(this.serverip)){
+            if (getinfo.serverlist.length  === 0) {
+                if (validator.isIP(this.serverip) || validator.isFQDN(this.serverip)){
                         console.log("fetching exams from server")
                         axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/serverlist`)
                         .then( response => { if (response.data && response.data.status == "success") {  this.serverlist = response.data.serverlist} }) 
                         .catch(err => { console.log(err.message)}) 
-                    }
-                    else { this.serverlist = response.data.serverlist;  }
                 }
-                else { this.serverlist = response.data.serverlist;   }
-            })
-            .catch( err => {console.log(err)});
+                else { this.serverlist = getinfo.serverlist;  }
+            }
+            else { this.serverlist = getinfo.serverlist;   }
         },  
         
         toggleAdvanced(){
