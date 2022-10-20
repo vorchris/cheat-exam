@@ -27,7 +27,6 @@ const { t } = i18n.global
 import fs from 'fs' 
 
 
-
 /**
  * GET the server config.js 
  */
@@ -46,6 +45,9 @@ import fs from 'fs'
  * #FIXME !!!  This route needs to be secured (anyone can start a server right now - or 1000 servers)
  */
  router.get('/start/:servername/:passwd', function (req, res, next) {
+
+    if (!requestSourceAllowed(req, res)) return   // for the webversion we need to check user permissions here (future stuff)
+
     const servername = req.params.servername 
     const mcServer = config.examServerList[servername]
     //generate random pin
@@ -472,6 +474,18 @@ export default router
         }
     });
     return tokenexists
+}
+
+
+
+//do not allow requests from external hosts
+function requestSourceAllowed(req,res){
+    if (req.ip == "::1"  || req.ip == "127.0.0.1" || req.ip.includes('127.0.0.1') ){ 
+      return true
+    }  
+    console.log(`Blocked request from remote Host: ${req.ip}`); 
+    res.json('Request denied') 
+    return false 
 }
 
 
