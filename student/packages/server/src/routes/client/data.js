@@ -19,56 +19,8 @@
 import { Router } from 'express'
 const router = Router()
 import config from '../../config.js'
-import multiCastclient from '../../classes/multicastclient.js'
 import path from 'path'
 import fs from 'fs' 
-
-import i18n from '../../../../renderer/src/locales/locales.js'
-const { t } = i18n.global
-
-
-
-
-/**
- * Stores file(s) to the workdirectory (files coming FROM the EDITOR  )
- * Only store file if request source is local
- */
- router.post('/store', async (req, res, next) => {  
-    if (!requestSourceAllowed(req, res)) return //only allow this api route on localhost (same machine)
-    
-    const htmlContent = req.body.editorcontent
-    const currentfilename = req.body.currentfilename
-    const htmlfilename = currentfilename ? currentfilename +".html" : multiCastclient.clientinfo.name +".html"
-    const htmlfile = path.join(config.workdirectory, htmlfilename);
-    const pdffilename = currentfilename ? currentfilename +".pdf" : multiCastclient.clientinfo.name +".pdf"
-    const pdffilepath = path.join(config.workdirectory, pdffilename);
-    const savedate = req.body.savedate
-
-    if (htmlContent) { 
-        console.log("saving students work to disk...")
-
-        fs.writeFile(htmlfile, htmlContent, (err) => {if (err) console.log(err); }); 
-
-        // for (const [key, file] of Object.entries( req.files)) {
-        //     let absoluteFilepath = path.join(config.workdirectory, file.name);
-        //     file.mv(absoluteFilepath, (err) => {  
-        //     if (err) { errors++; console.log( "client couldn't store file") }
-                  
-        //     });
-        // }
-        return res.json({sender: "client", message:t("data.filestored"), status: "success"  })
-    }
-    else {
-        console.log("saving students work to disk...")
-        for (const [key, file] of Object.entries( req.files)) {
-            let absoluteFilepath = path.join(config.workdirectory, file.name);
-            file.mv(absoluteFilepath, (err) => {  
-                if (err) { errors++; console.log( "client couldn't store file") }
-            });
-        }
-        return res.json({sender: "client", message:t("data.filestored"), status: "success"  })
-    }
-})
 
 
 /**

@@ -37,8 +37,6 @@ import config from '../server/src/config.js';
 import server from "../server/src/server.js"
 import multicastClient from '../server/src/classes/multicastclient.js'
 
-
-
 WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow
 CommHandler.init(multicastClient, config)    // starts "beacon" intervall and fetches information from the teacher - acts on it (startexam, stopexam, sendfile, getfile)
 IpcHandler.init(multicastClient, config, WindowHandler)  //controll all Inter Process Communication
@@ -119,11 +117,7 @@ app.whenReady()
 
   })
 .then(()=>{
-    if (config.hostip) {
-        multicastClient.init()
-    }
-
-   
+    if (config.hostip) { multicastClient.init() }
     WindowHandler.createMainWindow()
 })
 

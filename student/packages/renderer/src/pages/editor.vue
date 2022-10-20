@@ -236,25 +236,12 @@ export default {
         /** Converts the Editor View into a multipage PDF */
         async saveContent() {     
             // inform mainprocess to save webcontent as pdf (see @media css query for adjustments for pdf)
-        
             let filename = this.currentFile.replace(/\.[^/.]+$/, "")  // we dont need the extension
             ipcRenderer.send('printpdf', {clientname:this.clientname, filename: `${filename}.pdf` })
-
+            
             //also save editorcontent as *html file - used to re-populate the editor window in case something went completely wrong
             let editorcontent = this.editor.getHTML(); 
-            
-            let form = new FormData()
-            form.append("editorcontent", editorcontent)
-            form.append("currentfilename", filename)
-            
-            axios({
-                method: "post", 
-                url: `https://localhost:${this.clientApiPort}/client/data/store`, 
-                data: form, 
-                headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
-            }).then( async (response) => {
-                //console.log(response.data)
-            }).catch(err => { console.warn(err)});
+            ipcRenderer.send('storeHTML', {clientname:this.clientname, filename:`${filename}.html`, editorcontent: editorcontent })
         },
     },
     mounted() {
