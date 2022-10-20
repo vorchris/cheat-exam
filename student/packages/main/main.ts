@@ -20,45 +20,50 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow, ipcMain, globalShortcut } from 'electron'
-
-if (!app.requestSingleInstanceLock()) {
-    app.quit()
-    process.exit(0)
- }
-
-
+import { app, BrowserWindow, globalShortcut } from 'electron'
 import { release } from 'os'
 import { disableRestrictions} from './scripts/platformrestrictions.js';
 import WindowHandler from './scripts/windowhandler.js'
 import CommHandler from './scripts/communicationhandler.js'
-import config from '../server/src/config.js';
-import server from "../server/src/server.js"
-import multicastClient from '../server/src/classes/multicastclient.js'
-import { join } from 'path'
-import fs from 'fs' 
+import IpcHandler from './scripts/ipchandler.js'
+import config from './config.js';
+import multicastClient from './scripts/multicastclient.js'
+import defaultGateway from'default-gateway';
+import path from 'path'
+import fs from 'fs'
+import fsExtra from "fs-extra"
+import os from 'os'
+import ip from 'ip'
+
+if (!app.requestSingleInstanceLock()) {  // allow only one instance of the app per client
+    app.quit()
+    process.exit(0)
+ }
+
+config.electron = true
+config.workdirectory = path.join(os.homedir(), config.examdirectory)
+config.tempdirectory = path.join(os.tmpdir(), 'exam-tmp')
+if (!fs.existsSync(config.workdirectory)){ fs.mkdirSync(config.workdirectory); }
+if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory); }
+
+try { //bind to the correct interface
+    const {gateway, interface: iface} =  defaultGateway.v4.sync()
+    config.hostip = ip.address(iface)    // this returns the ip of the interface that has a default gateway..  should work in MOST cases.  probably provide "ip-options" in UI ?
+ }
+ catch (e) {
+   console.log(e)
+   config.hostip = false
+ }
+
+fsExtra.emptyDirSync(config.tempdirectory)  // clean temp directory
 
 WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow
 CommHandler.init(multicastClient, config)    // starts "beacon" intervall and fetches information from the teacher - acts on it (startexam, stopexam, sendfile, getfile)
-
-//still trying to get rid of self-signed cert errors but electron 21 ignores this switch
-app.commandLine.appendSwitch('ignore-certificate-errors')
-app.commandLine.appendSwitch('allow-insecure-localhost', 'true');
-
-
+IpcHandler.init(multicastClient, config, WindowHandler)  //controll all Inter Process Communication
 
   ////////////////////////////////
  // APP handling (Backend) START
 ////////////////////////////////
-
-
-// hide certificate warnings in console.. we know we use a self signed cert and do not validate it
-process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
-const originalEmitWarning = process.emitWarning
-process.emitWarning = (warning, options) => {
-    if (warning && warning.includes && warning.includes('NODE_TLS_REJECT_UNAUTHORIZED')) {  return }
-    return originalEmitWarning.call(process, warning, options)
-}
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -67,12 +72,14 @@ if (release().startsWith('6.1')) app.disableHardwareAcceleration()
 if (process.platform === 'win32') {  app.setAppUserModelId(app.getName())}
 
 
-app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
-    // On certificate error we disable default behaviour (stop loading the page)and we then say "it is all fine - true" to the callback
-    event.preventDefault();
-    callback(true);
-});
+// hide certificate warnings in console.. we know we use a self signed cert and do not validate it
 
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
+const originalEmitWarning = process.emitWarning
+process.emitWarning = (warning, options) => {
+    if (warning && warning.includes && warning.includes('NODE_TLS_REJECT_UNAUTHORIZED')) {  return }
+    return originalEmitWarning.call(process, warning, options)
+}
 
 app.on('window-all-closed', () => {  // if window is closed
     clearInterval( CommHandler.updateStudentIntervall )
@@ -83,72 +90,23 @@ app.on('window-all-closed', () => {  // if window is closed
 
 app.on('second-instance', () => {
     if (WindowHandler.mainwindow) {
-        // Focus on the main window if the user tried to open another
-        if (WindowHandler.mainwindow.isMinimized()) WindowHandler.mainwindow.restore()
+        if (WindowHandler.mainwindow.isMinimized()) WindowHandler.mainwindow.restore() // Focus on the main window if the user tried to open another
         WindowHandler.mainwindow.focus()
     }
 })
 
 app.on('activate', () => {
     const allWindows = BrowserWindow.getAllWindows()
-    if (allWindows.length) {
-        allWindows[0].focus()
-    } else {
-        WindowHandler.createMainWindow()
-    }
+    if (allWindows.length) { allWindows[0].focus() } 
+    else { WindowHandler.createMainWindow() }
 })
 
 app.whenReady()
-.then( () => {
-    // trying to catch some keyboard shortcuts here
-    globalShortcut.register('Alt+CommandOrControl+I', () => {
-        console.log('Electron loves global shortcuts!')
-        return false
-    })
-    globalShortcut.register('CommandOrControl+P', () => {
-        console.log('Electron loves global shortcuts!')
-        return false
-    })
-   server.listen(config.clientApiPort, () => {  
-        console.log(`Express listening on https://${config.hostip}:${config.clientApiPort}`)
-        console.log(`Vite-vue listening on http://${config.hostip}:${config.clientVitePort}`)
-    })
-
-  })
 .then(()=>{
-    if (config.hostip) {
-        multicastClient.init()
-    }
-
-   
+    if (config.hostip) { multicastClient.init() }
     WindowHandler.createMainWindow()
 })
 
   ////////////////////////////////
  // APP handling (Backend) END
 ////////////////////////////////
-
-
-
-ipcMain.on('virtualized', () => {  multicastClient.clientinfo.virtualized = true; } )
-ipcMain.on('getconfig', (event) => {   event.returnValue = config   })
-ipcMain.on('printpdf', (event, args) => { 
-      if (WindowHandler.examwindow){
-        var options = {
-            margins: {top:0.5, right:0.5, bottom:0.5, left:0.5 },
-            pageSize: 'A4',
-            printBackground: true,
-            printSelectionOnly: false,
-            landscape: args.landscape,
-            displayHeaderFooter:true,
-            footerTemplate: "<div style='height:12px; font-size:8px; text-align: right; width:100%; margin-right: 20px;'><span class=pageNumber></span>|<span class=totalPages></span></div>",
-            headerTemplate: `<div style='height:12px; font-size:8px; text-align: right; width:100%; margin-right: 20px;'><span class=date></span>|<span>${args.clientname}</span></div>`,
-            preferCSSPageSize: false
-        }
-
-        const pdffilepath = join(config.workdirectory, args.filename);
-        WindowHandler.examwindow.webContents.printToPDF(options).then(data => {
-            fs.writeFile(pdffilepath, data, function (err) { if (err) {console.log(err); }  } );
-        }).catch(error => { console.log(error)});
-    }
-})

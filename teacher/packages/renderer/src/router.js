@@ -8,16 +8,29 @@ import startserver from '/src/pages/startserver.vue'
 import dashboard from '/src/pages/dashboard.vue'
 import serverlist from '/src/pages/serverlist.vue'
 
-//import config from "../../server/src/config.js"  //importing this here (for web) does a clean import before server.js can populate important variables in the config object
-console.log(config)  // config is exposed to the renderer (frontend) in preload.js (it's readonly here!) but only in electron (not for web)
-
-
 // check if we run this app in electron (host is always "localhost" then)
 let electron = false
 const userAgent = navigator.userAgent.toLowerCase();
 if (userAgent.indexOf(' electron/') > -1) {
     electron = true
+    console.log(`Electron App: ${electron}`)
+
+
 }
+
+
+// first try to get config into frontend for webversion 
+// bugs: code does not wait for axios request, axios request does not accept self signed https cert)
+if (electron === false){
+    let hostname = electron ? "localhost" : window.location.hostname
+    let webconfig = axios.get(`https://${hostname}:22422/server/control/getconfig/`)   // can not use dynamic api port from config when fetching config ;-) fuck
+    .then(response => {  return response.data  })
+    .catch( err => {console.log(err)})
+    console.log(webconfig)  // config is exposed to the renderer (frontend) in preload.js (it's readonly here!) but only in electron (not for web)
+}
+
+
+
 
 const routes = [
     { path: '/',                  component: startserver, beforeEnter: [addParams] },

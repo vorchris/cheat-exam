@@ -49,7 +49,7 @@ try {
    config.hostip = false
  }
 
-console.log(config)
+
 if (typeof window !== 'undefined'){
     if (window.process.type == "renderer") config.electron = true
 }
