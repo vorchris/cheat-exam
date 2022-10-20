@@ -41,7 +41,7 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
     if ( token !== mcServer.serverinfo.servertoken ) { return res.json({ status: t("data.tokennotvalid") }) }
    
     let folders = []
-    folders.push( {currentdirectory: dir, parentdirectory: path.dirname(dir)})
+    folders.push( {currentdirectory: dir, parentdirectory: path.dirname(dir)}) // so this information is always on filelist[0] >> not the most robust idea
     fs.readdirSync(dir).reduce(function (list, file) {
         const filepath = path.join(dir, file);
         if (fs.statSync(filepath).isDirectory()) {
