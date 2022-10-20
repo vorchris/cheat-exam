@@ -25,7 +25,7 @@ import extract from 'extract-zip'
 import screenshot from 'screenshot-desktop'
 import FormData from 'form-data/lib/form_data.js';     //we need to import the file directly otherwise it will introduce a "window" variable in the backend and fail
 import { join } from 'path'
-import {  BrowserWindow, screen, dialog  } from 'electron'
+import { screen } from 'electron'
 
 import WindowHandler from './windowhandler.js'
 
@@ -71,12 +71,7 @@ import WindowHandler from './windowhandler.js'
             formData.append('clientinfo', JSON.stringify(this.multicastClient.clientinfo) );   //we send the complete clientinfo object
 
             if (Buffer.isBuffer(img)){
-                //console.log('adding image to formdata')
                 let screenshotfilename = this.multicastClient.clientinfo.token +".jpg"
-                
-                if (this.config.electron){  // in the final electron build this is the only way to do it 
-                    img =  new Blob( [ new Uint8Array(img).buffer], { type: 'image/jpeg' })   
-                }
                 formData.append(screenshotfilename, img, screenshotfilename );
                 let hash = crypto.createHash('md5').update(img).digest("hex");
                 formData.append('screenshothash', hash);
@@ -300,14 +295,9 @@ import WindowHandler from './windowhandler.js'
         let zipfilepath = join(this.config.tempdirectory, zipfilename);
      
         await this.zipDirectory(this.config.workdirectory, zipfilepath)
-        let file = await fs.readFileSync(zipfilepath);
+        let file = fs.readFileSync(zipfilepath);
         const form = new FormData()
-     
-        if (this.config.electron){
-            let blob =  new Blob( [ new Uint8Array(file).buffer], { type: 'application/zip' })
-            form.append(zipfilename, blob, zipfilename );
-        } 
-        else { form.append(zipfilename, file, {contentType: 'application/zip', filename: zipfilename });   }
+        form.append(zipfilename, file, {contentType: 'application/zip', filename: zipfilename });   
      
         axios({
             method: "post", 

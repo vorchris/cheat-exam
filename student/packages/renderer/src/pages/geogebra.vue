@@ -106,25 +106,17 @@ export default {
     methods: { 
         // fetch file from disc - show preview
         loadPDF(file){
-            const form = new FormData()
-            form.append("filename", file)
-            fetch(`https://localhost:${this.clientApiPort}/client/data/getpdf`, { method: 'POST', body: form })
-                .then( response => response.arrayBuffer())
-                .then( data => {
-                    let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
-                    $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
-                    $("#preview").css("display","block");
-                    $("#preview").click(function(e) {
-                         $("#preview").css("display","none");
-                    });
-               }).catch(err => { console.warn(err)});     
+            let data = ipcRenderer.sendSync('getpdf', file )
+            let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
+            $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
+            $("#preview").css("display","block");
+            $("#preview").click(function(e) {
+                    $("#preview").css("display","none");
+            }); 
         },
         loadFilelist(){
-            fetch(`https://localhost:${this.clientApiPort}/client/data/getfiles`, { method: 'POST' })
-            .then( response => response.json() )
-            .then( filelist => {
-                this.localfiles = filelist;
-            }).catch(err => { console.warn(err)});
+            let filelist = ipcRenderer.sendSync('getfiles', null)
+            this.localfiles = filelist;
         },
         setsource(source){
             if (source === "geometry") { this.geogebrasource = `./geogebra/suite.html`}
@@ -135,19 +127,19 @@ export default {
             this.timesinceentry =  new Date(now - this.entrytime).toISOString().substr(11, 8)
         },  
         fetchInfo() {
-            axios.get(`https://localhost:${this.clientApiPort}/client/control/getinfo`)
-            .then( response => {
-                this.clientinfo = response.data.clientinfo
-                this.token = this.clientinfo.token
-                this.focus = this.clientinfo.focus
-                this.clientname = this.clientinfo.name
-                this.exammode = this.clientinfo.exammode
-                if (!this.focus){  this.entrytime = new Date().getTime()}
-                if (this.clientinfo && this.clientinfo.token){  this.online = true  }
-                else { this.online = false  }
-            })
-            .catch( err => {console.log(err)});
+            let getinfo = ipcRenderer.sendSync('getinfo')  // we need to fetch the updated version of the systemconfig from express api (server.js)
+            
+            this.clientinfo = getinfo.clientinfo;
+            this.token = this.clientinfo.token
+            this.focus = this.clientinfo.focus
+            this.clientname = this.clientinfo.name
+            this.exammode = this.clientinfo.exammode
+
+            if (!this.focus){  this.entrytime = new Date().getTime()}
+            if (this.clientinfo && this.clientinfo.token){  this.online = true  }
+            else { this.online = false  }
         }, 
+
        
         /** Converts the Editor View into a multipage PDF */
         async saveContent() {  

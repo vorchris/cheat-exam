@@ -52,8 +52,7 @@
             <button @click="editor.chain().focus().setHardBreak().run()" class="btn btn-outline-info p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/key-enter.svg" class="white" width="22" height="22" ></button>
         
            <div v-for="file in localfiles" class="d-inline">
-                <div v-if="(file.name == currentFile && file.type == 'html')" class="btn btn-success p-1 me-1 mb-1 btn-sm"   @click="selectedFile=file.name; toggleUpload()"><img src="/src/assets/img/svg/games-solve.svg" class="" width="22" height="22" > {{file.name}} </div>
-                <div v-if="(file.name != currentFile && file.type == 'html')" class="btn btn-secondary p-1 me-1 mb-1 btn-sm" @click="selectedFile=file.name; toggleUpload()"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file.name}} </div>
+                <div v-if="(file.type == 'bak')" class="btn btn-success p-1 me-1 mb-1 btn-sm"   @click="selectedFile=file.name; toggleUpload()"><img src="/src/assets/img/svg/games-solve.svg" class="" width="22" height="22" > {{file.name}}     ({{ Math.floor((file.mod-entrytime)/1000/60) }}:{{  Math.floor(60*(((file.mod-entrytime)/1000/60 ) - Math.floor((file.mod-entrytime)/1000/60)))  }})</div>
                 <div v-if="(file.type == 'pdf')" class="btn btn-secondary p-1 me-1 mb-1 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file.name}} </div>
             </div>
         
@@ -128,9 +127,6 @@ import Gapcursor from '@tiptap/extension-gapcursor'
 import CharacterCount from  "@tiptap/extension-character-count"
 import History from '@tiptap/extension-history'
 import { lowlight } from "lowlight/lib/common.js";
-
-import FormData from 'form-data';
-import axios from "axios";
 import $ from 'jquery'
 
 export default {
@@ -173,59 +169,43 @@ export default {
             this.timesinceentry =  new Date(now - this.entrytime).toISOString().substr(11, 8)
         },
         fetchInfo() {
-            axios.get(`https://localhost:${this.clientApiPort}/client/control/getinfo`)
-            .then( response => {
-                this.clientinfo = response.data.clientinfo
-                this.token = this.clientinfo.token
-                this.focus = this.clientinfo.focus
-                this.clientname = this.clientinfo.name
-                this.exammode = this.clientinfo.exammode
-        
-                if (!this.focus){  this.entrytime = new Date().getTime()}
-                if (this.clientinfo && this.clientinfo.token){  this.online = true  }
-                else { this.online = false  }
-            })
-            .catch( err => {console.log(err)});
+            let getinfo = ipcRenderer.sendSync('getinfo')  // we need to fetch the updated version of the systemconfig from express api (server.js)
+            
+            this.clientinfo = getinfo.clientinfo;
+            this.token = this.clientinfo.token
+            this.focus = this.clientinfo.focus
+            this.clientname = this.clientinfo.name
+            this.exammode = this.clientinfo.exammode
 
-
-
+            if (!this.focus){  this.entrytime = new Date().getTime()}
+            if (this.clientinfo && this.clientinfo.token){  this.online = true  }
+            else { this.online = false  }
         }, 
+
         loadFilelist(){
-            fetch(`https://localhost:${this.clientApiPort}/client/data/getfiles`, { method: 'POST' })
-            .then( response => response.json() )
-            .then( filelist => {
-                this.localfiles = filelist;
-            }).catch(err => { console.warn(err)});
+            let filelist = ipcRenderer.sendSync('getfiles', null)
+            this.localfiles = filelist;
         },
 
         // get file from local workdirectory and replace editor content with it
         loadHTML(file){
             this.toggleUpload()
-            this.currentFile = file  //.replace(/\.[^/.]+$/, "")  // this is going to be the name of the file (without extension) when saved as html or pdf (never overwrite another file)
-            const form = new FormData()
-            form.append("filename", file)
-            fetch(`https://localhost:${this.clientApiPort}/client/data/getfiles`, { method: 'POST', body: form })
-                .then( response => response.json())
-                .then( data => {
-                    this.editor.commands.clearContent(true)
-                    this.editor.commands.insertContent(data)
-                }).catch(err => { console.warn(err)});     
+            //this.currentFile = file  //.replace(/\.[^/.]+$/, "")  // this is going to be the name of the file (without extension) when saved as html or pdf (never overwrite another file)
+            
+            let data = ipcRenderer.sendSync('getfiles', file )
+            this.editor.commands.clearContent(true)
+            this.editor.commands.insertContent(data)    
         },
 
         // fetch file from disc - show preview
         loadPDF(file){
-            const form = new FormData()
-            form.append("filename", file)
-            fetch(`https://localhost:${this.clientApiPort}/client/data/getpdf`, { method: 'POST', body: form })
-                .then( response => response.arrayBuffer())
-                .then( data => {
-                    let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
-                    $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
-                    $("#preview").css("display","block");
-                    $("#preview").click(function(e) {
-                         $("#preview").css("display","none");
-                    });
-               }).catch(err => { console.warn(err)});     
+            let data = ipcRenderer.sendSync('getpdf', file )
+            let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
+            $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
+            $("#preview").css("display","block");
+            $("#preview").click(function(e) {
+                    $("#preview").css("display","none");
+            });
         },
 
         // make upload div visible or hide it
@@ -239,27 +219,16 @@ export default {
         },
 
         /** Converts the Editor View into a multipage PDF */
-        async saveContent() {     
+        async saveContent(backup) {     
             // inform mainprocess to save webcontent as pdf (see @media css query for adjustments for pdf)
-        
             let filename = this.currentFile.replace(/\.[^/.]+$/, "")  // we dont need the extension
             ipcRenderer.send('printpdf', {clientname:this.clientname, filename: `${filename}.pdf` })
-
-            //also save editorcontent as *html file - used to re-populate the editor window in case something went completely wrong
-            let editorcontent = this.editor.getHTML(); 
             
-            let form = new FormData()
-            form.append("editorcontent", editorcontent)
-            form.append("currentfilename", filename)
-            
-            axios({
-                method: "post", 
-                url: `https://localhost:${this.clientApiPort}/client/data/store`, 
-                data: form, 
-                headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
-            }).then( async (response) => {
-                //console.log(response.data)
-            }).catch(err => { console.warn(err)});
+            if (backup){
+                //also save editorcontent as *html file - used to re-populate the editor window in case something went completely wrong
+                let editorcontent = this.editor.getHTML(); 
+                ipcRenderer.send('storeHTML', {clientname:this.clientname, editorcontent: editorcontent })
+            }
         },
     },
     mounted() {
@@ -354,10 +323,10 @@ ENDE !!`,
         if (this.electron){
             this.saveEvent = ipcRenderer.on('save', () => {  //trigger document save by signal "save" sent from data.js
                 console.log("EVENT RECEIVERD")
-                this.saveContent() 
+                this.saveContent(true) 
             }); 
         }   
-        this.currentFile = this.clientname+".html"
+        this.currentFile = this.clientname
         this.entrytime = new Date().getTime()
         this.saveinterval = setInterval(() => { this.saveContent() }, 20000)    // speichert content als datei
         this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 10000)   // zeigt html dateien (angaben, eigene arbeit) im header
