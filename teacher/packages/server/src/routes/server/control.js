@@ -28,12 +28,22 @@ import fs from 'fs'
 
 
 
+/**
+ * GET the server config.js 
+ */
+ router.get('/getconfig', function (req, res, next) {
+    res.send({config:config, status: "success"})
+})
+
+
+
 
 
 /**
  * STARTS an exam server instance
  * @param servername the chosen name (for example "mathe")
  * @param pin the pin code used to authenticate
+ * #FIXME !!!  This route needs to be secured (anyone can start a server right now - or 1000 servers)
  */
  router.get('/start/:servername/:passwd', function (req, res, next) {
     const servername = req.params.servername 
