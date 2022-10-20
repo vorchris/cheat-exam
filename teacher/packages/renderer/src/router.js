@@ -23,7 +23,7 @@ if (userAgent.indexOf(' electron/') > -1) {
 // bugs: code does not wait for axios request, axios request does not accept self signed https cert)
 if (electron === false){
     let hostname = electron ? "localhost" : window.location.hostname
-    let webconfig = await axios.get(`https://${hostname}:22422/server/control/getconfig/`)   // can not use dynamic api port from config when fetching config ;-) fuck
+    let webconfig = axios.get(`https://${hostname}:22422/server/control/getconfig/`)   // can not use dynamic api port from config when fetching config ;-) fuck
     .then(response => {  return response.data  })
     .catch( err => {console.log(err)})
     console.log(webconfig)  // config is exposed to the renderer (frontend) in preload.js (it's readonly here!) but only in electron (not for web)
