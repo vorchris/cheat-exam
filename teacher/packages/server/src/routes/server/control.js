@@ -408,15 +408,8 @@ router.get('/serverlist', function (req, res, next) {
         // save the freshly delivered screenshot
         const file = req.files[req.body.screenshotfilename]
         let hash = crypto.createHash('md5').update(file.data).digest("hex");
-
         if (hash === req.body.screenshothash) {
-            let absoluteFilepath = path.join(config.tempdirectory, file.name); 
-            file.mv(absoluteFilepath, (err) => {  
-                if (err) {  console.log(err)  }
-                else { 
-                    student.imageurl = `https://${config.hostip}:${config.serverApiPort}/${studenttoken}.jpg?ver=${student.timestamp}`
-                }
-            });
+            student.imageurl = 'data:image/png;base64,' + file.data.toString('base64') //prepare file data buffer for direct use as css background
             if (!student.focus){  // archive screenshot if student out of focus for investigation
                 console.log("Server Control: Student out of focus - securing screenshots")
                 let time = new Date(new Date().getTime()).toISOString().substr(11, 8);
@@ -430,6 +423,7 @@ router.get('/serverlist', function (req, res, next) {
     }
     else {
         console.log("no screenshot received - probably missing image library (imagemagick)")
+        student.imageurl = "person-lines-fill.svg"
     }
     
 

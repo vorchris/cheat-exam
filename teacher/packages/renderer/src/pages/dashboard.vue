@@ -130,7 +130,9 @@
         <div id="studentslist" class="placeholder pt-1"> 
             <div v-for="student in studentlist" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn border-0 rounded-3 btn-block ">
                 <div id="image" class="rounded"   style="position: relative; height:132px;">
-                    <div v-cloak><img style="position: relative; height: 132px;" :src="(student.imageurl && now - 20000 < student.timestamp)? `${student.imageurl}`:'person-lines-fill.svg'"></div>
+                    <!-- <div v-cloak><img style="position: relative; height: 132px; " :src="(student.imageurl && now - 20000 < student.timestamp)? `${student.imageurl}`:'person-lines-fill.svg'"></div> -->
+                    <div v-cloak :id="student.token" style="position: relative;background-size: contain; height: 132px; background-image: url('person-lines-fill.svg')"></div>
+
                     <div v-if="student.virtualized" class="virtualizedinfo" >{{$t("dashboard.virtualized")}}</div>
                     <div v-if="!student.focus" class="kioskwarning" >{{$t("dashboard.leftkiosk")}}</div>
                     <span style="">{{student.clientname}}            
@@ -157,7 +159,6 @@
 import $ from 'jquery'
 import axios from "axios"
 import FormData from 'form-data'
-
 
 
  /** use this as visible feedback for some actions
@@ -221,6 +222,11 @@ export default {
                 if (this.studentlist && this.studentlist.length > 0){
                     this.studentlist.forEach(student =>{  // on studentlist-receive update active student (for student-details)
                         if (this.activestudent && student.token === this.activestudent.token) { this.activestudent = student}
+                        try {
+                            document.getElementById(`${student.token}`).style.backgroundImage = 'url(' + student.imageurl + ')'
+                        } catch (e) {
+
+                        }
                     });
                 }
             }).catch( err => {console.log(err)});
