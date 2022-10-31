@@ -19,7 +19,7 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow, shell, ipcMain, dialog  } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, dialog, powerSaveBlocker } from 'electron'
 import { release } from 'os'
 import { join } from 'path'
 import config from '../server/src/config.js';
@@ -140,6 +140,7 @@ app.whenReady().then(()=>{
     if (config.hostip) {
         multicastClient.init()
     }
+    powerSaveBlocker.start('prevent-display-sleep')
     createWindow()
 })
 
