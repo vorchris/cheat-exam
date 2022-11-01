@@ -17,7 +17,8 @@
         "started": "Suche gestartet",
         "nopw": "Falscher Benutzername oder Pincode",
         "noip": "Serveradresse oder Prüfungsname fehlt",
-        "offline": "Keine Netzwerkverbindung"
+        "offline": "Keine Netzwerkverbindung",
+        "nopin": "Pincode fehlt"
     },
     "control": {
         "tokennotvalid": "das token ist ungültig",
@@ -44,7 +45,12 @@
         "cancel":"Abbrechen",
         "replace":"Ersetzen",
         "chars": "Zeichen",
-        "words": "Wörter"
+        "words": "Wörter",
+        "reconnect": "neu verbinden",
+        "unlock": "entsperren",
+        "sure": "Sind sie sicher?",
+        "exitkiosk": "Abgesicherten Modus beenden",
+        "info": "Sollte der Vorgang fehlschlagen beenden sie bitte den abgesicherten Modus und versuchen sie es erneut!"
     },
     "math": {
         "exit":"Abgesicherten Modus beenden"

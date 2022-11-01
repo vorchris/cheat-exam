@@ -10,11 +10,15 @@
         
         <div v-if="!online" class="text-white m-1">
             <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style=" float: left;" />
-             <span class="fs-4 align-middle me-1" style=" float: left;"> {{clientname}} </span>
-             <span class="fs-4 align-middle me-4 red" style="float: left;"> | {{ $t("student.disconnected") }} </span>  
+            <span class="fs-4 align-middle me-1" style=" float: left;"> {{clientname}} </span>
+            <span class="fs-4 align-middle me-4 red" style="float: left;"> | {{ $t("student.disconnected") }} </span>  
         </div>
 
-        <span class="fs-4 align-middle" style="">{{servername}}</span>
+        <span  v-if="online" class="fs-4 align-middle" style="">{{servername}}</span>
+        <div v-if="!online && exammode" class="btn btn-success p-1 me-1 mb-1 btn-sm"  style="float: left;"  @click="reconnect()"><img src="/src/assets/img/svg/gtk-convert.svg" class="" width="22" height="22"> {{ $t("editor.reconnect")}}</div>
+        <div v-if="!online && exammode" class="btn btn-danger p-1 me-1 mb-1 btn-sm"  style="float: left;"  @click="gracefullyexit()"><img src="/src/assets/img/svg/dialog-cancel.svg" class="" width="22" height="22"> {{ $t("editor.unlock")}} </div>
+
+
         <span class="fs-4 align-middle" style="float: right">Writer</span>
         <span class="fs-4 align-middle me-2" style="float: right">{{timesinceentry}}</span>
     </div>
@@ -24,8 +28,6 @@
 
     <div class="w-100 p-2 m-0 text-white shadow-sm text-center" style=" top: 66px; z-index: 10001 !important; background-color: white;">
         
-
-
         <!-- toolbar start -->
         <div v-if="editor" class="m-2" id="editortoolbar"> 
             <button @click="editor.chain().focus().undo().run()" class="btn btn-outline-warning p-1 me-1 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-undo.svg" class="white" width="22" height="22" ></button>
@@ -159,7 +161,8 @@ export default {
             timesinceentry: 0,
             charcount : 0,
             wordcount : 0,
-            now : 0
+            now : 0,
+            pincode : false
         }
     },
     methods: {
@@ -182,6 +185,56 @@ export default {
             if (this.clientinfo && this.clientinfo.token){  this.online = true  }
             else { this.online = false  }
         }, 
+        reconnect(){
+            this.$swal.fire({
+                title: this.$t("editor.reconnect"),
+                text:  this.$t("editor.info"),
+                icon: 'info',
+                input: 'number',
+                inputValidator: (value) => {
+                    if (!value) {return this.$t("student.nopin")}
+                }
+            }).then((input) => {
+                this.pincode = input.value
+                if (!input.value) {return}
+                let IPCresponse = ipcRenderer.sendSync('register', {clientname:this.clientname, servername:this.servername, serverip: this.serverip, pin:this.pincode })
+                console.log(IPCresponse)
+                this.token = IPCresponse.token  // set token (used to determine server connection status)
+
+                if (IPCresponse.status === "success") {
+                        this.$swal.fire({
+                            title: "OK",
+                            text: this.$t("student.registeredinfo"),
+                            icon: 'success',
+                            showCancelButton: false,
+                        })
+                    }
+                if (IPCresponse.status === "error") {
+                    this.$swal.fire({
+                        title: "Error",
+                        text: IPCresponse.message,
+                        icon: 'error',
+                        showCancelButton: false,
+                    })
+                }
+            })
+        },
+
+        gracefullyexit(){
+            this.$swal.fire({
+                title: this.$t("editor.sure"),
+                text:  this.$t("editor.exitkiosk"),
+                icon: "question",
+                showCancelButton: true,
+                cancelButtonText: this.$t("editor.cancel"),
+                reverseButtons: true
+            })
+            .then((result) => {
+                if (result.isConfirmed) {
+                    ipcRenderer.send('gracefullyexit')
+                } 
+            }); 
+        },
 
         loadFilelist(){
             let filelist = ipcRenderer.sendSync('getfiles', null)
@@ -268,7 +321,7 @@ export default {
             ],
  content: `<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>`,
             
-            
+
            /** content: `
      
 <h2>
@@ -431,6 +484,9 @@ ENDE !!`
     font-size:0.9em;
 }
 
+.swal2-container.swal2-backdrop-show {
+    z-index: 1000000;
+}
 
 
 

@@ -17,7 +17,8 @@
         "started": "search started",
         "nopw": "wrong username or pin",
         "noip": "Serveraddresse oder Examname missing",
-        "offline": "No Network Connection"
+        "offline": "No Network Connection",
+        "nopin": "no pincode given"
     },
     "control": {
         "tokennotvalid": "token is not valid",
@@ -44,7 +45,12 @@
         "cancel":"Cancel",
         "replace":"Replace",
         "chars": "chars",
-        "words": "words"
+        "words": "words",
+        "reconnect": "reconnect",
+        "unlock": "unlock",
+        "sure": "Are you sure?",
+        "exitkiosk": "exit safe exam mode",
+        "info": "If this process fails unlock and try again!"
     },
     "math": {
         "exit":"Exit safe exam mode"

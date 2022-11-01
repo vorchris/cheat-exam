@@ -60,7 +60,7 @@ fsExtra.emptyDirSync(config.tempdirectory)  // clean temp directory
 
 WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow
 CommHandler.init(multicastClient, config)    // starts "beacon" intervall and fetches information from the teacher - acts on it (startexam, stopexam, sendfile, getfile)
-IpcHandler.init(multicastClient, config, WindowHandler)  //controll all Inter Process Communication
+IpcHandler.init(multicastClient, config, WindowHandler, CommHandler)  //controll all Inter Process Communication
 
   ////////////////////////////////
  // APP handling (Backend) START

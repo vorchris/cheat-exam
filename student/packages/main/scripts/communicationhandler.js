@@ -60,7 +60,13 @@ import WindowHandler from './windowhandler.js'
             this.multicastClient.beaconsLost = 0
             this.resetConnection()
             if (this.multicastClient.clientinfo.exammode === true) {
-                this.gracefullyEndExam()  // this should end kiosk mode, the blur listener and all (keyboard) restrictions but not kill the window
+                // lets try to allow students to gracefully exit exam on connection loss manually (only in geogebra and editor for now bc. we control the ui) 
+                // this should lead to less irritation when the teacher connection is lost
+                if (this.multicastClient.clientinfo.exammode === "eduvidual") {
+                    this.gracefullyEndExam()  // this should end kiosk mode, the blur listener and all (keyboard) restrictions but not kill the window
+                }else {
+                    console.log("Keeping Examwindow Lockdown")
+                }
             }
         }
 
@@ -152,6 +158,7 @@ import WindowHandler from './windowhandler.js'
         if (!primary || primary === "" || !primary.id){ primary = displays[0] }       
        
         if (!WindowHandler.examwindow){  // why do we check? because exammode is left if the server connection gets lost but students could reconnect while the exam window is still open and we don't want to create a second one
+            this.multicastClient.clientinfo.examtype = serverstatus.examtype
             WindowHandler.createExamWindow(serverstatus.examtype, this.multicastClient.clientinfo.token, serverstatus, primary);
         }
 
@@ -214,24 +221,31 @@ import WindowHandler from './windowhandler.js'
     // this is triggered if connection is lost during exam - we allow the student to get out of the kiosk mode but keep his work in the editor
     gracefullyEndExam(){
         if (WindowHandler.examwindow){ 
+            console.log("Unlocking Workstation")
             try {
                 WindowHandler.examwindow.setKiosk(false)
                 WindowHandler.examwindow.setAlwaysOnTop(false)
                 WindowHandler.examwindow.alwaysOnTop = false
                   // remove listener
                 WindowHandler.removeBlurListener();
-            } catch (e) { console.error("communicationhandler: no functional examwindow to handle")}
+                disableRestrictions()
+            } catch (e) { 
+                WindowHandler.examwindow = null
+                console.error("communicationhandler: no functional examwindow to handle")
+            }
           
-
+            try {
+                for (let blockwindow of WindowHandler.blockwindows){
+                    blockwindow.close(); 
+                    blockwindow.destroy(); 
+                    blockwindow = null;
+                }
+            } catch (e) { 
+                WindowHandler.blockwindows = []
+                console.error("communicationhandler: no functional blockwindow to handle")
+            } 
             this.multicastClient.clientinfo.focus = true
             this.multicastClient.clientinfo.exammode = false
-            disableRestrictions()
-            for (let blockwindow of WindowHandler.blockwindows){
-                blockwindow.close(); 
-                blockwindow.destroy(); 
-                blockwindow = null;
-            }
-            WindowHandler.blockwindows = []
         }
     }
 
@@ -265,13 +279,12 @@ import WindowHandler from './windowhandler.js'
 
 
     resetConnection(){
-        //multicastClient.clientinfo.name = "DemoUser"  // keep name on disconnect (looks weird in edtior or geogebra)
         this.multicastClient.clientinfo.token = false
         this.multicastClient.clientinfo.ip = false
         this.multicastClient.clientinfo.serverip = false
         this.multicastClient.clientinfo.servername = false
         this.multicastClient.clientinfo.focus = true  // we are focused 
-        //this.multicastClient.clientinfo.exammode = false
+        //this.multicastClient.clientinfo.exammode = false   // do not set to false until exam window is manually closed
         this.multicastClient.clientinfo.timestamp = false
         this.multicastClient.clientinfo.virtualized = false  
     }
