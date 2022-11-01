@@ -1,5 +1,5 @@
 
-import { app, BrowserWindow, shell, dialog, Menu, MenuItem, screen } from 'electron'
+import { app, BrowserWindow, shell, dialog, Menu, MenuItem, screen} from 'electron'
 import { join } from 'path'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 

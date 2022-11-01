@@ -20,7 +20,7 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow, globalShortcut } from 'electron'
+import { app, BrowserWindow} from 'electron'
 import { release } from 'os'
 import { disableRestrictions} from './scripts/platformrestrictions.js';
 import WindowHandler from './scripts/windowhandler.js'
@@ -41,6 +41,7 @@ if (!app.requestSingleInstanceLock()) {  // allow only one instance of the app p
  }
 
 config.electron = true
+config.homedirectory = os.homedir()
 config.workdirectory = path.join(os.homedir(), config.examdirectory)
 config.tempdirectory = path.join(os.tmpdir(), 'exam-tmp')
 if (!fs.existsSync(config.workdirectory)){ fs.mkdirSync(config.workdirectory); }

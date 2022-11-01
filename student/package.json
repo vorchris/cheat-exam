@@ -49,7 +49,7 @@
                 ]
             }
         },
-        "portable": {                
+        "portable": {
             "unpackDirName": true
         },
         "win": {

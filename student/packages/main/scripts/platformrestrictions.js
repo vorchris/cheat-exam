@@ -31,6 +31,7 @@
 import { join } from 'path'
 import childProcess from 'child_process'   //needed to run bash commands on linux 
 import { TouchBar } from 'electron'
+import config from '../config.js';
 
 // unfortunately there is no convenient way for gnome-shell to un-set ALL shortcuts at once
 const gnomeKeybindings = [  
@@ -72,6 +73,15 @@ function enableRestrictions(win){
         // KDE
         /////////
 
+        console.log("enabling platform restrictions")
+        
+        //disable META Key for Launchermenu
+        //childProcess.execFile('sed', ['-i', '-e', 's/global=Alt+F1/global=/g', `${config.homedirectory}/.config/plasma-org.kde.plasma.desktop-appletsrc` ])   // alt+f1 or f2 is translated by "kickoff" to meta/win/cmd shortcut (wtf)
+        //childProcess.execFile('qdbus', ['org.kde.plasmashell','/PlasmaShell','refreshCurrentShell'])    // i really dont like that but this is the fastest way i found to disable the windows/meta key
+        childProcess.execFile('kwriteconfig5', ['--file',`${config.homedirectory}/.config/kwinrc`,'--group','ModifierOnlyShortcuts','--key','Meta','""']) 
+        childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
+
+
         // Temporarily deactivate ALL global keyboardshortcuts 
         childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'true'])
         // Temporarily deactivate ALL 3d Effects (present window, change desktop, etc.) 
@@ -80,6 +90,8 @@ function enableRestrictions(win){
         childProcess.execFile('qdbus', ['org.kde.klipper' ,'/klipper', 'org.kde.klipper.klipper.clearClipboardHistory'])
         // wayland
         childProcess.execFile('wl-copy', ['-c'])
+
+    
 
 
         //////////
@@ -159,6 +171,11 @@ function disableRestrictions(){
         childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'false'])
         // activate ALL 3d Effects (present window, change desktop, etc.) 
         childProcess.execFile('qdbus', ['org.kde.KWin' ,'/Compositor', 'org.kde.kwin.Compositing.resume'])
+        
+        //enable META Key for Launchermenu
+        //childProcess.execFile('sed', ['-i', '-e', 's/global=.*/global=Alt+F1/g', `${config.homedirectory}/.config/plasma-org.kde.plasma.desktop-appletsrc` ])
+        childProcess.execFile('kwriteconfig5', ['--file',`${config.homedirectory}/.config/kwinrc`,'--group','ModifierOnlyShortcuts','--key','Meta','--delete']) 
+        childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
 
 
         // reset specific shortcuts GNOME
