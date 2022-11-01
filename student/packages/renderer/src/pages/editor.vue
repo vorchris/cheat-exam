@@ -52,7 +52,7 @@
             <button @click="editor.chain().focus().setHardBreak().run()" class="btn btn-outline-info p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/key-enter.svg" class="white" width="22" height="22" ></button>
         
            <div v-for="file in localfiles" class="d-inline">
-                <div v-if="(file.type == 'bak')" class="btn btn-success p-1 me-1 mb-1 btn-sm"   @click="selectedFile=file.name; toggleUpload()"><img src="/src/assets/img/svg/games-solve.svg" class="" width="22" height="22" > {{file.name}}     ({{ Math.floor((file.mod-entrytime)/1000/60) }}:{{  Math.floor(60*(((file.mod-entrytime)/1000/60 ) - Math.floor((file.mod-entrytime)/1000/60)))  }})</div>
+                <div v-if="(file.type == 'bak')" class="btn btn-success p-1 me-1 mb-1 btn-sm"   @click="selectedFile=file.name; toggleUpload()"><img src="/src/assets/img/svg/games-solve.svg" class="" width="22" height="22"> {{file.name}}     ({{ new Date(this.now - file.mod).toISOString().substr(11, 5) }})</div>
                 <div v-if="(file.type == 'pdf')" class="btn btn-secondary p-1 me-1 mb-1 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file.name}} </div>
             </div>
         
@@ -158,15 +158,16 @@ export default {
             entrytime: 0,
             timesinceentry: 0,
             charcount : 0,
-            wordcount : 0
+            wordcount : 0,
+            now : 0
         }
     },
     methods: {
         clock(){
             this.charcount = this.editor.storage.characterCount.characters()
             this.wordcount = this.editor.storage.characterCount.words()
-            let now = new Date().getTime()
-            this.timesinceentry =  new Date(now - this.entrytime).toISOString().substr(11, 8)
+            this.now = new Date().getTime()
+            this.timesinceentry =  new Date(this.now - this.entrytime).toISOString().substr(11, 8)
         },
         fetchInfo() {
             let getinfo = ipcRenderer.sendSync('getinfo')  // we need to fetch the updated version of the systemconfig from express api (server.js)
