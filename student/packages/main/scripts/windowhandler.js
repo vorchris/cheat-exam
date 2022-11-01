@@ -210,7 +210,9 @@ class WindowHandler {
                 this.multicastClient.clientinfo.focus = true
             }  
         });
-        enableRestrictions(WindowHandler.examwindow)
+        if (!this.config.development) { 
+            enableRestrictions(WindowHandler.examwindow)
+        }     
     }
 
     addBlurListener(){
