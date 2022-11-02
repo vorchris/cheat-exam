@@ -113,13 +113,7 @@ import WindowHandler from './windowhandler.js'
      * could also handle kick, focusrestore, and even trigger file requests
      */
     processUpdatedServerstatus(serverstatus, studentstatus){
-        // global status updates
-        if (serverstatus.exammode && !this.multicastClient.clientinfo.exammode){ 
-            this.startExam(serverstatus)
-        }
-        else if (!serverstatus.exammode && this.multicastClient.clientinfo.exammode){
-            this.endExam()
-        }
+ 
         // individual status updates
         if ( studentstatus && Object.keys(studentstatus).length !== 0) {  // we have status updates (tasks) - do it!
             if (studentstatus.restorefocusstate === true){
@@ -132,6 +126,15 @@ import WindowHandler from './windowhandler.js'
                 this.requestFileFromServer(studentstatus.files)
             }
         }
+
+        // global status updates
+        if (serverstatus.exammode && !this.multicastClient.clientinfo.exammode){ 
+            this.startExam(serverstatus)
+        }
+        else if (!serverstatus.exammode && this.multicastClient.clientinfo.exammode){
+            this.endExam()
+        }
+
     }
 
 

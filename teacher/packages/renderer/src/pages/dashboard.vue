@@ -23,7 +23,7 @@
     
     <div id="studentinfocontainer" class="fadeinslow p-4">
         <div v-if="activestudent!= null" id="studentinfodiv">
-            <div v-cloak><img style="position: absolute; height: 100%" :src="(activestudent.imageurl && now - 20000 < activestudent.timestamp)? `${activestudent.imageurl}`:'person-lines-fill.svg'"></div>
+            <div v-cloak><img style="position: absolute; height: 100%" :src="(activestudent.imageurl && now - 20000 < activestudent.timestamp)? `${activestudent.imageurl}`:'user-red.svg'"></div>
 
             <div style="height:100%">
                 <div id="controlbuttons" style="text-align: center;">
@@ -248,6 +248,8 @@ export default {
         },
         // disable exammode 
         endExam(){
+            this.getFiles('all') // fetch files from students before kicking ending exam for everybody
+            
             this.$swal.fire({
                 title: this.$t("dashboard.sure"),
                 text:  this.$t("dashboard.exitkiosk"),
@@ -515,17 +517,13 @@ export default {
                     icon: 'question',
                     input: 'number',
                     html: `
-                
                      <div style="text-align:left; width: 140px; margin: auto auto;">
                         <input class="form-check-input" name=etesttype type="radio" id="quiz" value="quiz" checked>
                         <label class="form-check-label" for="quiz"> <img src="/src/assets/img/svg/quiz.svg" class="" width="24" height="24" > Test </label>
                          <br>
                         <input class="form-check-input"  name=etesttype type="radio" id="activequiz" value="activequiz">
                         <label class="form-check-label" for="activequiz"> <img src="/src/assets/img/svg/activequiz.svg" class="" width="24" height="24" > LiveTest</label>
-                    </div>
-
-
-                    <br>
+                    </div><br>
                     ${this.$t("dashboard.eduvidualidhint")} <br>
                     <span style="font-size:0.8em">(https://www.eduvidual.at/mod/quiz/view.php?id=<span style="background-color: lightblue; padding:0 3px 0 3px;">4172287</span>)</span>`,
                     inputValidator: (value) => {
