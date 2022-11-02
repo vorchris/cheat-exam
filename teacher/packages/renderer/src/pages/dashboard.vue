@@ -248,8 +248,8 @@ export default {
         },
         // disable exammode 
         endExam(){
-            this.getFiles('all') // fetch files from students before kicking ending exam for everybody
-            
+            this.getFiles('all') // fetch files from students before ending exam for everybody
+
             this.$swal.fire({
                 title: this.$t("dashboard.sure"),
                 text:  this.$t("dashboard.exitkiosk"),
