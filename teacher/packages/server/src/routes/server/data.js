@@ -270,7 +270,9 @@ async function concatPages(pdfsToMerge) {
     else {
         console.log("Server: Receiving File(s)...")
         let errors = 0
-        let time = new Date(new Date().getTime()).toISOString().substr(11, 8);
+     
+        let time = new Date(new Date().getTime()).toLocaleTimeString();  //convert to locale string otherwise the foldernames will be created in UTC
+      
         let student = mcServer.studentList.find(element => element.token === studenttoken) // get student from token
         
         if (req.files){

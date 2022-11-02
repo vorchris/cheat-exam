@@ -275,6 +275,7 @@ export default {
                 let editorcontent = this.editor.getHTML(); 
                 ipcRenderer.send('storeHTML', {clientname:this.clientname, editorcontent: editorcontent })
             }
+            this.loadFilelist()
         },
 
         // show confirmation
