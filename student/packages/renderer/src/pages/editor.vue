@@ -30,6 +30,8 @@
         
         <!-- toolbar start -->
         <div v-if="editor" class="m-2" id="editortoolbar"> 
+            <button @click="saveContent(true); backup();" class="btn btn-outline-success p-1 me-1 mb-1 btn-sm"><img src="/src/assets/img/svg/document-save.svg" class="white" width="22" height="22" ></button>
+
             <button @click="editor.chain().focus().undo().run()" class="btn btn-outline-warning p-1 me-1 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-undo.svg" class="white" width="22" height="22" ></button>
             <button @click="editor.chain().focus().redo().run()" class="btn btn-outline-warning p-1 me-1 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-redo.svg" class="white" width="22" height="22" > </button>
             <button @click="editor.chain().focus().clearNodes().run()" class="btn btn-outline-warning p-1 me-3 mb-1 btn-sm"><img src="/src/assets/img/svg/format-remove-node.svg" class="white" width="22" height="22" ></button>
@@ -54,7 +56,7 @@
             <button @click="editor.chain().focus().setHardBreak().run()" class="btn btn-outline-info p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/key-enter.svg" class="white" width="22" height="22" ></button>
         
            <div v-for="file in localfiles" class="d-inline">
-                <div v-if="(file.type == 'bak')" class="btn btn-success p-1 me-1 mb-1 btn-sm"   @click="selectedFile=file.name; toggleUpload()"><img src="/src/assets/img/svg/games-solve.svg" class="" width="22" height="22"> {{file.name}}     ({{ new Date(this.now - file.mod).toISOString().substr(11, 5) }})</div>
+                <div v-if="(file.type == 'bak')" class="btn btn-success p-1 me-1 mb-1 btn-sm"   @click="selectedFile=file.name; loadHTML(file.name)"><img src="/src/assets/img/svg/games-solve.svg" class="" width="22" height="22"> {{file.name}}     ({{ new Date(this.now - file.mod).toISOString().substr(11, 5) }})</div>
                 <div v-if="(file.type == 'pdf')" class="btn btn-secondary p-1 me-1 mb-1 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file.name}} </div>
             </div>
         
@@ -78,16 +80,6 @@
     <!-- focuswarning end  -->
 
 
-
-    <!-- file replace start -->
-    <div id="uploaddiv" class="fadeinslow p-4">
-        <div class="mb-3 row">
-            <div class="mb-3 "> {{$t('editor.replacecontent')}} <b>{{selectedFile}}</b></div>
-            <div class="col d-inlineblock btn btn-success m-1"  @click="toggleUpload()"        >{{$t('editor.cancel')}}</div>
-            <div class="col d-inlineblock btn btn-danger m-1"  @click="loadHTML(selectedFile)" >{{$t('editor.replace')}}</div>
-        </div>
-    </div>
-    <!-- filereplace end -->
 
 
 
@@ -222,7 +214,7 @@ export default {
 
         gracefullyexit(){
             this.$swal.fire({
-                title: this.$t("editor.sure"),
+                title: this.$t("editor.exit"),
                 text:  this.$t("editor.exitkiosk"),
                 icon: "question",
                 showCancelButton: true,
@@ -243,12 +235,22 @@ export default {
 
         // get file from local workdirectory and replace editor content with it
         loadHTML(file){
-            this.toggleUpload()
-            //this.currentFile = file  //.replace(/\.[^/.]+$/, "")  // this is going to be the name of the file (without extension) when saved as html or pdf (never overwrite another file)
-            
-            let data = ipcRenderer.sendSync('getfiles', file )
-            this.editor.commands.clearContent(true)
-            this.editor.commands.insertContent(data)    
+            this.$swal.fire({
+                title: this.$t("editor.replace"),
+                html:  `${this.$t("editor.replacecontent1")} <b>${file}</b> ${this.$t("editor.replacecontent2")}`,
+                icon: "question",
+                showCancelButton: true,
+                cancelButtonText: this.$t("editor.cancel"),
+                reverseButtons: true
+            })
+            .then((result) => {
+                if (result.isConfirmed) {
+                    let data = ipcRenderer.sendSync('getfiles', file )
+                    this.editor.commands.clearContent(true)
+                    this.editor.commands.insertContent(data)  
+                
+                } 
+            }); 
         },
 
         // fetch file from disc - show preview
@@ -260,16 +262,6 @@ export default {
             $("#preview").click(function(e) {
                     $("#preview").css("display","none");
             });
-        },
-
-        // make upload div visible or hide it
-        toggleUpload(){
-            let status =  $("#uploaddiv").css("display");
-            if (status == "none") {  
-                $("#uploaddiv").css("display","block");
-                $("#formFileMultiple").val('') 
-            }
-            else {  $("#uploaddiv").css("display","none"); }
         },
 
         /** Converts the Editor View into a multipage PDF */
@@ -284,6 +276,15 @@ export default {
                 ipcRenderer.send('storeHTML', {clientname:this.clientname, editorcontent: editorcontent })
             }
         },
+
+        // show confirmation
+        backup(){
+            this.$swal.fire({
+                title: this.$t("editor.saved"),
+                icon: "info"
+            })
+        },
+
     },
     mounted() {
         this.editor = new Editor({
@@ -319,71 +320,19 @@ export default {
                 })
                 .configure({ lowlight }),
             ],
- content: `<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>`,
-            
-
-           /** content: `
-     
-<h2>
-    Hi there,
-</h2>
-<p>
-    this is a <em>basic</em> example of <strong>tiptap</strong>. 
-    <br>Next up: A bullet list:
-</p>
-<ul>
-    <li>Free Open Source Software</li>
-    <li>Platform independent</li>
-</ul>
-<p>Let’s try a code block:</p>
-<pre><code class="language-css">
-body {
-    background-color: rgba(200,200,24,1);
-}
-</code></pre>
-<p> 1 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>2 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>3 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>4 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>5 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>6 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>7 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>8 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>9 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>10 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>11 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>12 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>13 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>14 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>Let’s try a code block: </p>
-<pre><code class="language-javascript">
-const test = function ( data ) { console.log(data); }
-</code></pre>
-<p>1 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>2 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>3 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>4 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>5 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>6 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>7 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>8 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>9 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>10 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>11 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>12 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>13 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-<p>14 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. </p>
-
-ENDE !!`
-,*/
+            content: `<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>`,         
         });
 
-        if (this.electron){
-            this.saveEvent = ipcRenderer.on('save', () => {  //trigger document save by signal "save" sent from data.js
-                console.log("EVENT RECEIVERD")
-                this.saveContent(true) 
-            }); 
-        }   
+       
+        ipcRenderer.on('save', () => {  //trigger document save by signal "save" sent from sendExamtoteacher in communication handler
+            console.log("Save event received")
+            this.saveContent(true) 
+        }); 
+        ipcRenderer.on('backup', (event, filename) => {  
+            console.log("Replace event received ")
+            this.loadHTML(filename) 
+        }); 
+
         this.currentFile = this.clientname
         this.entrytime = new Date().getTime()
         this.saveinterval = setInterval(() => { this.saveContent() }, 20000)    // speichert content als datei

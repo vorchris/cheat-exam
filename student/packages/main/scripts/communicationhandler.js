@@ -253,7 +253,13 @@ import WindowHandler from './windowhandler.js'
         let servername = this.multicastClient.clientinfo.servername
         let serverip = this.multicastClient.clientinfo.serverip
         let token = this.multicastClient.clientinfo.token
-    
+        let backupfile = false
+        for (const file of files) {
+            if (file.name && file.name.includes('bak')){
+                backupfile = file.name
+            }
+        }
+        
         let data = JSON.stringify({ 'files' : files, 'type': 'studentfilerequest'})
         axios({
             method: "post", 
@@ -268,13 +274,14 @@ import WindowHandler from './windowhandler.js'
                 if (err){console.log(err);}
                 else {
                     extract(absoluteFilepath, { dir: this.config.workdirectory }, ()=>{ 
-                        console.log("files extracted")
+                        console.log("CommunicationHandler - files extracted")
                         fs.unlink(absoluteFilepath, (err) => { if (err) console.log(err); }); // remove zip file after extracting
                     })
+                    if (backupfile) {    if (WindowHandler.examwindow){ WindowHandler.examwindow.webContents.send('backup', backupfile  ); console.log("CommunicationHandler - Trigger Replace Event") } }
                 }
             });
         })
-        .catch( err =>{console.log(`Main - requestFileFromServer: ${err}`) })   
+        .catch( err =>{console.log(`CommunicationHandler - requestFileFromServer: ${err}`) })   
     }
 
 
