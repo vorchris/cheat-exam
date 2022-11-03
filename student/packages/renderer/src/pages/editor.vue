@@ -89,7 +89,9 @@
             <editor-content :editor="editor" class='p-0' id="editorcontent" style="background-color: #fff; border-radius:0;" />
         </div>
         <div id="statusbar">
-             <span> {{ $t("editor.chars") }}: {{charcount}}</span> | <span> {{ $t("editor.words") }}: {{wordcount}}</span>
+             <span> {{ $t("editor.chars") }}: {{charcount}}</span> | <span> {{ $t("editor.words") }}: {{wordcount}}</span> 
+             <img @click="zoomin()" src="/src/assets/img/svg/zoom-in.svg" class="zoombutton">  
+             <img @click="zoomout()" src="/src/assets/img/svg/zoom-out.svg" class="zoombutton">
         </div>
     </div>
     <!-- EDITOR END -->
@@ -120,6 +122,8 @@ import Dropcursor from '@tiptap/extension-dropcursor'
 import Gapcursor from '@tiptap/extension-gapcursor'
 import CharacterCount from  "@tiptap/extension-character-count"
 import History from '@tiptap/extension-history'
+import Typography from '@tiptap/extension-typography'
+import { SmilieReplacer } from '../components/SmilieReplacer'
 import { lowlight } from "lowlight/lib/common.js";
 import $ from 'jquery'
 
@@ -154,7 +158,8 @@ export default {
             charcount : 0,
             wordcount : 0,
             now : 0,
-            pincode : false
+            pincode : false,
+            zoom:1
         }
     },
     methods: {
@@ -284,11 +289,22 @@ export default {
                 icon: "info"
             })
         },
+        zoomin(){
+            if (this.zoom < 4) this.zoom += 0.1
+            document.getElementById(`editorcontainer`).style.zoom = this.zoom
+        },
+        zoomout(){
+            if (this.zoom > 0.5) this.zoom -= 0.1
+            document.getElementById(`editorcontainer`).style.zoom = this.zoom
+        },
 
     },
     mounted() {
         this.editor = new Editor({
             extensions: [
+                Typography,
+                SmilieReplacer,
+    
                 Blockquote,
                 BulletList,
                 Document,
@@ -364,6 +380,8 @@ export default {
     #statusbar {
         position: relative !important;
         box-shadow: 0px 0px 0px transparent !important;
+        background-color: white !important;
+        border-top: 1px solid black !important;
     }
 
     #editorcontainer {
@@ -406,11 +424,16 @@ export default {
                 display: none;
             }
 
-
    // p { page-break-after: always; }
     .footer { position: fixed; bottom: 0px; }
 
+    .zoombutton {
+       display:none !important;
+    }
 
+    .swal2-container, .swal2-center, .swal2-backdrop-show , .swal2-popup, .swal2-modal, .swal2-icon-info, .swal2-show {
+        display:none !important;
+    }
 
 }
 
@@ -421,18 +444,25 @@ export default {
     margin-left:5vw;
 }
 
-
-
 #statusbar {
     position: fixed;
     bottom:0px; 
     width:100%; 
-    height: 24px; 
+    height: 28px; 
     background-color: #eeeefa;
     padding: 2px;
     padding-left:6px;
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
     font-size:0.9em;
+}
+.zoombutton {
+    height:24px;
+    float:right;
+    cursor: pointer;
+   
+}
+.zoombutton:hover {
+    filter: invert(48%) sepia(79%) saturate(2476%) hue-rotate(86deg) brightness(82%) contrast(119%);
 }
 
 .swal2-container.swal2-backdrop-show {
