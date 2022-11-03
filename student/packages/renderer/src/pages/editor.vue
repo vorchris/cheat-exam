@@ -248,7 +248,6 @@ export default {
                     let data = ipcRenderer.sendSync('getfiles', file )
                     this.editor.commands.clearContent(true)
                     this.editor.commands.insertContent(data)  
-                
                 } 
             }); 
         },
@@ -333,11 +332,14 @@ export default {
             console.log("Replace event received ")
             this.loadHTML(filename) 
         }); 
+        ipcRenderer.on('loadfilelist', () => {  
+            console.log("Reload Files event received ")
+            this.loadFilelist() 
+        }); 
 
         this.currentFile = this.clientname
         this.entrytime = new Date().getTime()
         this.saveinterval = setInterval(() => { this.saveContent() }, 20000)    // speichert content als datei
-        this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 10000)   // zeigt html dateien (angaben, eigene arbeit) im header
         this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 5000)      //holt client info (exam status, connection, token)
         this.clockinterval = setInterval(() => { this.clock() }, 1000)   // uhrzeit (jede sekunde)
         this.loadFilelist()
@@ -345,7 +347,6 @@ export default {
     beforeUnmount() {
         this.editor.destroy()
         clearInterval( this.saveinterval )
-        clearInterval( this.loadfilelistinterval )
         clearInterval( this.fetchinfointerval )
         clearInterval( this.clockinterval )
     },

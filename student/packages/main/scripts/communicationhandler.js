@@ -279,8 +279,10 @@ import WindowHandler from './windowhandler.js'
                     extract(absoluteFilepath, { dir: this.config.workdirectory }, ()=>{ 
                         console.log("CommunicationHandler - files extracted")
                         fs.unlink(absoluteFilepath, (err) => { if (err) console.log(err); }); // remove zip file after extracting
+                    }).then( () => {
+                        if (backupfile) {    if (WindowHandler.examwindow){ WindowHandler.examwindow.webContents.send('backup', backupfile  ); console.log("CommunicationHandler - Trigger Replace Event") } }
+                        if (WindowHandler.examwindow){ WindowHandler.examwindow.webContents.send('loadfilelist')}
                     })
-                    if (backupfile) {    if (WindowHandler.examwindow){ WindowHandler.examwindow.webContents.send('backup', backupfile  ); console.log("CommunicationHandler - Trigger Replace Event") } }
                 }
             });
         })
