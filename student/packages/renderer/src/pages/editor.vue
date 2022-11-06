@@ -288,11 +288,19 @@ export default {
         },
 
         /** Converts the Editor View into a multipage PDF */
-        async saveContent(backup) {     
+        async saveContent(backup, why) {     
             // inform mainprocess to save webcontent as pdf (see @media css query for adjustments for pdf)
             let filename = this.currentFile.replace(/\.[^/.]+$/, "")  // we dont need the extension
             ipcRenderer.send('printpdf', {clientname:this.clientname, filename: `${filename}.pdf` })
             
+            if (why === "exitexam") { 
+                this.$swal.fire({
+                    title: this.$t("editor.leaving"),
+                    text: this.$t("editor.saved"),
+                    icon: "info"
+                })
+            }
+
             if (backup){
                 //also save editorcontent as *html file - used to re-populate the editor window in case something went completely wrong
                 let editorcontent = this.editor.getHTML(); 
@@ -364,9 +372,9 @@ export default {
         });
 
        
-        ipcRenderer.on('save', () => {  //trigger document save by signal "save" sent from sendExamtoteacher in communication handler
+        ipcRenderer.on('save', (event, why) => {  //trigger document save by signal "save" sent from sendExamtoteacher in communication handler
             console.log("Save event received")
-            this.saveContent(true) 
+            this.saveContent(true, why) 
         }); 
         ipcRenderer.on('backup', (event, filename) => {  
             console.log("Replace event received ")

@@ -202,9 +202,13 @@ import WindowHandler from './windowhandler.js'
      * closes exam window
      * disables restrictions and blur 
      */
-    endExam(){
+    async endExam(){
         //handle eduvidual case
         if (WindowHandler.examwindow){ 
+
+            //send save trigger to exam window
+            WindowHandler.examwindow.webContents.send('save', 'exitexam') //trigger, why
+            await this.sleep(3000)  // give students time to read whats happening (and the editor time to save the content)
             WindowHandler.examwindow.close(); 
             WindowHandler.examwindow.destroy(); 
             WindowHandler.examwindow = null;
@@ -305,7 +309,7 @@ import WindowHandler from './windowhandler.js'
     async sendExamToTeacher(){
         //send save trigger to exam window
         if (WindowHandler.examwindow){
-            WindowHandler.examwindow.webContents.send('save')
+            WindowHandler.examwindow.webContents.send('save','teacherrequest')   //trigger, why
         }
         // give it some time
         await this.sleep(1000)  // wait one second before zipping workdirectory (give save some time - unfortunately we have no way to wait for save - we could check the filetime in a "while loop" though)

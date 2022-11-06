@@ -51,7 +51,8 @@
         "exit": "Exit safe exam mode?",
         "exitkiosk": "Do not leave safe exam mode without permission.",
         "info": "If this process fails unlock and try again!",
-        "save": "Backup successfully stored"
+        "save": "Backup successfully stored",
+        "leaving": "Leaving Exam mode"
     },
     "math": {
         "exit":"Exit safe exam mode"

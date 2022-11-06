@@ -51,9 +51,10 @@
         "exit": "Abgesicherten Modus beenden?",
         "exitkiosk": "Verlassen sie den abgesicherten Modus nie ohne Freigabe einer Lehrperson.",
         "info": "Sollte der Vorgang fehlschlagen beenden sie bitte den abgesicherten Modus und versuchen sie es erneut!",
-        "saved": "Arbeit gesichert!"
+        "saved": "Die aktuelle Arbeit wurde gesichert!",
+        "leaving": "Abgesicherter Modus beendet"
     },
     "math": {
-        "exit":"Abgesicherten Modus beenden"
+        "exit":"Abgesicherten Modus beenden?"
     }
 }
