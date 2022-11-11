@@ -95,6 +95,7 @@
 
     <!-- angabe/pdf preview start -->
     <div id=preview class="fadeinslow p-4">
+        <div class="btn btn-dark me-2 btn-lg shadow" style="float: right;" @click="print()"><img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" > </div>
         <embed src="" id="pdfembed"/>
     </div>
     <!-- angabe/pdf preview end -->
@@ -325,6 +326,11 @@ export default {
                 ipcRenderer.send('storeHTML', {clientname:this.clientname, editorcontent: editorcontent })
             }
             this.loadFilelist()
+        },
+        print(){
+            var iframe = $('#pdfembed')[0]; 
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print(); 
         },
 
         // show confirmation
