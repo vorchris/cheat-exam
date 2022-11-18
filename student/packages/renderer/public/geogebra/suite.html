@@ -946,7 +946,8 @@ svg.icon.left {
 <body dir="ltr" tabindex="-1" onload="loadApp()">
 	<script>
 var showHeader = !(window.isEmbed && window.isEmbed());
-defaultParams.marginTop = showHeader ? 64 : 0;
+defaultParams.marginTop = 64 ;
+
 if (appID == "scientific") {
 	defaultParams.marginTop = 112;
 }
@@ -955,6 +956,10 @@ window.addEventListener("load", function() {
 	if (!showHeader) {
 		document.getElementById("headerID").parentElement.style.display = "none";
 	}
+
+	var elAppPicker = document.getElementById("suiteAppPicker");
+	elAppPicker.style.visibility = "visible";
+
 
 window.ggbHeaderResize = function(event) {
 	var elAppPicker = document.getElementById("suiteAppPicker");

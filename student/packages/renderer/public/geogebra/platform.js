@@ -23,19 +23,19 @@ appOnline = false;
 // }
 
 function ggbExamMode(exam) {
-	window.ipc.send("exam", exam);
+	//window.ipc.send("exam", exam);
 }
 
 function setUnsavedMessage(message, save, noSave, cancel){
-	window.ipc.send('unsaved', JSON.stringify([message,save,noSave,cancel]));
+	//window.ipc.send('unsaved', JSON.stringify([message,save,noSave,cancel]));
 }
 
 console.log = function(message) {
-        window.ipc.sendSync('log', message);
+      //  window.ipc.sendSync('log', message);
 }
 
 function copyGraphicsToClipboardExternal(data) {
-	return window.ipc.sendSync('clipboard', data);
+	//return window.ipc.sendSync('clipboard', data);
 }
 
 const defaultOpen = window.open;
@@ -45,7 +45,7 @@ window.open = function(url, features) {
 		return defaultOpen(url, features);
 		console.log("Opening URL " + url + " inside electron app");
 	} else {
-		window.ipc.send('openUrl', url);
+		//window.ipc.send('openUrl', url);
 		console.log("Opening URL " + url + " in external OS browser");
 	}
 }

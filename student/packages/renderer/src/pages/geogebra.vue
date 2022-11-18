@@ -106,7 +106,6 @@ export default {
         this.currentFile = this.clientname
         this.entrytime = new Date().getTime()  
          
-
         if (this.electron){
             this.saveEvent = ipcRenderer.on('save', () => {  //trigger document save by signal "save" sent from data.js
                 console.log("EVENT RECEIVERD")
