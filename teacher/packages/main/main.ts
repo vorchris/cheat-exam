@@ -19,7 +19,7 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow, shell, ipcMain, dialog, powerSaveBlocker } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, dialog, powerSaveBlocker, nativeTheme  } from 'electron'
 import { release } from 'os'
 import { join } from 'path'
 import config from '../server/src/config.js';
@@ -131,6 +131,7 @@ app.on('activate', () => {
 })
 
 app.whenReady().then(()=>{
+    nativeTheme.themeSource = 'light'
     server.listen(config.serverApiPort, () => {  
         console.log(`Express listening on https://${config.hostip}:${config.serverApiPort}`)
         console.log(`Vite-vue listening on http://${config.hostip}:${config.serverVitePort}`)

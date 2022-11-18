@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
 	<meta charset="utf-8" />
 	<title>Calculator Suite - GeoGebra</title>
@@ -21,6 +21,7 @@ var analyticsVersion = 'V'+latestVersion;
 var appOnline=true;
 var translation = {};
 var codebase = "";
+
 </script>
 <script>prerelease=false;appID="suite";appOnline=false;</script>
 <script>
@@ -270,7 +271,7 @@ var codebase = "";
 		if(langs.indexOf(lang) >= 0){
 			return lang;
 		}
-		return "en";
+		return "de";
 	}
 	function getURLparam(param){
 		var parts = location.href.split("?");
@@ -337,7 +338,7 @@ var codebase = "";
 	}
 
 	function showStartScreen(){
-		var lang = getURLparam("lang") || getCookie("GeoGebraLangUI") || getLocalStorage("GeoGebraLangUI") || navigator.language || "en";
+		var lang = navigator.language || "de";
 		window.setTimeout(showInEnglish, 1000);
 		switchLang(validLang(lang));
 	}
@@ -587,9 +588,7 @@ function addAppletPreview(tubeid){
 		display: none;
 	}
 
-	.GeoGebraHeader .suiteAppPickerButton {
-		visibility: hidden;
-	}
+
 }
 
 .GeoGebraFrame .buttons {
@@ -967,7 +966,6 @@ window.ggbHeaderResize = function(event) {
 	elAppPicker.style.visibility = overlap ? "hidden" : "visible";
 }
 
-window.addEventListener("resize", ggbHeaderResize);
 
 });
 </script>

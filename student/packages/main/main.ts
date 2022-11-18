@@ -20,7 +20,7 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow} from 'electron'
+import { app, BrowserWindow, nativeTheme} from 'electron'
 import { release } from 'os'
 import { disableRestrictions} from './scripts/platformrestrictions.js';
 import WindowHandler from './scripts/windowhandler.js'
@@ -55,6 +55,9 @@ try { //bind to the correct interface
    console.log(e)
    config.hostip = false
  }
+
+app.commandLine.appendSwitch('lang', 'de')
+
 
 fsExtra.emptyDirSync(config.tempdirectory)  // clean temp directory
 
@@ -104,6 +107,7 @@ app.on('activate', () => {
 
 app.whenReady()
 .then(()=>{
+    nativeTheme.themeSource = 'light'
     if (config.hostip) { multicastClient.init() }
     WindowHandler.createMainWindow()
 })
