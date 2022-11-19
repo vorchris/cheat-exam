@@ -136,10 +136,18 @@ import fs from 'fs'
 router.get('/serverlist', function (req, res, next) {
     let serverlist = []
     Object.values(config.examServerList).forEach( server => {
-        serverlist.push({servername: server.serverinfo.servername, serverip: server.serverinfo.ip}) 
+        serverlist.push({servername: server.serverinfo.servername, serverip: server.serverinfo.ip, reachable: true}) 
     });
     res.send({serverlist:serverlist, status: "success"})
 })
+
+/**
+ *  sends an "alive" signal back
+ */
+ router.get('/pong', function (req, res, next) {
+    res.send('pong')
+})
+
 
 
 

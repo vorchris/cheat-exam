@@ -73,6 +73,7 @@ class MulticastClient {
         const serverInfo = JSON.parse(String(message))
         serverInfo.serverip = rinfo.address
         serverInfo.serverport = rinfo.port
+        serverInfo.reachable = true
         
         if (this.isNewExamInstance(serverInfo)) {
             console.log(`Adding new Exam Instance "${serverInfo.servername}" to Serverlist`)

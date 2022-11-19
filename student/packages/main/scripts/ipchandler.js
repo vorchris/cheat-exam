@@ -6,7 +6,6 @@ import i18n from '../../renderer/src/locales/locales.js'
 const { t } = i18n.global
 import {  ipcMain } from 'electron'
 
-
   ////////////////////////////////
  // IPC handling (Backend) START
 ////////////////////////////////
@@ -94,7 +93,9 @@ class IpcHandler {
                 event.returnValue = { sender: "client", message: t("control.alreadyregistered"), status:"error" }
             }
         
-            axios.get(`https://${serverip}:${this.config.serverApiPort}/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}/${version}`)
+            axios({ method:'get', 
+                    url:`https://${serverip}:${this.config.serverApiPort}/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}/${version}`,
+                    timeout: 10000})
             .then(response => {
                 if (response.data && response.data.status == "success") { // registration successfull otherwise data would be "false"
                     this.multicastClient.clientinfo.name = clientname
@@ -180,6 +181,8 @@ class IpcHandler {
                 event.returnValue = files
             }
         })
+
+
     }
 }
  
