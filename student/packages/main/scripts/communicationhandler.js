@@ -84,7 +84,7 @@ import WindowHandler from './windowhandler.js'
                 formData.append('screenshotfilename', screenshotfilename);
             }
 
-            axios({    //post to /studentlist/update/:token - send update and fetch server status
+            axios({    //send update and fetch server status
                 method: "post", 
                 url: `https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/update`, 
                 data: formData, 
