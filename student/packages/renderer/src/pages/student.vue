@@ -46,7 +46,8 @@
         <h4 class="mt-4">{{ $t("student.exams") }}</h4>
         <div id="list" class="placeholder" style="overflow-y:auto; height: 369px; display:flex; flex-wrap: wrap; flex-direction: row;">
             <div v-for="server in serverlist" class="row p-3 m-0 mb-2 border bg-light" style="margin-right: 10px !important; min-height:100px; max-height:100px;  min-width:270px; max-width: 270px;">
-                <strong style=" padding: 0px;">{{server.servername}}</strong>
+                <strong style="padding:0px;">{{server.servername}}
+                <img v-if="!server.reachable" src="/src/assets/img/svg/emblem-warning.svg" :title="$t('student.unreachable')"  style="width:20px;float:right;vertical-align:top;" ></strong>  
                 <input v-if="!token" :id="server.servername" type="button" name="register" class="btn btn-sm btn-info" :value="$t('student.register')" @click="registerClient(server.serverip,server.servername)"/>
                 <input v-if="token && clientinfo.servername !== server.servername" :id="server.servername" disabled type="button" name="register" class="btn btn-secondary" :value="$t('student.register')" />
                 <input v-if="token && clientinfo.servername === server.servername" :id="server.servername" disabled type="button" name="register" class="btn btn-success" :value="$t('student.registered')" />
@@ -63,6 +64,7 @@
 <script>
 import axios from "axios";
 import validator from 'validator'
+
 
 export default {
     data() {
@@ -102,6 +104,12 @@ export default {
                 else { this.serverlist = getinfo.serverlist;  }
             }
             else { this.serverlist = getinfo.serverlist;   }
+
+            for (let server of this.serverlist){
+                    axios({method:'get',url:`https://${server.serverip}:${this.serverApiPort}/server/control/pong`, timeout:4000})
+                    .then( response => { server.reachable=true }) 
+                    .catch(err => { console.log(err.message);server.reachable=false  }) 
+            }
         },  
         
         toggleAdvanced(){
@@ -147,7 +155,7 @@ export default {
     },
     mounted() {  
         this.fetchInfo();
-        this.fetchinterval = setInterval(() => { this.fetchInfo() }, 2000)
+        this.fetchinterval = setInterval(() => { this.fetchInfo() }, 4000)
     },
     beforeUnmount() {
         clearInterval( this.fetchinterval )

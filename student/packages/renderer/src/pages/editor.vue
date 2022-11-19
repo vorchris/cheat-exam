@@ -483,7 +483,7 @@ export default {
    // p { page-break-after: always; }
     .footer { position: fixed; bottom: 0px; }
 
-    .zoombutton {
+    .zoombutton, #preview {
        display:none !important;
     }
 

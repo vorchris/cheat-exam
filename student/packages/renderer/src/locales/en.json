@@ -18,7 +18,8 @@
         "nopw": "wrong username or pin",
         "noip": "Serveraddresse oder Examname missing",
         "offline": "No Network Connection",
-        "nopin": "no pincode given"
+        "nopin": "no pincode given",
+        "unreachable":"Server API unreachable"
     },
     "control": {
         "tokennotvalid": "token is not valid",

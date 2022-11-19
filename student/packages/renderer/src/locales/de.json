@@ -18,7 +18,8 @@
         "nopw": "Falscher Benutzername oder Pincode",
         "noip": "Serveradresse oder Prüfungsname fehlt",
         "offline": "Keine Netzwerkverbindung",
-        "nopin": "Pincode fehlt"
+        "nopin": "Pincode fehlt",
+        "unreachable": "Server API auf Grund von Firewall nicht erreichbar."
     },
     "control": {
         "tokennotvalid": "das token ist ungültig",
