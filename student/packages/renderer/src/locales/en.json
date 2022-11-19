@@ -19,7 +19,8 @@
         "noip": "Serveraddresse oder Examname missing",
         "offline": "No Network Connection",
         "nopin": "no pincode given",
-        "unreachable":"Server API unreachable"
+        "unreachable":"Server API unreachable",
+        "timeout":"Timeout! Exam-Teacher is behind Firewall."
     },
     "control": {
         "tokennotvalid": "token is not valid",
