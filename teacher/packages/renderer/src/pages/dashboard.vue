@@ -231,6 +231,7 @@ export default {
                         } catch (e) {  }
                     });
                 }
+                this.studentlist.sort((a, b) => a.clientname.localeCompare(b.clientname))
             }).catch( err => {console.log(err)});
         }, 
         // enable exam mode 
