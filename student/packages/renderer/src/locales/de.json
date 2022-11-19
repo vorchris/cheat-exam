@@ -19,7 +19,8 @@
         "noip": "Serveradresse oder Prüfungsname fehlt",
         "offline": "Keine Netzwerkverbindung",
         "nopin": "Pincode fehlt",
-        "unreachable": "Server API auf Grund von Firewall nicht erreichbar."
+        "unreachable": "Server API auf Grund von Firewall nicht erreichbar.",
+        "timeout":"Timeout! Exam-Teacher befindet sich möglicherweise hinter einer Firewall."
     },
     "control": {
         "tokennotvalid": "das token ist ungültig",

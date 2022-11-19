@@ -5,6 +5,7 @@ import axios from 'axios'
 import i18n from '../../renderer/src/locales/locales.js'
 const { t } = i18n.global
 import {  ipcMain } from 'electron'
+import defaultGateway from'default-gateway';
 
   ////////////////////////////////
  // IPC handling (Backend) START
@@ -39,6 +40,28 @@ class IpcHandler {
         */ 
         ipcMain.on('gracefullyexit', () => {  this.CommunicationHandler.gracefullyEndExam() } )
 
+
+        /**
+         * re-check hostip and enable multicast client
+         */ 
+        ipcMain.on('checkhostip', (event) => {   
+            try { //bind to the correct interface
+                const {gateway, interface: iface} =  defaultGateway.v4.sync()
+                this.config.hostip = ip.address(iface)    // this returns the ip of the interface that has a default gateway..  should work in MOST cases.  probably provide "ip-options" in UI ?
+            }
+            catch (e) {
+                console.log("ipcHandler: Unable to determine default gateway")
+                this.config.hostip = false
+            }
+            // check if multicast client is running - otherwise start it
+            if (this.config.hostip) {
+                let address = false
+                try { address = this.multicastClient.client.address() }
+                catch (e) { console.log("ipcHandler: multicastclient not running") }
+                if (!address){ this.multicastClient.init()}
+            }
+            event.returnValue = this.config.hostip 
+        })
 
 
         /**
@@ -95,7 +118,7 @@ class IpcHandler {
         
             axios({ method:'get', 
                     url:`https://${serverip}:${this.config.serverApiPort}/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}/${version}`,
-                    timeout: 10000})
+                    timeout: 8000})
             .then(response => {
                 if (response.data && response.data.status == "success") { // registration successfull otherwise data would be "false"
                     this.multicastClient.clientinfo.name = clientname
@@ -110,6 +133,7 @@ class IpcHandler {
             }).catch(err => {
                 //we return the servers error message to the ui
                 console.log(err.message)
+                if (err.message.includes("timeout")){err.message = t("student.timeout") }
                 event.returnValue = { sender: "client", message:err.message , status:"error" } 
             })
         })

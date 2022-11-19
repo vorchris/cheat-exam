@@ -47,7 +47,7 @@
         <div id="list" class="placeholder" style="overflow-y:auto; height: 369px; display:flex; flex-wrap: wrap; flex-direction: row;">
             <div v-for="server in serverlist" class="row p-3 m-0 mb-2 border bg-light" style="margin-right: 10px !important; min-height:100px; max-height:100px;  min-width:270px; max-width: 270px;">
                 <strong style="padding:0px;">{{server.servername}}
-                <img v-if="!server.reachable" src="/src/assets/img/svg/emblem-warning.svg" :title="$t('student.unreachable')"  style="width:20px;float:right;vertical-align:top;" ></strong>  
+                <img v-if="!server.reachable" src="/src/assets/img/svg/emblem-warning.svg" :title="$t('student.unreachable')"  style="width:20px;float:right;vertical-align:top;cursor: help;" ></strong>  
                 <input v-if="!token" :id="server.servername" type="button" name="register" class="btn btn-sm btn-info" :value="$t('student.register')" @click="registerClient(server.serverip,server.servername)"/>
                 <input v-if="token && clientinfo.servername !== server.servername" :id="server.servername" disabled type="button" name="register" class="btn btn-secondary" :value="$t('student.register')" />
                 <input v-if="token && clientinfo.servername === server.servername" :id="server.servername" disabled type="button" name="register" class="btn btn-success" :value="$t('student.registered')" />
@@ -105,8 +105,11 @@ export default {
             }
             else { this.serverlist = getinfo.serverlist;   }
 
-            for (let server of this.serverlist){
-                    axios({method:'get',url:`https://${server.serverip}:${this.serverApiPort}/server/control/pong`, timeout:4000})
+            // check im networkconnection is still alive - otherwise exit here
+            this.hostip = ipcRenderer.sendSync('checkhostip')
+            if (!this.hostip) return;  
+            for (let server of this.serverlist){ 
+                    axios({method:'get',url:`https://${server.serverip}:${this.serverApiPort}/server/control/pong`, timeout:2000})
                     .then( response => { server.reachable=true }) 
                     .catch(err => { console.log(err.message);server.reachable=false  }) 
             }
