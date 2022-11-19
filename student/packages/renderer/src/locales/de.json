@@ -17,7 +17,8 @@
         "started": "Suche gestartet",
         "nopw": "Falscher Benutzername oder Pincode",
         "noip": "Serveradresse oder Prüfungsname fehlt",
-        "offline": "Keine Netzwerkverbindung"
+        "offline": "Keine Netzwerkverbindung",
+        "nopin": "Pincode fehlt"
     },
     "control": {
         "tokennotvalid": "das token ist ungültig",
@@ -39,14 +40,21 @@
     "editor": {
         "leftkiosk": "Sie haben den abgesicherten Modus verlassen!",
         "tellsomeone": "Melden sie sich umgehend bei der Aufsichtsperson!",
-        "replacecontent": "Wollen sie den Inhalt des Editors durch den Inhalt dieser Datei ersetzen?",
-        "exit":"Abgesicherten Modus beenden",
+        "replacecontent1": "Wollen sie den Inhalt des Editors durch den Inhalt der Datei",
+        "replacecontent2": "ersetzen?",
         "cancel":"Abbrechen",
         "replace":"Ersetzen",
         "chars": "Zeichen",
-        "words": "Wörter"
+        "words": "Wörter",
+        "reconnect": "neu verbinden",
+        "unlock": "entsperren",
+        "exit": "Abgesicherten Modus beenden?",
+        "exitkiosk": "Verlassen sie den abgesicherten Modus nie ohne Freigabe einer Lehrperson.",
+        "info": "Sollte der Vorgang fehlschlagen beenden sie bitte den abgesicherten Modus und versuchen sie es erneut!",
+        "saved": "Die aktuelle Arbeit wurde gesichert!",
+        "leaving": "Abgesicherter Modus beendet"
     },
     "math": {
-        "exit":"Abgesicherten Modus beenden"
+        "exit":"Abgesicherten Modus beenden?"
     }
 }

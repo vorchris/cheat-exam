@@ -17,7 +17,8 @@
         "started": "search started",
         "nopw": "wrong username or pin",
         "noip": "Serveraddresse oder Examname missing",
-        "offline": "No Network Connection"
+        "offline": "No Network Connection",
+        "nopin": "no pincode given"
     },
     "control": {
         "tokennotvalid": "token is not valid",
@@ -39,12 +40,19 @@
     "editor": {
         "leftkiosk": "You have left the safe exam mode!",
         "tellsomeone": "Please inform a teacher!",
-        "replacecontent": "Do you want to replace the content of the editor with the content of the file?",
-        "exit":"Exit safe exam mode",
+        "replacecontent1": "Do you want to replace the content of the editor with the content of ",
+        "replacecontent2": "?",
         "cancel":"Cancel",
         "replace":"Replace",
         "chars": "chars",
-        "words": "words"
+        "words": "words",
+        "reconnect": "reconnect",
+        "unlock": "unlock",
+        "exit": "Exit safe exam mode?",
+        "exitkiosk": "Do not leave safe exam mode without permission.",
+        "info": "If this process fails unlock and try again!",
+        "save": "Backup successfully stored",
+        "leaving": "Leaving Exam mode"
     },
     "math": {
         "exit":"Exit safe exam mode"

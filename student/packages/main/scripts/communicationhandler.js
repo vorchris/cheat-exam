@@ -54,13 +54,19 @@ import WindowHandler from './windowhandler.js'
      * sends heartbeat to registered server and updates screenshot on server 
      */
     async sendBeacon(){
-        
+        // CONNECTION LOST
         if (this.multicastClient.beaconsLost >= 4 ){ //remove server registration locally (same as 'kick')
             console.log("Connection to Teacher lost! Removing registration.")
             this.multicastClient.beaconsLost = 0
             this.resetConnection()
             if (this.multicastClient.clientinfo.exammode === true) {
-                this.gracefullyEndExam()  // this should end kiosk mode, the blur listener and all (keyboard) restrictions but not kill the window
+                // lets try to allow students to gracefully exit exam on connection loss manually (only in geogebra and editor for now bc. we control the ui) 
+                // this should lead to less irritation when the teacher connection is lost
+                if (this.multicastClient.clientinfo.exammode === "eduvidual") {
+                    this.gracefullyEndExam()  // this should end kiosk mode, the blur listener and all (keyboard) restrictions but not kill the window
+                }else {
+                    console.log("Keeping Examwindow Lockdown")
+                }
             }
         }
 
@@ -107,13 +113,7 @@ import WindowHandler from './windowhandler.js'
      * could also handle kick, focusrestore, and even trigger file requests
      */
     processUpdatedServerstatus(serverstatus, studentstatus){
-        // global status updates
-        if (serverstatus.exammode && !this.multicastClient.clientinfo.exammode){ 
-            this.startExam(serverstatus)
-        }
-        else if (!serverstatus.exammode && this.multicastClient.clientinfo.exammode){
-            this.endExam()
-        }
+ 
         // individual status updates
         if ( studentstatus && Object.keys(studentstatus).length !== 0) {  // we have status updates (tasks) - do it!
             if (studentstatus.restorefocusstate === true){
@@ -126,6 +126,15 @@ import WindowHandler from './windowhandler.js'
                 this.requestFileFromServer(studentstatus.files)
             }
         }
+
+        // global status updates
+        if (serverstatus.exammode && !this.multicastClient.clientinfo.exammode){ 
+            this.startExam(serverstatus)
+        }
+        else if (!serverstatus.exammode && this.multicastClient.clientinfo.exammode){
+            this.endExam()
+        }
+
     }
 
 
@@ -152,6 +161,7 @@ import WindowHandler from './windowhandler.js'
         if (!primary || primary === "" || !primary.id){ primary = displays[0] }       
        
         if (!WindowHandler.examwindow){  // why do we check? because exammode is left if the server connection gets lost but students could reconnect while the exam window is still open and we don't want to create a second one
+            this.multicastClient.clientinfo.examtype = serverstatus.examtype
             WindowHandler.createExamWindow(serverstatus.examtype, this.multicastClient.clientinfo.token, serverstatus, primary);
         }
 
@@ -192,9 +202,13 @@ import WindowHandler from './windowhandler.js'
      * closes exam window
      * disables restrictions and blur 
      */
-    endExam(){
+    async endExam(){
         //handle eduvidual case
         if (WindowHandler.examwindow){ 
+
+            //send save trigger to exam window
+            WindowHandler.examwindow.webContents.send('save', 'exitexam') //trigger, why
+            await this.sleep(3000)  // give students time to read whats happening (and the editor time to save the content)
             WindowHandler.examwindow.close(); 
             WindowHandler.examwindow.destroy(); 
             WindowHandler.examwindow = null;
@@ -214,24 +228,31 @@ import WindowHandler from './windowhandler.js'
     // this is triggered if connection is lost during exam - we allow the student to get out of the kiosk mode but keep his work in the editor
     gracefullyEndExam(){
         if (WindowHandler.examwindow){ 
+            console.log("Unlocking Workstation")
             try {
                 WindowHandler.examwindow.setKiosk(false)
                 WindowHandler.examwindow.setAlwaysOnTop(false)
                 WindowHandler.examwindow.alwaysOnTop = false
                   // remove listener
                 WindowHandler.removeBlurListener();
-            } catch (e) { console.error("communicationhandler: no functional examwindow to handle")}
+                disableRestrictions()
+            } catch (e) { 
+                WindowHandler.examwindow = null
+                console.error("communicationhandler: no functional examwindow to handle")
+            }
           
-
+            try {
+                for (let blockwindow of WindowHandler.blockwindows){
+                    blockwindow.close(); 
+                    blockwindow.destroy(); 
+                    blockwindow = null;
+                }
+            } catch (e) { 
+                WindowHandler.blockwindows = []
+                console.error("communicationhandler: no functional blockwindow to handle")
+            } 
             this.multicastClient.clientinfo.focus = true
             this.multicastClient.clientinfo.exammode = false
-            disableRestrictions()
-            for (let blockwindow of WindowHandler.blockwindows){
-                blockwindow.close(); 
-                blockwindow.destroy(); 
-                blockwindow = null;
-            }
-            WindowHandler.blockwindows = []
         }
     }
 
@@ -239,7 +260,13 @@ import WindowHandler from './windowhandler.js'
         let servername = this.multicastClient.clientinfo.servername
         let serverip = this.multicastClient.clientinfo.serverip
         let token = this.multicastClient.clientinfo.token
-    
+        let backupfile = false
+        for (const file of files) {
+            if (file.name && file.name.includes('bak')){
+                backupfile = file.name
+            }
+        }
+        
         let data = JSON.stringify({ 'files' : files, 'type': 'studentfilerequest'})
         axios({
             method: "post", 
@@ -254,24 +281,26 @@ import WindowHandler from './windowhandler.js'
                 if (err){console.log(err);}
                 else {
                     extract(absoluteFilepath, { dir: this.config.workdirectory }, ()=>{ 
-                        console.log("files extracted")
+                        console.log("CommunicationHandler - files extracted")
                         fs.unlink(absoluteFilepath, (err) => { if (err) console.log(err); }); // remove zip file after extracting
+                    }).then( () => {
+                        if (backupfile) {    if (WindowHandler.examwindow){ WindowHandler.examwindow.webContents.send('backup', backupfile  ); console.log("CommunicationHandler - Trigger Replace Event") } }
+                        if (WindowHandler.examwindow){ WindowHandler.examwindow.webContents.send('loadfilelist')}
                     })
                 }
             });
         })
-        .catch( err =>{console.log(`Main - requestFileFromServer: ${err}`) })   
+        .catch( err =>{console.log(`CommunicationHandler - requestFileFromServer: ${err}`) })   
     }
 
 
     resetConnection(){
-        //multicastClient.clientinfo.name = "DemoUser"  // keep name on disconnect (looks weird in edtior or geogebra)
         this.multicastClient.clientinfo.token = false
         this.multicastClient.clientinfo.ip = false
         this.multicastClient.clientinfo.serverip = false
         this.multicastClient.clientinfo.servername = false
         this.multicastClient.clientinfo.focus = true  // we are focused 
-        //this.multicastClient.clientinfo.exammode = false
+        //this.multicastClient.clientinfo.exammode = false   // do not set to false until exam window is manually closed
         this.multicastClient.clientinfo.timestamp = false
         this.multicastClient.clientinfo.virtualized = false  
     }
@@ -280,7 +309,7 @@ import WindowHandler from './windowhandler.js'
     async sendExamToTeacher(){
         //send save trigger to exam window
         if (WindowHandler.examwindow){
-            WindowHandler.examwindow.webContents.send('save')
+            WindowHandler.examwindow.webContents.send('save','teacherrequest')   //trigger, why
         }
         // give it some time
         await this.sleep(1000)  // wait one second before zipping workdirectory (give save some time - unfortunately we have no way to wait for save - we could check the filetime in a "while loop" though)

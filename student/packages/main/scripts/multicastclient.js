@@ -45,6 +45,7 @@ class MulticastClient {
             exammode: false,
             timestamp: false,
             virtualized: false,  // this config setting is set by simplevmdetect.js (electron preload)
+            examtype : false
         }
     }
 

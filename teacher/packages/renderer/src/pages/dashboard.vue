@@ -23,7 +23,7 @@
     
     <div id="studentinfocontainer" class="fadeinslow p-4">
         <div v-if="activestudent!= null" id="studentinfodiv">
-            <div v-cloak><img style="position: absolute; height: 100%" :src="(activestudent.imageurl && now - 20000 < activestudent.timestamp)? `${activestudent.imageurl}`:'person-lines-fill.svg'"></div>
+            <div v-cloak><img style="position: absolute; height: 100%" :src="(activestudent.imageurl && now - 20000 < activestudent.timestamp)? `${activestudent.imageurl}`:'user-red.svg'"></div>
 
             <div style="height:100%">
                 <div id="controlbuttons" style="text-align: center;">
@@ -130,7 +130,9 @@
         <div id="studentslist" class="placeholder pt-1"> 
             <div v-for="student in studentlist" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn border-0 rounded-3 btn-block ">
                 <div id="image" class="rounded"   style="position: relative; height:132px;">
-                    <div v-cloak><img style="position: relative; height: 132px;" :src="(student.imageurl && now - 20000 < student.timestamp)? `${student.imageurl}`:'person-lines-fill.svg'"></div>
+
+                    <div v-cloak :id="student.token" style="position: relative;background-size: cover; height: 132px; background-image: url('user-black.svg')"></div>
+
                     <div v-if="student.virtualized" class="virtualizedinfo" >{{$t("dashboard.virtualized")}}</div>
                     <div v-if="!student.focus" class="kioskwarning" >{{$t("dashboard.leftkiosk")}}</div>
                     <span style="">{{student.clientname}}            
@@ -157,7 +159,6 @@
 import $ from 'jquery'
 import axios from "axios"
 import FormData from 'form-data'
-
 
 
  /** use this as visible feedback for some actions
@@ -221,6 +222,13 @@ export default {
                 if (this.studentlist && this.studentlist.length > 0){
                     this.studentlist.forEach(student =>{  // on studentlist-receive update active student (for student-details)
                         if (this.activestudent && student.token === this.activestudent.token) { this.activestudent = student}
+                        try {
+                            if (this.now - 20000 > student.timestamp){ 
+                                document.getElementById(`${student.token}`).style.backgroundImage = 'url("user-red.svg")'
+                            }
+                            else {document.getElementById(`${student.token}`).style.backgroundImage = 'url(' + student.imageurl + ')'}
+                            
+                        } catch (e) {  }
                     });
                 }
             }).catch( err => {console.log(err)});
@@ -240,6 +248,8 @@ export default {
         },
         // disable exammode 
         endExam(){
+            this.getFiles('all') // fetch files from students before ending exam for everybody
+
             this.$swal.fire({
                 title: this.$t("dashboard.sure"),
                 text:  this.$t("dashboard.exitkiosk"),
@@ -507,17 +517,13 @@ export default {
                     icon: 'question',
                     input: 'number',
                     html: `
-                
                      <div style="text-align:left; width: 140px; margin: auto auto;">
                         <input class="form-check-input" name=etesttype type="radio" id="quiz" value="quiz" checked>
                         <label class="form-check-label" for="quiz"> <img src="/src/assets/img/svg/quiz.svg" class="" width="24" height="24" > Test </label>
                          <br>
                         <input class="form-check-input"  name=etesttype type="radio" id="activequiz" value="activequiz">
                         <label class="form-check-label" for="activequiz"> <img src="/src/assets/img/svg/activequiz.svg" class="" width="24" height="24" > LiveTest</label>
-                    </div>
-
-
-                    <br>
+                    </div><br>
                     ${this.$t("dashboard.eduvidualidhint")} <br>
                     <span style="font-size:0.8em">(https://www.eduvidual.at/mod/quiz/view.php?id=<span style="background-color: lightblue; padding:0 3px 0 3px;">4172287</span>)</span>`,
                     inputValidator: (value) => {

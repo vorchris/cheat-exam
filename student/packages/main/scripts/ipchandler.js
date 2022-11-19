@@ -17,11 +17,11 @@ class IpcHandler {
         this.config = null
         this.WindowHandler = null
     }
-    init (mc, config, wh) {
+    init (mc, config, wh, ch) {
         this.multicastClient = mc
         this.config = config
         this.WindowHandler = wh  
-
+        this.CommunicationHandler = ch
 
         /**
          * Registers virtualized status
@@ -33,6 +33,13 @@ class IpcHandler {
          * Returns the main config object
          */ 
         ipcMain.on('getconfig', (event) => {   event.returnValue = this.config   })
+
+
+        /**
+        * Unlock Computer
+        */ 
+        ipcMain.on('gracefullyexit', () => {  this.CommunicationHandler.gracefullyEndExam() } )
+
 
 
         /**
@@ -133,7 +140,6 @@ class IpcHandler {
          * @param filename if set the content of the file is returned
          */ 
         ipcMain.on('getpdf', (event, filename) => {   
-    
             const workdir = path.join(config.workdirectory,"/")
             if (filename) { //return content of specific file
                 let filepath = path.join(workdir,filename)
@@ -148,10 +154,7 @@ class IpcHandler {
          * GET FILE-LIST from workdirectory
          * @param filename if set the content of the file is returned
          */ 
-
-
          ipcMain.on('getfiles', (event, filename) => {   
-    
             const workdir = path.join(config.workdirectory,"/")
 
             if (filename) { //return content of specific file as string (html) to replace in editor)
@@ -176,15 +179,7 @@ class IpcHandler {
                 })
                 event.returnValue = files
             }
-
         })
-
-
-
-
-
-
-
     }
 }
  

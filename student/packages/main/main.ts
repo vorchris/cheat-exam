@@ -20,7 +20,7 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow, globalShortcut } from 'electron'
+import { app, BrowserWindow, nativeTheme} from 'electron'
 import { release } from 'os'
 import { disableRestrictions} from './scripts/platformrestrictions.js';
 import WindowHandler from './scripts/windowhandler.js'
@@ -41,6 +41,7 @@ if (!app.requestSingleInstanceLock()) {  // allow only one instance of the app p
  }
 
 config.electron = true
+config.homedirectory = os.homedir()
 config.workdirectory = path.join(os.homedir(), config.examdirectory)
 config.tempdirectory = path.join(os.tmpdir(), 'exam-tmp')
 if (!fs.existsSync(config.workdirectory)){ fs.mkdirSync(config.workdirectory); }
@@ -55,11 +56,14 @@ try { //bind to the correct interface
    config.hostip = false
  }
 
+app.commandLine.appendSwitch('lang', 'de')
+
+
 fsExtra.emptyDirSync(config.tempdirectory)  // clean temp directory
 
 WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow
 CommHandler.init(multicastClient, config)    // starts "beacon" intervall and fetches information from the teacher - acts on it (startexam, stopexam, sendfile, getfile)
-IpcHandler.init(multicastClient, config, WindowHandler)  //controll all Inter Process Communication
+IpcHandler.init(multicastClient, config, WindowHandler, CommHandler)  //controll all Inter Process Communication
 
   ////////////////////////////////
  // APP handling (Backend) START
@@ -103,6 +107,7 @@ app.on('activate', () => {
 
 app.whenReady()
 .then(()=>{
+    nativeTheme.themeSource = 'light'
     if (config.hostip) { multicastClient.init() }
     WindowHandler.createMainWindow()
 })

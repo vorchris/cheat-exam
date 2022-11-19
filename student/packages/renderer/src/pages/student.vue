@@ -122,7 +122,9 @@ export default {
             else {
                 let IPCresponse = ipcRenderer.sendSync('register', {clientname:this.username, servername:servername, serverip, serverip, pin:this.pincode })
                 console.log(IPCresponse)
-                this.token = IPCresponse.token  // set token immediately for further use (editor , geogebra)
+                if (IPCresponse && IPCresponse.token){
+                    this.token = IPCresponse.token  // set token (used to determine server connection status)
+                }
 
                 if (IPCresponse.status === "success") {
                         this.$swal.fire({

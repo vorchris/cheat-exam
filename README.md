@@ -12,7 +12,7 @@ the next iteration of the life-exam project
 * jquery
 
 
-Node v16.15.0
+Node v19.0.1
 
 ## install necessary modules 
 
