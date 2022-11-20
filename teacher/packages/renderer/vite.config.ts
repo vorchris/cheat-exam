@@ -25,7 +25,7 @@ export default defineConfig({
     sourcemap: true,
     outDir: '../../dist/renderer',
     emptyOutDir: true,
-    minify: false,
+    minify: true,
     chunkSizeWarningLimit:5000
   },
   css: {   // this covers bootstrap css warnings when minifying the css code
