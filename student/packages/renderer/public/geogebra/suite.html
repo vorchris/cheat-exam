@@ -286,7 +286,7 @@ var codebase = "";
 		}
 		return null;
 	}
-	function switchLang(lang){
+	function switchLang(lang){  // for some reason this is totally ignored and the lang has to be set in the minified 6BE44...cache.js file 
 		var storedTranslation = {};
 		if(getLocalStorage("translation")){
 			try {
@@ -306,8 +306,6 @@ var codebase = "";
 			var l10n = document.createElement("script");
 			document.head.appendChild(l10n);
 			l10n.onload = function(){
-
-
 				showInLang(lang);
 				if(window.__GGB__keysVar[lang]){
 					var obj = {};
@@ -315,7 +313,6 @@ var codebase = "";
 					obj[lang] = window.__GGB__keysVar[lang];
 					setLocalStorage("translation", JSON.stringify(obj));
 				}
-
 			}
 			var propertiesCodebase = codebase.replace("/latest", "/"+latestVersion);
 			l10n.setAttribute("src", propertiesCodebase + module+"/js/properties_keys_" + lang + ".js");
@@ -338,9 +335,9 @@ var codebase = "";
 	}
 
 	function showStartScreen(){
-		var lang =  "de";
-		window.setTimeout(showInEnglish, 1000);
-		switchLang(validLang(lang));
+		// var lang =  "de"; // this should be sufficient but the functions of this file seem to be ignored and the blob is used
+		// window.setTimeout(showInEnglish, 1000);
+		// switchLang(validLang(lang));
 	}
 
 	function setPrerelease(prereleaseParam){
