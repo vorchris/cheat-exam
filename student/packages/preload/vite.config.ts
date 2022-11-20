@@ -13,8 +13,7 @@ export default defineConfig({
       formats: ['cjs'],
       fileName: () => '[name].cjs',
     },
-    minify: process.env./* from mode option */NODE_ENV === 'production',
-    // https://github.com/caoxiemeihao/electron-vue-vite/issues/61
+    minify: true,
     sourcemap: 'inline',
     rollupOptions: {
       external: [
