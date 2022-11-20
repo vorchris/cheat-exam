@@ -286,7 +286,7 @@ var codebase = "";
 		}
 		return null;
 	}
-	function switchLang(lang){  // for some reason this is totally ignored and the lang has to be set in the minified 6BE44...cache.js file 
+	function switchLang(lang){  // this always sets lang to EN on windowns - lang has to be set to DE in the minified 6BE44...cache.js file - wtf?
 		var storedTranslation = {};
 		if(getLocalStorage("translation")){
 			try {
@@ -334,8 +334,8 @@ var codebase = "";
 		return location.protocol.match(/(chrome|app|file:)/) || location.host.match(/^([0-9.]*|(autotest|deploy).*geogebra.org|localhost|apps-builds.s3.*.amazonaws.com)(:.+)?$/);
 	}
 
-	function showStartScreen(){
-		// var lang =  "de"; // this should be sufficient but the functions of this file seem to be ignored and the blob is used
+	function showStartScreen(){  //calling switchLang() sets language to "en" on windows.. always! so we edited the blob
+		// var lang =  "de"; 
 		// window.setTimeout(showInEnglish, 1000);
 		// switchLang(validLang(lang));
 	}
