@@ -1,12 +1,11 @@
 /** 
  * VUE.js Frontend - Routing 
 */
-import {  createMemoryHistory,  createRouter as _createRouter,  createWebHistory ,createWebHashHistory } from 'vue-router'
-import axios from 'axios'
+import { createRouter as _createRouter,  createWebHashHistory } from 'vue-router'
 
 /**
  * @license GPL LICENSE
- * Copyright (c) 2021-2022 Thomas Michael Weissel
+ * Copyright (c) 2021-2023 Thomas Michael Weissel
  * 
  * This program is free software: you can redistribute it and/or modify it 
  * under the terms of the GNU General Public License as published by the Free Software Foundation,
@@ -63,14 +62,11 @@ async function fetchInfo(to, from){
     let response = ipcRenderer.sendSync('getinfo')
     let clientinfo = response.clientinfo
     
-    // await axios.get(`https://localhost:${config.clientApiPort}/client/control/getinfo`)
-    // .then(response => {  return response.data.clientinfo  })
-    // .catch( err => {console.log(err)})
-    
     to.params.serverip = clientinfo.serverip
     to.params.servername = clientinfo.servername 
     to.params.servertoken = clientinfo.servertoken
     to.params.clientname = clientinfo.name
+    to.params.pincode = clientinfo.pin
     return true
 }
 

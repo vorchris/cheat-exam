@@ -127,6 +127,7 @@ class IpcHandler {
                     this.multicastClient.clientinfo.ip = clientip
                     this.multicastClient.clientinfo.token = response.data.token // we need to store the client token in order to check against it before processing critical api calls
                     this.multicastClient.clientinfo.focus = true
+                    this.multicastClient.clientinfo.pin = pin
                 }
                 event.returnValue = response.data
             

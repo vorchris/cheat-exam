@@ -14,7 +14,7 @@
             <span class="fs-4 align-middle me-4 red" style="float: left;"> | {{ $t("student.disconnected") }} </span>  
         </div>
 
-        <span  v-if="online" class="fs-4 align-middle" style="">{{servername}}</span>
+        <span  v-if="online" class="fs-4 align-middle" style="">{{servername}}|{{pincode}}</span>
         <div v-if="!online && exammode" class="btn btn-success p-1 me-1 mb-1 btn-sm"  style="float: left;"  @click="reconnect()"><img src="/src/assets/img/svg/gtk-convert.svg" class="" width="22" height="22"> {{ $t("editor.reconnect")}}</div>
         <div v-if="!online && exammode" class="btn btn-danger p-1 me-1 mb-1 btn-sm"  style="float: left;"  @click="gracefullyexit()"><img src="/src/assets/img/svg/dialog-cancel.svg" class="" width="22" height="22"> {{ $t("editor.unlock")}} </div>
 
@@ -192,7 +192,7 @@ export default {
             charcount : 0,
             wordcount : 0,
             now : 0,
-            pincode : false,
+            pincode : this.$route.params.pincode,
             zoom:1,
             battery: null
         }
@@ -206,12 +206,12 @@ export default {
         },
         async fetchInfo() {
             let getinfo = ipcRenderer.sendSync('getinfo')  // we need to fetch the updated version of the systemconfig from express api (server.js)
-            
             this.clientinfo = getinfo.clientinfo;
             this.token = this.clientinfo.token
             this.focus = this.clientinfo.focus
             this.clientname = this.clientinfo.name
             this.exammode = this.clientinfo.exammode
+            this.pincode = this.clientinfo.pin
 
             if (!this.focus){  this.entrytime = new Date().getTime()}
             if (this.clientinfo && this.clientinfo.token){  this.online = true  }
@@ -226,6 +226,8 @@ export default {
                 text:  this.$t("editor.info"),
                 icon: 'info',
                 input: 'number',
+                inputLabel: "PIN",
+                inputValue: this.pincode,
                 inputValidator: (value) => {
                     if (!value) {return this.$t("student.nopin")}
                 }
