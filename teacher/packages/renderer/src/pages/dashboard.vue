@@ -135,13 +135,14 @@
         <div id="studentslist" class="placeholder pt-1"> 
             <div v-for="student in studentlist" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn border-0 rounded-3 btn-block ">
                 <div id="image" class="rounded"   style="position: relative; height:132px;">
-
                     <div v-cloak :id="student.token" style="position: relative;background-size: cover; height: 132px; background-image: url('user-black.svg')"></div>
-
                     <div v-if="student.virtualized" class="virtualizedinfo" >{{$t("dashboard.virtualized")}}</div>
                     <div v-if="!student.focus" class="kioskwarning" >{{$t("dashboard.leftkiosk")}}</div>
-                    <span style="">{{student.clientname}}            
-                    <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-2 pe-2 float-end" title="kick user"></button> </span>
+                    <span style="">   
+                        <img v-for="file in student.files" style="width:22px; margin-left:-4px; position: relative; filter: sepia(10%) hue-rotate(306deg) brightness(0.3) saturate(75);" class="" src="/src/assets/img/svg/document.svg"><br>
+                        {{student.clientname}}  
+                        <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-2 pe-2 float-end" title="kick user"></button> 
+                    </span>
                </div>
                 <div class="btn-group pt-0" role="group">
                     <button v-if="(now - 20000 < student.timestamp)" @click="showStudentview(student)" type="button" class="btn btn-outline-success btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">{{$t('dashboard.online')}} </button>
@@ -232,7 +233,6 @@ export default {
                                 document.getElementById(`${student.token}`).style.backgroundImage = 'url("user-red.svg")'
                             }
                             else {document.getElementById(`${student.token}`).style.backgroundImage = 'url(' + student.imageurl + ')'}
-                            
                         } catch (e) {  }
                     });
                 }

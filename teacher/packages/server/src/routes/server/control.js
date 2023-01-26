@@ -442,7 +442,8 @@ router.get('/serverlist', function (req, res, next) {
     student.virtualized = clientinfo.virtualized
     student.timestamp = new Date().getTime()   //last seen 
     student.exammode = exammode  
-   
+    student.files = clientinfo.numberOfFiles
+
     // return current serverinformation 
     res.send({sender: "server", message:t("control.studentupdate"), status:"success", serverstatus:mcServer.serverstatus, studentstatus: student.status })
 })

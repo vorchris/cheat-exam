@@ -203,6 +203,7 @@ class IpcHandler {
                     else if  (path.extname(file).toLowerCase() === ".mtml"){ files.push( {name: file, type: "mtml", mod: mod})   }  // imaginary multiple choice testformat from the future
                     
                 })
+                this.multicastClient.clientinfo.numberOfFiles = filelist.length
                 event.returnValue = files
             }
         })
