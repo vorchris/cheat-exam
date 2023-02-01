@@ -39,7 +39,6 @@ config.tempdirectory = path.join(os.tmpdir(), 'exam-tmp')
 if (!fs.existsSync(config.workdirectory)){ fs.mkdirSync(config.workdirectory); }
 if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory); }
 
-
 try {
     const {gateway, interface: iface} =  defaultGateway.v4.sync()
     config.hostip = ip.address(iface)    // this returns the ip of the interface that has a default gateway..  should work in MOST cases.  probably provide "ip-options" in UI ?
@@ -61,10 +60,19 @@ const limiter = rateLimit({
     max: 400, // Limit each IP to 400 requests per `window` 
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  })
+})
 
 // clean temp directory
 fsExtra.emptyDirSync(config.tempdirectory)
+
+// copy dictionary files to /tmp/dicts (served via static for students)
+fsExtra.copy('public/dicts', `${config.tempdirectory}/dicts`, function (err) {
+    if (err) return console.error(err)
+    console.log('success!')
+});
+  
+
+
 
 // init express API
 const api = express()

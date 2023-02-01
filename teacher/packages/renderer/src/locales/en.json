@@ -78,6 +78,7 @@
         "en":"English",
         "es":"Spanish",
         "fr":"French",
+        "it":"Italian",
         "abgabeauto":"Automatic Retreival",
         "abgabeautoquestion":"Please set the interval for automatic retreival?",
         "abgabeautohint":"(Timeframe in minutes)",

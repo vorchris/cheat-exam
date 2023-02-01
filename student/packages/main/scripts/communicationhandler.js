@@ -207,10 +207,14 @@ import WindowHandler from './windowhandler.js'
         if (WindowHandler.examwindow){ 
 
             //send save trigger to exam window
-            WindowHandler.examwindow.webContents.send('save', 'exitexam') //trigger, why
-            await this.sleep(3000)  // give students time to read whats happening (and the editor time to save the content)
-            WindowHandler.examwindow.close(); 
-            WindowHandler.examwindow.destroy(); 
+            try {
+                 WindowHandler.examwindow.webContents.send('save', 'exitexam') //trigger, why
+                await this.sleep(3000)  // give students time to read whats happening (and the editor time to save the content)
+                WindowHandler.examwindow.close(); 
+                WindowHandler.examwindow.destroy(); 
+            }
+            catch(e){ console.log(e)}
+           
             WindowHandler.examwindow = null;
             for (let blockwindow of WindowHandler.blockwindows){
                 blockwindow.close(); 

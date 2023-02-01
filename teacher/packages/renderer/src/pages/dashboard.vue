@@ -554,6 +554,7 @@ export default {
                         'en-GB': this.$t("dashboard.en"),
                         'fr': this.$t("dashboard.fr"),
                         'es': this.$t("dashboard.es"),
+                        'it': this.$t("dashboard.it"),
                     })
                 }, 100)
             })
