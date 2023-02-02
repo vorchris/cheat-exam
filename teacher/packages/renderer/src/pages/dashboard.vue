@@ -124,11 +124,21 @@
    
     <div id="content" class="fadeinslow p-3">
         <!-- control buttons start -->
-        <div v-if="(!exammode)" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px;"  @click="startExam()">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
-        <div v-if="(exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:100px;" @click="endExam()" >{{numberOfConnections}} {{$t('dashboard.stopexam')}}</div>
-        <div class="btn btn-info m-1 mt-0 text-start ms-0 " style="width:100px;" @click="sendFiles('all')">{{$t('dashboard.sendfile')}}</div>
-        <div class="btn btn-info m-1 mt-0 text-start ms-0 " style="width:100px;" @click="getFiles('all', true)">{{$t('dashboard.getfile')}}</div>
-        <div class="col d-inlineblock btn btn-dark m-1 mt-0 text-start ms-0 " @click="loadFilelist(workdirectory)"  style="width: 100px; ">{{$t('dashboard.showworkfolder')}} </div>
+        <div v-if="(!exammode)" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px; height:62px;"  @click="startExam()">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
+        <div v-if="(exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="endExam()" >{{numberOfConnections}} {{$t('dashboard.stopexam')}}</div>
+        <div class="btn btn-info m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="sendFiles('all')">{{$t('dashboard.sendfile')}}</div>
+        <div class="btn btn-info m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="getFiles('all', true)">{{$t('dashboard.getfile')}}</div>
+        <div class="col d-inlineblock btn btn-dark m-1 mt-0 text-start ms-0 " @click="loadFilelist(workdirectory)"  style="width: 100px;">{{$t('dashboard.showworkfolder')}} </div>
+          
+        <div  v-if="(screenslocked)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens()"> 
+            <img src="/src/assets/img/svg/shield-lock-fill.svg" class="white mt-2" title="unlock" width="32" height="32" >  
+        </div>
+        <div  v-if="(!screenslocked)" class="btn btn-dark m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens()"> 
+            <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" title="lock" width="32" height="32" >  
+        </div>
+
+
+
         <!-- control buttons end -->
 
         <!-- studentlist start -->
@@ -214,7 +224,8 @@ export default {
             spellchecklang: 'de',
             suggestions: false,
             moodleTestId: null,
-            moodleTestType: null
+            moodleTestType: null,
+            screenslocked: false
         };
     },
     components: { },
@@ -619,7 +630,19 @@ export default {
             else { clearInterval( this.abgabeinterval )} 
         },
 
+        lockscreens(){
+            if (this.screenslocked) { this.screenslocked = false }   
+            else { this.screenslocked = true} 
 
+            fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/serverstatus/${this.servername}/${this.servertoken}`, { 
+                method: 'POST',
+                headers: {'Content-Type': 'application/json' },
+                body: JSON.stringify({ screenlock: this.screenslocked  })
+                })
+            .then( res => res.json())
+            .then( response => { })
+            .catch(err => { console.warn(err) })
+        },
 
         //upload files to all students
         sendFiles(who) {

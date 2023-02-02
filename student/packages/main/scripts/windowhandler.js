@@ -11,6 +11,7 @@ import {disableRestrictions, enableRestrictions} from './platformrestrictions.js
 class WindowHandler {
     constructor () {
       this.blockwindows = []
+      this.screenlockWindow = null
       this.mainwindow = null
       this.examwindow = null
       this.config = null
@@ -68,7 +69,48 @@ class WindowHandler {
     }
 
 
+    /**
+     * Screenlock Window (to cover everything) - block students from working
+     * @param display 
+     */
 
+    createScreenlockWindow(display) {
+        this.screenlockWindow = new BrowserWindow({
+            show: false,
+            x: display.bounds.x + 0,
+            y: display.bounds.y + 0,
+            parent: this.examwindow,
+            skipTaskbar:true,
+            title: 'Next-Exam',
+            width: display.bounds.width,
+            height: display.bounds.height,
+            closable: false,
+            alwaysOnTop: true,
+            focusable: false,   //doesn't work with kiosk mode (no kiosk mode possible.. why?)
+            minimizable: false,
+            resizable:false,
+            movable: false,
+            icon: join(__dirname, '../../public/icons/icon.png'),
+            webPreferences: {
+                preload: join(__dirname, '../preload/preload.cjs'),
+            },
+        });
+
+        let url = "lock"
+        if (app.isPackaged) {
+            let path = join(__dirname, `../renderer/index.html`)
+            this.screenlockWindow.loadFile(path, {hash: `#/${url}/`})
+        } 
+        else {
+            url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}/#/${url}/`
+            this.screenlockWindow.loadURL(url)
+        }
+        this.screenlockWindow.removeMenu() 
+        this.screenlockWindow.moveTop();
+        this.screenlockWindow.setKiosk(true)
+        this.screenlockWindow.show()
+       
+    }
 
 
 

@@ -392,6 +392,30 @@ router.get('/serverlist', function (req, res, next) {
 
 
 /**
+ * Change specific value in mcServer.serverstatus 
+ * req.body should contain the updated serverstatus information
+ * @param servername the name of the server at which the student is registered
+ * @param csrfservertoken servertoken to authenticate before the request is processed
+ */
+router.post('/serverstatus/:servername/:csrfservertoken', function (req, res, next) {
+    const csrfservertoken = req.params.csrfservertoken
+    const servername = req.params.servername
+    const mcServer = config.examServerList[servername]
+   
+    if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
+    if (csrfservertoken !== mcServer.serverinfo.servertoken) { res.send({sender: "server", message:t("control.tokennotvalid"), status: "error"} )}
+
+    mcServer.serverstatus.screenlock = req.body.screenlock
+ 
+    
+    res.json({ sender: "server", message:t("general.ok"), status: "success" })
+})
+
+
+
+
+
+/**
  * UPDATES Clientinfo - the specified students timestamp (used in dashboard to mark user as online) and other status updates
  * FETCHES Serverstatus & Studentstatus
  * usually triggered by the clients directly from the Main Process (loop)

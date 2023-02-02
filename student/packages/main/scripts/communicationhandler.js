@@ -59,6 +59,7 @@ import WindowHandler from './windowhandler.js'
             console.log("Connection to Teacher lost! Removing registration.")
             this.multicastClient.beaconsLost = 0
             this.resetConnection()
+            this.killScreenlock()
             if (this.multicastClient.clientinfo.exammode === true) {
                 // lets try to allow students to gracefully exit exam on connection loss manually (only in geogebra and editor for now bc. we control the ui) 
                 // this should lead to less irritation when the teacher connection is lost
@@ -128,6 +129,10 @@ import WindowHandler from './windowhandler.js'
         }
 
         // global status updates
+        if (serverstatus.screenlock && !this.multicastClient.clientinfo.screenlock) {  this.activateScreenlock() }
+        else if (!serverstatus.screenlock ) { this.killScreenlock() }
+
+
         if (serverstatus.exammode && !this.multicastClient.clientinfo.exammode){ 
             this.startExam(serverstatus)
         }
@@ -136,6 +141,43 @@ import WindowHandler from './windowhandler.js'
         }
 
     }
+
+
+    activateScreenlock(){
+        let displays = screen.getAllDisplays()
+        let primary = screen.getPrimaryDisplay()
+        if (!primary || primary === "" || !primary.id){ primary = displays[0] }       
+       
+        if (!WindowHandler.screenlockWindow){  // why do we check? because exammode is left if the server connection gets lost but students could reconnect while the exam window is still open and we don't want to create a second one
+            this.multicastClient.clientinfo.screenlock = true
+            WindowHandler.createScreenlockWindow(primary);
+        }
+
+    }
+
+    killScreenlock(){
+        if (WindowHandler.screenlockWindow){ 
+            try {  
+                WindowHandler.screenlockWindow.close(); 
+                WindowHandler.screenlockWindow.destroy(); 
+            }
+            catch(e){ console.log(e)}
+            WindowHandler.screenlockWindow = null;
+        }
+        this.multicastClient.clientinfo.screenlock = false
+    }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     /**

@@ -25,7 +25,7 @@ import notfound from '/src/pages/notfound.vue'
 import student from '/src/pages/student.vue'
 import editor from '/src/pages/editor.vue'
 import geogebra from '/src/pages/geogebra.vue'
-
+import lock from '/src/pages/lock.vue'
 
 console.log(config)  // config is exposed to the renderer (frontend) in preload.js (it's readonly here!)
 
@@ -37,10 +37,11 @@ if (userAgent.indexOf(' electron/') > -1) {
 }
 
 const routes = [
-    { path: '/',                name:"index",     component: student,     beforeEnter: [addParams]             },
+    { path: '/',                name:"index",       component: student,     beforeEnter: [addParams]             },
     { path: '/student',         name:"student",     component: student,     beforeEnter: [addParams]             },
     { path: '/editor/:token',   name:"editor",      component: editor,      beforeEnter: [addParams, fetchInfo] },  
     { path: '/math/:token',     name:"math",        component: geogebra,    beforeEnter: [addParams, fetchInfo] },
+    { path: '/lock',            name:"lock",        component: lock },
     { path: '/:pathMatch(.*)*', name:"404",         component: notfound },
 ]
 
