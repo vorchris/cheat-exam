@@ -132,7 +132,7 @@ import WindowHandler from './windowhandler.js'
             this.startExam(serverstatus)
         }
         else if (!serverstatus.exammode && this.multicastClient.clientinfo.exammode){
-            this.endExam()
+            this.endExam(serverstatus)
         }
 
     }
@@ -150,7 +150,7 @@ import WindowHandler from './windowhandler.js'
             console.log("cleaning exam workfolder")
             try {
                 if (fs.existsSync(this.config.workdirectory)){   // set by server.js (desktop path + examdir)
-                    fs.rmdirSync(this.config.workdirectory, { recursive: true });
+                    fs.rmSync(this.config.workdirectory, { recursive: true });
                     fs.mkdirSync(this.config.workdirectory);
                 }
             } catch (error) { console.error(error); }
@@ -202,14 +202,27 @@ import WindowHandler from './windowhandler.js'
      * closes exam window
      * disables restrictions and blur 
      */
-    async endExam(){
-        //handle eduvidual case
-        if (WindowHandler.examwindow){ 
-
-            //send save trigger to exam window
+    async endExam(serverstatus){
+        console.log(serverstatus)
+        // delete students work on students pc (makes sense if exam is written on school property)
+        if (serverstatus.delfolderonexit === true){
+            console.log("cleaning exam workfolder on exit")
             try {
-                 WindowHandler.examwindow.webContents.send('save', 'exitexam') //trigger, why
-                await this.sleep(3000)  // give students time to read whats happening (and the editor time to save the content)
+                if (fs.existsSync(this.config.workdirectory)){   // set by server.js (desktop path + examdir)
+                    fs.rmSync(this.config.workdirectory, { recursive: true });
+                    fs.mkdirSync(this.config.workdirectory);
+                }
+            } catch (error) { console.error(error); }
+        }
+
+
+        if (WindowHandler.examwindow){ // in some edge cases in development this is set but still unusable - use try/catch
+            
+            try {  //send save trigger to exam window
+                if (!serverstatus.delfolderonexit){
+                    WindowHandler.examwindow.webContents.send('save', 'exitexam') //trigger, why
+                    await this.sleep(3000)  // give students time to read whats happening (and the editor time to save the content)
+                }
                 WindowHandler.examwindow.close(); 
                 WindowHandler.examwindow.destroy(); 
             }

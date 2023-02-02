@@ -208,6 +208,7 @@ export default {
             currentpreviewname: null,
             exammode: false,
             delfolder: false,
+            delfolderonexit: false,
             numberOfConnections: 0,
             spellcheck: false,
             spellchecklang: 'de',
@@ -246,7 +247,7 @@ export default {
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/exam/${this.servername}/${this.servertoken}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },
-                body: JSON.stringify({ exammode: this.exammode, examtype: this.examtype, delfolder: this.delfolder, spellcheck: this.spellcheck, spellchecklang:this.spellchecklang, suggestions: this.suggestions, testid: this.moodleTestId, moodleTestType: this.moodleTestType  })
+                body: JSON.stringify({ exammode: this.exammode, examtype: this.examtype, delfolder: this.delfolder, delfolderonexit: this.delfolderonexit, spellcheck: this.spellcheck, spellchecklang:this.spellchecklang, suggestions: this.suggestions, testid: this.moodleTestId, moodleTestType: this.moodleTestType  })
                 })
             .then( res => res.json())
             .then( response => { })
@@ -258,11 +259,20 @@ export default {
 
             this.$swal.fire({
                 title: this.$t("dashboard.sure"),
-                text:  this.$t("dashboard.exitkiosk"),
+              
+                html: `<div>
+                    <input class="form-check-input" type="checkbox" id="checkboxdel">
+                    <label class="form-check-label" for="checkboxdel"> ${this.$t("dashboard.exitdelete")} </label>
+                    <br><br>
+                    <span>${this.$t("dashboard.exitkiosk")}</span>
+                </div>`,
                 icon: "question",
                 showCancelButton: true,
                 cancelButtonText: this.$t("dashboard.cancel"),
-                reverseButtons: true
+                reverseButtons: true,
+                preConfirm: () => {
+                    this.delfolderonexit = document.getElementById('checkboxdel').checked; 
+                }
             })
             .then((result) => {
                 if (result.isConfirmed) {
@@ -270,7 +280,7 @@ export default {
                     fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/exam/${this.servername}/${this.servertoken}`, { 
                         method: 'POST',
                         headers: {'Content-Type': 'application/json' },
-                        body: JSON.stringify({ exammode: this.exammode, examtype: this.examtype, delfolder: this.delfolder  })
+                        body: JSON.stringify({ exammode: this.exammode, examtype: this.examtype, delfolder: this.delfolder, delfolderonexit: this.delfolderonexit  })
                         })
                     .then( res => res.json())
                     .then( response => { })
@@ -562,7 +572,7 @@ export default {
                 title: this.$t("dashboard.spellcheck"),
                 html: `<div>
                     <input class="form-check-input" type="checkbox" id="checkboxsuggestions">
-                    <label class="form-check-label" for="checkboxsuggestions"> Show suggestions  </label>
+                    <label class="form-check-label" for="checkboxsuggestions"> ${this.$t("dashboard.suggest")} </label>
                     <br><br>
                     <span>${this.$t("dashboard.spellcheckchoose")}</span>
                 </div>`,

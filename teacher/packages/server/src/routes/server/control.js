@@ -378,6 +378,7 @@ router.get('/serverlist', function (req, res, next) {
     mcServer.serverstatus.exammode = req.body.exammode
     mcServer.serverstatus.examtype = req.body.examtype
     mcServer.serverstatus.delfolder = req.body.delfolder
+    mcServer.serverstatus.delfolderonexit = req.body.delfolderonexit
     mcServer.serverstatus.spellcheck = req.body.spellcheck
     mcServer.serverstatus.spellchecklang = req.body.spellchecklang
     mcServer.serverstatus.suggestions = req.body.suggestions
