@@ -17,7 +17,10 @@
         "examname": "Name",
         "pwd": "Password",
         "emptypw": "Please provide a valid password",
-        "emptyname": "Please provide a valid username"
+        "emptyname": "Please provide a valid username",
+        "advanced": "advanced",
+        "simple": "simple",
+        "workfolder": "Workdirectory"
     },
     "dashboard":{
         "server": "Server",
@@ -85,7 +88,9 @@
         "abgabeautoquestion":"Please set the interval for automatic retreival?",
         "abgabeautohint":"(Timeframe in minutes)",
         "eduvidualid": "Eduvidual Test",
-        "eduvidualidhint": "Please enter a valid id!"
+        "eduvidualidhint": "Please enter a valid id!",
+        "lock":"lock displays",
+        "unlock":"unlock displays"
     },
     "control": {
         "tokennotvalid": "token is not valid",

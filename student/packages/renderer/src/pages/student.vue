@@ -17,7 +17,9 @@
 
     <!-- SIDEBAR -->
     <div class="p-3 text-white bg-dark h-100" style="width: 240px; min-width: 240px;">
-        <div class="btn btn-light m-0 text-start infobutton"><img src='/src/assets/img/svg/server.svg' class="me-2"  width="16" height="16" > {{$t('student.exams')}} </div><br>
+        <div class="btn btn-light m-0 text-start infobutton">
+            <img src='/src/assets/img/svg/server.svg' class="me-2"  width="16" height="16" > {{$t('student.exams')}} 
+        </div><br>
         <div v-if="!advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("student.advanced") }}</div>
         <div v-if="advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("student.simple") }}</div>
         <span style="position: absolute; bottom:2px; left: 4px; font-size:0.8em">{{version}}</span>

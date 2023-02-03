@@ -225,7 +225,7 @@ export default {
             suggestions: false,
             moodleTestId: null,
             moodleTestType: null,
-            screenslocked: false
+            screenslocked: false,
         };
     },
     components: { },
@@ -480,7 +480,9 @@ export default {
             })
             .then( response => response.arrayBuffer() )
             .then( lastestpdf => {
+                console.log(lastestpdf)
                 if (lastestpdf.byteLength === 0){
+                    console.log("nothing found")
                     this.status(` ${this.$t("dashboard.nopdf")}`);
                     return
                 }
@@ -631,8 +633,9 @@ export default {
         },
 
         lockscreens(){
-            if (this.screenslocked) { this.screenslocked = false }   
-            else { this.screenslocked = true} 
+            
+            if (this.screenslocked) { this.screenslocked = false;  this.visualfeedback(this.$t("dashboard.unlock"))}   
+            else { this.screenslocked = true; this.visualfeedback(this.$t("dashboard.lock"))} 
 
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/serverstatus/${this.servername}/${this.servertoken}`, { 
                 method: 'POST',
@@ -749,6 +752,8 @@ export default {
         })
         if (this.electron){
             this.hostname = "localhost"
+            // this.currentdirectory = ipcRenderer.sendSync('getCurrentWorkdir') 
+            // this.workdirectory= `${this.currentdirectory}/${this.servername}`
         }
     },
     beforeUnmount() {  //when leaving
