@@ -66,7 +66,7 @@
                 <img src="/src/assets/img/svg/eye-slash-fill.svg" class=" me-2" width="32" height="32" >
             </div>
         </div>
-        <iframe id="geogebraframe" :src="geogebrasource"></iframe>
+        <iframe id="geogebraframe" src="./geogebra/classic.html"></iframe>
     </div>
 </template>
 
@@ -92,7 +92,7 @@ export default {
             clientname: this.$route.params.clientname,
             serverApiPort: this.$route.params.serverApiPort,
             clientApiPort: this.$route.params.clientApiPort,
-            geogebrasource: "",
+            
             electron: this.$route.params.electron,
             pincode : this.$route.params.pincode,
             clientinfo: null,
@@ -104,7 +104,6 @@ export default {
     }, 
     components: {  },  
     mounted() {
-        this.geogebrasource = `./geogebra/suite.html`
         this.currentFile = this.clientname
         this.entrytime = new Date().getTime()  
          
@@ -189,8 +188,10 @@ export default {
             this.localfiles = filelist;
         },
         setsource(source){
-            if (source === "suite") { this.geogebrasource = `./geogebra/suite.html`}
-            if (source === "classic") { this.geogebrasource = `./geogebra/classic.html`}
+            let iFrame = document.getElementById('geogebraframe')
+            if (source === "suite")   { iFrame.src = `./geogebra/suite.html`  }
+            if (source === "classic") { iFrame.src = `./geogebra/classic.html`}
+            iFrame.parentNode.replaceChild(iFrame.cloneNode(), iFrame);
         },  
         clock(){
             let now = new Date().getTime()
