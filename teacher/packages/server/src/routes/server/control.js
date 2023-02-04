@@ -44,12 +44,15 @@ import fs from 'fs'
  * @param pin the pin code used to authenticate
  * #FIXME !!!  This route needs to be secured (anyone can start a server right now - or 1000 servers)
  */
- router.get('/start/:servername/:passwd', function (req, res, next) {
+ router.post('/start/:servername/:passwd', function (req, res, next) {
 
     if (!requestSourceAllowed(req, res)) return   // for the webversion we need to check user permissions here (future stuff)
 
     const servername = req.params.servername 
     const mcServer = config.examServerList[servername]
+
+    console.log(req.body) // optional: we could store the current workdirectory for every mcserver on mcserver.serverinfo in the future
+    
     //generate random pin
     let pin = String(Math.floor(Math.random()*90000) + 10000)
     if (config.development){ pin = "1337" }  
@@ -70,7 +73,7 @@ import fs from 'fs'
     mcs.init(servername, pin, req.params.passwd)
     config.examServerList[servername]=mcs
 
-     let serverinstancedir = path.join(config.workdirectory, servername)
+    let serverinstancedir = path.join(config.workdirectory, servername)
 
     if (!fs.existsSync(serverinstancedir)){ fs.mkdirSync(serverinstancedir, { recursive: true }); }
     res.send( {sender: "server", message: t("control.serverstarted"), status: "success"})
@@ -164,7 +167,7 @@ router.get('/serverlist', function (req, res, next) {
         res.send({studentlist: mcServer.studentList})
     }
     else {
-        res.send({sender: "server", message:t("control.notfound"), status: "error"} )
+        res.send({sender: "server", message:t("control.notfound"), status: "error", studentlist: []} )
     }
 })
 

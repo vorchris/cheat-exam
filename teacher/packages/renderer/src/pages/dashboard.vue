@@ -480,7 +480,6 @@ export default {
             })
             .then( response => response.arrayBuffer() )
             .then( lastestpdf => {
-                console.log(lastestpdf)
                 if (lastestpdf.byteLength === 0){
                     console.log("nothing found")
                     this.status(` ${this.$t("dashboard.nopdf")}`);
@@ -705,7 +704,7 @@ export default {
                     axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/stopserver/${this.servername}/${this.servertoken}`)
                     .then( async (response) => {
                         this.status(response.data.message);
-                        console.log(response.data);
+                        //console.log(response.data);
                         await this.sleep(2000);
                         this.$router.push({ path: '/startserver' })
                     }).catch( err => {console.log(err)});
@@ -752,8 +751,8 @@ export default {
         })
         if (this.electron){
             this.hostname = "localhost"
-            // this.currentdirectory = ipcRenderer.sendSync('getCurrentWorkdir') 
-            // this.workdirectory= `${this.currentdirectory}/${this.servername}`
+            this.currentdirectory = ipcRenderer.sendSync('getCurrentWorkdir') 
+            this.workdirectory= `${this.currentdirectory}/${this.servername}`
         }
     },
     beforeUnmount() {  //when leaving

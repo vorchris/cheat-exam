@@ -27,10 +27,10 @@
             <img src="/src/assets/img/svg/person-lines-fill.svg" class="white me-2"  width="16" height="16" >
             {{$t("general.slist")}}
         </router-link> 
-        <!-- 
-            <div v-if="!advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("startserver.advanced") }}</div>
-            <div v-if="advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("startserver.simple") }}</div> 
-        -->
+    
+        <div v-if="!advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("startserver.advanced") }}</div>
+        <div v-if="advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("startserver.simple") }}</div> 
+    
         <div class="m-2">
             <br><div id="statusdiv" class="btn btn-warning m-2 hidden">{{$t("startserver.connected")}}</div>
         </div><br>
@@ -56,15 +56,11 @@
             </div>
         </div>
         <div id="list" class="placeholder">
-
-
-            <!-- <div v-if="advanced" class="  mb-1"> 
+            <div v-if="advanced" class="  mb-1"> 
                 <span class="">{{ $t("startserver.workfolder") }}</span><br>
                 <span style="font-family: monospace; white-space: pre; font-size: 0.8em;">{{ workdir }}</span><br>
                 <button @click="setWorkdir()" id="examstart" class="btn btn-sm btn-info" value="start exam" style="width:135px;">select</button>
-            </div> -->
-
-
+            </div>
         </div>
     </div>
 </div>
@@ -88,18 +84,18 @@ export default {
             electron: this.$route.params.electron,
             hostname: window.location.hostname,
             hostip: this.$route.params.config.hostip,
-            //advanced: false,
-            //workdir: this.$route.params.config.workdirectory
+            advanced: false,
+            workdir: this.$route.params.config.workdirectory
         };
     },
     components: {},
     methods: {
-        // setWorkdir(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
-        //     this.workdir = ipcRenderer.sendSync('setworkdir')
-        // },
-        // toggleAdvanced(){
-        //     if (this.advanced) {this.advanced = false} else {this.advanced = true}
-        // },
+        setWorkdir(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
+            this.workdir = ipcRenderer.sendSync('setworkdir')
+        },
+        toggleAdvanced(){
+            if (this.advanced) {this.advanced = false} else {this.advanced = true}
+        },
 
         async startServer(){
             if (this.servername ==="" ){
@@ -109,10 +105,17 @@ export default {
                 this.status(this.$t("startserver.emptypw")); 
             }
             else {
-                await axios.get(`https://${this.hostname}:${this.serverApiPort}/server/control/start/${this.servername}/${this.password}`)
-                .then( async (response) => {
-                    if (response.data.status === "success") {  //directly log in
-                        this.status(response.data.message);
+
+
+                fetch(`https://${this.hostname}:${this.serverApiPort}/server/control/start/${this.servername}/${this.password}`, { 
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json' },
+                    body: JSON.stringify({ workdir: this.workdir  })
+                })
+                .then( res => res.json())
+                .then( async response => { 
+                    if (response.status === "success") {  //directly log in
+                        this.status(response.message);
                         await this.sleep(1000);
                         if (this.electron){
                             this.$router.push({  // for some reason this doesn't work on mobile
@@ -125,8 +128,15 @@ export default {
                         }
                         else {window.location.href = `#/dashboard/${this.servername}/${this.password}`}
                     }
-                    else { this.status(response.data.message); }
-                }).catch(err => { this.status(err)}); 
+                    else { this.status(response.message); }
+
+                })
+                .catch(err => { this.status(err); console.warn(err) })
+
+
+
+
+
             } 
         },
 

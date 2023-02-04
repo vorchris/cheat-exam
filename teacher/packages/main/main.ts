@@ -156,9 +156,12 @@ ipcMain.on('setworkdir', async (event, arg) => {
     const result = await dialog.showOpenDialog( win, {
       properties: ['openDirectory']
     })
-    console.log('directories selected', result.filePaths)
-    config.workdirectory = join(result.filePaths[0]   , config.examdirectory)
-
-    event.returnValue = config.workdirectory
-     
+    if (!result.canceled){
+        console.log('directories selected', result.filePaths)
+        config.workdirectory = join(result.filePaths[0]   , config.examdirectory)
+        event.returnValue = config.workdirectory
+    }
+    else {
+        event.returnValue = config.workdirectory
+    }
   })

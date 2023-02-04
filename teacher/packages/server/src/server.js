@@ -36,7 +36,7 @@ import multicastClient from './classes/multicastclient.js'
 
 config.workdirectory = path.join(os.homedir(), config.examdirectory)  //Attention! In Electron this makes sense. the WEBserver version will most likely need another Workdirectory
 config.tempdirectory = path.join(os.tmpdir(), 'exam-tmp')
-if (!fs.existsSync(config.workdirectory)){ fs.mkdirSync(config.workdirectory); }
+//if (!fs.existsSync(config.workdirectory)){ fs.mkdirSync(config.workdirectory); } //this is done in control.js /start/ anyways
 if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory); }
 
 try {

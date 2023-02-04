@@ -393,8 +393,8 @@ import WindowHandler from './windowhandler.js'
             data: form, 
             headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
         })
-        .then(response =>{ console.log(response.data.message)  })
-        .catch( err =>{console.log(`Main - sendExam: ${err}`) })
+        .then(response =>{ console.log(`Communication handler @ sendExamToTeacher: ${response.data.message}`)  })
+        .catch( err =>{console.log(`Communication handler @ sendExamToTeacher: ${err}`) })
      
      }
 
