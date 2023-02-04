@@ -20,7 +20,8 @@
         "emptyname": "Bitte geben sie einen Namen an",
         "advanced": "fortgeschritten",
         "simple": "einfach",
-        "workfolder": "Arbeitsverzeichnis"
+        "workfolder": "Arbeitsverzeichnis",
+        "select": "Arbeitsverzeichnis wählen"
     },
     "dashboard":{
         "server": "Server",

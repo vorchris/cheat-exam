@@ -55,11 +55,14 @@
                 <button @click="startServer()" id="examstart" class="btn btn-success" value="start exam" style="width:135px;">{{$t("startserver.start")}}</button>
             </div>
         </div>
-        <div id="list" class="placeholder">
-            <div v-if="advanced" class="  mb-1"> 
-                <span class="">{{ $t("startserver.workfolder") }}</span><br>
-                <span style="font-family: monospace; white-space: pre; font-size: 0.8em;">{{ workdir }}</span><br>
-                <button @click="setWorkdir()" id="examstart" class="btn btn-sm btn-info" value="start exam" style="width:135px;">select</button>
+
+        
+        <div v-if="advanced" id="list" class="placeholder">
+           
+            <div class="input-group input-group-sm" style="max-width: fit-content"> 
+                
+                <button @click="setWorkdir()" id="examstart" class="btn btn-sm btn-info" value="start exam" style="width:195px;">{{$t("startserver.select")}}</button>
+                <span class="form-control " style="font-family: monospace; white-space: pre; font-size:0.8em; padding-top: 5px;">{{ workdir }}</span>
             </div>
         </div>
     </div>

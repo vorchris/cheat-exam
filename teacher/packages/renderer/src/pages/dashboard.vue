@@ -632,7 +632,7 @@ export default {
         },
 
         lockscreens(){
-            
+            if (this.studentlist.length === 0) { this.status(this.$t("dashboard.noclients")); return;}
             if (this.screenslocked) { this.screenslocked = false;  this.visualfeedback(this.$t("dashboard.unlock"))}   
             else { this.screenslocked = true; this.visualfeedback(this.$t("dashboard.lock"))} 
 

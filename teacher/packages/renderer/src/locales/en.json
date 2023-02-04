@@ -20,7 +20,8 @@
         "emptyname": "Please provide a valid username",
         "advanced": "advanced",
         "simple": "simple",
-        "workfolder": "Workdirectory"
+        "workfolder": "Workdirectory",
+        "select": "Select Workdirectory"
     },
     "dashboard":{
         "server": "Server",
