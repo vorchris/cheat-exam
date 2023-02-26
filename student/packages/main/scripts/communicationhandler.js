@@ -222,6 +222,7 @@ import WindowHandler from './windowhandler.js'
             }
         }
 
+        WindowHandler.addBlurListener();
         if (!this.config.development) { 
             if (WindowHandler.examwindow){  //broken connection - exam window still open
                 WindowHandler.examwindow.setFullScreen(true)  //go fullscreen again

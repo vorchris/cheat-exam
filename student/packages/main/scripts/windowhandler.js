@@ -81,7 +81,7 @@ class WindowHandler {
             y: display.bounds.y + 0,
             parent: this.examwindow,
             skipTaskbar:true,
-            title: 'Next-Exam',
+            title: 'Screenlock',
             width: display.bounds.width,
             height: display.bounds.height,
             closable: false,
@@ -108,6 +108,7 @@ class WindowHandler {
         this.screenlockWindow.removeMenu() 
         this.screenlockWindow.moveTop();
         this.screenlockWindow.setKiosk(true)
+        this.screenlockWindow.setAlwaysOnTop(true, "screen-saver", 1) 
         this.screenlockWindow.show()
        
     }
@@ -346,7 +347,8 @@ class WindowHandler {
         winhandler.examwindow.show();  // we keep focus on the window.. no matter what
         winhandler.examwindow.moveTop();
         winhandler.examwindow.focus();
-        winhandler.multicastClient.clientinfo.focus = false
+        if (!winhandler.screenlockWindow) { winhandler.multicastClient.clientinfo.focus = false}  // do not inform teacher if student screenlockwindow stole focus
+    
     
         // this only works in "eduvidual" mode because otherwise there is no element "warning" to append (clicking on an external link is considered a blur event)
         winhandler.examwindow.webContents.executeJavaScript(` 
