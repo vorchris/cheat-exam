@@ -153,6 +153,7 @@ import WindowHandler from './windowhandler.js'
 
 
         if (serverstatus.exammode && !this.multicastClient.clientinfo.exammode){ 
+            this.killScreenlock() 
             this.startExam(serverstatus)
         }
         else if (!serverstatus.exammode && this.multicastClient.clientinfo.exammode){

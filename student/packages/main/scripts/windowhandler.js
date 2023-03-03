@@ -79,7 +79,7 @@ class WindowHandler {
             show: false,
             x: display.bounds.x + 0,
             y: display.bounds.y + 0,
-            parent: this.examwindow,
+            parent: this.mainwindow,
             skipTaskbar:true,
             title: 'Screenlock',
             width: display.bounds.width,

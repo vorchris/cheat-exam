@@ -130,10 +130,10 @@
         <div class="btn btn-info m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="getFiles('all', true)">{{$t('dashboard.getfile')}}</div>
         <div class="col d-inlineblock btn btn-dark m-1 mt-0 text-start ms-0 " @click="loadFilelist(workdirectory)"  style="width: 100px;">{{$t('dashboard.showworkfolder')}} </div>
           
-        <div  v-if="(screenslocked)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens()"> 
+        <div  v-if="(screenslocked)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(false)"> 
             <img src="/src/assets/img/svg/shield-lock-fill.svg" class="white mt-2" title="unlock" width="32" height="32" >  
         </div>
-        <div  v-if="(!screenslocked)" class="btn btn-dark m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens()"> 
+        <div  v-if="(!screenslocked)" class="btn btn-dark m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(true)"> 
             <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" title="lock" width="32" height="32" >  
         </div>
 
@@ -253,6 +253,7 @@ export default {
         }, 
         // enable exam mode 
         startExam(){
+            this.lockscreens(false); // deactivate lockscreen
             this.exammode = true;
             this.visualfeedback(this.$t("dashboard.startexam"))
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/exam/${this.servername}/${this.servertoken}`, { 
@@ -266,6 +267,7 @@ export default {
         },
         // disable exammode 
         endExam(){
+            this.lockscreens(false); // deactivate lockscreen
             this.getFiles('all') // fetch files from students before ending exam for everybody
 
             this.$swal.fire({
@@ -539,8 +541,6 @@ export default {
             }
         },
         async getTestID(){
-
-            
             if (!this.autoabgabe) {
                 this.$swal.fire({
                     title: this.$t("dashboard.eduvidualid"),
@@ -639,9 +639,10 @@ export default {
             else { clearInterval( this.abgabeinterval )} 
         },
 
-        lockscreens(){
+        lockscreens(state){
             if (this.studentlist.length === 0) { this.status(this.$t("dashboard.noclients")); return;}
-            if (this.screenslocked) { this.screenslocked = false;  this.visualfeedback(this.$t("dashboard.unlock"))}   
+
+            if (state === false) { this.screenslocked = false;  this.visualfeedback(this.$t("dashboard.unlock"))}   
             else { this.screenslocked = true; this.visualfeedback(this.$t("dashboard.lock"))} 
 
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/serverstatus/${this.servername}/${this.servertoken}`, { 
