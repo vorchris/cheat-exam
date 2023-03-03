@@ -394,7 +394,7 @@ export default {
                 })
                 .configure({ lowlight }),
             ],
-            content: `<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>`,         
+            content: ``,         
         });
 
        
@@ -560,9 +560,10 @@ export default {
 /* Basic editor styles */
 
 .ProseMirror {
-  padding: 14px;
-  outline: 1px solid rgb(197, 197, 197);
-  border-radius: 5px;
+    min-height: 40vh;
+    padding: 14px;
+    outline: 1px solid rgb(197, 197, 197);
+    border-radius: 5px;
 }
 
 .ProseMirror:focus-visible{

@@ -45,18 +45,15 @@ import WindowHandler from './windowhandler.js'
      init (mc, config) {
         this.multicastClient = mc
         this.config = config
-        this.updateStudentIntervall = setInterval(() => { this.sendBeacon() }, 5000)
+        this.updateStudentIntervall = setInterval(() => { this.requestUpdate() }, 5000)
+        this.heartbeatInterval = setInterval(() => { this.sendHeartbeat() }, 4000)
      }
  
+    async sendHeartbeat(){
 
-
-    /** 
-     * sends heartbeat to registered server and updates screenshot on server 
-     */
-    async sendBeacon(){
-        // CONNECTION LOST
-        if (this.multicastClient.beaconsLost >= 4 ){ //remove server registration locally (same as 'kick')
-            console.log("Connection to Teacher lost! Removing registration.")
+        // CONNECTION LOST - UNLOCK SCREEN
+        if (this.multicastClient.beaconsLost >= 5 ){ // no serversignal for 20 seconds
+            console.log("Connection to Teacher lost! Removing registration.") //remove server registration locally (same as 'kick')
             this.multicastClient.beaconsLost = 0
             this.resetConnection()
             this.killScreenlock()
@@ -71,6 +68,29 @@ import WindowHandler from './windowhandler.js'
             }
         }
 
+        // ACTIVE SERVER CONNECTION - SEND HEARTBEAT
+        if (this.multicastClient.clientinfo.serverip) { 
+            axios({
+                method: "post", 
+                url: `https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/heartbeat/${this.multicastClient.clientinfo.servername}/${this.multicastClient.clientinfo.token}`, 
+                headers: {'Content-Type': 'application/json' }
+            }).then( response => {
+                if (response.data && response.data.status === "error") { 
+                     if      (response.data.message === "notavailable"){ console.log('Exam Instance not found!');        this.multicastClient.beaconsLost = 5} //server responded but exam is not available anymore 
+                     else if (response.data.message === "removed"){      console.log('Student registration not found!'); this.multicastClient.beaconsLost = 5} //server responded but student is no registered anymore (kicked)
+                     else { this.multicastClient.beaconsLost += 1;       console.log("heartbeat lost..") }  // other error
+                }
+                else if (response.data && response.data.status === "success") {  this.multicastClient.beaconsLost = 0  }
+            })
+            .catch(error => { console.log(`SendHeartbeat Axios: ${error}`); this.multicastClient.beaconsLost += 1; console.log("heartbeat lost..") });
+        }
+    }
+
+
+    /** 
+     * sends heartbeat to registered server and updates screenshot on server 
+     */
+    async requestUpdate(){
         if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip
             //create screenshot ATTENTION! "imagemagick" has to be installed for linux !!
             let img = await screenshot().catch((err) => { console.log(`SendBeacon Screenshot: ${err}`) });
@@ -93,15 +113,14 @@ import WindowHandler from './windowhandler.js'
             })
             .then( response => {
                 if (response.data && response.data.status === "error") { 
-                    if(response.data.message === "notavailable"|| response.data.message === "removed"){ console.log('No Exam or registration!'); this.multicastClient.beaconsLost = 4} //server responded but exam is not available anymore (teacher removed it)
-                    else { this.multicastClient.beaconsLost += 1;  console.log("beacon lost..") }
+                     console.log("requestUpdate Axios: failed - try again in 5 seconds")
                 }
                 else if (response.data && response.data.status === "success") { 
-                    this.multicastClient.beaconsLost = 0 
+                    this.multicastClient.beaconsLost = 0 // this also counts as successful heartbeat - keep connection
                     this.processUpdatedServerstatus(response.data.serverstatus, response.data.studentstatus)
                 }
             })
-            .catch(error => { console.log(`SendBeacon Axios: ${error}`); this.multicastClient.beaconsLost += 1; console.log("beacon lost..") });
+            .catch(error => { console.log(`requestUpdate Axios: ${error}`); console.log("requestUpdate Axios: failed - try again in 5 seconds")});
         }
     }
 

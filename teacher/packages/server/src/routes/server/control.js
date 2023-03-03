@@ -438,8 +438,7 @@ router.post('/serverstatus/:servername/:csrfservertoken', function (req, res, ne
     
     let student = mcServer.studentList.find(element => element.token === studenttoken)
     if ( !student ) {return res.send({ sender: "server", message:"removed", status: "error" }) } //check if the student is registered on this server
-    //if ( !req.files ) {return res.send({sender: "server", message:t("control.nofiles"), status:"error"});  }
-    
+  
     if ( req.files ) {
         // save the freshly delivered screenshot
         const file = req.files[req.body.screenshotfilename]
@@ -468,7 +467,7 @@ router.post('/serverstatus/:servername/:csrfservertoken', function (req, res, ne
     //update important student attributes
     student.focus = clientinfo.focus  
     student.virtualized = clientinfo.virtualized
-    student.timestamp = new Date().getTime()   //last seen 
+    student.timestamp = new Date().getTime()   //last seen  / this is like a heartbeat - update lastseen
     student.exammode = exammode  
     student.files = clientinfo.numberOfFiles
 
@@ -478,19 +477,40 @@ router.post('/serverstatus/:servername/:csrfservertoken', function (req, res, ne
 
 
 
+/**
+ * HEARTBEAT ! 
+ * This is used only to determine online/offline status of the students
+ * @param servername the name of the server at which the student is registered
+ * @param token the students token to search and update the entry in the list
+ */
+router.post('/heartbeat/:servername/:studenttoken', function (req, res, next) {
+    const studenttoken = req.params.studenttoken
+    const servername = req.params.servername
+
+    //check if server exists 
+    const mcServer = config.examServerList[servername]
+    if ( !mcServer) {  return res.send({sender: "server", message:"notavailable", status: "error"} )  }
+
+    //check if student is registered on server
+    let student = mcServer.studentList.find(element => element.token === studenttoken)
+    if ( !student ) {return res.send({ sender: "server", message:"removed", status: "error" }) }
+    
+    student.timestamp = new Date().getTime()   //update last seen for UI
+    res.send({sender: "server", message:"success", status:"success" })
+})
+
+
+
+
+
+
+
 
 
 
 
 
 export default router
-
-
-
-
-
-
-
 
 /**
  * Should be used before processing API requests that come from external sources
