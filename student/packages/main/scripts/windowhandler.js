@@ -232,13 +232,15 @@ class WindowHandler {
 
         this.examwindow.removeMenu() 
         this.examwindow.once('ready-to-show', () => {
-            if (!this.config.development) { 
-                this.examwindow.setKiosk(true)
-                this.examwindow?.moveTop();
-                this.examwindow?.setAlwaysOnTop(true, "screen-saver", 1) 
-            }
             this.examwindow?.show()
             this.examwindow?.focus(); 
+
+            if (!this.config.development) { 
+                this.examwindow.setKiosk(true)
+                this.examwindow?.setAlwaysOnTop(true, "screen-saver", 1) 
+                this.examwindow?.moveTop();
+                enableRestrictions(WindowHandler.examwindow)  // enable restriction only when exam window is fully loaded and in focus
+            }  
         })
 
         this.examwindow.on('close', async  (e) => {   // window should not be closed manually.. ever! but if you do make sure to clean examwindow variable and end exam for the client
@@ -253,9 +255,7 @@ class WindowHandler {
                 this.multicastClient.clientinfo.focus = true
             }  
         });
-        if (!this.config.development) { 
-            enableRestrictions(WindowHandler.examwindow)
-        }     
+       
     }
 
     addBlurListener(){

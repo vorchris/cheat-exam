@@ -153,10 +153,11 @@ import WindowHandler from './windowhandler.js'
 
 
         if (serverstatus.exammode && !this.multicastClient.clientinfo.exammode){ 
-            this.killScreenlock() 
+            this.killScreenlock() // remove lockscreen immediately - don't wait for server info
             this.startExam(serverstatus)
         }
         else if (!serverstatus.exammode && this.multicastClient.clientinfo.exammode){
+            this.killScreenlock() 
             this.endExam(serverstatus)
         }
 
