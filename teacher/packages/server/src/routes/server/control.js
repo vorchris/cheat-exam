@@ -409,7 +409,7 @@ router.post('/serverstatus/:servername/:csrfservertoken', function (req, res, ne
     if (csrfservertoken !== mcServer.serverinfo.servertoken) { res.send({sender: "server", message:t("control.tokennotvalid"), status: "error"} )}
 
     mcServer.serverstatus.screenlock = req.body.screenlock
- 
+    console.log(mcServer.serverstatus)
     
     res.json({ sender: "server", message:t("general.ok"), status: "success" })
 })

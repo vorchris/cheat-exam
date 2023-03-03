@@ -253,7 +253,7 @@ export default {
         }, 
         // enable exam mode 
         startExam(){
-            this.lockscreens(false); // deactivate lockscreen
+            this.lockscreens(false, false); // deactivate lockscreen
             this.exammode = true;
             this.visualfeedback(this.$t("dashboard.startexam"))
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/exam/${this.servername}/${this.servertoken}`, { 
@@ -267,7 +267,7 @@ export default {
         },
         // disable exammode 
         endExam(){
-            this.lockscreens(false); // deactivate lockscreen
+            
             this.getFiles('all') // fetch files from students before ending exam for everybody
 
             this.$swal.fire({
@@ -290,6 +290,8 @@ export default {
             .then((result) => {
                 if (result.isConfirmed) {
                     this.exammode = false;
+                    this.lockscreens(false, false); // deactivate lockscreen
+
                     fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/exam/${this.servername}/${this.servertoken}`, { 
                         method: 'POST',
                         headers: {'Content-Type': 'application/json' },
@@ -639,10 +641,10 @@ export default {
             else { clearInterval( this.abgabeinterval )} 
         },
 
-        lockscreens(state){
+        lockscreens(state, feedback=true){
             if (this.studentlist.length === 0) { this.status(this.$t("dashboard.noclients")); return;}
 
-            if (state === false) { this.screenslocked = false;  this.visualfeedback(this.$t("dashboard.unlock"))}   
+            if (state === false) { this.screenslocked = false; if (feedback) { this.visualfeedback(this.$t("dashboard.unlock")); } }   // the feedback interferes with endexam screen
             else { this.screenslocked = true; this.visualfeedback(this.$t("dashboard.lock"))} 
 
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/serverstatus/${this.servername}/${this.servertoken}`, { 
