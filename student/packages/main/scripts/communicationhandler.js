@@ -227,11 +227,15 @@ import WindowHandler from './windowhandler.js'
             this.multicastClient.clientinfo.examtype = serverstatus.examtype
             WindowHandler.createExamWindow(serverstatus.examtype, this.multicastClient.clientinfo.token, serverstatus, primary);
         }
-
-
-        if (WindowHandler.examwindow){ 
-            try {
+        else if (WindowHandler.examwindow){  //probably broken connection to the teacher but exam window still open
+            try {  // switch existing window back to exam mode
                 WindowHandler.examwindow.show()  // this is used to test if there is an exam window 
+                if (!this.config.development) { 
+                    WindowHandler.examwindow.setFullScreen(true)  //go fullscreen again
+                    WindowHandler.examwindow.setAlwaysOnTop(true, "screen-saver", 1)  //make sure the window is 1 level above everything
+                    enableRestrictions(WindowHandler.examwindow)
+                    WindowHandler.addBlurListener();
+                }   
             }
             catch (e) { //examwindow variable is still set but the window is not managable anymore (manually closed ?)
                 console.error("communicationhandler: no functional examwindow found.. resetting")
@@ -244,12 +248,6 @@ import WindowHandler from './windowhandler.js'
         }
 
         if (!this.config.development) { 
-            if (WindowHandler.examwindow){  //broken connection - exam window still open
-                WindowHandler.examwindow.setFullScreen(true)  //go fullscreen again
-                WindowHandler.examwindow.setAlwaysOnTop(true, "screen-saver", 1)  //make sure the window is 1 level above everything
-            }
-            WindowHandler.addBlurListener();
-            enableRestrictions(WindowHandler.examwindow)
             for (let display of displays){
                 if ( display.id !== primary.id ) {
                     WindowHandler.newBlockWin(display)  // add blockwindows for additional displays

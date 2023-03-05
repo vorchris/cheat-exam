@@ -248,6 +248,7 @@ class WindowHandler {
                 this.examwindow.moveTop();
                 this.examwindow.focus(); 
                 enableRestrictions(WindowHandler.examwindow)  // enable restriction only when exam window is fully loaded and in focus
+                this.addBlurListener()
             }  
         })
 
