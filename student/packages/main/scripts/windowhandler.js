@@ -237,7 +237,7 @@ class WindowHandler {
         if (this.config.showdevtools) { this.examwindow.webContents.openDevTools()  }
 
        
-        this.examwindow.once('ready-to-show', () => {
+        this.examwindow.once('ready-to-show', async () => {
             this.examwindow.removeMenu() 
             this.examwindow.show()
             
