@@ -251,6 +251,7 @@ class WindowHandler {
                 await this.sleep(2000)
                 this.examwindow.focus()
                 this.addBlurListener()
+            }
         })
 
         this.examwindow.on('close', async  (e) => {   // window should not be closed manually.. ever! but if you do make sure to clean examwindow variable and end exam for the client
