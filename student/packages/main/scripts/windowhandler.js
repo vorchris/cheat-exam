@@ -110,7 +110,7 @@ class WindowHandler {
         }
         this.screenlockWindow.once('ready-to-show', () => {
             this.screenlockWindow.removeMenu() 
-            this.screenlockWindow.setAutoHideCursor(true)  //macos only
+           
             this.screenlockWindow.setMinimizable(false)
             this.screenlockWindow.setKiosk(true)
             this.screenlockWindow.setAlwaysOnTop(true, "screen-saver", 1) 
