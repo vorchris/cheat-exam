@@ -229,7 +229,7 @@ import WindowHandler from './windowhandler.js'
         }
         else if (WindowHandler.examwindow){  //probably broken connection to the teacher but exam window still open
             try {  // switch existing window back to exam mode
-                WindowHandler.examwindow.show()  // this is used to test if there is an exam window 
+                WindowHandler.examwindow.show() 
                 if (!this.config.development) { 
                     WindowHandler.examwindow.setFullScreen(true)  //go fullscreen again
                     WindowHandler.examwindow.setAlwaysOnTop(true, "screen-saver", 1)  //make sure the window is 1 level above everything
@@ -237,7 +237,7 @@ import WindowHandler from './windowhandler.js'
                     WindowHandler.addBlurListener();
                 }   
             }
-            catch (e) { //examwindow variable is still set but the window is not managable anymore (manually closed ?)
+            catch (e) { //examwindow variable is still set but the window is not managable anymore (manually closed in dev mode?)
                 console.error("communicationhandler: no functional examwindow found.. resetting")
                 WindowHandler.examwindow = null;
                 disableRestrictions()
@@ -247,7 +247,7 @@ import WindowHandler from './windowhandler.js'
             }
         }
 
-        if (!this.config.development) { 
+        if (!this.config.development && WindowHandler.examwindow) {  // lock additional screens
             for (let display of displays){
                 if ( display.id !== primary.id ) {
                     WindowHandler.newBlockWin(display)  // add blockwindows for additional displays

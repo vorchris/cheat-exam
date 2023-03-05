@@ -128,7 +128,7 @@ class WindowHandler {
      * @param token student token
      * @param serverstatus the serverstatus object containing info about spellcheck language etc. 
      */
-    createExamWindow(examtype, token, serverstatus, primarydisplay) {
+    async createExamWindow(examtype, token, serverstatus, primarydisplay) {
         // just to be sure we check some important vars here
         if (examtype !== "eduvidual" && examtype !== "editor" && examtype !== "math" || !token){  // for now.. we probably should stop everything here
             console.log("missing parameters for exam-mode!")
@@ -246,10 +246,11 @@ class WindowHandler {
                 this.examwindow.setMinimizable(false)
                 this.examwindow.setAlwaysOnTop(true, "screen-saver", 1) 
                 this.examwindow.moveTop();
-                this.examwindow.focus(); 
+               
                 enableRestrictions(WindowHandler.examwindow)  // enable restriction only when exam window is fully loaded and in focus
+                await this.sleep(2000)
+                this.examwindow.focus()
                 this.addBlurListener()
-            }  
         })
 
         this.examwindow.on('close', async  (e) => {   // window should not be closed manually.. ever! but if you do make sure to clean examwindow variable and end exam for the client
@@ -277,7 +278,10 @@ class WindowHandler {
         this.examwindow.removeAllListeners('blur')
     }
 
-
+    // implementing a sleep (wait) function
+    sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
 
 
