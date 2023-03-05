@@ -236,16 +236,17 @@ class WindowHandler {
         }
         if (this.config.showdevtools) { this.examwindow.webContents.openDevTools()  }
 
-        this.examwindow.removeMenu() 
+       
         this.examwindow.once('ready-to-show', () => {
+            this.examwindow.removeMenu() 
             this.examwindow.show()
-            this.examwindow.focus(); 
-
+            
             if (!this.config.development) { 
                 this.examwindow.setKiosk(true)
                 this.examwindow.setMinimizable(false)
                 this.examwindow.setAlwaysOnTop(true, "screen-saver", 1) 
                 this.examwindow.moveTop();
+                this.examwindow.focus(); 
                 enableRestrictions(WindowHandler.examwindow)  // enable restriction only when exam window is fully loaded and in focus
             }  
         })
