@@ -44,7 +44,7 @@ class WindowHandler {
             alwaysOnTop: true,
             focusable: false,   //doesn't work with kiosk mode (no kiosk mode possible.. why?)
             minimizable: false,
-            resizable:false,
+            // resizable:false,
             movable: false,
             icon: join(__dirname, '../../public/icons/icon.png'),
             webPreferences: {
@@ -88,7 +88,7 @@ class WindowHandler {
             alwaysOnTop: true,
             focusable: false,   //doesn't work with kiosk mode (no kiosk mode possible.. why?)
             minimizable: false,
-            resizable:false,
+            // resizable:false, // leads to weird 20px bottomspace on windows
             movable: false,
             icon: join(__dirname, '../../public/icons/icon.png'),
             webPreferences: {
@@ -105,12 +105,13 @@ class WindowHandler {
             url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}/#/${url}/`
             this.screenlockWindow.loadURL(url)
         }
-        this.screenlockWindow.removeMenu() 
-        this.screenlockWindow.moveTop();
-        this.screenlockWindow.setKiosk(true)
-        this.screenlockWindow.setAlwaysOnTop(true, "screen-saver", 1) 
-        this.screenlockWindow.show()
-       
+        this.screenlockWindow.once('ready-to-show', () => {
+            this.screenlockWindow.removeMenu() 
+            this.screenlockWindow.moveTop();
+            this.screenlockWindow.setKiosk(true)
+            this.screenlockWindow.setAlwaysOnTop(true, "screen-saver", 1) 
+            this.screenlockWindow.show()
+        })
     }
 
 

@@ -441,7 +441,11 @@ export default {
         background-color: white !important;
         border-top: 1px solid black !important;
     }
+    #editorcontent div {
+        line-height: 200%;
+    }
 
+    
     #editorcontainer {
         width: 100% !important;
         margin: 0px !important;
