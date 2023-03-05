@@ -20,7 +20,7 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow, nativeTheme} from 'electron'
+import { app, BrowserWindow, powerSaveBlocker, nativeTheme} from 'electron'
 import { release } from 'os'
 import { disableRestrictions} from './scripts/platformrestrictions.js';
 import WindowHandler from './scripts/windowhandler.js'
@@ -111,6 +111,7 @@ app.whenReady()
 .then(()=>{
     nativeTheme.themeSource = 'light'
     if (config.hostip) { multicastClient.init() }
+    powerSaveBlocker.start('prevent-display-sleep')
     WindowHandler.createMainWindow()
 })
 
