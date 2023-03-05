@@ -113,7 +113,7 @@ import WindowHandler from './windowhandler.js'
             })
             .then( response => {
                 if (response.data && response.data.status === "error") { 
-                     console.log("requestUpdate Axios: failed - try again in 5 seconds")
+                     console.log("requestUpdate Axios: status error - try again in 5 seconds")
                 }
                 else if (response.data && response.data.status === "success") { 
                     this.multicastClient.beaconsLost = 0 // this also counts as successful heartbeat - keep connection
@@ -247,7 +247,7 @@ import WindowHandler from './windowhandler.js'
             }
         }
 
-        if (!this.config.development && WindowHandler.examwindow) {  // lock additional screens
+        if (!this.config.development) {  // lock additional screens
             for (let display of displays){
                 if ( display.id !== primary.id ) {
                     WindowHandler.newBlockWin(display)  // add blockwindows for additional displays

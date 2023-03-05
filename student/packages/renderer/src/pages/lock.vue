@@ -21,7 +21,7 @@
 </script>
 
 <style>
-    body{
-        background-color : #212529 !important;
-    }
+    body{ background-color : #212529 !important; }
+    #wrapper {background-color: #212529 !important; }
+       
 </style>

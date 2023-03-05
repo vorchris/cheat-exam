@@ -62,12 +62,10 @@ class WindowHandler {
             blockwin.loadURL(url)
         }
         
-        this.blockwin.once('ready-to-show', () => {
-            blockwin.removeMenu() 
-            blockwin.setKiosk(true)
-            blockwin.show()
-            blockwin.moveTop();
-        })
+        blockwin.removeMenu() 
+        blockwin.setKiosk(true)
+        blockwin.show()
+        blockwin.moveTop();
         this.blockwindows.push(blockwin)
     }
 
