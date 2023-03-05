@@ -248,7 +248,7 @@ class WindowHandler {
                 this.examwindow.moveTop();
                
                 enableRestrictions(WindowHandler.examwindow)  // enable restriction only when exam window is fully loaded and in focus
-                await this.sleep(2000)
+                await this.sleep(2000) // wait an additional 2 sec for windows restrictions to kick in (they steal focus)
                 this.examwindow.focus()
                 this.addBlurListener()
             }
