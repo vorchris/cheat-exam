@@ -44,7 +44,7 @@ class WindowHandler {
             alwaysOnTop: true,
             focusable: false,   //doesn't work with kiosk mode (no kiosk mode possible.. why?)
             minimizable: false,
-            // resizable:false,
+            // resizable:false,   // leads to weird 20px bottomspace on windows
             movable: false,
             icon: join(__dirname, '../../public/icons/icon.png'),
             webPreferences: {
@@ -61,10 +61,13 @@ class WindowHandler {
             url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}/#/${url}/`
             blockwin.loadURL(url)
         }
-        blockwin.removeMenu() 
-        blockwin.moveTop();
-        blockwin.setKiosk(true)
-        blockwin.show()
+        
+        this.blockwin.once('ready-to-show', () => {
+            blockwin.removeMenu() 
+            blockwin.setKiosk(true)
+            blockwin.show()
+            blockwin.moveTop();
+        })
         this.blockwindows.push(blockwin)
     }
 
@@ -107,10 +110,12 @@ class WindowHandler {
         }
         this.screenlockWindow.once('ready-to-show', () => {
             this.screenlockWindow.removeMenu() 
-            this.screenlockWindow.moveTop();
+            this.screenlockWindow.setAutoHideCursor(true)  //macos only
+            this.screenlockWindow.setMinimizable(false)
             this.screenlockWindow.setKiosk(true)
             this.screenlockWindow.setAlwaysOnTop(true, "screen-saver", 1) 
             this.screenlockWindow.show()
+            this.screenlockWindow.moveTop();
         })
     }
 
@@ -233,13 +238,14 @@ class WindowHandler {
 
         this.examwindow.removeMenu() 
         this.examwindow.once('ready-to-show', () => {
-            this.examwindow?.show()
-            this.examwindow?.focus(); 
+            this.examwindow.show()
+            this.examwindow.focus(); 
 
             if (!this.config.development) { 
                 this.examwindow.setKiosk(true)
-                this.examwindow?.setAlwaysOnTop(true, "screen-saver", 1) 
-                this.examwindow?.moveTop();
+                this.examwindow.setMinimizable(false)
+                this.examwindow.setAlwaysOnTop(true, "screen-saver", 1) 
+                this.examwindow.moveTop();
                 enableRestrictions(WindowHandler.examwindow)  // enable restriction only when exam window is fully loaded and in focus
             }  
         })

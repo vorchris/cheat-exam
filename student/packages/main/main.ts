@@ -74,6 +74,8 @@ if (release().startsWith('6.1')) app.disableHardwareAcceleration()
 
 // Set application name for Windows 10+ notifications
 if (process.platform === 'win32') {  app.setAppUserModelId(app.getName())}
+if (process.platform ==='darwin') {  app.dock.hide() }  // safer fullscreen
+
 
 
 // hide certificate warnings in console.. we know we use a self signed cert and do not validate it
