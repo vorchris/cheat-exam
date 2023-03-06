@@ -49,6 +49,12 @@ import WindowHandler from './windowhandler.js'
         this.heartbeatInterval = setInterval(() => { this.sendHeartbeat() }, 4000)
      }
  
+
+
+    /** 
+     * SEND HEARTBEAT in order to set Online/Offline Status 
+     * 5 Heartbeats lost is considered offline 
+     */
     async sendHeartbeat(){
         // CONNECTION LOST - UNLOCK SCREEN
         if (this.multicastClient.beaconsLost >= 5 ){ // no serversignal for 20 seconds
