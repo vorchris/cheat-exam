@@ -87,7 +87,7 @@ class WindowHandler {
             height: display.bounds.height,
             closable: false,
             alwaysOnTop: true,
-            focusable: false,   //doesn't work with kiosk mode (no kiosk mode possible.. why?)
+            //focusable: false,   //doesn't work with kiosk mode (no kiosk mode possible.. why?)
             minimizable: false,
             // resizable:false, // leads to weird 20px bottomspace on windows
             movable: false,
@@ -106,6 +106,9 @@ class WindowHandler {
             url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}/#/${url}/`
             this.screenlockWindow.loadURL(url)
         }
+
+        if (this.config.showdevtools) { this.screenlockWindow.webContents.openDevTools()  }
+
         this.screenlockWindow.once('ready-to-show', () => {
             this.screenlockWindow.removeMenu() 
            
@@ -114,6 +117,7 @@ class WindowHandler {
             this.screenlockWindow.setAlwaysOnTop(true, "screen-saver", 1) 
             this.screenlockWindow.show()
             this.screenlockWindow.moveTop();
+            this.addBlurListener("screenlock")
         })
     }
 
@@ -267,9 +271,17 @@ class WindowHandler {
        
     }
 
-    addBlurListener(){
+    addBlurListener(window = "examwindow"){
         console.log("adding blur listener")
-        this.examwindow.addListener('blur', () => this.blurevent(this))
+        console.log(window)
+        if (window === "examwindow"){ 
+            console.log(`Setting Blur Event for ${window}`)
+            this.examwindow.addListener('blur', () => this.blurevent(this)) 
+        }
+        else if (window === "screenlock") {
+            console.log(`Setting Blur Event for ${window}window`)
+            this.screenlockWindow.addListener('blur', () => this.blureventScreenlock(this))    
+        }
     }
 
     removeBlurListener(){
@@ -294,8 +306,7 @@ class WindowHandler {
         this.mainwindow = new BrowserWindow({
             title: 'Main window',
             icon: join(__dirname, '../../public/icons/icon.png'),
-            x: primarydisplay.bounds.x + 0,
-            y: primarydisplay.bounds.y + 0,
+            center:true,
             width: 1000,
             height: 600,
             minWidth: 760,
@@ -355,22 +366,34 @@ class WindowHandler {
 
 
     blurevent(winhandler) { 
-        console.log("blur")
+        console.log("blur-exam")
+        if (winhandler.screenlockWindow) { return }// do nothing if screenlockwindow stole focus // do not trigger an infinite loop between exam window and screenlock window (stealing each others focus)
+            
+        winhandler.multicastClient.clientinfo.focus = false
         winhandler.examwindow.show();  // we keep focus on the window.. no matter what
         winhandler.examwindow.moveTop();
         winhandler.examwindow.focus();
-        if (!winhandler.screenlockWindow) { winhandler.multicastClient.clientinfo.focus = false}  // do not inform teacher if student screenlockwindow stole focus
-    
-    
-        // this only works in "eduvidual" mode because otherwise there is no element "warning" to append (clicking on an external link is considered a blur event)
-        winhandler.examwindow.webContents.executeJavaScript(` 
-                    if (typeof warning !== 'undefined'){
-                        document.body.appendChild(warning); 
-                        document.getElementById('nextexamwaring').innerHTML = "Leaving exam mode is not allowed";
-                        warning.setAttribute('style', 'text-align: center; padding: 20px;display: block; background-color:#ffc107; border-radius:5px;  z-index:100000; position: absolute; top: 50%; left: 50%; margin-left: -10vw; margin-top: -5vh;width:20vw; height: 10vh; box-shadow: 0 0 10px rgba(0,0,0,0.4); ');
-                        setTimeout( ()=>{ document.getElementById('nextexamwaring').style.display = 'none'  } , 5000); 
-                    }` , true)
-        .catch(err => console.log(err))
+
+        if (this.multicastClient.clientinfo.examtype === "eduvidual"){
+            // this only works in "eduvidual" mode because otherwise there is no element "warning" to append (clicking on an external link is considered a blur event)
+            winhandler.examwindow.webContents.executeJavaScript(` 
+                        if (typeof warning !== 'undefined'){
+                            document.body.appendChild(warning); 
+                            document.getElementById('nextexamwaring').innerHTML = "Leaving exam mode is not allowed";
+                            warning.setAttribute('style', 'text-align: center; padding: 20px;display: block; background-color:#ffc107; border-radius:5px;  z-index:100000; position: absolute; top: 50%; left: 50%; margin-left: -10vw; margin-top: -5vh;width:20vw; height: 10vh; box-shadow: 0 0 10px rgba(0,0,0,0.4); ');
+                            setTimeout( ()=>{ document.getElementById('nextexamwaring').style.display = 'none'  } , 5000); 
+                        }` , true)
+            .catch(err => console.log(err))
+        }
+    }
+
+
+
+    blureventScreenlock(winhandler) { 
+        console.log("blur-screenlock")
+        winhandler.screenlockWindow.show();  // we keep focus on the window.. no matter what
+        winhandler.screenlockWindow.moveTop();
+        winhandler.screenlockWindow.focus();
     }
     
 }

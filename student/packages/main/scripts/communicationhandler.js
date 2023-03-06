@@ -238,7 +238,7 @@ import WindowHandler from './windowhandler.js'
                 }   
             }
             catch (e) { //examwindow variable is still set but the window is not managable anymore (manually closed in dev mode?)
-                console.error("communicationhandler: no functional examwindow found.. resetting")
+                console.error("communicationhandler @ startExam: no functional examwindow found.. resetting")
                 WindowHandler.examwindow = null;
                 disableRestrictions()
                 this.multicastClient.clientinfo.exammode = false
