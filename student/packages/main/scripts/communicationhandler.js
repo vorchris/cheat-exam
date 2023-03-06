@@ -50,7 +50,6 @@ import WindowHandler from './windowhandler.js'
      }
  
     async sendHeartbeat(){
-
         // CONNECTION LOST - UNLOCK SCREEN
         if (this.multicastClient.beaconsLost >= 5 ){ // no serversignal for 20 seconds
             console.log("Connection to Teacher lost! Removing registration.") //remove server registration locally (same as 'kick')
@@ -88,7 +87,8 @@ import WindowHandler from './windowhandler.js'
 
 
     /** 
-     * sends heartbeat to registered server and updates screenshot on server 
+     * Update current Serverstatus + Studenttstatus
+     * Update Screenshot on Server 
      */
     async requestUpdate(){
         if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip
@@ -164,6 +164,7 @@ import WindowHandler from './windowhandler.js'
     }
 
 
+    // show temporary screenlock window
     activateScreenlock(){
         let displays = screen.getAllDisplays()
         let primary = screen.getPrimaryDisplay()
@@ -176,6 +177,7 @@ import WindowHandler from './windowhandler.js'
 
     }
 
+    // remove temporary screenlockwindow
     killScreenlock(){
         if (WindowHandler.screenlockWindow){ 
             try {  
@@ -208,7 +210,7 @@ import WindowHandler from './windowhandler.js'
      * enables the blur listener and activates restrictions (disable keyboarshortcuts etc.)
      * @param serverstatus contains information about exammode, examtype, and other settings from the teacher instance
      */
-    startExam(serverstatus){
+    async startExam(serverstatus){
         if (serverstatus.delfolder === true){
             console.log("cleaning exam workfolder")
             try {
@@ -227,13 +229,14 @@ import WindowHandler from './windowhandler.js'
             this.multicastClient.clientinfo.examtype = serverstatus.examtype
             WindowHandler.createExamWindow(serverstatus.examtype, this.multicastClient.clientinfo.token, serverstatus, primary);
         }
-        else if (WindowHandler.examwindow){  //probably broken connection to the teacher but exam window still open
+        else if (WindowHandler.examwindow){  //reconnect into active exam session with exam window already open
             try {  // switch existing window back to exam mode
                 WindowHandler.examwindow.show() 
                 if (!this.config.development) { 
                     WindowHandler.examwindow.setFullScreen(true)  //go fullscreen again
                     WindowHandler.examwindow.setAlwaysOnTop(true, "screen-saver", 1)  //make sure the window is 1 level above everything
                     enableRestrictions(WindowHandler.examwindow)
+                    await this.sleep(2000) // wait an additional 2 sec for windows restrictions to kick in (they steal focus)
                     WindowHandler.addBlurListener();
                 }   
             }
@@ -243,7 +246,7 @@ import WindowHandler from './windowhandler.js'
                 disableRestrictions()
                 this.multicastClient.clientinfo.exammode = false
                 this.multicastClient.clientinfo.focus = true
-                return
+                return  // in that case.. we are finished here !
             }
         }
 
