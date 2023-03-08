@@ -69,7 +69,7 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
     const servername = req.params.servername
     const mcServer = config.examServerList[servername] // get the multicastserver object
     if ( token !== mcServer.serverinfo.servertoken ) { return res.json({ status: t("data.tokennotvalid") }) }
-
+    
     let dir =  path.join( config.workdirectory, mcServer.serverinfo.servername);
 
     // get all studentdirectories from workdirectory
@@ -80,7 +80,7 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
             studentfolders.push({ path: filepath, name : file })
         }
     }, []);
-    //console.log(studentfolders)
+    console.log(studentfolders)
 
     // get latest directory of every student (add to array) ATTENTION: this only works with the current file/folder name scheme 
     // DO NOT CHANGE /Clientname/11:02:23 - or better get real filedate and make it more robust

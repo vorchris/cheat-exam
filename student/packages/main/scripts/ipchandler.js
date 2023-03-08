@@ -127,6 +127,7 @@ class IpcHandler {
                     this.multicastClient.clientinfo.ip = clientip
                     this.multicastClient.clientinfo.token = response.data.token // we need to store the client token in order to check against it before processing critical api calls
                     this.multicastClient.clientinfo.focus = true
+                    this.multicastClient.clientinfo.pin = pin
                 }
                 event.returnValue = response.data
             
@@ -202,6 +203,7 @@ class IpcHandler {
                     else if  (path.extname(file).toLowerCase() === ".mtml"){ files.push( {name: file, type: "mtml", mod: mod})   }  // imaginary multiple choice testformat from the future
                     
                 })
+                this.multicastClient.clientinfo.numberOfFiles = filelist.length
                 event.returnValue = files
             }
         })

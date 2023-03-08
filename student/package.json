@@ -1,6 +1,6 @@
 {
     "name": "next-exam-student",
-    "version": "0.6.0",
+    "version": "0.8.0",
     "main": "dist/main/main.cjs",
     "author": {
         "name": "Thomas Michael Weissel",
@@ -44,8 +44,7 @@
             "target": {
                 "target": "dmg",
                 "arch": [
-                    "x64",
-                    "arm64"
+                    "universal"
                 ]
             }
         },

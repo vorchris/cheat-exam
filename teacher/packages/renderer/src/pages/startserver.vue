@@ -19,27 +19,24 @@
 <div id="wrapper" class="w-100 h-100 d-flex" >
 
     <div class="p-3 text-white bg-dark h-100 " style="width: 240px; min-width: 240px;">
-        <ul class="nav nav-pills flex-column mb-auto ">
-            <li class="nav-item">
-                <div class="btn btn-light m-0 text-start infobutton">
-                    <img src='/src/assets/img/svg/server.svg' class="me-2"  width="16" height="16" > 
-                    {{$t("general.startserver")}}
-                </div><br>
-            </li>
-            <li>
-                <router-link v-if="!electron" to="serverlist" id="serverlist" class="nav-link">
-                    <img src="/src/assets/img/svg/person-lines-fill.svg" class="white me-2"  width="16" height="16" >
-                    {{$t("general.slist")}}
-                </router-link> 
-            </li>
-        </ul>
+        <div class="btn btn-light m-0 text-start infobutton">
+            <img src='/src/assets/img/svg/server.svg' class="me-2"  width="16" height="16" > 
+            {{$t("general.startserver")}}
+        </div><br>
+        <router-link v-if="!electron" to="serverlist" id="serverlist" class="nav-link">
+            <img src="/src/assets/img/svg/person-lines-fill.svg" class="white me-2"  width="16" height="16" >
+            {{$t("general.slist")}}
+        </router-link> 
+    
+        <div v-if="!advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("startserver.advanced") }}</div>
+        <div v-if="advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("startserver.simple") }}</div> 
+    
         <div class="m-2">
-            <br>
-            <div id="statusdiv" class="btn btn-warning m-2 hidden">{{$t("startserver.connected")}}</div>
-        </div>
-        <br>
+            <br><div id="statusdiv" class="btn btn-warning m-2 hidden">{{$t("startserver.connected")}}</div>
+        </div><br>
         <span style="position: absolute; bottom:2px; left: 4px; font-size:0.8em">{{version}}</span>
     </div>
+
 
     <div id="content" class="fadeinslow p-3">
         <div class="col-7">
@@ -51,11 +48,23 @@
                 <span class="input-group-text col-4" style="width:135px;" id="inputGroup-sizing-lg">{{$t("startserver.pwd")}}</span>
                 <input v-model="password" type="text" class="form-control " id="password" placeholder="password" style="width:135px;max-width:135px;min-width:135px;">
             </div>
+
+
+
             <div  v-if="hostip" class="col mb-4" >
                 <button @click="startServer()" id="examstart" class="btn btn-success" value="start exam" style="width:135px;">{{$t("startserver.start")}}</button>
             </div>
         </div>
-        <div id="list" class="placeholder"></div>
+
+        
+        <div v-if="advanced" id="list" class="placeholder">
+           
+            <div class="input-group input-group-sm" style="max-width: fit-content"> 
+                
+                <button @click="setWorkdir()" id="examstart" class="btn btn-sm btn-info" value="start exam" style="width:195px;">{{$t("startserver.select")}}</button>
+                <span class="form-control " style="font-family: monospace; white-space: pre; font-size:0.8em; padding-top: 5px;">{{ workdir }}</span>
+            </div>
+        </div>
     </div>
 </div>
 </template>
@@ -77,11 +86,20 @@ export default {
             serverApiPort: this.$route.params.serverApiPort,
             electron: this.$route.params.electron,
             hostname: window.location.hostname,
-            hostip: this.$route.params.config.hostip
+            hostip: this.$route.params.config.hostip,
+            advanced: false,
+            workdir: this.$route.params.config.workdirectory
         };
     },
     components: {},
     methods: {
+        setWorkdir(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
+            this.workdir = ipcRenderer.sendSync('setworkdir')
+        },
+        toggleAdvanced(){
+            if (this.advanced) {this.advanced = false} else {this.advanced = true}
+        },
+
         async startServer(){
             if (this.servername ==="" ){
                 this.status(this.$t("startserver.emptyname")); 
@@ -90,10 +108,17 @@ export default {
                 this.status(this.$t("startserver.emptypw")); 
             }
             else {
-                await axios.get(`https://${this.hostname}:${this.serverApiPort}/server/control/start/${this.servername}/${this.password}`)
-                .then( async (response) => {
-                    if (response.data.status === "success") {  //directly log in
-                        this.status(response.data.message);
+
+
+                fetch(`https://${this.hostname}:${this.serverApiPort}/server/control/start/${this.servername}/${this.password}`, { 
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json' },
+                    body: JSON.stringify({ workdir: this.workdir  })
+                })
+                .then( res => res.json())
+                .then( async response => { 
+                    if (response.status === "success") {  //directly log in
+                        this.status(response.message);
                         await this.sleep(1000);
                         if (this.electron){
                             this.$router.push({  // for some reason this doesn't work on mobile
@@ -106,8 +131,15 @@ export default {
                         }
                         else {window.location.href = `#/dashboard/${this.servername}/${this.password}`}
                     }
-                    else { this.status(response.data.message); }
-                }).catch(err => { this.status(err)}); 
+                    else { this.status(response.message); }
+
+                })
+                .catch(err => { this.status(err); console.warn(err) })
+
+
+
+
+
             } 
         },
 

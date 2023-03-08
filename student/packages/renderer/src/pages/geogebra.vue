@@ -20,17 +20,19 @@
         <!-- filelist end -->
 
       
-        <span  v-if="online" class="fs-4 align-middle" style="">{{servername}}</span>
+        <span  v-if="online" class="fs-4 align-middle" style="">{{servername}}|{{pincode}}</span>
         <div v-if="!online && exammode" class="btn btn-success p-1 me-1 mb-1 btn-sm"  style="float: left;"  @click="reconnect()"><img src="/src/assets/img/svg/gtk-convert.svg" class="" width="22" height="22"> {{ $t("editor.reconnect")}}</div>
         <div v-if="!online && exammode" class="btn btn-danger p-1 me-1 mb-1 btn-sm"  style="float: left;"  @click="gracefullyexit()"><img src="/src/assets/img/svg/dialog-cancel.svg" class="" width="22" height="22"> {{ $t("editor.unlock")}} </div>
 
 
 
         <span class="fs-4 align-middle" style="float: right">GeoGebra</span>
-        <!-- <div class="btn-group pt-0 ms-4 me-4" role="group" style="float: right">
-            <div class="btn btn-outline-info" @click="setsource('geometry')"> geometry</div>
-            <div class="btn btn-outline-info" @click="setsource('graphing')"> graphing</div>
-        </div> -->
+
+        <div class="btn-group pt-0 ms-4 me-2 mt-1" role="group" style="float: right">
+            <div class="btn btn-outline-info btn-sm" @click="setsource('suite')"> suite</div>
+            <div class="btn btn-outline-info btn-sm" @click="setsource('classic')"> classic</div>
+        </div>
+        
         <span class="fs-4 align-middle me-2" style="float: right">{{timesinceentry}}</span>
         <span v-if="battery && battery.level" class="fs-4 me-3"  style="float: right;">
             <img v-if="battery && battery.level > 0.9" src="/src/assets/img/svg/battery-100.svg"  :title="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
@@ -64,7 +66,7 @@
                 <img src="/src/assets/img/svg/eye-slash-fill.svg" class=" me-2" width="32" height="32" >
             </div>
         </div>
-        <iframe id="geogebraframe" :src="geogebrasource"></iframe>
+        <iframe id="geogebraframe" src="./geogebra/classic.html"></iframe>
     </div>
 </template>
 
@@ -90,9 +92,9 @@ export default {
             clientname: this.$route.params.clientname,
             serverApiPort: this.$route.params.serverApiPort,
             clientApiPort: this.$route.params.clientApiPort,
-            geogebrasource: "",
+            
             electron: this.$route.params.electron,
-          
+            pincode : this.$route.params.pincode,
             clientinfo: null,
             entrytime: 0,
             timesinceentry: 0,
@@ -102,7 +104,6 @@ export default {
     }, 
     components: {  },  
     mounted() {
-        this.geogebrasource = `./geogebra/suite.html`
         this.currentFile = this.clientname
         this.entrytime = new Date().getTime()  
          
@@ -187,8 +188,10 @@ export default {
             this.localfiles = filelist;
         },
         setsource(source){
-            if (source === "geometry") { this.geogebrasource = `./geogebra/suite.html`}
-            if (source === "graphing") { this.geogebrasource = `./geogebra/graphing.html`}
+            let iFrame = document.getElementById('geogebraframe')
+            if (source === "suite")   { iFrame.src = `./geogebra/suite.html`  }
+            if (source === "classic") { iFrame.src = `./geogebra/classic.html`}
+            iFrame.parentNode.replaceChild(iFrame.cloneNode(), iFrame);
         },  
         clock(){
             let now = new Date().getTime()
@@ -202,6 +205,7 @@ export default {
             this.focus = this.clientinfo.focus
             this.clientname = this.clientinfo.name
             this.exammode = this.clientinfo.exammode
+            this.pincode = this.clientinfo.pin
 
             if (!this.focus){  this.entrytime = new Date().getTime()}
             if (this.clientinfo && this.clientinfo.token){  this.online = true  }

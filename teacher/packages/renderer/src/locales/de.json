@@ -17,7 +17,11 @@
         "examname": "Name",
         "pwd": "Passwort",
         "emptypw": "Bitte geben sie  ein Passwort an",
-        "emptyname": "Bitte geben sie einen Namen an"
+        "emptyname": "Bitte geben sie einen Namen an",
+        "advanced": "fortgeschritten",
+        "simple": "einfach",
+        "workfolder": "Arbeitsverzeichnis",
+        "select": "Arbeitsverzeichnis wählen"
     },
     "dashboard":{
         "server": "Server",
@@ -71,18 +75,23 @@
         "virtualized": "virtualiserte Arbeitsumgebung",
         "delete": "löschen",
         "filedelete": "Wollen sie die Datei/den Ordner wirklich löschen?",
+        "exitdelete": "Exam-Daten auf SchülerPCs löschen",
         "spellcheck": "Rechtschreibhilfe",
         "spellcheckchoose": "Bitte wählen sie eine Sprache",
+        "suggest":"Vorschlage zeigen",
         "none": "Rechtschreibhilfe deaktiviert",
         "de": "Deutsch",
         "en":"Englisch",
         "es":"Spanisch",
         "fr":"Französisch",
+        "it":"Italienisch",
         "abgabeauto":"Automatische Abgabe",
         "abgabeautoquestion":"In welchen Abständen sollen die Arbeiten geholt werden?",
         "abgabeautohint":"(Zeitangabe in Minuten)",
         "eduvidualid": "Eduvidual Test",
-        "eduvidualidhint": "Bitte geben sie eine gültige ID ein!"
+        "eduvidualidhint": "Bitte geben sie eine gültige ID ein!",
+        "lock":"Displays sperren",
+        "unlock":"Displays entsperren"
     },
     "control": {
         "tokennotvalid": "Das Token ist ungültig",

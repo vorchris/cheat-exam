@@ -10,6 +10,7 @@ import serverlist from '/src/pages/serverlist.vue'
 
 // check if we run this app in electron (host is always "localhost" then)
 let electron = false
+
 const userAgent = navigator.userAgent.toLowerCase();
 if (userAgent.indexOf(' electron/') > -1) {
     electron = true

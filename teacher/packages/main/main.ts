@@ -45,6 +45,7 @@ async function createWindow() {
     win = new BrowserWindow({
         title: 'Main window',
         icon: join(__dirname, '../../public/icons/icon.png'),
+        center:true,
         width: 1000,
         height: 700,
         minWidth: 800,
@@ -146,4 +147,22 @@ app.whenReady().then(()=>{
 })
 
 
-ipcMain.on('getconfig', (event) => {   event.returnValue = config   })
+ipcMain.on('getconfig', (event) => {   event.returnValue = config   })  // we can not send the whole config to the frontend "an object can not be cloned error"
+
+
+ipcMain.on('getCurrentWorkdir', (event) => {   event.returnValue = config.workdirectory  })
+
+
+ipcMain.on('setworkdir', async (event, arg) => {
+    const result = await dialog.showOpenDialog( win, {
+      properties: ['openDirectory']
+    })
+    if (!result.canceled){
+        console.log('directories selected', result.filePaths)
+        config.workdirectory = join(result.filePaths[0]   , config.examdirectory)
+        event.returnValue = config.workdirectory
+    }
+    else {
+        event.returnValue = config.workdirectory
+    }
+  })

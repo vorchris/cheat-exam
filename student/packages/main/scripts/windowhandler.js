@@ -11,6 +11,7 @@ import {disableRestrictions, enableRestrictions} from './platformrestrictions.js
 class WindowHandler {
     constructor () {
       this.blockwindows = []
+      this.screenlockWindow = null
       this.mainwindow = null
       this.examwindow = null
       this.config = null
@@ -43,7 +44,7 @@ class WindowHandler {
             alwaysOnTop: true,
             focusable: false,   //doesn't work with kiosk mode (no kiosk mode possible.. why?)
             minimizable: false,
-            resizable:false,
+            // resizable:false,   // leads to weird 20px bottomspace on windows
             movable: false,
             icon: join(__dirname, '../../public/icons/icon.png'),
             webPreferences: {
@@ -60,15 +61,65 @@ class WindowHandler {
             url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}/#/${url}/`
             blockwin.loadURL(url)
         }
+        
         blockwin.removeMenu() 
-        blockwin.moveTop();
         blockwin.setKiosk(true)
         blockwin.show()
+        blockwin.moveTop();
         this.blockwindows.push(blockwin)
     }
 
 
+    /**
+     * Screenlock Window (to cover everything) - block students from working
+     * @param display 
+     */
 
+    createScreenlockWindow(display) {
+        this.screenlockWindow = new BrowserWindow({
+            show: false,
+            x: display.bounds.x + 0,
+            y: display.bounds.y + 0,
+            parent: this.mainwindow,
+            skipTaskbar:true,
+            title: 'Screenlock',
+            width: display.bounds.width,
+            height: display.bounds.height,
+            closable: false,
+            alwaysOnTop: true,
+            //focusable: false,   //doesn't work with kiosk mode (no kiosk mode possible.. why?)
+            minimizable: false,
+            // resizable:false, // leads to weird 20px bottomspace on windows
+            movable: false,
+            icon: join(__dirname, '../../public/icons/icon.png'),
+            webPreferences: {
+                preload: join(__dirname, '../preload/preload.cjs'),
+            },
+        });
+
+        let url = "lock"
+        if (app.isPackaged) {
+            let path = join(__dirname, `../renderer/index.html`)
+            this.screenlockWindow.loadFile(path, {hash: `#/${url}/`})
+        } 
+        else {
+            url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}/#/${url}/`
+            this.screenlockWindow.loadURL(url)
+        }
+
+        if (this.config.showdevtools) { this.screenlockWindow.webContents.openDevTools()  }
+
+        this.screenlockWindow.once('ready-to-show', () => {
+            this.screenlockWindow.removeMenu() 
+           
+            this.screenlockWindow.setMinimizable(false)
+            this.screenlockWindow.setKiosk(true)
+            this.screenlockWindow.setAlwaysOnTop(true, "screen-saver", 1) 
+            this.screenlockWindow.show()
+            this.screenlockWindow.moveTop();
+            this.addBlurListener("screenlock")
+        })
+    }
 
 
 
@@ -79,7 +130,7 @@ class WindowHandler {
      * @param token student token
      * @param serverstatus the serverstatus object containing info about spellcheck language etc. 
      */
-    createExamWindow(examtype, token, serverstatus, primarydisplay) {
+    async createExamWindow(examtype, token, serverstatus, primarydisplay) {
         // just to be sure we check some important vars here
         if (examtype !== "eduvidual" && examtype !== "editor" && examtype !== "math" || !token){  // for now.. we probably should stop everything here
             console.log("missing parameters for exam-mode!")
@@ -132,8 +183,8 @@ class WindowHandler {
         // HANDLE SPELLCHECK 
         if (serverstatus.spellcheck){  
             console.log(serverstatus.spellchecklang)
+            this.examwindow.webContents.session.setSpellCheckerDictionaryDownloadURL(`https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/dicts/`)
             this.examwindow.webContents.session.setSpellCheckerLanguages([serverstatus.spellchecklang])
-            this.examwindow.webContents.session.setSpellCheckerDictionaryDownloadURL('https://localhost:11411/dicts/')
             if (serverstatus.suggestions){
                 this.examwindow.webContents.on('context-menu', (event, params) => {
                     const menu = new Menu()
@@ -187,15 +238,22 @@ class WindowHandler {
         }
         if (this.config.showdevtools) { this.examwindow.webContents.openDevTools()  }
 
-        this.examwindow.removeMenu() 
-        this.examwindow.once('ready-to-show', () => {
+       
+        this.examwindow.once('ready-to-show', async () => {
+            this.examwindow.removeMenu() 
+            this.examwindow.show()
+            
             if (!this.config.development) { 
                 this.examwindow.setKiosk(true)
-                this.examwindow?.moveTop();
-                this.examwindow?.setAlwaysOnTop(true, "screen-saver", 1) 
+                this.examwindow.setMinimizable(false)
+                this.examwindow.setAlwaysOnTop(true, "screen-saver", 1) 
+                this.examwindow.moveTop();
+               
+                enableRestrictions(WindowHandler.examwindow)  // enable restriction only when exam window is fully loaded and in focus
+                await this.sleep(2000) // wait an additional 2 sec for windows restrictions to kick in (they steal focus)
+                this.examwindow.focus()
+                this.addBlurListener()
             }
-            this.examwindow?.show()
-            this.examwindow?.focus(); 
         })
 
         this.examwindow.on('close', async  (e) => {   // window should not be closed manually.. ever! but if you do make sure to clean examwindow variable and end exam for the client
@@ -210,14 +268,20 @@ class WindowHandler {
                 this.multicastClient.clientinfo.focus = true
             }  
         });
-        if (!this.config.development) { 
-            enableRestrictions(WindowHandler.examwindow)
-        }     
+       
     }
 
-    addBlurListener(){
+    addBlurListener(window = "examwindow"){
         console.log("adding blur listener")
-        this.examwindow.addListener('blur', () => this.blurevent(this))
+        console.log(window)
+        if (window === "examwindow"){ 
+            console.log(`Setting Blur Event for ${window}`)
+            this.examwindow.addListener('blur', () => this.blurevent(this)) 
+        }
+        else if (window === "screenlock") {
+            console.log(`Setting Blur Event for ${window}window`)
+            this.screenlockWindow.addListener('blur', () => this.blureventScreenlock(this))    
+        }
     }
 
     removeBlurListener(){
@@ -225,7 +289,10 @@ class WindowHandler {
         this.examwindow.removeAllListeners('blur')
     }
 
-
+    // implementing a sleep (wait) function
+    sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
 
 
@@ -239,8 +306,7 @@ class WindowHandler {
         this.mainwindow = new BrowserWindow({
             title: 'Main window',
             icon: join(__dirname, '../../public/icons/icon.png'),
-            x: primarydisplay.bounds.x + 0,
-            y: primarydisplay.bounds.y + 0,
+            center:true,
             width: 1000,
             height: 600,
             minWidth: 760,
@@ -300,21 +366,34 @@ class WindowHandler {
 
 
     blurevent(winhandler) { 
-        console.log("blur")
+        console.log("blur-exam")
+        if (winhandler.screenlockWindow) { return }// do nothing if screenlockwindow stole focus // do not trigger an infinite loop between exam window and screenlock window (stealing each others focus)
+            
+        winhandler.multicastClient.clientinfo.focus = false
         winhandler.examwindow.show();  // we keep focus on the window.. no matter what
         winhandler.examwindow.moveTop();
         winhandler.examwindow.focus();
-        winhandler.multicastClient.clientinfo.focus = false
-    
-        // this only works in "eduvidual" mode because otherwise there is no element "warning" to append (clicking on an external link is considered a blur event)
-        winhandler.examwindow.webContents.executeJavaScript(` 
-                    if (typeof warning !== 'undefined'){
-                        document.body.appendChild(warning); 
-                        document.getElementById('nextexamwaring').innerHTML = "Leaving exam mode is not allowed";
-                        warning.setAttribute('style', 'text-align: center; padding: 20px;display: block; background-color:#ffc107; border-radius:5px;  z-index:100000; position: absolute; top: 50%; left: 50%; margin-left: -10vw; margin-top: -5vh;width:20vw; height: 10vh; box-shadow: 0 0 10px rgba(0,0,0,0.4); ');
-                        setTimeout( ()=>{ document.getElementById('nextexamwaring').style.display = 'none'  } , 5000); 
-                    }` , true)
-        .catch(err => console.log(err))
+
+        if (this.multicastClient.clientinfo.examtype === "eduvidual"){
+            // this only works in "eduvidual" mode because otherwise there is no element "warning" to append (clicking on an external link is considered a blur event)
+            winhandler.examwindow.webContents.executeJavaScript(` 
+                        if (typeof warning !== 'undefined'){
+                            document.body.appendChild(warning); 
+                            document.getElementById('nextexamwaring').innerHTML = "Leaving exam mode is not allowed";
+                            warning.setAttribute('style', 'text-align: center; padding: 20px;display: block; background-color:#ffc107; border-radius:5px;  z-index:100000; position: absolute; top: 50%; left: 50%; margin-left: -10vw; margin-top: -5vh;width:20vw; height: 10vh; box-shadow: 0 0 10px rgba(0,0,0,0.4); ');
+                            setTimeout( ()=>{ document.getElementById('nextexamwaring').style.display = 'none'  } , 5000); 
+                        }` , true)
+            .catch(err => console.log(err))
+        }
+    }
+
+
+
+    blureventScreenlock(winhandler) { 
+        console.log("blur-screenlock")
+        winhandler.screenlockWindow.show();  // we keep focus on the window.. no matter what
+        winhandler.screenlockWindow.moveTop();
+        winhandler.screenlockWindow.focus();
     }
     
 }

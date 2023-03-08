@@ -17,7 +17,9 @@
 
     <!-- SIDEBAR -->
     <div class="p-3 text-white bg-dark h-100" style="width: 240px; min-width: 240px;">
-        <div class="btn btn-light m-0 text-start infobutton"><img src='/src/assets/img/svg/server.svg' class="me-2"  width="16" height="16" > {{$t('student.exams')}} </div><br>
+        <div class="btn btn-light m-0 text-start infobutton">
+            <img src='/src/assets/img/svg/server.svg' class="me-2"  width="16" height="16" > {{$t('student.exams')}} 
+        </div><br>
         <div v-if="!advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("student.advanced") }}</div>
         <div v-if="advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("student.simple") }}</div>
         <span style="position: absolute; bottom:2px; left: 4px; font-size:0.8em">{{version}}</span>
@@ -25,10 +27,13 @@
 
     <!-- CONTENT -->
     <div id="content" class="fadeinslow p-3">
+
+
+
         <div class="col-8 mb-2">
             <div class="input-group  mb-1">
                 <span class="input-group-text col-3" style="width:135px;" id="inputGroup-sizing-lg">{{ $t("student.username") }}</span>
-                <input v-model="username" type="text" class="form-control" id="user" placeholder="" style="width:135px;max-width:135px;min-width:135px;">
+                <input v-model="username" type="text" required="required" maxlength="25" class="form-control" id="user" placeholder="" style="width:135px;max-width:135px;min-width:135px;">
             </div>   
             <div class="input-group  mb-1"> 
                 <span class="input-group-text col-3" style="width:135px;" id="inputGroup-sizing-lg">{{ $t("student.pin") }}</span>
@@ -39,7 +44,7 @@
                 <input  v-model="serverip" class="form-control" id="serverip" placeholder="" style="width:135px;max-width:135px;min-width:135px;">
             </div>
         </div>
-
+  
   
        
    
@@ -159,6 +164,13 @@ export default {
     mounted() {  
         this.fetchInfo();
         this.fetchinterval = setInterval(() => { this.fetchInfo() }, 4000)
+
+        // add event listener to user input field to supress all special chars 
+        document.getElementById("user").addEventListener("keypress", function(e) {
+            var lettersOnly = /^[a-zA-Z]+$/;
+            var key = e.key || String.fromCharCode(e.which);
+            if (!lettersOnly.test(key)) { e.preventDefault(); }
+        });
     },
     beforeUnmount() {
         clearInterval( this.fetchinterval )

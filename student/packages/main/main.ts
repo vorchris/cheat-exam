@@ -20,7 +20,7 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow, nativeTheme} from 'electron'
+import { app, BrowserWindow, powerSaveBlocker, nativeTheme} from 'electron'
 import { release } from 'os'
 import { disableRestrictions} from './scripts/platformrestrictions.js';
 import WindowHandler from './scripts/windowhandler.js'
@@ -74,6 +74,8 @@ if (release().startsWith('6.1')) app.disableHardwareAcceleration()
 
 // Set application name for Windows 10+ notifications
 if (process.platform === 'win32') {  app.setAppUserModelId(app.getName())}
+if (process.platform ==='darwin') {  app.dock.hide() }  // safer fullscreen
+
 
 
 // hide certificate warnings in console.. we know we use a self signed cert and do not validate it
@@ -109,6 +111,7 @@ app.whenReady()
 .then(()=>{
     nativeTheme.themeSource = 'light'
     if (config.hostip) { multicastClient.init() }
+    powerSaveBlocker.start('prevent-display-sleep')
     WindowHandler.createMainWindow()
 })
 

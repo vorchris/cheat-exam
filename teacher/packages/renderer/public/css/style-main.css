@@ -107,12 +107,12 @@ input:focus::placeholder {
 
 .studentwidget span {
     margin:0;
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(1px);
     display: inline-block; 
     width:100%; 
     color: white; 
     font-size: 1.1em; 
-    background: linear-gradient(0deg,rgba(0, 0, 0, 0.808) 0%,  rgba(0, 0, 0, 0.493) 31%,rgba(255,255,255,0) 100% );
+    background: linear-gradient(0deg,rgba(0, 0, 0, 0.808) 0%,  rgba(0, 0, 0, 0.5) 31%, rgba(0, 0, 0, 0.1) 77%,rgba(255,255,255,0) 100% );
     padding: 2px;
     padding-left:6px;
     position: absolute;

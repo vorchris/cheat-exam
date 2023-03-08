@@ -44,12 +44,15 @@ import fs from 'fs'
  * @param pin the pin code used to authenticate
  * #FIXME !!!  This route needs to be secured (anyone can start a server right now - or 1000 servers)
  */
- router.get('/start/:servername/:passwd', function (req, res, next) {
+ router.post('/start/:servername/:passwd', function (req, res, next) {
 
     if (!requestSourceAllowed(req, res)) return   // for the webversion we need to check user permissions here (future stuff)
 
     const servername = req.params.servername 
     const mcServer = config.examServerList[servername]
+
+    console.log(req.body) // optional: we could store the current workdirectory for every mcserver on mcserver.serverinfo in the future
+    
     //generate random pin
     let pin = String(Math.floor(Math.random()*90000) + 10000)
     if (config.development){ pin = "1337" }  
@@ -70,7 +73,7 @@ import fs from 'fs'
     mcs.init(servername, pin, req.params.passwd)
     config.examServerList[servername]=mcs
 
-     let serverinstancedir = path.join(config.workdirectory, servername)
+    let serverinstancedir = path.join(config.workdirectory, servername)
 
     if (!fs.existsSync(serverinstancedir)){ fs.mkdirSync(serverinstancedir, { recursive: true }); }
     res.send( {sender: "server", message: t("control.serverstarted"), status: "success"})
@@ -164,7 +167,7 @@ router.get('/serverlist', function (req, res, next) {
         res.send({studentlist: mcServer.studentList})
     }
     else {
-        res.send({sender: "server", message:t("control.notfound"), status: "error"} )
+        res.send({sender: "server", message:t("control.notfound"), status: "error", studentlist: []} )
     }
 })
 
@@ -378,6 +381,7 @@ router.get('/serverlist', function (req, res, next) {
     mcServer.serverstatus.exammode = req.body.exammode
     mcServer.serverstatus.examtype = req.body.examtype
     mcServer.serverstatus.delfolder = req.body.delfolder
+    mcServer.serverstatus.delfolderonexit = req.body.delfolderonexit
     mcServer.serverstatus.spellcheck = req.body.spellcheck
     mcServer.serverstatus.spellchecklang = req.body.spellchecklang
     mcServer.serverstatus.suggestions = req.body.suggestions
@@ -386,6 +390,30 @@ router.get('/serverlist', function (req, res, next) {
     
     res.json({ sender: "server", message:t("general.ok"), status: "success" })
 })
+
+
+
+
+/**
+ * Change specific value in mcServer.serverstatus 
+ * req.body should contain the updated serverstatus information
+ * @param servername the name of the server at which the student is registered
+ * @param csrfservertoken servertoken to authenticate before the request is processed
+ */
+router.post('/serverstatus/:servername/:csrfservertoken', function (req, res, next) {
+    const csrfservertoken = req.params.csrfservertoken
+    const servername = req.params.servername
+    const mcServer = config.examServerList[servername]
+   
+    if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
+    if (csrfservertoken !== mcServer.serverinfo.servertoken) { res.send({sender: "server", message:t("control.tokennotvalid"), status: "error"} )}
+
+    mcServer.serverstatus.screenlock = req.body.screenlock
+    console.log(mcServer.serverstatus)
+    
+    res.json({ sender: "server", message:t("general.ok"), status: "success" })
+})
+
 
 
 
@@ -410,8 +438,7 @@ router.get('/serverlist', function (req, res, next) {
     
     let student = mcServer.studentList.find(element => element.token === studenttoken)
     if ( !student ) {return res.send({ sender: "server", message:"removed", status: "error" }) } //check if the student is registered on this server
-    //if ( !req.files ) {return res.send({sender: "server", message:t("control.nofiles"), status:"error"});  }
-    
+  
     if ( req.files ) {
         // save the freshly delivered screenshot
         const file = req.files[req.body.screenshotfilename]
@@ -440,11 +467,36 @@ router.get('/serverlist', function (req, res, next) {
     //update important student attributes
     student.focus = clientinfo.focus  
     student.virtualized = clientinfo.virtualized
-    student.timestamp = new Date().getTime()   //last seen 
+    student.timestamp = new Date().getTime()   //last seen  / this is like a heartbeat - update lastseen
     student.exammode = exammode  
-   
+    student.files = clientinfo.numberOfFiles
+
     // return current serverinformation 
     res.send({sender: "server", message:t("control.studentupdate"), status:"success", serverstatus:mcServer.serverstatus, studentstatus: student.status })
+})
+
+
+
+/**
+ * HEARTBEAT ! 
+ * This is used only to determine online/offline status of the students
+ * @param servername the name of the server at which the student is registered
+ * @param token the students token to search and update the entry in the list
+ */
+router.post('/heartbeat/:servername/:studenttoken', function (req, res, next) {
+    const studenttoken = req.params.studenttoken
+    const servername = req.params.servername
+
+    //check if server exists 
+    const mcServer = config.examServerList[servername]
+    if ( !mcServer) {  return res.send({sender: "server", message:"notavailable", status: "error"} )  }
+
+    //check if student is registered on server
+    let student = mcServer.studentList.find(element => element.token === studenttoken)
+    if ( !student ) {return res.send({ sender: "server", message:"removed", status: "error" }) }
+    
+    student.timestamp = new Date().getTime()   //update last seen for UI
+    res.send({sender: "server", message:"success", status:"success" })
 })
 
 
@@ -454,14 +506,11 @@ router.get('/serverlist', function (req, res, next) {
 
 
 
+
+
+
+
 export default router
-
-
-
-
-
-
-
 
 /**
  * Should be used before processing API requests that come from external sources

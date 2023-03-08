@@ -45,24 +45,27 @@ import WindowHandler from './windowhandler.js'
      init (mc, config) {
         this.multicastClient = mc
         this.config = config
-        this.updateStudentIntervall = setInterval(() => { this.sendBeacon() }, 5000)
+        this.updateStudentIntervall = setInterval(() => { this.requestUpdate() }, 5000)
+        this.heartbeatInterval = setInterval(() => { this.sendHeartbeat() }, 4000)
      }
  
 
 
     /** 
-     * sends heartbeat to registered server and updates screenshot on server 
+     * SEND HEARTBEAT in order to set Online/Offline Status 
+     * 5 Heartbeats lost is considered offline 
      */
-    async sendBeacon(){
-        // CONNECTION LOST
-        if (this.multicastClient.beaconsLost >= 4 ){ //remove server registration locally (same as 'kick')
-            console.log("Connection to Teacher lost! Removing registration.")
+    async sendHeartbeat(){
+        // CONNECTION LOST - UNLOCK SCREEN
+        if (this.multicastClient.beaconsLost >= 5 ){ // no serversignal for 20 seconds
+            console.log("Connection to Teacher lost! Removing registration.") //remove server registration locally (same as 'kick')
             this.multicastClient.beaconsLost = 0
             this.resetConnection()
+            this.killScreenlock()
             if (this.multicastClient.clientinfo.exammode === true) {
                 // lets try to allow students to gracefully exit exam on connection loss manually (only in geogebra and editor for now bc. we control the ui) 
                 // this should lead to less irritation when the teacher connection is lost
-                if (this.multicastClient.clientinfo.exammode === "eduvidual") {
+                if (this.multicastClient.clientinfo.examtype === "eduvidual") {
                     this.gracefullyEndExam()  // this should end kiosk mode, the blur listener and all (keyboard) restrictions but not kill the window
                 }else {
                     console.log("Keeping Examwindow Lockdown")
@@ -70,6 +73,30 @@ import WindowHandler from './windowhandler.js'
             }
         }
 
+        // ACTIVE SERVER CONNECTION - SEND HEARTBEAT
+        if (this.multicastClient.clientinfo.serverip) { 
+            axios({
+                method: "post", 
+                url: `https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/heartbeat/${this.multicastClient.clientinfo.servername}/${this.multicastClient.clientinfo.token}`, 
+                headers: {'Content-Type': 'application/json' }
+            }).then( response => {
+                if (response.data && response.data.status === "error") { 
+                     if      (response.data.message === "notavailable"){ console.log('Exam Instance not found!');        this.multicastClient.beaconsLost = 5} //server responded but exam is not available anymore 
+                     else if (response.data.message === "removed"){      console.log('Student registration not found!'); this.multicastClient.beaconsLost = 5} //server responded but student is no registered anymore (kicked)
+                     else { this.multicastClient.beaconsLost += 1;       console.log("heartbeat lost..") }  // other error
+                }
+                else if (response.data && response.data.status === "success") {  this.multicastClient.beaconsLost = 0  }
+            })
+            .catch(error => { console.log(`SendHeartbeat Axios: ${error}`); this.multicastClient.beaconsLost += 1; console.log("heartbeat lost..") });
+        }
+    }
+
+
+    /** 
+     * Update current Serverstatus + Studenttstatus
+     * Update Screenshot on Server 
+     */
+    async requestUpdate(){
         if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip
             //create screenshot ATTENTION! "imagemagick" has to be installed for linux !!
             let img = await screenshot().catch((err) => { console.log(`SendBeacon Screenshot: ${err}`) });
@@ -92,15 +119,14 @@ import WindowHandler from './windowhandler.js'
             })
             .then( response => {
                 if (response.data && response.data.status === "error") { 
-                    if(response.data.message === "notavailable"|| response.data.message === "removed"){ console.log('No Exam or registration!'); this.multicastClient.beaconsLost = 4} //server responded but exam is not available anymore (teacher removed it)
-                    else { this.multicastClient.beaconsLost += 1;  console.log("beacon lost..") }
+                     console.log("requestUpdate Axios: status error - try again in 5 seconds")
                 }
                 else if (response.data && response.data.status === "success") { 
-                    this.multicastClient.beaconsLost = 0 
+                    this.multicastClient.beaconsLost = 0 // this also counts as successful heartbeat - keep connection
                     this.processUpdatedServerstatus(response.data.serverstatus, response.data.studentstatus)
                 }
             })
-            .catch(error => { console.log(`SendBeacon Axios: ${error}`); this.multicastClient.beaconsLost += 1; console.log("beacon lost..") });
+            .catch(error => { console.log(`requestUpdate Axios: ${error}`); console.log("requestUpdate Axios: failed - try again in 5 seconds")});
         }
     }
 
@@ -128,14 +154,59 @@ import WindowHandler from './windowhandler.js'
         }
 
         // global status updates
+        if (serverstatus.screenlock && !this.multicastClient.clientinfo.screenlock) {  this.activateScreenlock() }
+        else if (!serverstatus.screenlock ) { this.killScreenlock() }
+
+
         if (serverstatus.exammode && !this.multicastClient.clientinfo.exammode){ 
+            this.killScreenlock() // remove lockscreen immediately - don't wait for server info
             this.startExam(serverstatus)
         }
         else if (!serverstatus.exammode && this.multicastClient.clientinfo.exammode){
-            this.endExam()
+            this.killScreenlock() 
+            this.endExam(serverstatus)
         }
 
     }
+
+
+    // show temporary screenlock window
+    activateScreenlock(){
+        let displays = screen.getAllDisplays()
+        let primary = screen.getPrimaryDisplay()
+        if (!primary || primary === "" || !primary.id){ primary = displays[0] }       
+       
+        if (!WindowHandler.screenlockWindow){  // why do we check? because exammode is left if the server connection gets lost but students could reconnect while the exam window is still open and we don't want to create a second one
+            this.multicastClient.clientinfo.screenlock = true
+            WindowHandler.createScreenlockWindow(primary);
+        }
+
+    }
+
+    // remove temporary screenlockwindow
+    killScreenlock(){
+        if (WindowHandler.screenlockWindow){ 
+            try {  
+                WindowHandler.screenlockWindow.close(); 
+                WindowHandler.screenlockWindow.destroy(); 
+            }
+            catch(e){ console.log(e)}
+            WindowHandler.screenlockWindow = null;
+        }
+        this.multicastClient.clientinfo.screenlock = false
+    }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     /**
@@ -145,12 +216,12 @@ import WindowHandler from './windowhandler.js'
      * enables the blur listener and activates restrictions (disable keyboarshortcuts etc.)
      * @param serverstatus contains information about exammode, examtype, and other settings from the teacher instance
      */
-    startExam(serverstatus){
+    async startExam(serverstatus){
         if (serverstatus.delfolder === true){
             console.log("cleaning exam workfolder")
             try {
                 if (fs.existsSync(this.config.workdirectory)){   // set by server.js (desktop path + examdir)
-                    fs.rmdirSync(this.config.workdirectory, { recursive: true });
+                    fs.rmSync(this.config.workdirectory, { recursive: true });
                     fs.mkdirSync(this.config.workdirectory);
                 }
             } catch (error) { console.error(error); }
@@ -164,29 +235,28 @@ import WindowHandler from './windowhandler.js'
             this.multicastClient.clientinfo.examtype = serverstatus.examtype
             WindowHandler.createExamWindow(serverstatus.examtype, this.multicastClient.clientinfo.token, serverstatus, primary);
         }
-
-
-        if (WindowHandler.examwindow){ 
-            try {
-                WindowHandler.examwindow.show()  // this is used to test if there is an exam window 
+        else if (WindowHandler.examwindow){  //reconnect into active exam session with exam window already open
+            try {  // switch existing window back to exam mode
+                WindowHandler.examwindow.show() 
+                if (!this.config.development) { 
+                    WindowHandler.examwindow.setFullScreen(true)  //go fullscreen again
+                    WindowHandler.examwindow.setAlwaysOnTop(true, "screen-saver", 1)  //make sure the window is 1 level above everything
+                    enableRestrictions(WindowHandler.examwindow)
+                    await this.sleep(2000) // wait an additional 2 sec for windows restrictions to kick in (they steal focus)
+                    WindowHandler.addBlurListener();
+                }   
             }
-            catch (e) { //examwindow variable is still set but the window is not managable anymore (manually closed ?)
-                console.error("communicationhandler: no functional examwindow found.. resetting")
+            catch (e) { //examwindow variable is still set but the window is not managable anymore (manually closed in dev mode?)
+                console.error("communicationhandler @ startExam: no functional examwindow found.. resetting")
                 WindowHandler.examwindow = null;
                 disableRestrictions()
                 this.multicastClient.clientinfo.exammode = false
                 this.multicastClient.clientinfo.focus = true
-                return
+                return  // in that case.. we are finished here !
             }
         }
 
-        if (!this.config.development) { 
-            if (WindowHandler.examwindow){  //broken connection - exam window still open
-                WindowHandler.examwindow.setFullScreen(true)  //go fullscreen again
-                WindowHandler.examwindow.setAlwaysOnTop(true, "screen-saver", 1)  //make sure the window is 1 level above everything
-            }
-            WindowHandler.addBlurListener();
-            enableRestrictions(WindowHandler.examwindow)
+        if (!this.config.development) {  // lock additional screens
             for (let display of displays){
                 if ( display.id !== primary.id ) {
                     WindowHandler.newBlockWin(display)  // add blockwindows for additional displays
@@ -202,15 +272,32 @@ import WindowHandler from './windowhandler.js'
      * closes exam window
      * disables restrictions and blur 
      */
-    async endExam(){
-        //handle eduvidual case
-        if (WindowHandler.examwindow){ 
+    async endExam(serverstatus){
+        console.log(serverstatus)
+        // delete students work on students pc (makes sense if exam is written on school property)
+        if (serverstatus.delfolderonexit === true){
+            console.log("cleaning exam workfolder on exit")
+            try {
+                if (fs.existsSync(this.config.workdirectory)){   // set by server.js (desktop path + examdir)
+                    fs.rmSync(this.config.workdirectory, { recursive: true });
+                    fs.mkdirSync(this.config.workdirectory);
+                }
+            } catch (error) { console.error(error); }
+        }
 
-            //send save trigger to exam window
-            WindowHandler.examwindow.webContents.send('save', 'exitexam') //trigger, why
-            await this.sleep(3000)  // give students time to read whats happening (and the editor time to save the content)
-            WindowHandler.examwindow.close(); 
-            WindowHandler.examwindow.destroy(); 
+
+        if (WindowHandler.examwindow){ // in some edge cases in development this is set but still unusable - use try/catch
+            
+            try {  //send save trigger to exam window
+                if (!serverstatus.delfolderonexit){
+                    WindowHandler.examwindow.webContents.send('save', 'exitexam') //trigger, why
+                    await this.sleep(3000)  // give students time to read whats happening (and the editor time to save the content)
+                }
+                WindowHandler.examwindow.close(); 
+                WindowHandler.examwindow.destroy(); 
+            }
+            catch(e){ console.log(e)}
+           
             WindowHandler.examwindow = null;
             for (let blockwindow of WindowHandler.blockwindows){
                 blockwindow.close(); 
@@ -334,8 +421,8 @@ import WindowHandler from './windowhandler.js'
             data: form, 
             headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
         })
-        .then(response =>{ console.log(response.data.message)  })
-        .catch( err =>{console.log(`Main - sendExam: ${err}`) })
+        .then(response =>{ console.log(`Communication handler @ sendExamToTeacher: ${response.data.message}`)  })
+        .catch( err =>{console.log(`Communication handler @ sendExamToTeacher: ${err}`) })
      
      }
 
