@@ -91,15 +91,15 @@
         <div class="btn btn-light m-1 text-start infobutton" @click="showinfo()">{{$t('dashboard.server')}} <br><b>{{serverip}}</b> </div><br>
         <div class="btn btn-light m-1 mb-3 text-start infobutton" @click="showinfo()">{{$t('dashboard.pin')}}<br><b> {{ $route.params.pin }} </b>  </div><br>
         
-        <div class="form-check m-1 mb-1">
+        <div class="form-check m-1 mb-1"  :class="(exammode)? 'disabledexam':''">
             <input v-model="examtype" value="math" class="form-check-input" type="radio" name="examtype" id="examtype2" checked>
             <label class="form-check-label" for="examtype2"> {{$t('dashboard.math')}}  </label>
         </div>
-        <div class="form-check m-1">
+        <div class="form-check m-1" :class="(exammode)? 'disabledexam':''">
             <input v-model="examtype" @click="activateSpellcheck()" value="editor" class="form-check-input" type="radio" name="examtype" id="examtype1">
             <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}} <span v-if="(spellcheck)">({{spellchecklang}})</span></label>
         </div>
-        <div class="form-check m-1 mb-3">
+        <div class="form-check m-1 mb-3" :class="(exammode)? 'disabledexam':''">
             <input v-model="examtype" @click="getTestID()" value="eduvidual" class="form-check-input" type="radio" name="examtype" id="examtype3">
             <label class="form-check-label" for="examtype3"> {{$t('dashboard.eduvidual')}}  </label>
         </div>
@@ -831,7 +831,7 @@ export default {
 }
 
 .disabledexam {
-    filter: contrast(20%) grayscale(100%) brightness(180%);
+    filter: contrast(20%) grayscale(100%) brightness(80%) blur(0.6px);
    pointer-events: none;
 }
 
