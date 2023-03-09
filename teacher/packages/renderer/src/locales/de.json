@@ -46,7 +46,7 @@
         "stopexam": "Geräte freigeben",
         "sure": "Sind sie sicher?",
         "exitexamsure": "Exam Server schließen?",
-        "exitexam": "Dies beendet die Prüfung für alle Schüler:innen",
+        "exitexam": "Dies beendet die Prüfung für alle Schüler:innen \nWurden alle Arbeiten gesichert?",
         "exitkiosk": "Abgesicherten Modus beenden. Dies schließt das Prüfungsfenster für alle Schüler:innen!",
         "reallykick": "Schüler:in vom Exam Server entfernen",
         "kick": "Verbindung trennen",

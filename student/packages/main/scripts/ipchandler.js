@@ -72,7 +72,7 @@ class IpcHandler {
                 var options = {
                     margins: {top:0.5, right:0.5, bottom:0.5, left:0.5 },
                     pageSize: 'A4',
-                    printBackground: true,
+                    printBackground: false,
                     printSelectionOnly: false,
                     landscape: args.landscape,
                     displayHeaderFooter:true,
