@@ -46,7 +46,7 @@
         "stopexam": "Release devices",
         "sure": "Are you sure?",
         "exitexamsure": "Close Exam Server?",
-        "exitexam": "This stops the exam for all students \nDid you backup everything?",
+        "exitexam": "This kills the connection to all students \nDid you backup everything?",
         "exitkiosk": "exit safe exam mode",
         "reallykick": "remove student from server",
         "kick": "remove",
