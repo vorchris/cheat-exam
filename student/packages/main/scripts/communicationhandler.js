@@ -26,10 +26,13 @@ import screenshot from 'screenshot-desktop'
 import FormData from 'form-data/lib/form_data.js';     //we need to import the file directly otherwise it will introduce a "window" variable in the backend and fail
 import { join } from 'path'
 import { screen } from 'electron'
-import childProcess from 'child_process' 
-
-
 import WindowHandler from './windowhandler.js'
+
+import { execSync } from 'child_process';
+const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
+
+
+
 
  /**
   * Handles information fetching from the server and acts on status updates
@@ -52,6 +55,18 @@ import WindowHandler from './windowhandler.js'
      }
  
 
+    isWayland(){
+        try{ 
+            let output = shell(`loginctl show-session $(loginctl | grep $(whoami) | awk '{print $1}') -p Type`); 
+            if (output.includes('wayland')){ return true } 
+            return false
+        } catch(error){return false}
+     }
+     
+     imagemagickAvailable(){
+        try{ shell(`which import`); return true}
+        catch(error){return false}
+      }
 
     /** 
      * SEND HEARTBEAT in order to set Online/Offline Status 
@@ -100,22 +115,23 @@ import WindowHandler from './windowhandler.js'
      */
     async requestUpdate(){
         if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip
-            //create screenshot ATTENTION! "imagemagick" has to be installed for linux !!
-            let img = await screenshot().catch((err) => { console.log(`requestUpdate Screenshot: ${err}`) });
+            
+            let img = null
             const formData = new FormData()  //create formdata
             formData.append('clientinfo', JSON.stringify(this.multicastClient.clientinfo) );   //we send the complete clientinfo object
 
-            let imgnew = await this.gscreenshot()
-            console.log(imgnew)
-
-            if (Buffer.isBuffer(img)){
-                let screenshotfilename = this.multicastClient.clientinfo.token +".jpg"
-                formData.append(screenshotfilename, img, screenshotfilename );
-                let hash = crypto.createHash('md5').update(img).digest("hex");
-                formData.append('screenshothash', hash);
-                formData.append('screenshotfilename', screenshotfilename);
+            //Add screenshot to formData - "imagemagick" has to be installed for linux - wayland is not (yet) supported by imagemagick !!
+            if (process.platform !== 'linux' || (  !this.isWayland() && this.imagemagickAvailable()  )){
+                img = await screenshot().catch((err) => { console.log(`requestUpdate Screenshot: ${err}`) });
+                if (Buffer.isBuffer(img)){
+                    let screenshotfilename = this.multicastClient.clientinfo.token +".jpg"
+                    formData.append(screenshotfilename, img, screenshotfilename );
+                    let hash = crypto.createHash('md5').update(img).digest("hex");
+                    formData.append('screenshothash', hash);
+                    formData.append('screenshotfilename', screenshotfilename);
+                }
             }
-
+       
             axios({    //send update and fetch server status
                 method: "post", 
                 url: `https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/update`, 
@@ -134,35 +150,6 @@ import WindowHandler from './windowhandler.js'
             .catch(error => { console.log(`requestUpdate Axios: ${error}`); console.log("requestUpdate Axios: failed - try again in 5 seconds")});
         }
     }
-
-
-    async gscreenshot (options = {}) {
-        return new Promise((resolve, reject) => {
-   
-            const execOptions = {};
-            const commandLine = `ksnip -f `
-            // exec(
-            //   commandLine,
-            //   execOptions,
-            //   (err, stdout) => {
-            //     if (err) {
-            //       return reject(err)
-            //     } else {
-            //       return resolve(options.filename ? path.resolve(options.filename) : stdout)
-            //     }
-            //   })
-
-            childProcess.exec(commandLine, [], (error, stdout, stderr) => {
-                if (stderr) {  console.log(stderr)  }
-                if (error)  {  console.log(error)   }
-                return resolve(options.filename ? path.resolve(options.filename) : stdout)
-            })
-
-          
-        })
-      }
-
-
 
 
     /**
