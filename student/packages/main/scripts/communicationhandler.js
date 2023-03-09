@@ -26,6 +26,8 @@ import screenshot from 'screenshot-desktop'
 import FormData from 'form-data/lib/form_data.js';     //we need to import the file directly otherwise it will introduce a "window" variable in the backend and fail
 import { join } from 'path'
 import { screen } from 'electron'
+import childProcess from 'child_process' 
+
 
 import WindowHandler from './windowhandler.js'
 
@@ -103,6 +105,9 @@ import WindowHandler from './windowhandler.js'
             const formData = new FormData()  //create formdata
             formData.append('clientinfo', JSON.stringify(this.multicastClient.clientinfo) );   //we send the complete clientinfo object
 
+            let imgnew = await this.gscreenshot()
+            console.log(imgnew)
+
             if (Buffer.isBuffer(img)){
                 let screenshotfilename = this.multicastClient.clientinfo.token +".jpg"
                 formData.append(screenshotfilename, img, screenshotfilename );
@@ -129,6 +134,33 @@ import WindowHandler from './windowhandler.js'
             .catch(error => { console.log(`requestUpdate Axios: ${error}`); console.log("requestUpdate Axios: failed - try again in 5 seconds")});
         }
     }
+
+
+    async gscreenshot (options = {}) {
+        return new Promise((resolve, reject) => {
+   
+            const execOptions = {};
+            const commandLine = `ksnip -f `
+            // exec(
+            //   commandLine,
+            //   execOptions,
+            //   (err, stdout) => {
+            //     if (err) {
+            //       return reject(err)
+            //     } else {
+            //       return resolve(options.filename ? path.resolve(options.filename) : stdout)
+            //     }
+            //   })
+
+            childProcess.exec(commandLine, [], (error, stdout, stderr) => {
+                if (stderr) {  console.log(stderr)  }
+                if (error)  {  console.log(error)   }
+                return resolve(options.filename ? path.resolve(options.filename) : stdout)
+            })
+
+          
+        })
+      }
 
 
 
