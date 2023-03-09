@@ -99,7 +99,7 @@ import WindowHandler from './windowhandler.js'
     async requestUpdate(){
         if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip
             //create screenshot ATTENTION! "imagemagick" has to be installed for linux !!
-            let img = await screenshot().catch((err) => { console.log(`SendBeacon Screenshot: ${err}`) });
+            let img = await screenshot().catch((err) => { console.log(`requestUpdate Screenshot: ${err}`) });
             const formData = new FormData()  //create formdata
             formData.append('clientinfo', JSON.stringify(this.multicastClient.clientinfo) );   //we send the complete clientinfo object
 
