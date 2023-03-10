@@ -39,34 +39,42 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
   */
  
  class CommHandler {
-     constructor () {
-       this.multicastClient = null
-       this.config = null
-       this.updateStudentIntervall = null
-       this.WindowHandler = null
-     }
+    constructor () {
+        this.multicastClient = null
+        this.config = null
+        this.updateStudentIntervall = null
+        this.WindowHandler = null
+        this.screenshotAbility = false
+    }
  
-  
-     init (mc, config) {
+    init (mc, config) {
         this.multicastClient = mc
         this.config = config
         this.updateStudentIntervall = setInterval(() => { this.requestUpdate() }, 5000)
         this.heartbeatInterval = setInterval(() => { this.sendHeartbeat() }, 4000)
-     }
+        if (process.platform !== 'linux' || (  !this.isWayland() && this.imagemagickAvailable()  )){ this.screenshotAbility = true }
+    }
  
-
+    /**
+     * checks for wayland session on linux - no screenshots here for now
+     * @returns true or false
+     */
     isWayland(){
         try{ 
             let output = shell(`loginctl show-session $(loginctl | grep $(whoami) | awk '{print $1}') -p Type`); 
             if (output.includes('wayland')){ return true } 
             return false
         } catch(error){return false}
-     }
-     
-     imagemagickAvailable(){
+    }
+    
+    /**
+     * Checks if imagemagick on linux is available
+     * @returns true or false
+     */
+    imagemagickAvailable(){
         try{ shell(`which import`); return true}
         catch(error){return false}
-      }
+    }
 
     /** 
      * SEND HEARTBEAT in order to set Online/Offline Status 
@@ -121,7 +129,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
             formData.append('clientinfo', JSON.stringify(this.multicastClient.clientinfo) );   //we send the complete clientinfo object
 
             //Add screenshot to formData - "imagemagick" has to be installed for linux - wayland is not (yet) supported by imagemagick !!
-            if (process.platform !== 'linux' || (  !this.isWayland() && this.imagemagickAvailable()  )){
+            if (this.screenshotAbility){
                 img = await screenshot().catch((err) => { console.log(`requestUpdate Screenshot: ${err}`) });
                 if (Buffer.isBuffer(img)){
                     let screenshotfilename = this.multicastClient.clientinfo.token +".jpg"
