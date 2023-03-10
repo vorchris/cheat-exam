@@ -457,7 +457,7 @@ router.post('/serverstatus/:servername/:csrfservertoken', function (req, res, ne
         else { console.log("md5hash missmatch - do not update file")}
     }
     else {
-        console.log("no screenshot received - probably missing image library (imagemagick)")
+        //console.log("no screenshot received - probably missing image library (imagemagick)")
         student.imageurl = "person-lines-fill.svg"
     }
     

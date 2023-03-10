@@ -64,7 +64,10 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
             let output = shell(`loginctl show-session $(loginctl | grep $(whoami) | awk '{print $1}') -p Type`); 
             if (output.includes('wayland')){ return true } 
             return false
-        } catch(error){return false}
+        } catch(error){
+            console.log("Next-Exam detected a Wayland Session - Screenshots are not supported yet")
+            return false
+        }
     }
     
     /**
@@ -73,7 +76,10 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
      */
     imagemagickAvailable(){
         try{ shell(`which import`); return true}
-        catch(error){return false}
+        catch(error){
+            console.log("ImageMagick is required to take screenshots on linux")
+            return false
+        }
     }
 
     /** 

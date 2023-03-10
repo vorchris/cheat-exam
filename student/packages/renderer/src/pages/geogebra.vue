@@ -1,3 +1,15 @@
+ <!-- 
+    Made with GeoGebra https://www.geogebra.org
+    License Information: 
+        https://stage.geogebra.org/license#NonCommercialLicenseAgreement
+        https://www.gnu.org/licenses/gpl-3.0.html
+
+    This page allows you to use geogebra classic and geogebra suite in the context of next-exam 
+    Some features of geogebra are hidden because of the restrictive nature of the digital exam environment
+    Tracking features have been removed to comply with dsgvo regulations
+  -->
+ 
+ 
  <template> 
     <div id="apphead" class="w-100 p-3 text-white bg-dark shadow text-center">
 
