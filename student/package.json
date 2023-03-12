@@ -21,11 +21,11 @@
         "productName": "Next-Exam-Student",
         "appId": "com.nextexam-student.app",
         "asar": true,
+        "afterSign": "scripts/notarize.cjs",
         "asarUnpack": [
             "node_modules/screenshot-desktop/lib/win32",
             "public"
         ],
-        "afterSign": "scripts/notarize.js",
         "directories": {
             "output": "../release/${version}"
         },
@@ -46,12 +46,14 @@
             "gatekeeperAssess": false,
             "entitlements": "entitlements.mac.plist",
             "entitlementsInherit": "entitlements.mac.plist",
+            "category": "public.app-category.utilities",
             "target": {
                 "target": "dmg",
-                "arch": [
-                    "universal"
-                ]
+                "arch": [ "universal"]
             }
+        },
+        "dmg":{
+            "sign":"true"
         },
         "portable": {
             "unpackDirName": true
