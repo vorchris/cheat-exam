@@ -10,7 +10,7 @@
         "dev": "node scripts/watch.mjs",
         "build": "node scripts/build.mjs && electron-builder -l",
         "build:win": "node scripts/build.mjs && electron-builder -w",
-        "build:mac": "node scripts/build.mjs && electron-builder -m -c.mac.identity=null",
+        "build:mac": "node scripts/build.mjs && electron-builder -m",
         "dev:web": "vite ./packages/renderer --host | npm run serve  ",
         "serve": "nodemon --experimental-json-modules --trace-warnings packages/server/src/server",
         "vite": "vite ./packages/renderer --host"
@@ -19,6 +19,7 @@
         "productName": "Next-Exam-Teacher",
         "appId": "com.nextexam-teacher.app",
         "asar": true,
+        "afterSign": "scripts/notarize.cjs",
         "directories": {
             "output": "../release/${version}"
         },
@@ -35,12 +36,19 @@
         "mac": {
             "icon": "public/icons/icon.png",
             "artifactName": "${productName}_${version}_${arch}.${ext}",
+            "hardenedRuntime": true,
+            "gatekeeperAssess": false,
+            "entitlements": "entitlements.mac.plist",
+            "entitlementsInherit": "entitlements.mac.plist",
+            "category": "public.app-category.utilities",
+            
             "target": {
                 "target": "dmg",
-                "arch": [
-                    "universal"
-                ]
+                "arch": ["universal"] 
             }
+        },
+        "dmg":{
+            "sign":"true"
         },
         "win": {
             "icon": "public/icons/icon.ico",
@@ -65,7 +73,8 @@
         "@types/vue-i18n": "^7.0.0",
         "@vitejs/plugin-vue": "^2.1.0",
         "electron": "^21.1.0",
-        "electron-builder": "^22.14.5",
+        "electron-builder": "^23.0.2",
+        "electron-notarize": "^1.2.2",
         "morgan": "^1.10.0",
         "nodemon": "^2.0.15",
         "typescript": "^4.5.5",

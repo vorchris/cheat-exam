@@ -14,7 +14,7 @@
     "scripts": {
         "dev": "node scripts/watch.mjs",
         "build": "node scripts/build.mjs && electron-builder -l",
-        "build:mac": "node scripts/build.mjs && electron-builder -m -c.mac.identity=null",
+        "build:mac": "node scripts/build.mjs && electron-builder -m",
         "build:win": "node scripts/build.mjs && electron-builder -w"
     },
     "build": {
@@ -25,6 +25,7 @@
             "node_modules/screenshot-desktop/lib/win32",
             "public"
         ],
+        "afterSign": "scripts/notarize.js",
         "directories": {
             "output": "../release/${version}"
         },
@@ -41,6 +42,10 @@
         "mac": {
             "icon": "public/icons/icon.png",
             "artifactName": "${productName}_${version}_${arch}.${ext}",
+            "hardenedRuntime": true,
+            "gatekeeperAssess": false,
+            "entitlements": "entitlements.mac.plist",
+            "entitlementsInherit": "entitlements.mac.plist",
             "target": {
                 "target": "dmg",
                 "arch": [
@@ -73,7 +78,8 @@
         "@types/screenshot-desktop": "^1.12.0",
         "@vitejs/plugin-vue": "^2.1.0",
         "electron": "^21.1.0",
-        "electron-builder": "^22.14.5",
+        "electron-builder": "^23.0.2",
+        "electron-notarize": "^1.2.2",
         "nodemon": "^2.0.15",
         "typescript": "^4.5.5",
         "vite": "^2.7.13",
