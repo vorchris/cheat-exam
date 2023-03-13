@@ -49,11 +49,13 @@
             "category": "public.app-category.utilities",
             "target": {
                 "target": "dmg",
-                "arch": [ "universal"]
+                "arch": [
+                    "universal"
+                ]
             }
         },
-        "dmg":{
-            "sign":"true"
+        "dmg": {
+            "sign": "true"
         },
         "portable": {
             "unpackDirName": true
