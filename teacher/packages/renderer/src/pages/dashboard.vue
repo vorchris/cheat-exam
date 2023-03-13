@@ -161,7 +161,7 @@
                                 {{student.clientname}}  
                                 <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-2 pe-2 float-end" title="kick user"></button> 
                             </span>
-                    </div>
+                        </div>
                         <div class="btn-group pt-0" role="group">
                             <button v-if="(now - 20000 < student.timestamp)" @click="showStudentview(student)" type="button" class="btn btn-outline-success btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">{{$t('dashboard.online')}} </button>
                             <button v-if="(now - 20000 > student.timestamp)" type="button" class="btn btn-outline-danger btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">{{$t('dashboard.offline')}} </button>
@@ -246,7 +246,7 @@ export default ({
             screenslocked: false,
             enabled: true,
             drag: false,
-            studentwidgets: null
+            studentwidgets: []
         };
     },
     computed: {
@@ -279,14 +279,22 @@ export default ({
                     });
 
                     //update widgets list here - we keep our own independent widgetlist (aka studentlist) for drag&drop 
-                    if (!this.studentwidgets) { this.studentwidgets = this.studentlist} // add first student(s) only on first run
-
                     for (let student of this.studentlist) {
-                        for (let widget of this.studentwidgets) { //find student in studentwidgets list
-                            if (widget.token === student.token) { widget = student} //update student in widgetlist without changing index
+                        let studentWidget = this.studentwidgets.filter( el => el.token ===  student.token)  // get widget with the same token
+                        if ( studentWidget.length > 0){  //studentwidget exists -> update it
+                            for (let i = 0; i < this.studentwidgets.length; i++){  // we cant use (for .. of) or forEach because it creates a workingcopy of the original object
+                                if (student.token == this.studentwidgets[i].token){ this.studentwidgets[i] = student; }  //now update the entry in the original widgets object
+                            }
                         }
+                        else {this.studentwidgets.push(student)}
                     }
                 }
+                //remove studentwidget from widgetslist if student was removed
+                for (let widget of this.studentwidgets) { //find student in studentwidgets list  
+                    let studentExists = this.studentlist.filter( el => el.token ===  widget.token).length === 0 ? false : true  // now check if a widget has a student in studentlist otherwise remove it
+                    if (!studentExists){ this.studentwidgets = this.studentwidgets.filter( el => el.token !==  widget.token); } // update studentwidgets - filter all except the one that should be removed
+                }
+
             }).catch( err => {console.log(err)});
         }, 
         // enable exam mode 
