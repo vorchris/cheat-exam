@@ -129,6 +129,7 @@
 
    
     <div id="content" class="fadeinslow p-3">
+        
         <!-- control buttons start -->
         <div v-if="(!exammode)" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px; height:62px;"  @click="startExam()">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
         <div v-if="(exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="endExam()" >{{numberOfConnections}} {{$t('dashboard.stopexam')}}</div>
@@ -146,14 +147,12 @@
 
 
         <!-- studentlist start -->
-        <div id="studentslist" class="placeholder pt-1"> 
-
-       
-            <draggable v-model="studentlist" class="dragArea w-full" >
+        <div id="studentslist" class="placeholder pt-1">        
+            <draggable v-model="studentwidgets" class="dragArea w-full" @change="log" >
                 <transition-group>
                     
-                    <div v-for="student in studentlist" :key="student.clientname" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':''" class="studentwidget btn border-0 rounded-3 btn-block ">
-                        <div id="image" class="rounded"   style="position: relative; height:132px;">
+                    <div v-for="student in studentwidgets" :key="student.token" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':''" class="studentwidget btn border-0 rounded-3 btn-block ">
+                        <div id="image" class="rounded" style="position: relative; height:132px;">
                             <div v-cloak :id="student.token" style="position: relative;background-size: cover; height: 132px; background-image: url('user-black.svg')"></div>
                             <div v-if="student.virtualized" class="virtualizedinfo" >{{$t("dashboard.virtualized")}}</div>
                             <div v-if="!student.focus" class="kioskwarning" >{{$t("dashboard.leftkiosk")}}</div>
@@ -170,15 +169,16 @@
                             <button v-if="(now - 20000 < student.timestamp) && !student.focus "   @click='restore(student.token)' type="button" class="btn btn-danger btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;"> {{$t('dashboard.restore')}} </button>
                         </div>
                     </div> 
-
                 </transition-group>
             </draggable>  
-
-
         </div>
         <!-- studentlist end -->
     </div>
   
+    <div style="position: fixed; bottom:20px; right: 20px; filter:opacity(50%)" class="col d-inlineblock btn " @click="sortStudentWidgets()">
+     <img src="/src/assets/img/svg/view-sort-ascending-name.svg" class="white" title="sort" width="24" height="24" >  
+ </div>
+
 
 </div>
 </template>
@@ -189,7 +189,6 @@
 import $ from 'jquery'
 import axios from "axios"
 import FormData from 'form-data'
-
 import { VueDraggableNext } from 'vue-draggable-next'
 
 
@@ -247,40 +246,30 @@ export default ({
             screenslocked: false,
             enabled: true,
             drag: false,
+            studentwidgets: null
         };
     },
     computed: {
        
     },
     methods: {
-        sort() {
-            this.studentlist.sort((a, b) => a.clientname.localeCompare(b.clientname))
+        sortStudentWidgets() {
+            this.studentwidgets.sort((a, b) => a.clientname.localeCompare(b.clientname))
         },
+        log(event) {
+            console.log(event)
+         },
         // get all information about students status and do some checks
         fetchInfo() {
             this.now = new Date().getTime()
             axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/studentlist/${this.servername}/${this.servertoken}`)
             .then( response => {
                 this.studentlist = response.data.studentlist;
-
-                this.studentlist = [
-                { clientname: 'John', id: 1, focus: true , timestamp:919999999999},
-                { clientname: 'Joao', id: 2 , focus: true , timestamp:111111111199999},
-                { clientname: 'Jean', id: 3, focus: true , timestamp:111111111199999 },
-                { clientname: 'tom', id: 4, focus: true , timestamp:111111111199999 },
-                { clientname: 'doe', id: 4, focus: true , timestamp:111111111199999 },
-                { clientname: 'maxi', id: 4, focus: true , timestamp:111111111199999 },
-                { clientname: 'hannes', id: 4, focus: true , timestamp:111111111199999 },
-                { clientname: 'johhni', id: 4, focus: true , timestamp:111111111199999 },
-                { clientname: 'hannes', id: 4, focus: true , timestamp:111111111199999 },
-                { clientname: 'hannes1', id: 4, focus: true , timestamp:111111111199999 },
-            ]
-
-
                 this.numberOfConnections = this.studentlist.length
+
                 if (this.studentlist && this.studentlist.length > 0){
-                    this.studentlist.forEach(student =>{  // on studentlist-receive update active student (for student-details)
-                        if (this.activestudent && student.token === this.activestudent.token) { this.activestudent = student}
+                    this.studentlist.forEach( student => { 
+                        if (this.activestudent && student.token === this.activestudent.token) { this.activestudent = student}  // on studentlist-receive update active student (for student-details)
                         try {
                             if (this.now - 20000 > student.timestamp){ 
                                 document.getElementById(`${student.token}`).style.backgroundImage = 'url("user-red.svg")'
@@ -288,8 +277,16 @@ export default ({
                             else {document.getElementById(`${student.token}`).style.backgroundImage = 'url(' + student.imageurl + ')'}
                         } catch (e) {  }
                     });
+
+                    //update widgets list here - we keep our own independent widgetlist (aka studentlist) for drag&drop 
+                    if (!this.studentwidgets) { this.studentwidgets = this.studentlist} // add first student(s) only on first run
+
+                    for (let student of this.studentlist) {
+                        for (let widget of this.studentwidgets) { //find student in studentwidgets list
+                            if (widget.token === student.token) { widget = student} //update student in widgetlist without changing index
+                        }
+                    }
                 }
-                // this.studentlist.sort((a, b) => a.clientname.localeCompare(b.clientname))
             }).catch( err => {console.log(err)});
         }, 
         // enable exam mode 
@@ -894,7 +891,7 @@ export default ({
     width: 100%;
     height: 90%;
     /* border: 1px solid rgb(99, 187, 175); */
-  
+    padding-bottom:100px;
     transition:0.1s;
     overflow-y:auto;
 }

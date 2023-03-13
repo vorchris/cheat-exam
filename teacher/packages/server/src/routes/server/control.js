@@ -163,6 +163,24 @@ router.get('/serverlist', function (req, res, next) {
     const servername = req.params.servername
     const mcServer = config.examServerList[servername]
 
+
+    mcServer.studentList = [
+        { clientname: 'John', token: 1, focus: true , timestamp:919999999999},
+        { clientname: 'Joao', token: 2 , focus: true , timestamp:111111111199999},
+        { clientname: 'Jean', token: 3, focus: true , timestamp:111111111199999 },
+        { clientname: 'tom', token: 4, focus: true , timestamp:111111111199999 },
+        { clientname: 'doe', token: 43, focus: true , timestamp:111111111199999 },
+        { clientname: 'maxi', token: 42, focus: true , timestamp:111111111199999 },
+        { clientname: 'hannes', token: 41, focus: true , timestamp:111111111199999 },
+        { clientname: 'johhni', token: 14, focus: true , timestamp:111111111199999 },
+        { clientname: 'hannes', token: 24, focus: true , timestamp:111111111199999 },
+        { clientname: 'hannes1', token: 34, focus: true , timestamp:111111111199999 },
+    ]
+
+
+
+
+
     if (mcServer && req.params.csrfservertoken === mcServer.serverinfo.servertoken) {
         res.send({studentlist: mcServer.studentList})
     }
