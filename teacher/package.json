@@ -141,6 +141,8 @@
         "pdf-lib": "^1.17.1",
         "sass": "^1.49.9",
         "screenshot-desktop": "^1.12.7",
+        "sortablejs": "^1.15.0",
+        "vue-draggable-next": "^2.1.1",
         "vue-router": "^4.0.13",
         "vue-sweetalert2": "^5.0.2"
     }

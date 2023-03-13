@@ -147,24 +147,34 @@
 
         <!-- studentlist start -->
         <div id="studentslist" class="placeholder pt-1"> 
-            <div v-for="student in studentlist" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn border-0 rounded-3 btn-block ">
-                <div id="image" class="rounded"   style="position: relative; height:132px;">
-                    <div v-cloak :id="student.token" style="position: relative;background-size: cover; height: 132px; background-image: url('user-black.svg')"></div>
-                    <div v-if="student.virtualized" class="virtualizedinfo" >{{$t("dashboard.virtualized")}}</div>
-                    <div v-if="!student.focus" class="kioskwarning" >{{$t("dashboard.leftkiosk")}}</div>
-                    <span style="">   
-                        <img v-for="file in student.files" style="width:22px; margin-left:-4px; position: relative; filter: sepia(10%) hue-rotate(306deg) brightness(0.3) saturate(75);" class="" src="/src/assets/img/svg/document.svg"><br>
-                        {{student.clientname}}  
-                        <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-2 pe-2 float-end" title="kick user"></button> 
-                    </span>
-               </div>
-                <div class="btn-group pt-0" role="group">
-                    <button v-if="(now - 20000 < student.timestamp)" @click="showStudentview(student)" type="button" class="btn btn-outline-success btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">{{$t('dashboard.online')}} </button>
-                    <button v-if="(now - 20000 > student.timestamp)" type="button" class="btn btn-outline-danger btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">{{$t('dashboard.offline')}} </button>
-                    <button v-if="(now - 20000 < student.timestamp) && student.exammode && student.focus"  @click='showStudentview(student)' type="button" class="btn btn-outline-warning btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;">{{$t('dashboard.secure')}}</button>
-                    <button v-if="(now - 20000 < student.timestamp) && !student.focus "   @click='restore(student.token)' type="button" class="btn btn-danger btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;"> {{$t('dashboard.restore')}} </button>
-                </div>
-            </div>  
+
+       
+            <draggable v-model="studentlist" class="dragArea w-full" >
+                <transition-group>
+                    
+                    <div v-for="student in studentlist" :key="student.clientname" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':''" class="studentwidget btn border-0 rounded-3 btn-block ">
+                        <div id="image" class="rounded"   style="position: relative; height:132px;">
+                            <div v-cloak :id="student.token" style="position: relative;background-size: cover; height: 132px; background-image: url('user-black.svg')"></div>
+                            <div v-if="student.virtualized" class="virtualizedinfo" >{{$t("dashboard.virtualized")}}</div>
+                            <div v-if="!student.focus" class="kioskwarning" >{{$t("dashboard.leftkiosk")}}</div>
+                            <span style="">   
+                                <img v-for="file in student.files" style="width:22px; margin-left:-4px; position: relative; filter: sepia(10%) hue-rotate(306deg) brightness(0.3) saturate(75);" class="" src="/src/assets/img/svg/document.svg"><br>
+                                {{student.clientname}}  
+                                <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-2 pe-2 float-end" title="kick user"></button> 
+                            </span>
+                    </div>
+                        <div class="btn-group pt-0" role="group">
+                            <button v-if="(now - 20000 < student.timestamp)" @click="showStudentview(student)" type="button" class="btn btn-outline-success btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">{{$t('dashboard.online')}} </button>
+                            <button v-if="(now - 20000 > student.timestamp)" type="button" class="btn btn-outline-danger btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">{{$t('dashboard.offline')}} </button>
+                            <button v-if="(now - 20000 < student.timestamp) && student.exammode && student.focus"  @click='showStudentview(student)' type="button" class="btn btn-outline-warning btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;">{{$t('dashboard.secure')}}</button>
+                            <button v-if="(now - 20000 < student.timestamp) && !student.focus "   @click='restore(student.token)' type="button" class="btn btn-danger btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;"> {{$t('dashboard.restore')}} </button>
+                        </div>
+                    </div> 
+
+                </transition-group>
+            </draggable>  
+
+
         </div>
         <!-- studentlist end -->
     </div>
@@ -180,6 +190,8 @@ import $ from 'jquery'
 import axios from "axios"
 import FormData from 'form-data'
 
+import { VueDraggableNext } from 'vue-draggable-next'
+
 
  /** use this as visible feedback for some actions
  
@@ -191,8 +203,11 @@ import FormData from 'form-data'
 */
 
 
+export default ({
+    components: {
+        draggable: VueDraggableNext,
+    },
 
-export default {
     data() {
         return {
             version: this.$route.params.version,
@@ -230,16 +245,38 @@ export default {
             moodleTestId: null,
             moodleTestType: null,
             screenslocked: false,
+            enabled: true,
+            drag: false,
         };
     },
-    components: { },
+    computed: {
+       
+    },
     methods: {
+        sort() {
+            this.studentlist.sort((a, b) => a.clientname.localeCompare(b.clientname))
+        },
         // get all information about students status and do some checks
         fetchInfo() {
             this.now = new Date().getTime()
             axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/studentlist/${this.servername}/${this.servertoken}`)
             .then( response => {
                 this.studentlist = response.data.studentlist;
+
+                this.studentlist = [
+                { clientname: 'John', id: 1, focus: true , timestamp:919999999999},
+                { clientname: 'Joao', id: 2 , focus: true , timestamp:111111111199999},
+                { clientname: 'Jean', id: 3, focus: true , timestamp:111111111199999 },
+                { clientname: 'tom', id: 4, focus: true , timestamp:111111111199999 },
+                { clientname: 'doe', id: 4, focus: true , timestamp:111111111199999 },
+                { clientname: 'maxi', id: 4, focus: true , timestamp:111111111199999 },
+                { clientname: 'hannes', id: 4, focus: true , timestamp:111111111199999 },
+                { clientname: 'johhni', id: 4, focus: true , timestamp:111111111199999 },
+                { clientname: 'hannes', id: 4, focus: true , timestamp:111111111199999 },
+                { clientname: 'hannes1', id: 4, focus: true , timestamp:111111111199999 },
+            ]
+
+
                 this.numberOfConnections = this.studentlist.length
                 if (this.studentlist && this.studentlist.length > 0){
                     this.studentlist.forEach(student =>{  // on studentlist-receive update active student (for student-details)
@@ -252,7 +289,7 @@ export default {
                         } catch (e) {  }
                     });
                 }
-                this.studentlist.sort((a, b) => a.clientname.localeCompare(b.clientname))
+                // this.studentlist.sort((a, b) => a.clientname.localeCompare(b.clientname))
             }).catch( err => {console.log(err)});
         }, 
         // enable exam mode 
@@ -774,11 +811,42 @@ export default {
         clearInterval( this.fetchinterval )
         clearInterval( this.abgabeinterval )
     }
-}
+})
+
 
 </script>
 
 <style scoped>
+
+.button {
+  margin-top: 35px;
+}
+.flip-list-move {
+  transition: transform 0.5s;
+}
+.no-move {
+  transition: transform 0s;
+}
+.ghost {
+  opacity: 0.5;
+  background: #c8ebfb;
+}
+.list-group {
+  min-height: 20px;
+}
+.list-group-item {
+  cursor: move;
+}
+.list-group-item i {
+  cursor: pointer;
+}
+
+
+
+
+
+
+
 
 [v-cloak] { display: none; }
 .virtualizedinfo {
