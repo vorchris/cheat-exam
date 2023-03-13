@@ -48,11 +48,13 @@
             "category": "public.app-category.utilities",
             "target": {
                 "target": "dmg",
-                "arch": ["universal"] 
+                "arch": [
+                    "universal"
+                ]
             }
         },
-        "dmg":{
-            "sign":"true"
+        "dmg": {
+            "sign": "true"
         },
         "win": {
             "icon": "public/icons/icon.ico",
@@ -122,6 +124,7 @@
         "@tiptap/vue-3": "^2.0.0-beta.90",
         "archiver": "^5.3.0",
         "axios": "^0.26.0",
+        "check-disk-space": "^3.3.1",
         "cors": "^2.8.5",
         "default-gateway": "^6.0.3",
         "express": "^4.17.3",

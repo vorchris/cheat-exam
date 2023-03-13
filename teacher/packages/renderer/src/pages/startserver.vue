@@ -30,7 +30,10 @@
     
         <div v-if="!advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("startserver.advanced") }}</div>
         <div v-if="advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("startserver.simple") }}</div> 
-    
+        
+        <div v-if="freeDiscspace < 0.1" class="warning">  {{ $t("startserver.freespacewarning") }}   </div>
+        
+        
         <div class="m-2">
             <br><div id="statusdiv" class="btn btn-warning m-2 hidden">{{$t("startserver.connected")}}</div>
         </div><br>
@@ -73,7 +76,6 @@
 
 <script>
 import $ from 'jquery'
-import axios from "axios";
 
 export default {
     data() {
@@ -88,13 +90,20 @@ export default {
             hostname: window.location.hostname,
             hostip: this.$route.params.config.hostip,
             advanced: false,
-            workdir: this.$route.params.config.workdirectory
+            workdir: this.$route.params.config.workdirectory,
+            freeDiscspace: 0
         };
     },
     components: {},
     methods: {
+        checkDiscspace(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
+           this.freeDiscspace = ipcRenderer.sendSync('checkDiscspace')
+        },
+
         setWorkdir(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
             this.workdir = ipcRenderer.sendSync('setworkdir')
+            this.checkDiscspace()
+
         },
         toggleAdvanced(){
             if (this.advanced) {this.advanced = false} else {this.advanced = true}
@@ -166,6 +175,7 @@ export default {
         }
         if (this.electron){
             this.hostname = "localhost"
+            this.checkDiscspace()
         }
     },
     beforeUnmount() {
@@ -187,5 +197,17 @@ export default {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     background-color: whitesmoke;
+}
+
+.warning {
+    margin-top: 10px;
+    border-radius: 3px;
+    padding: 2px;
+    text-align: center;
+    font-size: 0.8em;
+    color: #fff;
+    background-color:  #dc3545c7;
+;
+
 }
 </style>

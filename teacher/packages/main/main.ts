@@ -25,6 +25,7 @@ import { join } from 'path'
 import config from '../server/src/config.js';
 import server from "../server/src/server.js"
 import multicastClient from '../server/src/classes/multicastclient.js'
+import checkDiskSpace from 'check-disk-space'
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -151,6 +152,16 @@ ipcMain.on('getconfig', (event) => {   event.returnValue = config   })  // we ca
 
 
 ipcMain.on('getCurrentWorkdir', (event) => {   event.returnValue = config.workdirectory  })
+
+ipcMain.on('checkDiscspace', async (event) => {   
+    let freespace = await checkDiskSpace(config.workdirectory).then((diskSpace) => {
+        let free = Math.round(diskSpace.free/1024/1024/1024 * 1000)/1000
+        return free
+
+    })
+    event.returnValue = freespace
+})
+
 
 
 ipcMain.on('setworkdir', async (event, arg) => {

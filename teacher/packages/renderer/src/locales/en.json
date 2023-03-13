@@ -21,7 +21,8 @@
         "advanced": "advanced",
         "simple": "simple",
         "workfolder": "Workdirectory",
-        "select": "Select Workdirectory"
+        "select": "Select Workdirectory",
+        "freespacewarning" : "Not enough free discspace"
     },
     "dashboard":{
         "server": "Server",

@@ -21,7 +21,8 @@
         "advanced": "fortgeschritten",
         "simple": "einfach",
         "workfolder": "Arbeitsverzeichnis",
-        "select": "Arbeitsverzeichnis wählen"
+        "select": "Arbeitsverzeichnis wählen",
+        "freespacewarning" : "Zu wenig freier Speicherplatz"
     },
     "dashboard":{
         "server": "Server",
