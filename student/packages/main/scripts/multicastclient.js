@@ -39,6 +39,7 @@ class MulticastClient {
             name: "DemoUser",
             token: false,
             ip: false,
+            hostname: false,
             serverip: false,
             servername: false,
             focus: true,

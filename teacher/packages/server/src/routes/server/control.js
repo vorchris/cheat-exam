@@ -180,7 +180,7 @@ router.get('/serverlist', function (req, res, next) {
  *  @param clientname the name of the student
  *  @param clientip the clients ip address for api calls
  */
- router.get('/registerclient/:servername/:pin/:clientname/:clientip/:version', function (req, res, next) {
+ router.get('/registerclient/:servername/:pin/:clientname/:clientip/:hostname/:version', function (req, res, next) {
     const clientname = req.params.clientname
     const clientip = req.params.clientip
     const pin = req.params.pin
@@ -188,6 +188,8 @@ router.get('/serverlist', function (req, res, next) {
     const servername = req.params.servername
     const token = `csrf-${crypto.randomUUID()}`
     const mcServer = config.examServerList[servername] // get the multicastserver object
+    const hostname = req.params.hostname
+    console.log(hostname)
     
     if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
     if (version !== config.version ) {  return res.send({sender: "server", message:t("control.versionmismatch"), status: "error"} )  }  
@@ -198,6 +200,7 @@ router.get('/serverlist', function (req, res, next) {
             console.log('adding new client')
             const client = {    // we have a different representation of the clientobject on the server than on the client - why exactly? we could just send the whole client object via POST (as we already do in /update route )
                 clientname: clientname,
+                hostname: hostname,
                 token: token,
                 clientip: clientip,
                 timestamp: new Date().getTime(),

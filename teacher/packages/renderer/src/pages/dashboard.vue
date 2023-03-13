@@ -29,7 +29,8 @@
                 <div id="controlbuttons" style="text-align: center;">
                     <button class="btn btn-close  btn-close-white align-right" @click="hideStudentview()"  style="width: 100px"></button>
                     <b>{{activestudent.clientname}}</b><br>
-                    <span style="font-size: 0.7em;">{{activestudent.clientip}}</span>
+                    <div style="font-size: 0.6em; margin-bottom: 0px;">{{activestudent.clientip}}</div>
+                    <div style="font-size: 0.6em; margin-top: 0px;">{{activestudent.hostname}}</div>
                     <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent.token)"  style="width: 100px">{{$t('dashboard.sendfile')}}</div>
                     <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="getFiles(activestudent.token, true)"  style="width: 100px">{{$t('dashboard.getfile')}}</div>
                     <div class="col d-inlineblock btn btn-warning m-1 btn-sm"   @click='kick(activestudent.token,activestudent.clientip)'  style="width: 100px">{{$t('dashboard.kick')}}</div>
@@ -91,6 +92,10 @@
         <div class="btn btn-light m-1 text-start infobutton" @click="showinfo()">{{$t('dashboard.server')}} <br><b>{{serverip}}</b> </div><br>
         <div class="btn btn-light m-1 mb-3 text-start infobutton" @click="showinfo()">{{$t('dashboard.pin')}}<br><b> {{ $route.params.pin }} </b>  </div><br>
         
+        <div style="font-size:0.9em">
+        
+        
+       
         <div class="form-check m-1 mb-1"  :class="(exammode)? 'disabledexam':''">
             <input v-model="examtype" value="math" class="form-check-input" type="radio" name="examtype" id="examtype2" checked>
             <label class="form-check-label" for="examtype2"> {{$t('dashboard.math')}}  </label>
@@ -108,12 +113,13 @@
         <div class="form-check form-switch  m-1 mb-2">
             <input @change="toggleAutoabgabe()"  @click="setAbgabeInterval()" v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
             <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
+            <span v-if="autoabgabe" > ({{ abgabeintervalPause }}min)</span>
         </div>
         <div class="form-check form-switch m-1 mb-2">
             <input v-model="delfolder" @click="delfolderquestion()" value="del" class="form-check-input" type="checkbox" name="delfolder" id="delfolder">
             <label class="form-check-label" for="delfolder"> {{$t('dashboard.del')}}  </label>
         </div>
-
+    </div>
 
         <div id="statusdiv" class="btn btn-warning m-1"> {{$t('dashboard.connected')}}  </div>
         <span style="position: absolute; bottom:2px; left: 4px; font-size:0.8em">{{version}}</span>
@@ -136,10 +142,8 @@
         <div  v-if="(!screenslocked)" class="btn btn-dark m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(true)"> 
             <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" title="lock" width="32" height="32" >  
         </div>
-
-
-
         <!-- control buttons end -->
+
 
         <!-- studentlist start -->
         <div id="studentslist" class="placeholder pt-1"> 

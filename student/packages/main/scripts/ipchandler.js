@@ -6,6 +6,7 @@ import i18n from '../../renderer/src/locales/locales.js'
 const { t } = i18n.global
 import {  ipcMain } from 'electron'
 import defaultGateway from'default-gateway';
+import os from 'os'
 
   ////////////////////////////////
  // IPC handling (Backend) START
@@ -110,6 +111,7 @@ class IpcHandler {
             const serverip = args.serverip
             const servername = args.servername
             const clientip = ip.address()
+            const hostname = os.hostname()
             const version = this.config.version
 
             if (this.multicastClient.clientinfo.token){
@@ -117,7 +119,7 @@ class IpcHandler {
             }
         
             axios({ method:'get', 
-                    url:`https://${serverip}:${this.config.serverApiPort}/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}/${version}`,
+                    url:`https://${serverip}:${this.config.serverApiPort}/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}/${hostname}/${version}`,
                     timeout: 8000})
             .then(response => {
                 if (response.data && response.data.status == "success") { // registration successfull otherwise data would be "false"
@@ -125,6 +127,7 @@ class IpcHandler {
                     this.multicastClient.clientinfo.serverip = serverip
                     this.multicastClient.clientinfo.servername = servername
                     this.multicastClient.clientinfo.ip = clientip
+                    this.multicastClient.clientinfo.hostname = hostname
                     this.multicastClient.clientinfo.token = response.data.token // we need to store the client token in order to check against it before processing critical api calls
                     this.multicastClient.clientinfo.focus = true
                     this.multicastClient.clientinfo.pin = pin
