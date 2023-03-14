@@ -150,21 +150,20 @@
 
         <!-- studentlist start -->
         <div id="studentslist" class="placeholder pt-1">        
-            <draggable v-model="studentwidgets" :move="handleMoveItem" @end="handleDragEndItem" >
+            <draggable v-model="studentwidgets" :move="handleMoveItem" @end="handleDragEndItem" ghost-class="ghost">
     
                 <div v-for="student in studentwidgets" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':''" class="studentwidget btn rounded-3 btn-block ">
                     <div v-if="student.clientname">
-                        <div id="image" class="rounded" style="position: relative; height:132px;">
-                            <div v-cloak :id="student.token" style="position: relative;background-size: cover; height: 132px; background-image: url('user-black.svg')"></div>
+                        <div class="studentimage rounded" style="position: relative; height:132px;">
+                            <div v-cloak :id="student.token" style="position: relative;background-size: cover; height: 132px;" v-bind:style="(student.imageurl) ? 'background-image: url('+student.imageurl+')' : 'background-image: url(user-black.svg)'"></div>
                             <div v-if="student.virtualized" class="virtualizedinfo" >{{$t("dashboard.virtualized")}}</div>
                             <div v-if="!student.focus" class="kioskwarning" >{{$t("dashboard.leftkiosk")}}</div>
-                            <span style="">   
+                            <span>   
                                 <img v-for="file in student.files" style="width:22px; margin-left:-4px; position: relative; filter: sepia(10%) hue-rotate(306deg) brightness(0.3) saturate(75);" class="" src="/src/assets/img/svg/document.svg"><br>
                                 {{student.clientname}}  
-                                <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-2 pe-2 float-end" title="kick user"></button> 
+                                <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-1 pe-2 float-end" title="kick user"></button> 
                             </span>
                         </div>
-
 
                         <div class="btn-group pt-0" role="group">
                             <button v-if="(now - 20000 < student.timestamp)" @click="showStudentview(student)" type="button" class="btn btn-outline-success btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">{{$t('dashboard.online')}} </button>
@@ -205,12 +204,10 @@ import { VueDraggableNext } from 'vue-draggable-next'
 */
 
 
-
 export default {
     components: {
         draggable: VueDraggableNext,
     },
-
     data() {
         return {
             version: this.$route.params.version,
@@ -259,28 +256,22 @@ export default {
         };
     },
     methods: {
-        log(event){
-            console.log(event)
-        },
         handleDragEndItem() {
             this.movingItem = this.studentwidgets[this.originalIndex];
             this.futureItem = this.studentwidgets[this.futureIndex];
 
             if (this.movingItem && this.futureItem) {
-                let _list = Object.assign([], this.studentwidgets);
-                _list[this.futureIndex] = this.movingItem;
-                _list[this.originalIndex] = this.futureItem;
-                this.studentwidgets = _list;
+                this.studentwidgets[this.futureIndex] = this.movingItem;
+                this.studentwidgets[this.originalIndex] = this.futureItem;
             }
-            document.querySelectorAll('.studentwidget').forEach((el) => (el.style.border = 'none'));
+            document.querySelectorAll('.studentwidget').forEach((el) => (el.style.backgroundColor = 'transparent'));
         },
         handleMoveItem(event) {
-            document.querySelectorAll('.studentwidget').forEach((el) => (el.style.border = 'none'));
+            document.querySelectorAll('.studentwidget').forEach((el) => (el.style.backgroundColor = 'transparent'));
             const { index, futureIndex } = event.draggedContext;
             this.originalIndex = index;
             this.futureIndex = futureIndex;
-            if (this.studentwidgets[this.futureIndex]) { event.to.children[this.futureIndex].style.border = '1px dashed #0dcaf0'; }
-
+            if (this.studentwidgets[this.futureIndex]) { event.to.children[this.futureIndex].style.backgroundColor = 'rgba(13, 202, 240, 0.15)'; }
             return false; // disable sort
         },
         sortStudentWidgets() {
@@ -296,11 +287,11 @@ export default {
         },
         // create 40 empty widgets for whole class (should be sufficient)
         initializeStudentwidgets(){
+            let widgets = []
             for (let i = 0; i<40; i++ ){
-                this.studentwidgets.push(this.emptyWidget)
+                widgets.push(this.emptyWidget)
             }
-            
-            this.studentwidgets = Object.assign([], this.studentwidgets);
+            this.studentwidgets = widgets;
         },
         // get all information about students status and do some checks
         fetchInfo() {
@@ -343,9 +334,10 @@ export default {
                 //remove studentwidget from widgetslist if student was removed
                 for (let widget of this.studentwidgets) { //find student in studentwidgets list  
                     let studentExists = this.studentlist.filter( el => el.token ===  widget.token).length === 0 ? false : true  // now check if a widget has a student in studentlist otherwise remove it
-                    if (!studentExists && widget.token.includes('csrf')){ 
+                    if (!studentExists && widget.token.includes('csrf')){ //if the student the widget belongs to does not exist (and the widget actually represents a student - token starting with csrf)
                         for (let i = 0; i < this.studentwidgets.length; i++){  // we cant use (for .. of) or forEach because it creates a workingcopy of the original object
                              if (widget.token == this.studentwidgets[i].token){ 
+                              
                                 this.studentwidgets[i] = this.emptyWidget; // replace studentwidget with emptywidget
                             } 
                         }
@@ -354,6 +346,8 @@ export default {
 
             }).catch( err => {console.log(err)});
         }, 
+
+
         // enable exam mode 
         startExam(){
             this.lockscreens(false, false); // deactivate lockscreen
@@ -878,8 +872,46 @@ export default {
 </script>
 <style scoped>
 
-.studentwidget{
+
+
+.studentwidget {
+    width: 204px;
+    height: 172px;
+    white-space: nowrap;
+    text-overflow:    ellipsis; 
+    overflow: hidden; 
+    padding: 0;
+    text-align: left; 
+    padding-top:0px;
+    border: 0px solid #5f5f5f46;
+    margin: 0 !important;;
     margin-right: 4px!important;
+    background-color: transparent;
+    transition: 0.5s;
+}
+
+
+.studentwidget span {
+    margin:0;
+    backdrop-filter: blur(1px);
+    display: inline-block; 
+    width:100%; 
+    color: white; 
+    font-size: 1em; 
+    background: linear-gradient(0deg,rgba(0, 0, 0, 0.808) 0%,  rgba(0, 0, 0, 0.5) 31%, rgba(0, 0, 0, 0.1) 77%,rgba(255,255,255,0) 100% );
+    padding: 2px;
+    padding-left:6px;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+
+.studentimage {
+    background-color:transparent!important;
+}
+
+.ghost {
+   opacity: 0.3;
 }
 
 
