@@ -146,12 +146,14 @@
         <!-- control buttons end -->
 
 
+
+
         <!-- studentlist start -->
         <div id="studentslist" class="placeholder pt-1">        
-            <draggable v-model="studentwidgets" class="dragArea w-full" @change="log" >
-                <transition-group>
-                    
-                    <div v-for="student in studentwidgets" :key="student.token" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':''" class="studentwidget btn border-0 rounded-3 btn-block ">
+            <draggable v-model="studentwidgets" :move="handleMoveItem" @end="handleDragEndItem" >
+    
+                <div v-for="student in studentwidgets" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':''" class="studentwidget btn rounded-3 btn-block ">
+                    <div v-if="student.clientname">
                         <div id="image" class="rounded" style="position: relative; height:132px;">
                             <div v-cloak :id="student.token" style="position: relative;background-size: cover; height: 132px; background-image: url('user-black.svg')"></div>
                             <div v-if="student.virtualized" class="virtualizedinfo" >{{$t("dashboard.virtualized")}}</div>
@@ -162,14 +164,17 @@
                                 <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-2 pe-2 float-end" title="kick user"></button> 
                             </span>
                         </div>
+
+
                         <div class="btn-group pt-0" role="group">
                             <button v-if="(now - 20000 < student.timestamp)" @click="showStudentview(student)" type="button" class="btn btn-outline-success btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">{{$t('dashboard.online')}} </button>
                             <button v-if="(now - 20000 > student.timestamp)" type="button" class="btn btn-outline-danger btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">{{$t('dashboard.offline')}} </button>
                             <button v-if="(now - 20000 < student.timestamp) && student.exammode && student.focus"  @click='showStudentview(student)' type="button" class="btn btn-outline-warning btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;">{{$t('dashboard.secure')}}</button>
                             <button v-if="(now - 20000 < student.timestamp) && !student.focus "   @click='restore(student.token)' type="button" class="btn btn-danger btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;"> {{$t('dashboard.restore')}} </button>
                         </div>
-                    </div> 
-                </transition-group>
+                    </div>
+                </div> 
+               
             </draggable>  
         </div>
         <!-- studentlist end -->
@@ -191,9 +196,7 @@ import axios from "axios"
 import FormData from 'form-data'
 import { VueDraggableNext } from 'vue-draggable-next'
 
-
  /** use this as visible feedback for some actions
- 
  this.$swal.fire({
         timer: 2000,
         timerProgressBar: true,
@@ -202,7 +205,8 @@ import { VueDraggableNext } from 'vue-draggable-next'
 */
 
 
-export default ({
+
+export default {
     components: {
         draggable: VueDraggableNext,
     },
@@ -244,21 +248,60 @@ export default ({
             moodleTestId: null,
             moodleTestType: null,
             screenslocked: false,
-            enabled: true,
-            drag: false,
-            studentwidgets: []
+            studentwidgets: [],
+            emptyWidget: {
+                clientname: false,
+                token: `${Math.random()}`,
+                imageurl:"user-black.svg"
+            },
+            originalIndex : 20,
+            futureIndex : 20
         };
     },
-    computed: {
-       
-    },
     methods: {
-        sortStudentWidgets() {
-            this.studentwidgets.sort((a, b) => a.clientname.localeCompare(b.clientname))
-        },
-        log(event) {
+        log(event){
             console.log(event)
-         },
+        },
+        handleDragEndItem() {
+            this.movingItem = this.studentwidgets[this.originalIndex];
+            this.futureItem = this.studentwidgets[this.futureIndex];
+
+            if (this.movingItem && this.futureItem) {
+                let _list = Object.assign([], this.studentwidgets);
+                _list[this.futureIndex] = this.movingItem;
+                _list[this.originalIndex] = this.futureItem;
+                this.studentwidgets = _list;
+            }
+            document.querySelectorAll('.studentwidget').forEach((el) => (el.style.border = 'none'));
+        },
+        handleMoveItem(event) {
+            document.querySelectorAll('.studentwidget').forEach((el) => (el.style.border = 'none'));
+            const { index, futureIndex } = event.draggedContext;
+            this.originalIndex = index;
+            this.futureIndex = futureIndex;
+            if (this.studentwidgets[this.futureIndex]) { event.to.children[this.futureIndex].style.border = '1px dashed #0dcaf0'; }
+
+            return false; // disable sort
+        },
+        sortStudentWidgets() {
+            this.studentwidgets.sort((a, b) => {
+                let one = a.clientname
+                let two = b.clientname
+                if ( !one) { one = "zzzz"}  // noone is named zzzz so empty widget comes last
+                if ( !two) { two = "zzzz"}
+                if (one > two) {return 1; }
+                if (one < two) {return -1;}
+                return 0;
+            })
+        },
+        // create 40 empty widgets for whole class (should be sufficient)
+        initializeStudentwidgets(){
+            for (let i = 0; i<40; i++ ){
+                this.studentwidgets.push(this.emptyWidget)
+            }
+            
+            this.studentwidgets = Object.assign([], this.studentwidgets);
+        },
         // get all information about students status and do some checks
         fetchInfo() {
             this.now = new Date().getTime()
@@ -274,7 +317,7 @@ export default ({
                             if (this.now - 20000 > student.timestamp){ 
                                 document.getElementById(`${student.token}`).style.backgroundImage = 'url("user-red.svg")'
                             }
-                            else {document.getElementById(`${student.token}`).style.backgroundImage = 'url(' + student.imageurl + ')'}
+                           else {document.getElementById(`${student.token}`).style.backgroundImage = 'url(' + student.imageurl + ')'}
                         } catch (e) {  }
                     });
 
@@ -286,13 +329,27 @@ export default ({
                                 if (student.token == this.studentwidgets[i].token){ this.studentwidgets[i] = student; }  //now update the entry in the original widgets object
                             }
                         }
-                        else {this.studentwidgets.push(student)}
+                        else {
+                            //replace empty widget with student
+                            for (let i = 0; i < this.studentwidgets.length; i++){  // we cant use (for .. of) or forEach because it creates a workingcopy of the original object
+                                if (!this.studentwidgets[i].clientname){ 
+                                    this.studentwidgets[i] = student; // replace studentwidget with emptywidget
+                                    break;
+                                } 
+                            }
+                        }
                     }
                 }
                 //remove studentwidget from widgetslist if student was removed
                 for (let widget of this.studentwidgets) { //find student in studentwidgets list  
                     let studentExists = this.studentlist.filter( el => el.token ===  widget.token).length === 0 ? false : true  // now check if a widget has a student in studentlist otherwise remove it
-                    if (!studentExists){ this.studentwidgets = this.studentwidgets.filter( el => el.token !==  widget.token); } // update studentwidgets - filter all except the one that should be removed
+                    if (!studentExists && widget.token.includes('csrf')){ 
+                        for (let i = 0; i < this.studentwidgets.length; i++){  // we cant use (for .. of) or forEach because it creates a workingcopy of the original object
+                             if (widget.token == this.studentwidgets[i].token){ 
+                                this.studentwidgets[i] = this.emptyWidget; // replace studentwidget with emptywidget
+                            } 
+                        }
+                    } 
                 }
 
             }).catch( err => {console.log(err)});
@@ -803,7 +860,8 @@ export default ({
     mounted() {  // when ready
         this.$nextTick(function () { // Code that will run only after the entire view has been rendered
             $("#statusdiv").fadeOut("slow")
-            this.fetchInfo();
+            this.fetchInfo()
+            this.initializeStudentwidgets()
             this.fetchinterval = setInterval(() => { this.fetchInfo() }, 4000)
         })
         if (this.electron){
@@ -816,41 +874,13 @@ export default ({
         clearInterval( this.fetchinterval )
         clearInterval( this.abgabeinterval )
     }
-})
-
-
+}
 </script>
-
 <style scoped>
 
-.button {
-  margin-top: 35px;
+.studentwidget{
+    margin-right: 4px!important;
 }
-.flip-list-move {
-  transition: transform 0.5s;
-}
-.no-move {
-  transition: transform 0s;
-}
-.ghost {
-  opacity: 0.5;
-  background: #c8ebfb;
-}
-.list-group {
-  min-height: 20px;
-}
-.list-group-item {
-  cursor: move;
-}
-.list-group-item i {
-  cursor: pointer;
-}
-
-
-
-
-
-
 
 
 [v-cloak] { display: none; }
@@ -903,9 +933,7 @@ export default ({
     transition:0.1s;
     overflow-y:auto;
 }
-.studentwidget{
-    margin-right: 4px!important;
-}
+
 
 .disabledexam {
     filter: contrast(20%) grayscale(100%) brightness(80%) blur(0.6px);
@@ -976,9 +1004,6 @@ export default ({
 
 
 
-
-
-
 #studentinfocontainer {
     display: none;
     position: absolute;
@@ -986,9 +1011,7 @@ export default ({
     left: 0;
     width:100vw;
     height: 100vh;
-    
     z-index:100;
-    
 }
 #studentinfodiv {
     position: absolute;
@@ -1000,6 +1023,7 @@ export default ({
     background-repeat: no-repeat;
     overflow:hidden;
     background-color: #343a40;
+ 
 }
 #controlbuttons {
     backdrop-filter: blur(3px);

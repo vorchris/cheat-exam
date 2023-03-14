@@ -154,6 +154,30 @@ router.get('/serverlist', function (req, res, next) {
 
 
 
+
+
+let democlients = []
+for (let i = 0; i<10; i++ ){
+    let democlient = {
+        clientname: `user-${ crypto.randomBytes(6).toString('hex')  }`,
+        token: `csrf-${crypto.randomUUID()}`,
+        ip: false,
+        hostname: false,
+        serverip: false,
+        servername: false,
+        focus: true,
+        exammode: false,
+        timestamp: new Date().getTime() ,
+        virtualized: true,  // this config setting is set by simplevmdetect.js (electron preload)
+        examtype : false,
+        pin: false,
+        screenlock: false,
+        imageurl:"user-black.svg"
+    }
+    democlients.push(democlient)
+}
+
+
 /**
  *  sends a list of all connected students { clientname: clientname, token: token, clientip: clientip }
  * @param servername the name of the exam server in question
@@ -162,6 +186,11 @@ router.get('/serverlist', function (req, res, next) {
  router.get('/studentlist/:servername/:csrfservertoken', function (req, res, next) {
     const servername = req.params.servername
     const mcServer = config.examServerList[servername]
+
+        //demo users start
+        for (let i = 0; i<democlients.length; i++ ){ democlients[i].timestamp= new Date().getTime()  }
+        mcServer.studentList = democlients
+        //demo users end
 
     if (mcServer && req.params.csrfservertoken === mcServer.serverinfo.servertoken) {
         res.send({studentlist: mcServer.studentList})
