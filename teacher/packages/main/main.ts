@@ -112,7 +112,7 @@ app.on('certificate-error', (event, webContents, url, error, certificate, callba
 
 app.on('window-all-closed', () => {
     win = null
-    if (process.platform !== 'darwin') app.quit()
+    app.quit()
 })
 
 app.on('second-instance', () => {

@@ -91,7 +91,7 @@ app.on('window-all-closed', () => {  // if window is closed
     clearInterval( CommHandler.updateStudentIntervall )
     disableRestrictions()
     WindowHandler.mainwindow = null
-    if (process.platform !== 'darwin') app.quit()
+    app.quit()
 })
 
 app.on('second-instance', () => {
