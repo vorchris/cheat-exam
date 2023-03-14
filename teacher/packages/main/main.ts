@@ -83,7 +83,10 @@ async function createWindow() {
 
 
     win.on('close', async  (e) => {   //ask before closing
+        
+
         if (!config.development) {
+            if (win?.webContents.getURL().includes("dashboard")){console.log("do not close running exam this way"); e.preventDefault(); return}
             let choice = dialog.showMessageBoxSync(win, {
                 type: 'question',
                 buttons: ['Ja', 'Nein'],
@@ -112,7 +115,7 @@ app.on('certificate-error', (event, webContents, url, error, certificate, callba
 
 app.on('window-all-closed', () => {
     win = null
-    app.quit()
+    if (process.platform !== 'darwin') app.quit()
 })
 
 app.on('second-instance', () => {
