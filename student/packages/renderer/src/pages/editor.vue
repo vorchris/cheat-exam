@@ -512,6 +512,13 @@ export default {
     margin-left:5vw;
 }
 
+#editorcontent div {
+        overflow-x: scroll;
+        overflow-y: hidden;
+    }
+
+
+
 #statusbar {
     position: fixed;
     bottom:0px; 
