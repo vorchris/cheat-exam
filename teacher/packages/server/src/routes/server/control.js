@@ -294,7 +294,6 @@ for (let i = 0; i<10; i++ ){
     const mcServer = config.examServerList[servername]
     const files = req.body.files   //  { files:[ {name:file.name, path:file.path }, {name:file.name, path:file.path } ] }
    
-
     if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {  //first check if csrf token is valid and server is allowed to trigger this api request
         if (studenttoken === "all"){
             for (let student of mcServer.studentList){ 
@@ -504,6 +503,8 @@ router.post('/serverstatus/:servername/:csrfservertoken', function (req, res, ne
     student.files = clientinfo.numberOfFiles
 
     // return current serverinformation 
+   
+    res.charset = 'utf-8';
     res.send({sender: "server", message:t("control.studentupdate"), status:"success", serverstatus:mcServer.serverstatus, studentstatus: student.status })
 })
 

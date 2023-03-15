@@ -334,6 +334,8 @@ router.post('/upload/:servername/:servertoken/:studenttoken', async (req, res, n
     if (!fs.existsSync(uploaddirectory)){ fs.mkdirSync(uploaddirectory, { recursive: true });  }
 
 
+    console.log("files here")
+    console.log(req.files)
 
     if (req.files){
         let filesArray = []  // depending on the number of files this comes as array of objects or object

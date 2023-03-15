@@ -388,6 +388,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
         }
         
         let data = JSON.stringify({ 'files' : files, 'type': 'studentfilerequest'})
+        
         axios({
             method: "post", 
             url: `https://${serverip}:${this.config.serverApiPort}/server/data/download/${servername}/${token}`, 

@@ -33,7 +33,7 @@
                     <div style="font-size: 0.6em; margin-top: 0px;">{{activestudent.hostname}}</div>
                     <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent.token)"  style="width: 100px">{{$t('dashboard.sendfile')}}</div>
                     <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="getFiles(activestudent.token, true)"  style="width: 100px">{{$t('dashboard.getfile')}}</div>
-                    <div class="col d-inlineblock btn btn-warning m-1 btn-sm"   @click='kick(activestudent.token,activestudent.clientip)'  style="width: 100px">{{$t('dashboard.kick')}}</div>
+                    <div class="col d-inlineblock btn btn-warning m-1 btn-sm"   @click='kick(activestudent.token,activestudent.clientip);hideStudentview()'  style="width: 100px">{{$t('dashboard.kick')}}</div>
                 </div>
             </div>
         </div>
@@ -154,8 +154,8 @@
     
                 <div v-for="student in studentwidgets" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':''" class="studentwidget btn rounded-3 btn-block ">
                     <div v-if="student.clientname">
-                        <div class="studentimage rounded" style="position: relative; height:132px;">
-                            <div v-cloak :id="student.token" style="position: relative;background-size: cover; height: 132px;" v-bind:style="(student.imageurl) ? 'background-image: url('+student.imageurl+')' : 'background-image: url(user-black.svg)'"></div>
+                        <div class="studentimage rounded" style="position: relative; height:132px;">     
+                            <div v-cloak :id="student.token" style="position: relative;background-size: cover; height: 132px;" v-bind:style="(student.imageurl && now - 20000 < student.timestamp)? `background-image: url('${student.imageurl}')`:'background-image: url(user-red.svg)'"></div>
                             <div v-if="student.virtualized" class="virtualizedinfo" >{{$t("dashboard.virtualized")}}</div>
                             <div v-if="!student.focus" class="kioskwarning" >{{$t("dashboard.leftkiosk")}}</div>
                             <span>   
@@ -304,12 +304,7 @@ export default {
                 if (this.studentlist && this.studentlist.length > 0){
                     this.studentlist.forEach( student => { 
                         if (this.activestudent && student.token === this.activestudent.token) { this.activestudent = student}  // on studentlist-receive update active student (for student-details)
-                        try {
-                            if (this.now - 20000 > student.timestamp){ 
-                                document.getElementById(`${student.token}`).style.backgroundImage = 'url("user-red.svg")'
-                            }
-                           else {document.getElementById(`${student.token}`).style.backgroundImage = 'url(' + student.imageurl + ')'}
-                        } catch (e) {  }
+                        if (!student.imageurl){ student.imageurl = "user-black.svg"  }
                     });
 
                     //update widgets list here - we keep our own independent widgetlist (aka studentlist) for drag&drop 
@@ -786,12 +781,12 @@ export default {
                 for (const i of Object.keys(this.files)) {
                     formData.append('files', this.files[i])  // single file is sent as object.. multiple files as array..
                 }
-
+                
                 axios({
                     method: "post", 
                     url: `https://${this.serverip}:${this.serverApiPort}/server/data/upload/${this.servername}/${this.servertoken}/${who}`, 
                     data: formData, 
-                    headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
+                    headers: {}  
                 })
                 .then( (response) => {console.log(response.data) })
                 .catch( err =>{ console.log(`${err}`) })
