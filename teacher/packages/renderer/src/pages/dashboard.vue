@@ -779,14 +779,16 @@ export default {
                 formData.append('servername', this.servername);
 
                 for (const i of Object.keys(this.files)) {
-                    formData.append('files', this.files[i])  // single file is sent as object.. multiple files as array..
+                    let filename = encodeURIComponent(this.files[i].name) // we need to encode the filename because sending formdata encodes non-ASCII characters in a not reversable way
+                    formData.append('files', this.files[i], filename)  // single file is sent as object.. multiple files as array..
                 }
                 
                 axios({
                     method: "post", 
                     url: `https://${this.serverip}:${this.serverApiPort}/server/data/upload/${this.servername}/${this.servertoken}/${who}`, 
                     data: formData, 
-                    headers: {}  
+             
+              
                 })
                 .then( (response) => {console.log(response.data) })
                 .catch( err =>{ console.log(`${err}`) })

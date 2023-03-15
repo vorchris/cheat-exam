@@ -126,7 +126,7 @@
         "filessent": "Dateien gesendet",
         "couldnotstore": "Schüler:in konnte die Datei nicht speichern",
         "filereceived": "Daten erhalten",
-        "nofliereceived": "Keine Dateien erhalten",
+        "nofilereceived": "Keine Dateien erhalten",
         "fdeleted": "gelöscht"
     }
 }

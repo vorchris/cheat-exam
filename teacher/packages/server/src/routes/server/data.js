@@ -334,9 +334,6 @@ router.post('/upload/:servername/:servertoken/:studenttoken', async (req, res, n
     if (!fs.existsSync(uploaddirectory)){ fs.mkdirSync(uploaddirectory, { recursive: true });  }
 
 
-    console.log("files here")
-    console.log(req.files)
-
     if (req.files){
         let filesArray = []  // depending on the number of files this comes as array of objects or object
         if (!Array.isArray(req.files.files)){ filesArray.push(req.files.files)}
@@ -345,11 +342,12 @@ router.post('/upload/:servername/:servertoken/:studenttoken', async (req, res, n
         let files = []        
     
         for await (let file of  filesArray) {
-            let absoluteFilepath = path.join(uploaddirectory, file.name);
+            let filename = decodeURIComponent(file.name)  //encode to prevent non-ascii chars weirdness
+            let absoluteFilepath = path.join(uploaddirectory, filename);
             await file.mv(absoluteFilepath, (err) => {  
                 if (err) { console.log( t("data.couldnotstore") ) }
             }); 
-            files.push({ name:file.name , path:absoluteFilepath });
+            files.push({ name:filename , path:absoluteFilepath });
         }
 
        

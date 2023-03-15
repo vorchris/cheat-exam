@@ -125,7 +125,7 @@
         "filessent": "files sent",
         "couldnotstore": "student could not store file",
         "filereceived": "files received",
-        "nofliereceived": "no files received",
+        "nofilereceived": "no files received",
         "fdeleted": "deleted"
     }
 }
