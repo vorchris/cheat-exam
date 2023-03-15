@@ -197,6 +197,12 @@ class WindowHandler {
         }
         else { this.examwindow.webContents.session.setSpellCheckerLanguages([]) }
 
+        if (serverstatus.examtype === "editor"){  // do not under any circumstances allow navigation away from the editor
+            this.examwindow.webContents.on('will-navigate', (event, url) => {  // if a resource (pdf) is openend create an embed element and embed the pdf
+                event.preventDefault()
+            })
+        }
+
         // HANDLE EDUVIDUAL pdf embed
         if (serverstatus.examtype === "eduvidual"){
 
