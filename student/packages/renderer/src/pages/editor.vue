@@ -387,7 +387,9 @@ export default {
                 Dropcursor,
                 Gapcursor,
                 History,
-                CharacterCount,
+                CharacterCount.configure({
+                     limit: 60000   //this should be enough for all cases
+                }),
                 Color,
                 TextStyle,
                 TextAlign.configure({
@@ -510,10 +512,11 @@ export default {
     margin-top:20px; 
     width: 90vw; 
     margin-left:5vw;
+    margin-bottom:50px;
 }
 
 #editorcontent div {
-        overflow-x: scroll;
+        overflow-x: auto;
         overflow-y: hidden;
     }
 
