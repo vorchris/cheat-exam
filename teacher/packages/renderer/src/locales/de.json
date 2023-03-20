@@ -22,7 +22,8 @@
         "simple": "einfach",
         "workfolder": "Arbeitsverzeichnis",
         "select": "Arbeitsverzeichnis wählen",
-        "freespacewarning" : "Zu wenig freier Speicherplatz"
+        "freespacewarning" : "Zu wenig freier Speicherplatz",
+        "directoryerror": "Fehlende Schreibrechte im gewählten Verzeichnis"
     },
     "dashboard":{
         "server": "Server",

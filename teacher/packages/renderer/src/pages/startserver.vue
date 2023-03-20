@@ -101,7 +101,14 @@ export default {
         },
 
         setWorkdir(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
-            this.workdir = ipcRenderer.sendSync('setworkdir')
+            let response = ipcRenderer.sendSync('setworkdir')
+            this.workdir = response.workdir
+
+            if (response.message == "error"){
+                this.status(this.$t("startserver.directoryerror"))
+            }
+           
+
             this.checkDiscspace()
 
         },

@@ -26,6 +26,7 @@ import config from '../server/src/config.js';
 import server from "../server/src/server.js"
 import multicastClient from '../server/src/classes/multicastclient.js'
 import checkDiskSpace from 'check-disk-space'
+import fs from 'fs'
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -173,10 +174,20 @@ ipcMain.on('setworkdir', async (event, arg) => {
     })
     if (!result.canceled){
         console.log('directories selected', result.filePaths)
-        config.workdirectory = join(result.filePaths[0]   , config.examdirectory)
-        event.returnValue = config.workdirectory
+        let message = ""
+        try {
+            let testdir = join(result.filePaths[0]   , config.examdirectory)
+            if (!fs.existsSync(testdir)){fs.mkdirSync(testdir)}
+            message = "success"
+            config.workdirectory = testdir
+        }
+        catch (e){
+            message = "error"
+            console.log(e)
+        }
+        event.returnValue = {workdir: config.workdirectory, message : message}
     }
     else {
-        event.returnValue = config.workdirectory
+        event.returnValue = {workdir: config.workdirectory, message : 'canceled'}
     }
   })

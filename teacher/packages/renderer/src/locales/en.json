@@ -22,7 +22,8 @@
         "simple": "simple",
         "workfolder": "Workdirectory",
         "select": "Select Workdirectory",
-        "freespacewarning" : "Not enough free discspace"
+        "freespacewarning" : "Not enough free discspace",
+        "directoryerror": "Directory not writeable"
     },
     "dashboard":{
         "server": "Server",
