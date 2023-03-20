@@ -218,10 +218,16 @@ for (let i = 0; i<10; i++ ){
     const token = `csrf-${crypto.randomUUID()}`
     const mcServer = config.examServerList[servername] // get the multicastserver object
     const hostname = req.params.hostname
-    console.log(hostname)
-    
+
+    let vteacher = config.version.split('.').slice(0, 2),
+    versionteacher = vteacher.join('.'); 
+    let vstudent = config.version.split('.').slice(0, 2),
+    versionstudent = vstudent.join('.'); 
+
+  
+   
     if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
-    if (version !== config.version ) {  return res.send({sender: "server", message:t("control.versionmismatch"), status: "error"} )  }  
+    if (versionteacher !== versionstudent ) {  return res.send({sender: "server", message:t("control.versionmismatch"), status: "error"} )  }  
     if (pin === mcServer.serverinfo.pin) {
         let registeredClient = mcServer.studentList.find(element => element.clientname === clientname)
 

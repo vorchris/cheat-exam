@@ -92,7 +92,8 @@
         "eduvidualid": "Eduvidual Test",
         "eduvidualidhint": "Bitte geben sie eine gültige ID ein!",
         "lock":"Displays sperren",
-        "unlock":"Displays entsperren"
+        "unlock":"Displays entsperren",
+        "freespacewarning" : "Freier Speicherplatz zu gering!"
     },
     "control": {
         "tokennotvalid": "Das Token ist ungültig",

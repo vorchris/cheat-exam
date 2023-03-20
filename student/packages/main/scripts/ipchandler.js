@@ -114,7 +114,7 @@ class IpcHandler {
             const hostname = os.hostname()
             const version = this.config.version
 
-            if (this.multicastClient.clientinfo.token){
+            if (this.multicastClient.clientinfo.token){ //#FIXME das sollte eigentlich vom server kommen 
                 event.returnValue = { sender: "client", message: t("control.alreadyregistered"), status:"error" }
             }
         

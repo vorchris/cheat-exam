@@ -92,7 +92,8 @@
         "eduvidualid": "Eduvidual Test",
         "eduvidualidhint": "Please enter a valid id!",
         "lock":"lock displays",
-        "unlock":"unlock displays"
+        "unlock":"unlock displays",
+        "freespacewarning" : "Running out of free discspace!!"
     },
     "control": {
         "tokennotvalid": "token is not valid",

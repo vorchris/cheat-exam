@@ -254,7 +254,8 @@ export default {
                 imageurl:"user-black.svg"
             },
             originalIndex : 20,
-            futureIndex : 20
+            futureIndex : 20,
+            freeDiscspace : 1000
         };
     },
     methods: {
@@ -830,7 +831,7 @@ export default {
         },
         // get finished exams (ABGABE) from students
         getFiles(who, feedfack=false){
-           
+            this.checkDiscspace()
             if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); console.log("no clients connected"); return; }
             axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/fetch/${this.servername}/${this.servertoken}/${who}`)  //who is either all or token
             .then( async (response) => { if (feedfack){ this.visualfeedback(response.data.message, 2000) }else { this.status(response.data.message); } })  // we do not want intrusive feedback on automated tasks })
@@ -847,7 +848,13 @@ export default {
         // implementing a sleep (wait) function
         sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
-        }
+        },
+        checkDiscspace(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
+            this.freeDiscspace = ipcRenderer.sendSync('checkDiscspace')
+            if (this.freeDiscspace < 0.5) {
+                this.status(this.$t("dashboard.freespacewarning")) 
+            }
+        },
         
     },
     mounted() {  // when ready
