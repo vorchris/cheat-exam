@@ -35,7 +35,23 @@ import fs from 'fs'
 })
 
 
+/**
+ * React to MSAuth 
+ */
+router.get('/msauth/', function (req, res, next) {
 
+    console.log("msauth route triggered")
+    res.send(`
+    <html>
+      <body style="text-align:center;">
+        <h1>Authenticated</h1>
+        <button onclick="window.close()">close window</button>
+      </body>
+    </html>
+  `);
+
+  
+})
 
 
 /**

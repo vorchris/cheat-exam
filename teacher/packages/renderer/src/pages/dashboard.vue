@@ -109,6 +109,13 @@
             <label class="form-check-label" for="examtype3"> {{$t('dashboard.eduvidual')}}  </label>
         </div>
 
+        <div class="form-check m-1 mb-3" :class="(exammode)? 'disabledexam':''">
+            <input v-model="examtype" @click="openAuthWindow()" value="office365" class="form-check-input" type="radio" name="examtype" id="examtype4">
+            <label class="form-check-label" for="examtype4"> office365  </label>
+        </div>
+        <div class="btn"    @click="getGraphData()" getdata  </div>
+
+
 
         <div class="form-check form-switch  m-1 mb-2">
             <input @change="toggleAutoabgabe()"  @click="setAbgabeInterval()" v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
@@ -197,6 +204,15 @@ import axios from "axios"
 import FormData from 'form-data'
 import { VueDraggableNext } from 'vue-draggable-next'
 
+import { useMsal } from "../msalutils/composition-api/useMsal";
+import { InteractionRequiredAuthError, InteractionStatus } from "@azure/msal-browser";
+import { loginRequest } from "../msalutils/authConfig";
+import { callMsGraph } from "../msalutils/utils/MsGraphApiCall";
+import UserInfo from "../msalutils/utils/UserInfo";
+
+
+
+
  /** use this as visible feedback for some actions
  this.$swal.fire({
         timer: 2000,
@@ -255,10 +271,35 @@ export default {
             },
             originalIndex : 20,
             futureIndex : 20,
-            freeDiscspace : 1000
+            freeDiscspace : 1000,
+            data :{},
+            resolve: false
         };
     },
     methods: {
+
+        openAuthWindow(){
+
+            
+        },
+
+        async getGraphData() {
+            const response = await instance.acquireTokenSilent({
+                ...loginRequest
+            }).catch(async (e) => {
+                if (e instanceof InteractionRequiredAuthError) {
+                    await instance.acquireTokenRedirect(loginRequest);
+                }
+                throw e;
+            });
+            if (inProgress.value === InteractionStatus.None) {
+                const graphData = await callMsGraph(response.accessToken);
+                this.data = graphData;
+                this.resolved = true;
+                stopWatcher();
+            }
+        },
+
         handleDragEndItem() {
             this.movingItem = this.studentwidgets[this.originalIndex];
             this.futureItem = this.studentwidgets[this.futureIndex];
