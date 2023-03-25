@@ -104,16 +104,19 @@
             <input v-model="examtype" @click="activateSpellcheck()" value="editor" class="form-check-input" type="radio" name="examtype" id="examtype1">
             <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}} <span v-if="(spellcheck)">({{spellchecklang}})</span></label>
         </div>
-        <div class="form-check m-1 mb-3" :class="(exammode)? 'disabledexam':''">
+        <div class="form-check m-1 mb-1" :class="(exammode)? 'disabledexam':''">
             <input v-model="examtype" @click="getTestID()" value="eduvidual" class="form-check-input" type="radio" name="examtype" id="examtype3">
             <label class="form-check-label" for="examtype3"> {{$t('dashboard.eduvidual')}}  </label>
         </div>
 
-        <div class="form-check m-1 mb-3" :class="(exammode)? 'disabledexam':''">
+
+        <div v-if="config.development" class="form-check m-1 mb-3" :class="(exammode)? 'disabledexam':''">
             <input v-model="examtype" @click="openAuthWindow()" value="office365" class="form-check-input" type="radio" name="examtype" id="examtype4">
-            <label class="form-check-label" for="examtype4"> office365  </label>
+            <label class="form-check-label" for="examtype4"> Office365  </label>
+            <br>
+             <div class="btn btn-warning"    @click="getGraphData()"> getdata  </div>
         </div>
-        <div class="btn"    @click="getGraphData()" getdata  </div>
+       
 
 
 
@@ -187,7 +190,7 @@
         </div>
         <!-- studentlist end -->
     </div>
-  
+ 
     <div style="position: fixed; bottom:20px; right: 20px; filter:opacity(50%)" class="col d-inlineblock btn " @click="sortStudentWidgets()">
      <img src="/src/assets/img/svg/view-sort-ascending-name.svg" class="white" title="sort" width="24" height="24" >  
  </div>
@@ -206,10 +209,9 @@ import { VueDraggableNext } from 'vue-draggable-next'
 
 import { useMsal } from "../msalutils/composition-api/useMsal";
 import { InteractionRequiredAuthError, InteractionStatus } from "@azure/msal-browser";
-import { loginRequest } from "../msalutils/authConfig";
+import { loginRequest, msalInstance } from "../msalutils/authConfig";
 import { callMsGraph } from "../msalutils/utils/MsGraphApiCall";
-import UserInfo from "../msalutils/utils/UserInfo";
-
+import { useIsAuthenticated } from "../msalutils/composition-api/useIsAuthenticated";
 
 
 
@@ -245,6 +247,7 @@ export default {
             electron: this.$route.params.electron,
             hostname: window.location.hostname,
             pin : this.$route.params.pin,
+            config :this.$route.params.config,
             now : null,
             files: null,
             examtype: 'math',
@@ -276,34 +279,32 @@ export default {
             resolve: false
         };
     },
+
+
+
+
+
+
     methods: {
-
+  
         openAuthWindow(){
-
-            
+            ipcRenderer.sendSync('openmsauth') 
         },
-
         async getGraphData() {
-            const response = await instance.acquireTokenSilent({
-                ...loginRequest
-            }).catch(async (e) => {
-                if (e instanceof InteractionRequiredAuthError) {
-                    await instance.acquireTokenRedirect(loginRequest);
-                }
-                throw e;
-            });
-            if (inProgress.value === InteractionStatus.None) {
-                const graphData = await callMsGraph(response.accessToken);
-                this.data = graphData;
-                this.resolved = true;
-                stopWatcher();
-            }
+
+            this.config = ipcRenderer.sendSync('getconfig')  // we need to fetch the updated version of the systemconfig from express api (server.js)
+            console.log(this.config)
+
+            const graphData = await callMsGraph(this.config.accessToken);
+            this.data = graphData;
+            this.resolved = true;
+            console.log(this.data)
+            
         },
 
         handleDragEndItem() {
             this.movingItem = this.studentwidgets[this.originalIndex];
             this.futureItem = this.studentwidgets[this.futureIndex];
-
             if (this.movingItem && this.futureItem) {
                 this.studentwidgets[this.futureIndex] = this.movingItem;
                 this.studentwidgets[this.originalIndex] = this.futureItem;
@@ -910,6 +911,30 @@ export default {
             this.currentdirectory = ipcRenderer.sendSync('getCurrentWorkdir') 
             this.workdirectory= `${this.currentdirectory}/${this.servername}`
         }
+
+
+
+
+        const { instance, inProgress } = useMsal();
+        this.instance = instance
+        this.inProgress = inProgress
+
+        this.isAuthenticated = useIsAuthenticated();
+
+        this.accounts = msalInstance.getAllAccounts();
+            if (this.accounts.length > 0) {
+                msalInstance.setActiveAccount(accounts[0]);
+            }
+
+        // msalInstance.addEventCallback((event) => {
+        //     if (event.eventType === EventType.LOGIN_SUCCESS && event.payload) {
+        //         const payload = event.payload;
+        //         const account = payload.account;
+        //         msalInstance.setActiveAccount(account);
+        //     }
+        // });
+
+
     },
     beforeUnmount() {  //when leaving
         clearInterval( this.fetchinterval )
@@ -917,10 +942,28 @@ export default {
     }
 }
 </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <style scoped>
-
-
-
 .studentwidget {
     width: 204px;
     height: 172px;

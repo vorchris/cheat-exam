@@ -12,25 +12,19 @@
 <div id="wrapper" class="w-100 h-100 d-flex" >
     <!-- sidebar start -->
     <div class="p-3 text-white bg-dark h-100 " style="width: 240px; min-width: 240px;">
-        <div class="form-check m-1 mb-3">
-            <input  @click="loginPopup()" value="office365" class="form-check-input" type="radio" name="examtype" id="examtype4">
-            <label class="form-check-label" for="examtype4"> office365  </label>
-        </div>
+     
+            <div  @click="loginPopup()" value="office365" class="btn btn-info">Connect</div>
+       
     </div>
     <span style="position: absolute; bottom:2px; left: 4px; font-size:0.8em">{{version}}</span>
     <!-- sidebar end -->
 </div>
 </template>
-
-
-
 <script >
 
-import { VueDraggableNext } from 'vue-draggable-next'
 import { useIsAuthenticated } from "../msalutils/composition-api/useIsAuthenticated";
 import { useMsal } from '../msalutils/composition-api/useMsal';
 import { loginRequest } from "../msalutils/authConfig";
-
 
 export default {
     data() {
@@ -42,12 +36,11 @@ export default {
     },
     methods: {
         loginPopup() {
-            this.instance.instance.loginRedirect(loginRequest);
+            this.instance.instance.loginPopup(loginRequest);
         },
         
     },
     mounted() {  // when ready
-       
         this.isAuthenticated = useIsAuthenticated();
         this.instance = useMsal();
     },

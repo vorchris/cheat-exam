@@ -1,6 +1,6 @@
 {
     "name": "next-exam-teacher",
-    "version": "0.8.0",
+    "version": "0.8.1",
     "main": "dist/main/main.cjs",
     "author": {
         "name": "Thomas Michael Weissel",
@@ -100,6 +100,7 @@
     ],
     "dependencies": {
         "@azure/msal-browser": "^2.34.0",
+        "@azure/msal-node": "^1.16.0",
         "@tiptap/extension-bold": "^2.0.0-beta.26",
         "@tiptap/extension-bullet-list": "^2.0.0-beta.26",
         "@tiptap/extension-code": "^2.0.0-beta.26",
@@ -126,6 +127,7 @@
         "archiver": "^5.3.0",
         "axios": "^0.26.0",
         "check-disk-space": "^3.3.1",
+        "cookie-parser": "^1.4.6",
         "cors": "^2.8.5",
         "default-gateway": "^6.0.3",
         "express": "^4.17.3",
@@ -140,6 +142,7 @@
         "node-notifier": "^10.0.1",
         "os": "^0.1.2",
         "pdf-lib": "^1.17.1",
+        "qs": "^6.11.1",
         "sass": "^1.49.9",
         "screenshot-desktop": "^1.12.7",
         "sortablejs": "^1.15.0",

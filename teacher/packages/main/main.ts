@@ -71,10 +71,10 @@ async function createWindow() {
 
 
     // Make all links open with the browser, not with the application
-    win.webContents.setWindowOpenHandler(({ url }) => {
-        if (url.startsWith('https:')) shell.openExternal(url)
-        return { action: 'deny' }
-    })
+    // win.webContents.setWindowOpenHandler(({ url }) => {
+    //     if (url.startsWith('https:')) shell.openExternal(url)
+    //     return { action: 'deny' }
+    // })
 
 
     win.webContents.session.setCertificateVerifyProc((request, callback) => {
@@ -84,8 +84,6 @@ async function createWindow() {
 
 
     win.on('close', async  (e) => {   //ask before closing
-        
-
         if (!config.development) {
             if (win?.webContents.getURL().includes("dashboard")){console.log("do not close running exam this way"); e.preventDefault(); return}
             let choice = dialog.showMessageBoxSync(win, {
@@ -95,13 +93,51 @@ async function createWindow() {
                 message: 'Sind sie sicher?',
                 cancelId: 1
             });
-            
             if(choice == 1){
                 e.preventDefault();
             }
         }
      });
 }
+
+
+
+
+ /**
+     * Screenlock Window (to cover everything) - block students from working
+     * @param display 
+     */
+
+ let authwin: BrowserWindow | null = null
+
+ async function createMsauthWindow() {
+    authwin = new BrowserWindow({
+        show: false,
+        center:true,
+        title: 'OAuth',
+        width: 500,
+        height: 800,
+        minimizable: false,
+        icon: join(__dirname, '../../public/icons/icon.png'),
+        webPreferences: {
+            preload: join(__dirname, '../preload/preload.cjs'),
+        },
+    });
+
+    let url = `https://localhost:22422/server/control/oauth`
+    authwin.loadURL(url)
+    if (config.showdevtools) { authwin.webContents.openDevTools()  }
+    authwin.once('ready-to-show', () => {
+        authwin?.removeMenu() 
+        authwin?.setMinimizable(false)
+        authwin?.show()
+        authwin?.moveTop();
+    })
+}
+
+
+
+
 
 
 // SSL/TSL: this is the self signed certificate support
@@ -152,8 +188,13 @@ app.whenReady().then(()=>{
 })
 
 
-ipcMain.on('getconfig', (event) => {   event.returnValue = config   })  // we can not send the whole config to the frontend "an object can not be cloned error"
 
+ipcMain.on('openmsauth', (event) => { createMsauthWindow();  event.returnValue = true })  
+
+ipcMain.on('getconfig', (event) => {  
+    const clonedObject = copyConfig(config);  // we cant just copy the config because it contains examServerList which contains confic (circular structure)
+    event.returnValue = clonedObject
+})  
 
 ipcMain.on('getCurrentWorkdir', (event) => {   event.returnValue = config.workdirectory  })
 
@@ -165,8 +206,6 @@ ipcMain.on('checkDiscspace', async (event) => {
     })
     event.returnValue = freespace
 })
-
-
 
 ipcMain.on('setworkdir', async (event, arg) => {
     const result = await dialog.showOpenDialog( win, {
@@ -191,3 +230,27 @@ ipcMain.on('setworkdir', async (event, arg) => {
         event.returnValue = {workdir: config.workdirectory, message : 'canceled'}
     }
   })
+
+
+
+  function copyConfig(obj) {
+    if (obj === null || typeof obj !== 'object') {
+      return obj;
+    }
+  
+    const clonedObj = Array.isArray(obj) ? [] : {};
+  
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        if (key !== 'examServerList') {
+          if (typeof obj[key] === 'object') {
+            clonedObj[key] = cloneObjectExcludingExamServerList(obj[key]);
+          } else {
+            clonedObj[key] = obj[key];
+          }
+        }
+      }
+    }
+  
+    return clonedObj;
+  }

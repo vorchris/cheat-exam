@@ -25,33 +25,120 @@ import path from 'path'
 import i18n from '../../../../renderer/src/locales/locales.js'
 const { t } = i18n.global
 import fs from 'fs' 
+import qs from 'qs'
+import axios from "axios"
+import { msalConfig } from '../../../../renderer/src/msalutils/authConfig'
+
+
 
 
 /**
- * GET the server config.js 
+ * GET the server config.js  // this is currently not in use (probably in router.js in the future if we move from electron to pure web)
  */
- router.get('/getconfig', function (req, res, next) {
-    res.send({config:config, status: "success"})
+ router.post('/getconfig/:servername/:csrfservertoken', function (req, res, next) {
+    const servername = req.params.servername
+    const mcServer = config.examServerList[servername]
+
+    if (mcServer && req.params.csrfservertoken === mcServer.serverinfo.servertoken) {
+        const clonedObject = copyConfig(config); 
+        res.send({config:clonedObject, status: "success"})
+    }
 })
 
 
+
 /**
- * React to MSAuth 
+ * this route generates the nessesary codeVerifier and codeChallenge für PKCE 
+ * authorization flow for the microsoft onedrive graph API
+ * it receives a code and then redirects to /msauth which will aquire an
+ * accesstoken
  */
-router.get('/msauth/', function (req, res, next) {
-
-    console.log("msauth route triggered")
-    res.send(`
-    <html>
-      <body style="text-align:center;">
-        <h1>Authenticated</h1>
-        <button onclick="window.close()">close window</button>
-      </body>
-    </html>
-  `);
-
   
-})
+router.get('/oauth', (req, res) => {
+    const codeVerifier = generateCodeVerifier();
+    const codeChallenge = base64UrlEncode(sha256(Buffer.from(codeVerifier, 'utf-8')));
+    res.cookie('codeVerifier', codeVerifier, { httpOnly: true });
+    config.codeVerifier = codeVerifier
+
+    const authUrlParams = {
+        client_id: msalConfig.auth.clientId,
+        response_type: 'code',
+        redirect_uri: msalConfig.auth.redirectUri,
+        response_mode: 'query',
+        scope: 'openid profile offline_access Files.ReadWrite.AppFolder',
+        state: '12345',
+        code_challenge: codeChallenge,
+        code_challenge_method: 'S256',
+    };
+    const authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${qs.stringify(authUrlParams)}`;
+    res.redirect(authUrl);
+});
+  
+/**
+ * this uses the code from /oauth route together with the client_id to receive
+ * an accessToken for the microsoft ondrive API
+ * the token is stored on the global config object and can be requested via /getconfig or ipcRenderer 'getconfig
+ */
+router.get('/msauth', async (req, res) => {
+    const code = req.query.code;
+    const codeVerifier =  config.codeVerifier;
+    try {
+        const response = await axios.post('https://login.microsoftonline.com/common/oauth2/v2.0/token', qs.stringify({
+            client_id: msalConfig.auth.clientId,
+            grant_type: 'authorization_code',
+            scope: 'openid profile offline_access Files.ReadWrite.AppFolder ',
+            code,
+            redirect_uri: msalConfig.auth.redirectUri,
+            code_verifier: codeVerifier,
+            }), {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Origin': 'https://localhost',
+            },
+        });
+
+        config.accessToken = response.data.access_token     // we received the access token - store it on global config object
+
+        let html = `
+        <!DOCTYPE html>
+        <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Custom Button</title>
+                <link rel="stylesheet" href="/static/css/staticstyles.css">
+                <script>
+                function closeWindowAfterFourSeconds() { setTimeout(function() { window.close(); }, 4000); }
+                </script>
+            </head>
+            <body onload="closeWindowAfterFourSeconds()"><br>
+                <h3>Login OK!</h3> <br>
+            </body>
+        </html>`
+        res.send(html);
+    } catch (error) {
+        console.error(error.response.data);
+        let html = `
+        <!DOCTYPE html>
+        <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Custom Button</title>
+                <link rel="stylesheet" href="/static/css/staticstyles.css">
+            </head>
+            <body onload="closeWindowAfterFourSeconds()"><br>
+                <h4>${error.response.data}</h4> <br>
+                <button class="custom-btn custom-btn-danger">Close Window</button>
+            </body>
+        </html>`
+        res.status(500).send(html);
+    }
+  });
+
+
+
+
 
 
 /**
@@ -594,5 +681,38 @@ function requestSourceAllowed(req,res){
     return false 
 }
 
+
+//in order to get a copy of the config to the frontend we need to remove circular references like examserverlist
+function copyConfig(obj) {
+    if (obj === null || typeof obj !== 'object') { return obj; }
+    const clonedObj = Array.isArray(obj) ? [] : {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        if (key !== 'examServerList') {
+          if (typeof obj[key] === 'object') {
+            clonedObj[key] = cloneObjectExcludingExamServerList(obj[key]);
+          } else {
+            clonedObj[key] = obj[key];
+          }
+        }
+      }
+    }
+    return clonedObj;
+}
+
+
+//this is needed by the /oauth and /msauth routes 
+function generateCodeVerifier() {
+    return crypto.randomBytes(32).toString('hex');
+}
+function sha256(buffer) {
+    return crypto.createHash('sha256').update(buffer).digest();
+}
+function base64UrlEncode(str) {
+    return str.toString('base64')
+    .replace('+', '-')
+    .replace('/', '_')
+    .replace(/=+$/, '');
+}
 
 
