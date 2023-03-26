@@ -7,7 +7,6 @@ import notfound from '/src/pages/notfound.vue'
 import startserver from '/src/pages/startserver.vue'
 import dashboard from '/src/pages/dashboard.vue'
 import serverlist from '/src/pages/serverlist.vue'
-import msauth from '/src/pages/msauth.vue'
 
 
 
@@ -39,7 +38,6 @@ if (electron === false){
 const routes = [
     { path: '/',                  component: startserver, beforeEnter: [addParams] },
     { path: '/startserver',       component: startserver, beforeEnter: [addParams] },
-    { path: '/msauth',            component: msauth, beforeEnter: [addParams] },
     { path: '/serverlist',        component: serverlist,   beforeEnter: [addParams]},
     { path: '/dashboard/:servername/:passwd', name:"dashboard", component: dashboard, beforeEnter: [addParams, checkPasswd] },
     { path: '/:pathMatch(.*)*',   component: notfound },

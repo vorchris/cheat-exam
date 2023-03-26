@@ -114,7 +114,7 @@
             <input v-model="examtype" @click="openAuthWindow()" value="office365" class="form-check-input" type="radio" name="examtype" id="examtype4">
             <label class="form-check-label" for="examtype4"> Office365  </label>
             <br>
-             <div class="btn btn-warning"    @click="getGraphData()"> getdata  </div>
+             <div class="btn btn-warning"    @click="onedriveUpload()"> getdata  </div>
         </div>
        
 
@@ -207,23 +207,6 @@ import axios from "axios"
 import FormData from 'form-data'
 import { VueDraggableNext } from 'vue-draggable-next'
 
-import { useMsal } from "../msalutils/composition-api/useMsal";
-import { InteractionRequiredAuthError, InteractionStatus } from "@azure/msal-browser";
-import { loginRequest, msalInstance } from "../msalutils/authConfig";
-import { callMsGraph } from "../msalutils/utils/MsGraphApiCall";
-import { useIsAuthenticated } from "../msalutils/composition-api/useIsAuthenticated";
-
-
-
- /** use this as visible feedback for some actions
- this.$swal.fire({
-        timer: 2000,
-        timerProgressBar: true,
-        didOpen: () => { this.$swal.showLoading() }
-    });
-*/
-
-
 export default {
     components: {
         draggable: VueDraggableNext,
@@ -283,24 +266,123 @@ export default {
 
 
 
-
-
     methods: {
-  
         openAuthWindow(){
             ipcRenderer.sendSync('openmsauth') 
         },
-        async getGraphData() {
+ 
+        //upload file to authorized onedrive "next-exam" appfolder
+        async onedriveUpload() {
+            //if (this.studentlist.length === 0) { this.status(this.$t("dashboard.noclients")); return;}
+            this.$swal.fire({
+                title: this.$t("dashboard.filesend"),
+                text: this.$t("dashboard.filesendtext"),
+                icon: "info",
+                input: 'file',
+                showCancelButton: true,
+                cancelButtonText: this.$t("dashboard.cancel"),
+                reverseButtons: true,
+                inputAttributes: {
+                    type: "file",
+                    name:"files",
+                    id: "swalFile",
+                    class:"form-control",
+                }
+            })
+            .then(async (input) => {
+                if (!input.value) { this.status(this.$t("dashboard.nofiles")); return }
+                this.status(this.$t("dashboard.uploadfiles"));
+                const file = input.value
 
+
+                for (let student of this.studentlist){
+                    let fileName =  `${student.clientname}.xlsx`
+                    await this.fileExistsInAppFolder(fileName).then(async fileExists => {
+                        console.log(fileExists)
+                        if (fileExists) {
+                            // user probably already in exam and editing file - HOW TO HANDLE?
+                            // probably the best way would be to ask the teacher if he wants to replace the file for the specific student
+                            console.log(`File with name "${fileName}" exists in the app folder.`);
+
+                        } else {
+                            const sharingLink = await this.uploadAndShareFile(file, fileName);
+                            console.log('onedriveUpload(): Link created:', sharingLink);
+
+                            // WRITE Share link to student info ojbect so it can be retrieved on the next student update 
+                            // together with the new examtype office365 and directly load and secure the sharinglink
+
+                        }
+                    });
+                }
+            });    
+        },  
+
+
+        async uploadAndShareFile(file, targetfilename) {
             this.config = ipcRenderer.sendSync('getconfig')  // we need to fetch the updated version of the systemconfig from express api (server.js)
-            console.log(this.config)
 
-            const graphData = await callMsGraph(this.config.accessToken);
-            this.data = graphData;
-            this.resolved = true;
-            console.log(this.data)
-            
+            // Upload the file to the app folder
+            const uploadEndpoint = `https://graph.microsoft.com/v1.0/me/drive/special/approot:/${targetfilename}:/content`;
+            const fileUploadResponse = await fetch(uploadEndpoint, {
+                method: 'PUT',
+                headers: new Headers({
+                    'Authorization': `Bearer ${this.config.accessToken}`,
+                    'Content-Type': file.type // Use the file's content type
+                }),
+                body: file // Send the file directly as the request body
+            }).then(response => response.json());
+
+       
+            // Create a sharing link with edit permissions using the file ID
+            const fileId = fileUploadResponse.id; // Retrieve the file ID of the uploaded file
+            const sharingEndpoint = `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/createLink`;
+            const sharingData = {
+                type: 'edit', // edit permissions
+                scope: 'anonymous' // anyone with the link can edit
+            };
+
+            const sharingResponse = await fetch(sharingEndpoint, {
+                method: 'POST',
+                headers: new Headers({
+                    'Authorization': `Bearer ${this.config.accessToken}`,
+                    'Content-Type': 'application/json'
+                }),
+                body: JSON.stringify(sharingData)
+            }).then(response => response.json());
+
+            const sharingLink = sharingResponse.link.webUrl;
+            return sharingLink;
         },
+
+
+        async fileExistsInAppFolder(fileName) {
+            this.config = ipcRenderer.sendSync('getconfig')
+            const appFolderEndpoint = `https://graph.microsoft.com/v1.0/me/drive/special/approot/search(q='${encodeURIComponent(fileName)}')`;
+            const fileExists = await fetch(appFolderEndpoint, {
+                method: 'GET',
+                headers: new Headers({'Authorization': `Bearer ${this.config.accessToken}`})
+            })
+            .then(response => response.json())
+            .then( response => {  
+                let res =  response.value.some(file => file.name === fileName);
+                return res
+            })
+            .catch(err => { console.warn(err) })
+            return fileExists
+        },
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         handleDragEndItem() {
             this.movingItem = this.studentwidgets[this.originalIndex];
@@ -383,7 +465,6 @@ export default {
                         }
                     } 
                 }
-
             }).catch( err => {console.log(err)});
         }, 
 
@@ -911,30 +992,6 @@ export default {
             this.currentdirectory = ipcRenderer.sendSync('getCurrentWorkdir') 
             this.workdirectory= `${this.currentdirectory}/${this.servername}`
         }
-
-
-
-
-        const { instance, inProgress } = useMsal();
-        this.instance = instance
-        this.inProgress = inProgress
-
-        this.isAuthenticated = useIsAuthenticated();
-
-        this.accounts = msalInstance.getAllAccounts();
-            if (this.accounts.length > 0) {
-                msalInstance.setActiveAccount(accounts[0]);
-            }
-
-        // msalInstance.addEventCallback((event) => {
-        //     if (event.eventType === EventType.LOGIN_SUCCESS && event.payload) {
-        //         const payload = event.payload;
-        //         const account = payload.account;
-        //         msalInstance.setActiveAccount(account);
-        //     }
-        // });
-
-
     },
     beforeUnmount() {  //when leaving
         clearInterval( this.fetchinterval )

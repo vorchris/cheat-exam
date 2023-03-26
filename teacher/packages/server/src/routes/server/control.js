@@ -260,7 +260,7 @@ router.get('/serverlist', function (req, res, next) {
 
 
 let democlients = []
-for (let i = 0; i<10; i++ ){
+for (let i = 0; i<4; i++ ){
     let democlient = {
         clientname: `user-${ crypto.randomBytes(6).toString('hex')  }`,
         token: `csrf-${crypto.randomUUID()}`,
@@ -291,8 +291,8 @@ for (let i = 0; i<10; i++ ){
     const mcServer = config.examServerList[servername]
 
         //demo users start
-       // for (let i = 0; i<democlients.length; i++ ){ democlients[i].timestamp= new Date().getTime()  }
-       // mcServer.studentList = democlients
+       for (let i = 0; i<democlients.length; i++ ){ democlients[i].timestamp= new Date().getTime()  }
+       mcServer.studentList = democlients
         //demo users end
 
     if (mcServer && req.params.csrfservertoken === mcServer.serverinfo.servertoken) {
