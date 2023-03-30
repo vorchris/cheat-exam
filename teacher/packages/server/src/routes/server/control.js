@@ -127,9 +127,9 @@ router.get('/msauth', async (req, res) => {
                 <title>Custom Button</title>
                 <link rel="stylesheet" href="/static/css/staticstyles.css">
             </head>
-            <body onload="closeWindowAfterFourSeconds()"><br>
-                <h4>${error.response.data}</h4> <br>
-                <button class="custom-btn custom-btn-danger">Close Window</button>
+            <body><br>
+                <h4>${error.response.data.error_description}</h4> <br>
+                <button onclick="window.close()" class="custom-btn custom-btn-danger">Close Window</button>
             </body>
         </html>`
         res.status(500).send(html);
@@ -275,10 +275,12 @@ for (let i = 0; i<4; i++ ){
         examtype : false,
         pin: false,
         screenlock: false,
-        imageurl:"user-black.svg"
+        imageurl:"user-black.svg",
+        status : {} 
     }
     democlients.push(democlient)
 }
+
 
 
 /**
@@ -453,6 +455,40 @@ for (let i = 0; i<4; i++ ){
         res.send( {sender: "server", message: t("control.actiondenied"), status: "error"} )
     }
 })
+
+
+
+
+/**
+ * SET cients SHARE LINK for office365 mode
+ * @param servename the server that wants to kick the client
+ * @param csrfservertoken the servers token to authenticate
+ * @param studenttoken the students token who should be kicked
+ */
+router.post('/sharelink/:servername/:csrfservertoken/:studenttoken', function (req, res, next) {
+    const servername = req.params.servername
+    const studenttoken = req.params.studenttoken
+    const mcServer = config.examServerList[servername]
+    const sharelink = req.body.sharelink
+
+    if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {  //first check if csrf token is valid and server is allowed to trigger this api request
+        let student = mcServer.studentList.find(element => element.token === studenttoken)
+        if (student) {   
+            student.status.msofficeshare = sharelink
+         }
+        res.send( {sender: "server", message: t("control.studentupdate"), status: "success"} )
+    }
+    else {
+        res.send( {sender: "server", message: t("control.actiondenied"), status: "error"} )
+    }
+})
+
+
+
+
+
+
+
 
 
 /**

@@ -112,9 +112,7 @@
 
         <div v-if="config.development" class="form-check m-1 mb-3" :class="(exammode)? 'disabledexam':''">
             <input v-model="examtype" @click="openAuthWindow()" value="office365" class="form-check-input" type="radio" name="examtype" id="examtype4">
-            <label class="form-check-label" for="examtype4"> Office365  </label>
-            <br>
-             <div class="btn btn-warning"    @click="onedriveUpload()"> getdata  </div>
+            <label class="form-check-label" for="examtype4"> Office365 <span v-if="(config.accessToken)">({{$t('dashboard.connected')}})</span> </label>
         </div>
        
 
@@ -140,19 +138,17 @@
    
     <div id="content" class="fadeinslow p-3">
         
-        <!-- control buttons start -->
-        <div v-if="(!exammode)" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px; height:62px;"  @click="startExam()">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
+        <!-- control buttons start -->        
         <div v-if="(exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="endExam()" >{{numberOfConnections}} {{$t('dashboard.stopexam')}}</div>
+
+        <div v-else-if="(examtype === 'office365')" @click="onedriveUploadselect()" :class="(examtype === 'office365' && !config.accessToken)? 'disabledexambutton':''" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px; height:62px;">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
+        <div v-else-if="(examtype !== 'office365')" @click="startExam()" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px; height:62px;">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
+       
         <div class="btn btn-info m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="sendFiles('all')">{{$t('dashboard.sendfile')}}</div>
         <div class="btn btn-info m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="getFiles('all', true)">{{$t('dashboard.getfile')}}</div>
         <div class="col d-inlineblock btn btn-dark m-1 mt-0 text-start ms-0 " @click="loadFilelist(workdirectory)"  style="width: 100px;">{{$t('dashboard.showworkfolder')}} </div>
-          
-        <div  v-if="(screenslocked)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(false)"> 
-            <img src="/src/assets/img/svg/shield-lock-fill.svg" class="white mt-2" title="unlock" width="32" height="32" >  
-        </div>
-        <div  v-if="(!screenslocked)" class="btn btn-dark m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(true)"> 
-            <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" title="lock" width="32" height="32" >  
-        </div>
+        <div  v-if="(screenslocked)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(false)"> <img src="/src/assets/img/svg/shield-lock-fill.svg" class="white mt-2" title="unlock" width="32" height="32" >   </div>
+        <div  v-if="(!screenslocked)" class="btn btn-dark m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(true)"> <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" title="lock" width="32" height="32" >  </div>
         <!-- control buttons end -->
 
 
@@ -258,8 +254,7 @@ export default {
             originalIndex : 20,
             futureIndex : 20,
             freeDiscspace : 1000,
-            data :{},
-            resolve: false
+            msOfficeFile : null
         };
     },
 
@@ -272,11 +267,11 @@ export default {
         },
  
         //upload file to authorized onedrive "next-exam" appfolder
-        async onedriveUpload() {
-            //if (this.studentlist.length === 0) { this.status(this.$t("dashboard.noclients")); return;}
+        async onedriveUploadselect() {
+            if (this.studentlist.length === 0) { this.status(this.$t("dashboard.noclients")); return;}
             this.$swal.fire({
-                title: this.$t("dashboard.filesend"),
-                text: this.$t("dashboard.filesendtext"),
+                title: this.$t("dashboard.officefilesend"),
+                text: this.$t("dashboard.officefilesendtext"),
                 icon: "info",
                 input: 'file',
                 showCancelButton: true,
@@ -287,35 +282,67 @@ export default {
                     name:"files",
                     id: "swalFile",
                     class:"form-control",
+                    accept: ".xlsx",
                 }
             })
             .then(async (input) => {
                 if (!input.value) { this.status(this.$t("dashboard.nofiles")); return }
                 this.status(this.$t("dashboard.uploadfiles"));
-                const file = input.value
-
-
-                for (let student of this.studentlist){
-                    let fileName =  `${student.clientname}.xlsx`
-                    await this.fileExistsInAppFolder(fileName).then(async fileExists => {
-                        console.log(fileExists)
-                        if (fileExists) {
-                            // user probably already in exam and editing file - HOW TO HANDLE?
-                            // probably the best way would be to ask the teacher if he wants to replace the file for the specific student
-                            console.log(`File with name "${fileName}" exists in the app folder.`);
-
-                        } else {
-                            const sharingLink = await this.uploadAndShareFile(file, fileName);
-                            console.log('onedriveUpload(): Link created:', sharingLink);
-
-                            // WRITE Share link to student info ojbect so it can be retrieved on the next student update 
-                            // together with the new examtype office365 and directly load and secure the sharinglink
-
-                        }
+           
+                //check for allowed file extension again
+                const fileExtension = input.value.name.split('.').pop().toLowerCase();
+                if (fileExtension !== 'xlsx') {
+                    this.$swal.fire({
+                    title: this.$t("dashboard.invalid_file"),
+                    text: this.$t("dashboard.invalid_file_text"),
+                    icon: 'error',
                     });
+                    return;
                 }
+
+                //save valid file info for other students that connect later or reconnect (they all should get a file in onedrive and a sharing link if not 'none')
+                this.msOfficeFile = input.value
+                await this.onedriveUpload()
+                console.log("awaited")
+                //when finished uploading we start exam safe mode for everybody (every student should already have it's own sharing link in its config for excel mode)
+                this.startExam()
             });    
-        },  
+        },
+
+
+        async onedriveUpload(){
+            if (!this.msOfficeFile){return}
+            for (let student of this.studentlist){
+                let studenttoken = student.token
+                let fileName =  `${student.clientname}.xlsx`
+                await this.fileExistsInAppFolder(fileName).then(async fileExists => {
+                    console.log(fileExists)
+                    if (fileExists) {
+                        // user probably already in exam and editing file - HOW TO HANDLE?
+                        // probably the best way would be to ask the teacher if he wants to replace the file for the specific student
+                        console.log(`File with name "${fileName}" exists in the app folder.`);
+
+                    } else {
+                        const sharingLink = await this.uploadAndShareFile(this.msOfficeFile, fileName);
+                        console.log('onedriveUpload(): Link created:', sharingLink);
+
+                        // WRITE Share link to student info ojbect so it can be retrieved on the next student update 
+                        // together with the new examtype office365 and directly load and secure the sharinglink
+                        fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/sharelink/${this.servername}/${this.servertoken}/${studenttoken}`, { 
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json' },
+                            body: JSON.stringify({ sharelink: sharingLink  })
+                            })
+                        .then( res => res.json())
+                        .then( response => {console.log(response.message) })
+                        .catch(err => { console.warn(err) })
+
+
+                    }
+                });
+            }
+        },
+
 
 
         async uploadAndShareFile(file, targetfilename) {
@@ -420,8 +447,18 @@ export default {
             }
             this.studentwidgets = widgets;
         },
+
+
+
+
+
+
+
+
+        
         // get all information about students status and do some checks
         fetchInfo() {
+            this.config = ipcRenderer.sendSync('getconfig')  // this is only needed in order to get the accesstoken from the backend for MSAuthentication - but it doesn't hurt
             this.now = new Date().getTime()
             axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/studentlist/${this.servername}/${this.servertoken}`)
             .then( response => {
@@ -430,6 +467,17 @@ export default {
 
                 if (this.studentlist && this.studentlist.length > 0){
                     this.studentlist.forEach( student => { 
+                        console.log(student.status)
+                        if (this.examtype === "office365" && !student.status) {
+                            console.log("this student has no sharing link yet")
+                            if (this.msOfficeFile) {
+                                // trigger upload of msoffice file for this student and set sharelink for this student
+                            }
+
+                            //UNSEt MSOFFICE file on exam end
+                        }
+
+
                         if (this.activestudent && student.token === this.activestudent.token) { this.activestudent = student}  // on studentlist-receive update active student (for student-details)
                         if (!student.imageurl){ student.imageurl = "user-black.svg"  }
                     });
@@ -470,9 +518,10 @@ export default {
 
 
         // enable exam mode 
-        startExam(){
+        async startExam(){
             this.lockscreens(false, false); // deactivate lockscreen
             this.exammode = true;
+            console.log("starting")
             this.visualfeedback(this.$t("dashboard.startexam"))
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/exam/${this.servername}/${this.servertoken}`, { 
                 method: 'POST',
@@ -1117,6 +1166,10 @@ export default {
 .disabledexam {
     filter: contrast(20%) grayscale(100%) brightness(80%) blur(0.6px);
    pointer-events: none;
+}
+.disabledexambutton {
+    filter: contrast(47%) grayscale(98%) brightness(170%) blur(0.6px);
+    pointer-events: none;
 }
 
 #pdfpreview {
