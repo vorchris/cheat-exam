@@ -196,6 +196,12 @@ ipcMain.on('getconfig', (event) => {
     event.returnValue = clonedObject
 })  
 
+ipcMain.on('resetToken', (event) => {  
+    config.accessToken = false
+    const clonedObject = copyConfig(config);  // we cant just copy the config because it contains examServerList which contains confic (circular structure)
+    event.returnValue = clonedObject
+})  
+
 ipcMain.on('getCurrentWorkdir', (event) => {   event.returnValue = config.workdirectory  })
 
 ipcMain.on('checkDiscspace', async (event) => {   

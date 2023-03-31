@@ -184,6 +184,12 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
             if (studentstatus.fetchfiles === true){
                 this.requestFileFromServer(studentstatus.files)
             }
+
+            // this is an office365 thing. check if exam mode is office, check if this is set - otherwise do not enter exammode - it will fail
+            if (studentstatus.msofficeshare){
+                //NOTHING YET
+            }
+
         }
 
         // global status updates

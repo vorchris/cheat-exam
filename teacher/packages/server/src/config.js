@@ -19,5 +19,6 @@ const config = {
     multicastServerAdrr: '239.255.255.250',
     hostip: "0.0.0.0",
     examServerList: {},
+    accessToken: false
 }
 export default config

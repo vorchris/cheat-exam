@@ -86,36 +86,49 @@
 
 
 
-    <!-- sidebar start -->
+    <!-- SIDEBAR start -->
     <div class="p-3 text-white bg-dark h-100 " style="width: 240px; min-width: 240px;">
         <div class="btn btn-light m-1 mt-0 text-start infobutton" @click="showinfo()">{{$t('dashboard.name')}} <br><b> {{$route.params.servername}}</b> </div><br>
         <div class="btn btn-light m-1 text-start infobutton" @click="showinfo()">{{$t('dashboard.server')}} <br><b>{{serverip}}</b> </div><br>
         <div class="btn btn-light m-1 mb-3 text-start infobutton" @click="showinfo()">{{$t('dashboard.pin')}}<br><b> {{ $route.params.pin }} </b>  </div><br>
         
         <div style="font-size:0.9em">
-        
-        
-       
+        <!-- geogebra -->
         <div class="form-check m-1 mb-1"  :class="(exammode)? 'disabledexam':''">
             <input v-model="examtype" value="math" class="form-check-input" type="radio" name="examtype" id="examtype2" checked>
             <label class="form-check-label" for="examtype2"> {{$t('dashboard.math')}}  </label>
         </div>
+        <!-- editor -->
         <div class="form-check m-1" :class="(exammode)? 'disabledexam':''">
             <input v-model="examtype" @click="activateSpellcheck()" value="editor" class="form-check-input" type="radio" name="examtype" id="examtype1">
             <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}} <span v-if="(spellcheck)">({{spellchecklang}})</span></label>
         </div>
+        <!-- eduvidual -->
         <div class="form-check m-1 mb-1" :class="(exammode)? 'disabledexam':''">
             <input v-model="examtype" @click="getTestID()" value="eduvidual" class="form-check-input" type="radio" name="examtype" id="examtype3">
             <label class="form-check-label" for="examtype3"> {{$t('dashboard.eduvidual')}}  </label>
         </div>
-
-
+        <!-- office365 -->
         <div v-if="config.development" class="form-check m-1 mb-3" :class="(exammode)? 'disabledexam':''">
-            <input v-model="examtype" @click="openAuthWindow()" value="office365" class="form-check-input" type="radio" name="examtype" id="examtype4">
+            <input v-model="examtype" value="office365" class="form-check-input" type="radio" name="examtype" id="examtype4">
             <label class="form-check-label" for="examtype4"> Office365 <span v-if="(config.accessToken)">({{$t('dashboard.connected')}})</span> </label>
+            
+            <button v-if="(examtype === 'office365' && !config.accessToken)"  @click="openAuthWindow()" class="btn btn-sm btn-primary mt-1  ">
+                <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
+                <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Verbinden </span>
+            </button>
+
+            <button v-if="(examtype === 'office365' && config.accessToken && !msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-info mt-1  ">
+                <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
+                <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Datei wählen </span>
+            </button>
+
+            <button v-if="(examtype === 'office365' && config.accessToken && msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-success mt-1  " style=" white-space: nowrap;  width: 170px;overflow: hidden; text-overflow: ellipsis; ">
+                <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
+                <span style="padding: 0 6px 0 4px; vertical-align:middle;">{{msOfficeFile.name}} </span>
+            </button>
         </div>
        
-
 
 
         <div class="form-check form-switch  m-1 mb-2">
@@ -132,7 +145,7 @@
         <div id="statusdiv" class="btn btn-warning m-1"> {{$t('dashboard.connected')}}  </div>
         <span style="position: absolute; bottom:2px; left: 4px; font-size:0.8em">{{version}}</span>
     </div>
-    <!-- sidebar end -->
+    <!-- SIDEBAR end -->
 
 
    
@@ -140,10 +153,8 @@
         
         <!-- control buttons start -->        
         <div v-if="(exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="endExam()" >{{numberOfConnections}} {{$t('dashboard.stopexam')}}</div>
-
-        <div v-else-if="(examtype === 'office365')" @click="onedriveUploadselect()" :class="(examtype === 'office365' && !config.accessToken)? 'disabledexambutton':''" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px; height:62px;">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
-        <div v-else-if="(examtype !== 'office365')" @click="startExam()" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px; height:62px;">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
-       
+        <div v-if="(!exammode)" @click="startExam()" :class="(examtype === 'office365' && (!config.accessToken || !msOfficeFile))? 'disabledexambutton':''" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px; height:62px;">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
+     
         <div class="btn btn-info m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="sendFiles('all')">{{$t('dashboard.sendfile')}}</div>
         <div class="btn btn-info m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="getFiles('all', true)">{{$t('dashboard.getfile')}}</div>
         <div class="col d-inlineblock btn btn-dark m-1 mt-0 text-start ms-0 " @click="loadFilelist(workdirectory)"  style="width: 100px;">{{$t('dashboard.showworkfolder')}} </div>
@@ -300,56 +311,98 @@ export default {
                     return;
                 }
 
+                this.visualfeedbackClosemanually(this.$t("dashboard.uploadfiles"))
+                await this.onedriveUpload(input.value)  //this can take a while if 30 students are connected - set this.msOfficeFile only after it finished because it activates the "startexam" button
                 //save valid file info for other students that connect later or reconnect (they all should get a file in onedrive and a sharing link if not 'none')
-                this.msOfficeFile = input.value
-                await this.onedriveUpload()
-                console.log("awaited")
-                //when finished uploading we start exam safe mode for everybody (every student should already have it's own sharing link in its config for excel mode)
-                this.startExam()
+                this.msOfficeFile = input.value   
+                console.log("upload to onedrive and sharelink setup finished")
+        
             });    
         },
 
-
-        async onedriveUpload(){
-            if (!this.msOfficeFile){return}
+        /**
+         * SETS student.status.msofficeshare for ALL STUDENTS
+         * checks if the the file for every connected student already exists on oneDrive
+         * otherwise it will trigger the upload for the specific students and tells the API to set the sharinglink for every student
+         */
+        async onedriveUpload(file){
             for (let student of this.studentlist){
                 let studenttoken = student.token
                 let fileName =  `${student.clientname}.xlsx`
                 await this.fileExistsInAppFolder(fileName).then(async fileExists => {
-                    console.log(fileExists)
+                    let sharingLink = false
                     if (fileExists) {
-                        // user probably already in exam and editing file - HOW TO HANDLE?
-                        // probably the best way would be to ask the teacher if he wants to replace the file for the specific student
-                        console.log(`File with name "${fileName}" exists in the app folder.`);
-
+                        //we can set/get the sharing link from an existing file as often as neccessary - it will stay the same
+                        sharingLink = await this.createSharingLink(fileExists) //if file exists fileExists will contain the FILE ID
+                        console.log(`onedriveUpload(): File "${fileName}" exists`, sharingLink);
                     } else {
-                        const sharingLink = await this.uploadAndShareFile(this.msOfficeFile, fileName);
+                        sharingLink = await this.uploadAndShareFile(fileName,file);
                         console.log('onedriveUpload(): Link created:', sharingLink);
-
-                        // WRITE Share link to student info ojbect so it can be retrieved on the next student update 
-                        // together with the new examtype office365 and directly load and secure the sharinglink
-                        fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/sharelink/${this.servername}/${this.servertoken}/${studenttoken}`, { 
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json' },
-                            body: JSON.stringify({ sharelink: sharingLink  })
-                            })
-                        .then( res => res.json())
-                        .then( response => {console.log(response.message) })
-                        .catch(err => { console.warn(err) })
-
-
                     }
+                    if (!sharingLink){return}
+
+                    // WRITE Share link to student info ojbect so it can be retrieved on the next student update 
+                    // together with the new examtype office365 and directly load and secure the sharinglink
+                    fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/sharelink/${this.servername}/${this.servertoken}/${studenttoken}`, { 
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json' },
+                        body: JSON.stringify({ sharelink: sharingLink  })
+                        })
+                    .then( res => res.json())
+                    .then( response => {console.log(response.message) })
+                    .catch(err => { console.warn(err) })
                 });
             }
         },
 
 
+        /**
+         * SETS student.status.msofficeshare for ONE STUDENTS
+         * checks if the the file for every connected student already exists on oneDrive
+         * otherwise it will trigger the upload for the specific students and tells the API to set the sharinglink for every student
+         */
+         async onedriveUploadSingle(student,file){
+            let studenttoken = student.token
+            let fileName =  `${student.clientname}.xlsx`
+            await this.fileExistsInAppFolder(fileName).then(async fileExists => {
+                let sharingLink = false
+                if (fileExists) {
+                    //we can set/get the sharing link from an existing file as often as neccessary - it will stay the same
+                    sharingLink = await this.createSharingLink(fileExists) //if file exists fileExists will contain the FILE ID
+                    console.log(`onedriveUpload(): File "${fileName}" exists`, sharingLink);
+                } else {
+                    sharingLink = await this.uploadAndShareFile(fileName, file);
+                    console.log('onedriveUpload(): Link created:', sharingLink);
+                }
+                if (!sharingLink){return}
 
-        async uploadAndShareFile(file, targetfilename) {
-            this.config = ipcRenderer.sendSync('getconfig')  // we need to fetch the updated version of the systemconfig from express api (server.js)
+                // WRITE Share link to student info ojbect so it can be retrieved on the next student update 
+                // together with the new examtype office365 and directly load and secure the sharinglink
+                fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/sharelink/${this.servername}/${this.servertoken}/${studenttoken}`, { 
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sharelink: sharingLink  })
+                    })
+                .then( res => res.json())
+                .then( response => {console.log(response.message) })
+                .catch(err => { console.warn(err) })
+            });
+        },
+
+
+
+
+        /**
+         * UPLOADS the current 'msofficeFile' to OneDrive 
+         * Returns a SHARE LINK
+         * @param {*} targetfilename the filename is the username .xlsx
+         */
+        async uploadAndShareFile(targetfilename, file) {
+            this.config = ipcRenderer.sendSync('getconfig')  // make sure we have an up2date config
+            if (!file){return} //just to be sure
 
             // Upload the file to the app folder
-            const uploadEndpoint = `https://graph.microsoft.com/v1.0/me/drive/special/approot:/${targetfilename}:/content`;
+            const uploadEndpoint = `https://graph.microsoft.com/v1.0/me/drive/special/approot:/${this.servername}/${targetfilename}:/content`;
             const fileUploadResponse = await fetch(uploadEndpoint, {
                 method: 'PUT',
                 headers: new Headers({
@@ -362,6 +415,15 @@ export default {
        
             // Create a sharing link with edit permissions using the file ID
             const fileId = fileUploadResponse.id; // Retrieve the file ID of the uploaded file
+            const sharingLink = this.createSharingLink(fileId)
+            return sharingLink;
+        },
+
+        /**
+         * This Method takes a onedrive file ID and RETURNS a SHARE LINK
+         * @param {*} fileId the id of a onedrive file which is needed to create a share link
+         */
+        async createSharingLink(fileId){
             const sharingEndpoint = `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/createLink`;
             const sharingData = {
                 type: 'edit', // edit permissions
@@ -382,6 +444,12 @@ export default {
         },
 
 
+
+
+        /**
+         * checks if a given filename exists on onedrive
+         * @param {*} fileName usually the username.xlsx
+         */
         async fileExistsInAppFolder(fileName) {
             this.config = ipcRenderer.sendSync('getconfig')
             const appFolderEndpoint = `https://graph.microsoft.com/v1.0/me/drive/special/approot/search(q='${encodeURIComponent(fileName)}')`;
@@ -391,12 +459,23 @@ export default {
             })
             .then(response => response.json())
             .then( response => {  
+                if (response.error && response.error.code.includes("InvalidAuthenticationToken")  ){ // this is usually the first method that accesses onedrive api - thats why we test here
+                    console.log("token error - resetting token")  //reset token - something is off here!
+                    this.config = ipcRenderer.sendSync('resetToken')
+                }
                 let res =  response.value.some(file => file.name === fileName);
-                return res
+                
+                if (!res){return false}
+                else {return response.value[0].id}
             })
-            .catch(err => { console.warn(err) })
+            .catch(err => { 
+                console.warn(err)
+            })
             return fileExists
         },
+
+
+
 
 
 
@@ -467,19 +546,16 @@ export default {
 
                 if (this.studentlist && this.studentlist.length > 0){
                     this.studentlist.forEach( student => { 
-                        console.log(student.status)
-                        if (this.examtype === "office365" && !student.status) {
-                            console.log("this student has no sharing link yet")
-                            if (this.msOfficeFile) {
-                                // trigger upload of msoffice file for this student and set sharelink for this student
-                            }
-
-                            //UNSEt MSOFFICE file on exam end
-                        }
-
-
                         if (this.activestudent && student.token === this.activestudent.token) { this.activestudent = student}  // on studentlist-receive update active student (for student-details)
                         if (!student.imageurl){ student.imageurl = "user-black.svg"  }
+                        
+                        // if the chosen exam mode is OFFICE and everything is Setup already check if students already got their share link (re-connect, late-connect)
+                        if (this.examtype === "office365" && this.config.accessToken && this.msOfficeFile){
+                            if (!student.status && !student.status.msofficeshare) {  // this one is late to the party
+                                console.log("this student has no sharing link yet")
+                                this.onedriveUploadSingle(student, this.msOfficeFile)   // trigger upload of this.msOfficeFile, create sharelink and set student.status.msofficeshare to sharelink
+                            }
+                        }
                     });
 
                     //update widgets list here - we keep our own independent widgetlist (aka studentlist) for drag&drop 
@@ -534,12 +610,9 @@ export default {
         },
         // disable exammode 
         endExam(){
-            
             this.getFiles('all') // fetch files from students before ending exam for everybody
-
             this.$swal.fire({
                 title: this.$t("dashboard.sure"),
-              
                 html: `<div>
                     <input class="form-check-input" type="checkbox" id="checkboxdel">
                     <label class="form-check-label" for="checkboxdel"> ${this.$t("dashboard.exitdelete")} </label>
@@ -609,7 +682,26 @@ export default {
             });
         },
 
-
+        visualfeedbackClosemanually(message){
+            const closeWhenFinished = async () => {
+                while (!this.msOfficeFile) {
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+                }
+                this.$swal.close();
+            };
+            // Your existing Swal configuration
+            this.$swal.fire({
+                text: message,
+                timerProgressBar: true,
+                didOpen: () => {
+                    this.$swal.showLoading();
+                    closeWhenFinished();
+                },
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
+            });
+        },
 
 
 
@@ -1070,6 +1162,7 @@ export default {
 
 
 <style scoped>
+
 .studentwidget {
     width: 204px;
     height: 172px;
