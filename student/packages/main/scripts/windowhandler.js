@@ -132,7 +132,7 @@ class WindowHandler {
      */
     async createExamWindow(examtype, token, serverstatus, primarydisplay) {
         // just to be sure we check some important vars here
-        if (examtype !== "eduvidual" && examtype !== "editor" && examtype !== "math" || !token){  // for now.. we probably should stop everything here
+        if (examtype !== "eduvidual" && examtype !== "editor" && examtype !== "math" && examtype !== "office365" || !token){  // for now.. we probably should stop everything here
             console.log("missing parameters for exam-mode!")
             examtype = "editor" 
         } 
@@ -168,6 +168,20 @@ class WindowHandler {
             let url =`https://eduvidual.at/mod/${serverstatus.moodleTestType}/view.php?id=${serverstatus.testid}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287  
             this.examwindow.loadURL(url)
         }
+        else if (examtype === "office365"  ) { //external page
+            let url = this.multicastClient.clientinfo.msofficeshare   
+            if (!url) {// we wait for the next update tick - msofficeshare needs to be set !
+                console.log("no url for office365 was set")
+                console.log(this.multicastClient.clientinfo)
+                this.examwindow.destroy(); 
+                this.examwindow = null;
+                disableRestrictions()
+                this.multicastClient.clientinfo.exammode = false
+                this.multicastClient.clientinfo.focus = true
+                return
+            }
+            this.examwindow.loadURL(url)
+        }
         else { 
             let url = examtype   // editor || math || tbd.
             if (app.isPackaged) {
@@ -197,11 +211,26 @@ class WindowHandler {
         }
         else { this.examwindow.webContents.session.setSpellCheckerLanguages([]) }
 
-        if (serverstatus.examtype === "editor"){  // do not under any circumstances allow navigation away from the editor
+        if (serverstatus.examtype === "editor" ){  // do not under any circumstances allow navigation away from the editor
             this.examwindow.webContents.on('will-navigate', (event, url) => {  // if a resource (pdf) is openend create an embed element and embed the pdf
+                
                 event.preventDefault()
             })
         }
+
+        if ( serverstatus.examtype === "office365"){  // do not under any circumstances allow navigation away from the editor
+            this.examwindow.officeurl = false
+            this.examwindow.webContents.on('will-navigate', (event, url) => {  // if a resource (pdf) is openend create an embed element and embed the pdf
+                if (!this.examwindow.officeurl ) { this.examwindow.officeurl = url }
+
+               
+                if (url !== this.examwindow.officeurl ) {
+                    console.log("do not navigate away from this test.. it will haunt you forever")
+                    event.preventDefault()
+                }  
+            })
+        }
+
 
         // HANDLE EDUVIDUAL pdf embed
         if (serverstatus.examtype === "eduvidual"){

@@ -98,7 +98,8 @@
         "unlock":"Displays entsperren",
         "freespacewarning" : "Freier Speicherplatz zu gering!",
         "invalid_file" : "Falscher Dateityp",
-        "invalid_file_text": "Nur Dateien mit der Endung .xlsx sind erlaubt."
+        "invalid_file_text": "Nur Dateien mit der Endung .xlsx sind erlaubt.",
+        "replace":"Vorhandene Dateien auf OneDrive ersetzen?"
     },
     "control": {
         "tokennotvalid": "Das Token ist ungültig",

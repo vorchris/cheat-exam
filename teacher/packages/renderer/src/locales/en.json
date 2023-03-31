@@ -98,7 +98,9 @@
         "unlock":"unlock displays",
         "freespacewarning" : "Running out of free discspace!!",
         "invalid_file" : "Wrong Filetype",
-        "invalid_file_text": "Only Files with the .xlsx extension are allowed"
+        "invalid_file_text": "Only Files with the .xlsx extension are allowed",
+        "replace":"Replace existing Files on OneDrive?"
+        
     },
     "control": {
         "tokennotvalid": "token is not valid",

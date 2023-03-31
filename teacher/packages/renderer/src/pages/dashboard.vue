@@ -262,10 +262,11 @@ export default {
                 token: `${Math.random()}`,
                 imageurl:"user-black.svg"
             },
-            originalIndex : 20,
-            futureIndex : 20,
-            freeDiscspace : 1000,
-            msOfficeFile : null
+            originalIndex: 20,
+            futureIndex: 20,
+            freeDiscspace: 1000,
+            msOfficeFile: null,
+            replaceMSOfile: false
         };
     },
 
@@ -294,12 +295,22 @@ export default {
                     id: "swalFile",
                     class:"form-control",
                     accept: ".xlsx",
+                },
+                html: `<div>
+                    <input class="form-check-input" type="checkbox" id="replace" name="replace">
+                        <label class="form-check-label" for="checkboxsuggestions"> ${this.$t("dashboard.replace")} </label> <br>
+                    </div>`,
+                preConfirm: () => {
+                       
                 }
             })
             .then(async (input) => {
                 if (!input.value) { this.status(this.$t("dashboard.nofiles")); return }
+                
+                //should we replace all files in the teachers onedrive folder for this exam name? (careful this could delete all of the students work - download it in addition to the lokal workfolder!
+                this.replaceMSOfile =  document.getElementById('replace').checked; 
                 this.status(this.$t("dashboard.uploadfiles"));
-           
+
                 //check for allowed file extension again
                 const fileExtension = input.value.name.split('.').pop().toLowerCase();
                 if (fileExtension !== 'xlsx') {
@@ -316,7 +327,6 @@ export default {
                 //save valid file info for other students that connect later or reconnect (they all should get a file in onedrive and a sharing link if not 'none')
                 this.msOfficeFile = input.value   
                 console.log("upload to onedrive and sharelink setup finished")
-        
             });    
         },
 
@@ -331,7 +341,8 @@ export default {
                 let fileName =  `${student.clientname}.xlsx`
                 await this.fileExistsInAppFolder(fileName).then(async fileExists => {
                     let sharingLink = false
-                    if (fileExists) {
+                    
+                    if (fileExists && this.replaceMSOfile === false) {
                         //we can set/get the sharing link from an existing file as often as neccessary - it will stay the same
                         sharingLink = await this.createSharingLink(fileExists) //if file exists fileExists will contain the FILE ID
                         console.log(`onedriveUpload(): File "${fileName}" exists`, sharingLink);
@@ -374,7 +385,10 @@ export default {
                     sharingLink = await this.uploadAndShareFile(fileName, file);
                     console.log('onedriveUpload(): Link created:', sharingLink);
                 }
-                if (!sharingLink){return}
+                if (!sharingLink){
+                    console.log("some students couldn't receive a sharing link")  // happens if file is opened for example
+                    return
+                }
 
                 // WRITE Share link to student info ojbect so it can be retrieved on the next student update 
                 // together with the new examtype office365 and directly load and secure the sharinglink
@@ -410,12 +424,14 @@ export default {
                     'Content-Type': file.type // Use the file's content type
                 }),
                 body: file // Send the file directly as the request body
-            }).then(response => response.json());
+            })
+            .then(response => response.json())
+            .catch(error=>{console.warn(error)});
 
        
             // Create a sharing link with edit permissions using the file ID
             const fileId = fileUploadResponse.id; // Retrieve the file ID of the uploaded file
-            const sharingLink = this.createSharingLink(fileId)
+            const sharingLink = await this.createSharingLink(fileId)
             return sharingLink;
         },
 
@@ -429,7 +445,6 @@ export default {
                 type: 'edit', // edit permissions
                 scope: 'anonymous' // anyone with the link can edit
             };
-
             const sharingResponse = await fetch(sharingEndpoint, {
                 method: 'POST',
                 headers: new Headers({
@@ -437,8 +452,11 @@ export default {
                     'Content-Type': 'application/json'
                 }),
                 body: JSON.stringify(sharingData)
-            }).then(response => response.json());
+            })
+            .then(response => response.json())
+            .catch(error => {console.warn(error)});
 
+            if (!sharingResponse.link && sharingResponse.link.webUrl) {return false}
             const sharingLink = sharingResponse.link.webUrl;
             return sharingLink;
         },
@@ -452,7 +470,29 @@ export default {
          */
         async fileExistsInAppFolder(fileName) {
             this.config = ipcRenderer.sendSync('getconfig')
-            const appFolderEndpoint = `https://graph.microsoft.com/v1.0/me/drive/special/approot/search(q='${encodeURIComponent(fileName)}')`;
+
+            //get the specific exam subfolder ID
+            const folderID = await fetch(`https://graph.microsoft.com/v1.0/me/drive/special/approot/children?$filter=name eq '${this.servername}'`, {
+                method: 'GET',
+                headers: {
+                'Authorization': `Bearer ${this.config.accessToken}`,
+                'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then( data => { 
+                if (data.value && data.value.length > 0) {  return data.value[0].id;  } 
+                else {
+                    console.log('Folder not found');
+                    return null;
+                }
+             })
+            .catch(err => { 
+                console.warn(err)
+            });
+
+            //search for file in specific exam subfolder
+            const appFolderEndpoint = `https://graph.microsoft.com/v1.0/me/drive/items/${folderID}/search(q='${encodeURIComponent(fileName)}')`;
             const fileExists = await fetch(appFolderEndpoint, {
                 method: 'GET',
                 headers: new Headers({'Authorization': `Bearer ${this.config.accessToken}`})
@@ -464,7 +504,6 @@ export default {
                     this.config = ipcRenderer.sendSync('resetToken')
                 }
                 let res =  response.value.some(file => file.name === fileName);
-                
                 if (!res){return false}
                 else {return response.value[0].id}
             })
@@ -551,7 +590,10 @@ export default {
                         
                         // if the chosen exam mode is OFFICE and everything is Setup already check if students already got their share link (re-connect, late-connect)
                         if (this.examtype === "office365" && this.config.accessToken && this.msOfficeFile){
-                            if (!student.status && !student.status.msofficeshare) {  // this one is late to the party
+                            console.log("here we are")
+                            console.log(student.status.msofficeshare)
+                            console.log(student.status)
+                            if (!student.status.msofficeshare) {  // this one is late to the party
                                 console.log("this student has no sharing link yet")
                                 this.onedriveUploadSingle(student, this.msOfficeFile)   // trigger upload of this.msOfficeFile, create sharelink and set student.status.msofficeshare to sharelink
                             }

@@ -129,6 +129,7 @@ router.get('/msauth', async (req, res) => {
             </head>
             <body><br>
                 <h4>${error.response.data.error_description}</h4> <br>
+                Please restart the Application <br>
                 <button onclick="window.close()" class="custom-btn custom-btn-danger">Close Window</button>
             </body>
         </html>`
@@ -293,8 +294,8 @@ for (let i = 0; i<4; i++ ){
     const mcServer = config.examServerList[servername]
 
         //demo users start
-       for (let i = 0; i<democlients.length; i++ ){ democlients[i].timestamp= new Date().getTime()  }
-       mcServer.studentList = democlients
+   //    for (let i = 0; i<democlients.length; i++ ){ democlients[i].timestamp= new Date().getTime()  }
+   //    mcServer.studentList = democlients
         //demo users end
 
     if (mcServer && req.params.csrfservertoken === mcServer.serverinfo.servertoken) {
