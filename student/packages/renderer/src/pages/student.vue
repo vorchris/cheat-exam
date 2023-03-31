@@ -167,7 +167,7 @@ export default {
 
         // add event listener to user input field to supress all special chars 
         document.getElementById("user").addEventListener("keypress", function(e) {
-            var lettersOnly = /^[a-zA-Z]+$/;
+            var lettersOnly = /^[a-zA-Z ]+$/;
             var key = e.key || String.fromCharCode(e.which);
             if (!lettersOnly.test(key)) { e.preventDefault(); }
         });
