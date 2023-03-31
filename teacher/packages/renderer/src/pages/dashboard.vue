@@ -109,7 +109,7 @@
             <label class="form-check-label" for="examtype3"> {{$t('dashboard.eduvidual')}}  </label>
         </div>
         <!-- office365 -->
-        <div v-if="config.development" class="form-check m-1 mb-3" :class="(exammode)? 'disabledexam':''">
+        <div class="form-check m-1 mb-3" :class="(exammode)? 'disabledexam':''">
             <input v-model="examtype" value="office365" class="form-check-input" type="radio" name="examtype" id="examtype4">
             <label class="form-check-label" for="examtype4"> Office365 <span v-if="(config.accessToken)">({{$t('dashboard.connected')}})</span> </label>
             
@@ -128,18 +128,17 @@
                 <span style="padding: 0 6px 0 4px; vertical-align:middle;">{{msOfficeFile.name}} </span>
             </button>
         </div>
-       
-
-
+        <!-- other options -->
+        <div class="form-check form-switch m-1 mb-2"  :class="(exammode)? 'disabledexam':''">
+            <input v-model="delfolder" @click="delfolderquestion()" value="del" class="form-check-input" type="checkbox" name="delfolder" id="delfolder">
+            <label class="form-check-label" for="delfolder"> {{$t('dashboard.del')}}  </label>
+        </div>
         <div class="form-check form-switch  m-1 mb-2">
             <input @change="toggleAutoabgabe()"  @click="setAbgabeInterval()" v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
             <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
             <span v-if="autoabgabe" > ({{ abgabeintervalPause }}min)</span>
         </div>
-        <div class="form-check form-switch m-1 mb-2">
-            <input v-model="delfolder" @click="delfolderquestion()" value="del" class="form-check-input" type="checkbox" name="delfolder" id="delfolder">
-            <label class="form-check-label" for="delfolder"> {{$t('dashboard.del')}}  </label>
-        </div>
+  
     </div>
 
         <div id="statusdiv" class="btn btn-warning m-1"> {{$t('dashboard.connected')}}  </div>
@@ -280,7 +279,6 @@ export default {
  
         //upload file to authorized onedrive "next-exam" appfolder
         async onedriveUploadselect() {
-            if (this.studentlist.length === 0) { this.status(this.$t("dashboard.noclients")); return;}
             this.$swal.fire({
                 title: this.$t("dashboard.officefilesend"),
                 text: this.$t("dashboard.officefilesendtext"),
@@ -590,9 +588,6 @@ export default {
                         
                         // if the chosen exam mode is OFFICE and everything is Setup already check if students already got their share link (re-connect, late-connect)
                         if (this.examtype === "office365" && this.config.accessToken && this.msOfficeFile){
-                            console.log("here we are")
-                            console.log(student.status.msofficeshare)
-                            console.log(student.status)
                             if (!student.status.msofficeshare) {  // this one is late to the party
                                 console.log("this student has no sharing link yet")
                                 this.onedriveUploadSingle(student, this.msOfficeFile)   // trigger upload of this.msOfficeFile, create sharelink and set student.status.msofficeshare to sharelink
@@ -1299,7 +1294,7 @@ export default {
 
 
 .disabledexam {
-    filter: contrast(20%) grayscale(100%) brightness(80%) blur(0.6px);
+    filter: contrast(100%) grayscale(100%) brightness(80%) blur(0.6px);
    pointer-events: none;
 }
 .disabledexambutton {

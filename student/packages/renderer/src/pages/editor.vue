@@ -499,7 +499,7 @@ export default {
         border-radius: 0 !important; 
         outline: 0 !important;
         overflow: hidden !important;
-        margin-right: 40px;
+        margin-right: 60px;
     }
 
     ::-webkit-scrollbar {

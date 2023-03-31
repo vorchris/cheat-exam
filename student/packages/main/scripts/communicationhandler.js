@@ -197,9 +197,8 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
         // global status updates
         if (serverstatus.screenlock && !this.multicastClient.clientinfo.screenlock) {  this.activateScreenlock() }
         else if (!serverstatus.screenlock ) { this.killScreenlock() }
-
-
-        if (serverstatus.exammode && !this.multicastClient.clientinfo.exammode){ 
+        
+        if (serverstatus.exammode && !this.multicastClient.clientinfo.exammode){
             this.killScreenlock() // remove lockscreen immediately - don't wait for server info
             this.startExam(serverstatus)
         }
@@ -272,11 +271,15 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
         let primary = screen.getPrimaryDisplay()
         if (!primary || primary === "" || !primary.id){ primary = displays[0] }       
        
+        this.multicastClient.clientinfo.exammode = true
+
         if (!WindowHandler.examwindow){  // why do we check? because exammode is left if the server connection gets lost but students could reconnect while the exam window is still open and we don't want to create a second one
+            console.log("creating exam window")
             this.multicastClient.clientinfo.examtype = serverstatus.examtype
             WindowHandler.createExamWindow(serverstatus.examtype, this.multicastClient.clientinfo.token, serverstatus, primary);
         }
         else if (WindowHandler.examwindow){  //reconnect into active exam session with exam window already open
+            console.error("communicationhandler @ startExam: found existing Examwindow..")
             try {  // switch existing window back to exam mode
                 WindowHandler.examwindow.show() 
                 if (!this.config.development) { 
@@ -304,7 +307,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
                 }
             }
         }
-        this.multicastClient.clientinfo.exammode = true
+       
     }
 
 

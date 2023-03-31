@@ -169,6 +169,7 @@ class WindowHandler {
             this.examwindow.loadURL(url)
         }
         else if (examtype === "office365"  ) { //external page
+            console.log("starting office365 exam...")
             let url = this.multicastClient.clientinfo.msofficeshare   
             if (!url) {// we wait for the next update tick - msofficeshare needs to be set !
                 console.log("no url for office365 was set")
