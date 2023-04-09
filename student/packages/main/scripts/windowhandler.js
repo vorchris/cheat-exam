@@ -23,7 +23,14 @@ class WindowHandler {
         this.config = config
     }
 
-
+    getCurrentFocusedWindow() {
+        const focusedWindow = BrowserWindow.getFocusedWindow();
+        if (focusedWindow) {
+          return focusedWindow
+        } else {
+          return false
+        }
+    }
 
 
     /**

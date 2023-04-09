@@ -18,7 +18,6 @@
 
 
 
-
 <div id="wrapper" class="w-100 h-100 d-flex" >
     
     <div id="studentinfocontainer" class="fadeinslow p-4">
@@ -138,7 +137,11 @@
             <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
             <span v-if="autoabgabe" > ({{ abgabeintervalPause }}min)</span>
         </div>
-  
+        <div class="form-check form-switch  m-1 mb-2">
+            <input  @change="toggleScreenshot()" @click="setScreenshotInterval()" checked class="form-check-input" type="checkbox" id="screenshotinterval">
+            <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.screenshot')}}</label>
+            <span v-if="screenshotinterval > 0" > ({{ screenshotinterval }}s)</span>
+        </div>
     </div>
 
         <div id="statusdiv" class="btn btn-warning m-1"> {{$t('dashboard.connected')}}  </div>
@@ -174,6 +177,8 @@
                             <div v-cloak :id="student.token" style="position: relative;background-size: cover; height: 132px;" v-bind:style="(student.imageurl && now - 20000 < student.timestamp)? `background-image: url('${student.imageurl}')`:'background-image: url(user-red.svg)'"></div>
                             <div v-if="student.virtualized" class="virtualizedinfo" >{{$t("dashboard.virtualized")}}</div>
                             <div v-if="!student.focus" class="kioskwarning" >{{$t("dashboard.leftkiosk")}}</div>
+                            <div v-if="student.status.sendexam" class="examrequest" >{{$t("dashboard.examrequest")}}</div>
+                           
                             <span>   
                                 <div style="display:inline;" v-bind:title="(student.files) ? 'Documents: '+student.files : ''"> 
                                     <img v-for="file in student.files" style="width:22px; margin-left:-4px; position: relative; filter: sepia(10%) hue-rotate(306deg) brightness(0.3) saturate(75);" class="" src="/src/assets/img/svg/document.svg"><br>
@@ -268,7 +273,8 @@ export default {
             futureIndex: 20,
             freeDiscspace: 1000,
             msOfficeFile: null,
-            replaceMSOfile: false
+            replaceMSOfile: false,
+            screenshotinterval: 4
         };
     },
 
@@ -300,7 +306,6 @@ export default {
         /**
          * Dashboard Explorer (Filemanager)
          */
-
         loadFilelist:loadFilelist,
         print:print, 
         getLatest:getLatest, 
@@ -328,6 +333,8 @@ export default {
                         if (this.activestudent && student.token === this.activestudent.token) { this.activestudent = student}  // on studentlist-receive update active student (for student-details)
                         if (!student.imageurl){ student.imageurl = "user-black.svg"  }
                         
+                  
+
                         // if the chosen exam mode is OFFICE and everything is Setup already check if students already got their share link (re-connect, late-connect)
                         if (this.examtype === "office365" && this.config.accessToken && this.msOfficeFile){
                             if (!student.status.msofficeshare) {  // this one is late to the party
@@ -362,7 +369,6 @@ export default {
                     if (!studentExists && widget.token.includes('csrf')){ //if the student the widget belongs to does not exist (and the widget actually represents a student - token starting with csrf)
                         for (let i = 0; i < this.studentwidgets.length; i++){  // we cant use (for .. of) or forEach because it creates a workingcopy of the original object
                              if (widget.token == this.studentwidgets[i].token){ 
-                              
                                 this.studentwidgets[i] = this.emptyWidget; // replace studentwidget with emptywidget
                             } 
                         }
@@ -604,6 +610,46 @@ export default {
             else { clearInterval( this.abgabeinterval )} 
         },
 
+        //this just keeps the state of the toggle
+        toggleScreenshot(){
+            if (this.screenshotinterval == 0) { document.getElementById("screenshotinterval").checked = false }
+            else { document.getElementById("screenshotinterval").checked = true}
+        },
+        //sets a new screenshot update interval - the value is sent to the students and then used to update the screenshots
+        setScreenshotInterval(){
+            if (!this.autoabgabe) {
+                this.$swal.fire({
+                    title: this.$t("dashboard.screenshottitle"),
+                    icon: 'question',
+                    input: 'range',
+                    html: `${this.$t("dashboard.screenshotquestion")} <br>  ${this.$t("dashboard.screenshothint")}`,
+                    inputAttributes: {
+                        min: 0,
+                        max: 60,
+                        step: 4
+                    },
+                    inputValue: this.screenshotinterval
+                }).then((input) => {
+                    this.screenshotinterval= input.value
+                    if (this.screenshotinterval == 0) { document.getElementById("screenshotinterval").checked = false }
+                    else { document.getElementById("screenshotinterval").checked = true}
+
+
+                    // WRITE screenshotinterval serverstatus ojbect so it can be retrieved on the next student update 
+                    fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/screenshotinterval/${this.servername}/${this.servertoken}`, { 
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json' },
+                        body: JSON.stringify({ screenshotinterval: this.screenshotinterval  })
+                        })
+                    .then( res => res.json())
+                    .then( response => {console.log(response.message) })
+                    .catch(err => { console.warn(err) })
+                })
+            }
+        },
+
+
+
         lockscreens(state, feedback=true){
             if (this.studentlist.length === 0) { this.status(this.$t("dashboard.noclients")); return;}
 
@@ -659,8 +705,6 @@ export default {
                     method: "post", 
                     url: `https://${this.serverip}:${this.serverApiPort}/server/data/upload/${this.servername}/${this.servertoken}/${who}`, 
                     data: formData, 
-             
-              
                 })
                 .then( (response) => {console.log(response.data) })
                 .catch( err =>{ console.log(`${err}`) })
@@ -836,6 +880,20 @@ export default {
     border-bottom-right-radius: 5px;
     border-top-right-radius: 5px;
 }
+
+.examrequest {
+    position: absolute;
+    top:54px;
+    left:0;
+    background-color: #0dcaf0;
+    font-size: 0.7em;
+    padding: 2px;
+    padding-left: 4px;
+    padding-right: 10px;
+    border-bottom-right-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
 
 
 #content {

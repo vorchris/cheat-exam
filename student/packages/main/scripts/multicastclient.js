@@ -49,7 +49,8 @@ class MulticastClient {
             examtype : false,
             pin: false,
             screenlock: false,
-            msofficeshare: false
+            msofficeshare: false,
+            screenshotinterval: 4000   //milliseconds
         }
     }
 

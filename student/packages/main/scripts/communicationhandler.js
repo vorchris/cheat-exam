@@ -52,6 +52,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
         this.config = config
         this.updateStudentIntervall = setInterval(() => { this.requestUpdate() }, 5000)
         this.heartbeatInterval = setInterval(() => { this.sendHeartbeat() }, 4000)
+        this.screenshotInterval = setInterval( () => { this.sendScreenshot() }, this.multicastClient.clientinfo.screenshotinterval )
         if (process.platform !== 'linux' || (  !this.isWayland() && this.imagemagickAvailable()  )){ this.screenshotAbility = true }
     }
  
@@ -124,28 +125,13 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
 
 
     /** 
-     * Update current Serverstatus + Studenttstatus
-     * Update Screenshot on Server 
+     * Update current Serverstatus + Studenttstatus (every 5 seconds)
      */
     async requestUpdate(){
         if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip
-            
-            let img = null
             const formData = new FormData()  //create formdata
             formData.append('clientinfo', JSON.stringify(this.multicastClient.clientinfo) );   //we send the complete clientinfo object
 
-            //Add screenshot to formData - "imagemagick" has to be installed for linux - wayland is not (yet) supported by imagemagick !!
-            if (this.screenshotAbility){
-                img = await screenshot().catch((err) => { console.log(`requestUpdate Screenshot: ${err}`) });
-                if (Buffer.isBuffer(img)){
-                    let screenshotfilename = this.multicastClient.clientinfo.token +".jpg"
-                    formData.append(screenshotfilename, img, screenshotfilename );
-                    let hash = crypto.createHash('md5').update(img).digest("hex");
-                    formData.append('screenshothash', hash);
-                    formData.append('screenshotfilename', screenshotfilename);
-                }
-            }
-       
             axios({    //send update and fetch server status
                 method: "post", 
                 url: `https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/update`, 
@@ -153,9 +139,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
                 headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
             })
             .then( response => {
-                if (response.data && response.data.status === "error") { 
-                     console.log("requestUpdate Axios: status error - try again in 5 seconds")
-                }
+                if (response.data && response.data.status === "error") { console.log("requestUpdate Axios: status error - try again in 5 seconds") }
                 else if (response.data && response.data.status === "success") { 
                     this.multicastClient.beaconsLost = 0 // this also counts as successful heartbeat - keep connection
                     this.processUpdatedServerstatus(response.data.serverstatus, response.data.studentstatus)
@@ -164,6 +148,79 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
             .catch(error => { console.log(`requestUpdate Axios: ${error}`); console.log("requestUpdate Axios: failed - try again in 5 seconds")});
         }
     }
+
+
+
+    /** 
+     * Update Screenshot on Server  (every 4 seconds - or depending on the server setting)
+     */
+    async sendScreenshot(){
+        if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip
+    
+            let img = null
+            const formData = new FormData()  //create formdata
+            formData.append('clientinfo', JSON.stringify(this.multicastClient.clientinfo) );   //we send the complete clientinfo object
+
+            //Add screenshot to formData - "imagemagick" has to be installed for linux - wayland is not (yet) supported by imagemagick !!
+            if (this.screenshotAbility){
+                img = await screenshot().catch((err) => { console.log(`requestUpdate Screenshot: ${err}`) });
+            }
+            else {
+                //grab "screenshot" from appwindow
+                let currentFocusedMindow = WindowHandler.getCurrentFocusedWindow()
+                if (currentFocusedMindow) {
+                    img = await currentFocusedMindow.webContents.capturePage()
+                    .then((image) => {
+                        const imageBuffer = image.toPNG();// Convert the nativeImage to a Buffer (PNG format)
+                        return imageBuffer
+                      })
+                    .catch((err) => {console.log(`requestUpdate Screenshot: ${err}`)   });
+                }
+            }
+
+            if (Buffer.isBuffer(img)){
+                let screenshotfilename = this.multicastClient.clientinfo.token +".jpg"
+                formData.append(screenshotfilename, img, screenshotfilename );
+                let hash = crypto.createHash('md5').update(img).digest("hex");
+                formData.append('screenshothash', hash);
+                formData.append('screenshotfilename', screenshotfilename);
+            }
+            else {
+                console.log("nobuffer")
+                console.log(img)
+            }
+
+
+         
+
+    
+            axios({    //send screenshot update
+                method: "post", 
+                url: `https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/updatescreenshot`, 
+                data: formData, 
+                headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
+            })
+            .then( response => {
+                if (response.data && response.data.status === "error") { console.log("sendScreenshot Axios: status error",  response.data.message ) }
+            })
+            .catch(error => { console.log(`sendScreenshot Axios: ${error}`); });
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     /**
@@ -197,6 +254,20 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
         // global status updates
         if (serverstatus.screenlock && !this.multicastClient.clientinfo.screenlock) {  this.activateScreenlock() }
         else if (!serverstatus.screenlock ) { this.killScreenlock() }
+
+        //update screenshotinterval
+        if (serverstatus.screenshotinterval) { 
+            if (this.multicastClient.clientinfo.screenshotinterval !== serverstatus.screenshotinterval*1000) {
+                console.log("ScreenshotInterval changed to", serverstatus.screenshotinterval*1000)
+                this.multicastClient.clientinfo.screenshotinterval = serverstatus.screenshotinterval*1000
+                
+                // clear old interval and start new interval if set to something bigger than zero
+                clearInterval( this.screenshotInterval )
+                if (this.multicastClient.clientinfo.screenshotinterval > 0){
+                    this.screenshotInterval = setInterval( () => { this.sendScreenshot() }, this.multicastClient.clientinfo.screenshotinterval )
+                }
+            }
+        }
         
         if (serverstatus.exammode && !this.multicastClient.clientinfo.exammode){
             this.killScreenlock() // remove lockscreen immediately - don't wait for server info

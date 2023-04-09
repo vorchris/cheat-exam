@@ -462,7 +462,7 @@ for (let i = 0; i<4; i++ ){
 
 /**
  * SET cients SHARE LINK for office365 mode
- * @param servename the server that wants to kick the client
+ * @param servename the servers name
  * @param csrfservertoken the servers token to authenticate
  * @param studenttoken the students token who should be kicked
  */
@@ -486,6 +486,23 @@ router.post('/sharelink/:servername/:csrfservertoken/:studenttoken', function (r
 
 
 
+/**
+ * SET Screenshot Interval
+ * @param servename the servers name
+ * @param csrfservertoken the servers token to authenticate
+ */
+router.post('/screenshotinterval/:servername/:csrfservertoken', function (req, res, next) {
+    const servername = req.params.servername
+    const mcServer = config.examServerList[servername]
+
+    if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {  //first check if csrf token is valid and server is allowed to trigger this api request
+        mcServer.serverstatus.screenshotinterval = req.body.screenshotinterval
+        res.send( {sender: "server", message: t("control.studentupdate"), status: "success"} )
+    }
+    else {
+        res.send( {sender: "server", message: t("control.actiondenied"), status: "error"} )
+    }
+})
 
 
 
@@ -572,7 +589,7 @@ router.post('/sharelink/:servername/:csrfservertoken/:studenttoken', function (r
 
 
 /**
- * Change specific value in mcServer.serverstatus 
+ * Activate Screenlock 
  * req.body should contain the updated serverstatus information
  * @param servername the name of the server at which the student is registered
  * @param csrfservertoken servertoken to authenticate before the request is processed
@@ -599,7 +616,6 @@ router.post('/serverstatus/:servername/:csrfservertoken', function (req, res, ne
  * UPDATES Clientinfo - the specified students timestamp (used in dashboard to mark user as online) and other status updates
  * FETCHES Serverstatus & Studentstatus
  * usually triggered by the clients directly from the Main Process (loop)
- * POST Data contains a screenshot of the clients desktop !!
  * @param servername the name of the server at which the student is registered
  * @param token the students token to search and update the entry in the list
  */
@@ -609,10 +625,44 @@ router.post('/serverstatus/:servername/:csrfservertoken', function (req, res, ne
     const exammode = clientinfo.exammode
     const servername = clientinfo.servername
 
-    
+    //check if server and student exist
     const mcServer = config.examServerList[servername]
     if ( !mcServer) {  return res.send({sender: "server", message:"notavailable", status: "error"} )  }
-    
+    let student = mcServer.studentList.find(element => element.token === studenttoken)
+    if ( !student ) {return res.send({ sender: "server", message:"removed", status: "error" }) } //check if the student is registered on this server
+
+    //update important student attributes
+    student.focus = clientinfo.focus  
+    student.virtualized = clientinfo.virtualized
+    student.timestamp = new Date().getTime()   //last seen  / this is like a heartbeat - update lastseen
+    student.exammode = exammode  
+    student.files = clientinfo.numberOfFiles
+    if (clientinfo.focus) { student.status.restorefocusstate = false }  // remove task because its obviously done
+    if (clientinfo.screenshotinterval == 0){ student.imageurl = "person-lines-fill.svg"  }
+    // return current serverinformation to process on clientside
+    res.charset = 'utf-8';
+    res.send({sender: "server", message:t("control.studentupdate"), status:"success", serverstatus:mcServer.serverstatus, studentstatus: student.status })
+})
+
+
+
+
+
+
+/**
+ * UPDATE SCREENSHOT
+ * POST Data contains a screenshot of the clients desktop !!
+ * @param servername the name of the server at which the student is registered
+ * @param token the students token to search and update the screenshot
+ */
+router.post('/updatescreenshot', function (req, res, next) {
+    const clientinfo = JSON.parse(req.body.clientinfo)
+    const studenttoken = clientinfo.token
+    const servername = clientinfo.servername
+
+    // check if student@server exists
+    const mcServer = config.examServerList[servername]
+    if ( !mcServer) {  return res.send({sender: "server", message:"notavailable", status: "error"} )  }
     let student = mcServer.studentList.find(element => element.token === studenttoken)
     if ( !student ) {return res.send({ sender: "server", message:"removed", status: "error" }) } //check if the student is registered on this server
   
@@ -637,22 +687,21 @@ router.post('/serverstatus/:servername/:csrfservertoken', function (req, res, ne
         //console.log("no screenshot received - probably missing image library (imagemagick)")
         student.imageurl = "person-lines-fill.svg"
     }
-    
-
-    if (clientinfo.focus) { student.status.restorefocusstate = false }  // remove task because its obviously done
-
-    //update important student attributes
-    student.focus = clientinfo.focus  
-    student.virtualized = clientinfo.virtualized
-    student.timestamp = new Date().getTime()   //last seen  / this is like a heartbeat - update lastseen
-    student.exammode = exammode  
-    student.files = clientinfo.numberOfFiles
-
-    // return current serverinformation 
-   
-    res.charset = 'utf-8';
-    res.send({sender: "server", message:t("control.studentupdate"), status:"success", serverstatus:mcServer.serverstatus, studentstatus: student.status })
+    res.send({sender: "server", message:t("control.studentupdate"), status:"success" })
 })
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

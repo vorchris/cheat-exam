@@ -99,7 +99,13 @@
         "freespacewarning" : "Freier Speicherplatz zu gering!",
         "invalid_file" : "Falscher Dateityp",
         "invalid_file_text": "Nur Dateien mit der Endung .xlsx sind erlaubt.",
-        "replace":"Vorhandene Dateien auf OneDrive ersetzen?"
+        "replace":"Vorhandene Dateien auf OneDrive ersetzen?",
+        "examrequest":"Abgabe angefordert",
+        "screenshot":"Screenshotupdate",
+
+        "screenshottitle":"Screenshot Update",
+        "screenshotquestion":"In welchen Abständen sollen die Screenshots aktualisiert werden?",
+        "screenshothint":"(Zeitangabe in Sekunden. 0 == deaktiviert)"
     },
     "control": {
         "tokennotvalid": "Das Token ist ungültig",
