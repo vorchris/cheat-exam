@@ -198,7 +198,7 @@ class WindowHandler {
         // HANDLE SPELLCHECK 
         if (serverstatus.spellcheck){  
             console.log(serverstatus.spellchecklang)
-            this.examwindow.webContents.session.setSpellCheckerDictionaryDownloadURL(`https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/dicts/`)
+            this.examwindow.webContents.session.setSpellCheckerDictionaryDownloadURL(`https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/static/dicts/`)
             this.examwindow.webContents.session.setSpellCheckerLanguages([serverstatus.spellchecklang])
             if (serverstatus.suggestions){
                 this.examwindow.webContents.on('context-menu', (event, params) => {
