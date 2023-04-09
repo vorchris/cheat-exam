@@ -294,8 +294,8 @@ for (let i = 0; i<4; i++ ){
     const mcServer = config.examServerList[servername]
 
         //demo users start
-   //    for (let i = 0; i<democlients.length; i++ ){ democlients[i].timestamp= new Date().getTime()  }
-   //    mcServer.studentList = democlients
+       //for (let i = 0; i<democlients.length; i++ ){ democlients[i].timestamp= new Date().getTime()  }
+      // mcServer.studentList = democlients
         //demo users end
 
     if (mcServer && req.params.csrfservertoken === mcServer.serverinfo.servertoken) {

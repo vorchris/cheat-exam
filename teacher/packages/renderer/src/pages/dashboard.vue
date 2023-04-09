@@ -212,6 +212,9 @@ import $ from 'jquery'
 import axios from "axios"
 import FormData from 'form-data'
 import { VueDraggableNext } from 'vue-draggable-next'
+import { uploadselect, upload, uploadSingle, uploadAndShareFile, createSharingLink, fileExistsInAppFolder} from '../msalutils/onedrive'
+import { handleDragEndItem, handleMoveItem, sortStudentWidgets, initializeStudentwidgets} from '../utils/dragndrop'
+import {loadFilelist, print, getLatest, loadImage, loadPDF, dashboardExplorerSendFile, downloadFile, showWorkfolder, fdelete  } from '../utils/filemanager'
 
 export default {
     components: {
@@ -273,301 +276,40 @@ export default {
 
 
     methods: {
-        openAuthWindow(){
-            ipcRenderer.sendSync('openmsauth') 
-        },
- 
-        //upload file to authorized onedrive "next-exam" appfolder
-        async onedriveUploadselect() {
-            this.$swal.fire({
-                title: this.$t("dashboard.officefilesend"),
-                text: this.$t("dashboard.officefilesendtext"),
-                icon: "info",
-                input: 'file',
-                showCancelButton: true,
-                cancelButtonText: this.$t("dashboard.cancel"),
-                reverseButtons: true,
-                inputAttributes: {
-                    type: "file",
-                    name:"files",
-                    id: "swalFile",
-                    class:"form-control",
-                    accept: ".xlsx",
-                },
-                html: `<div>
-                    <input class="form-check-input" type="checkbox" id="replace" name="replace">
-                        <label class="form-check-label" for="checkboxsuggestions"> ${this.$t("dashboard.replace")} </label> <br>
-                    </div>`,
-                preConfirm: () => {
-                       
-                }
-            })
-            .then(async (input) => {
-                if (!input.value) { this.status(this.$t("dashboard.nofiles")); return }
-                
-                //should we replace all files in the teachers onedrive folder for this exam name? (careful this could delete all of the students work - download it in addition to the lokal workfolder!
-                this.replaceMSOfile =  document.getElementById('replace').checked; 
-                this.status(this.$t("dashboard.uploadfiles"));
-
-                //check for allowed file extension again
-                const fileExtension = input.value.name.split('.').pop().toLowerCase();
-                if (fileExtension !== 'xlsx') {
-                    this.$swal.fire({
-                    title: this.$t("dashboard.invalid_file"),
-                    text: this.$t("dashboard.invalid_file_text"),
-                    icon: 'error',
-                    });
-                    return;
-                }
-
-                this.visualfeedbackClosemanually(this.$t("dashboard.uploadfiles"))
-                await this.onedriveUpload(input.value)  //this can take a while if 30 students are connected - set this.msOfficeFile only after it finished because it activates the "startexam" button
-                //save valid file info for other students that connect later or reconnect (they all should get a file in onedrive and a sharing link if not 'none')
-                this.msOfficeFile = input.value   
-                console.log("upload to onedrive and sharelink setup finished")
-            });    
-        },
-
         /**
-         * SETS student.status.msofficeshare for ALL STUDENTS
-         * checks if the the file for every connected student already exists on oneDrive
-         * otherwise it will trigger the upload for the specific students and tells the API to set the sharinglink for every student
+         * Microsoft OneDrive API Authentication and File Handling
          */
-        async onedriveUpload(file){
-            for (let student of this.studentlist){
-                let studenttoken = student.token
-                let fileName =  `${student.clientname}.xlsx`
-                await this.fileExistsInAppFolder(fileName).then(async fileExists => {
-                    let sharingLink = false
-                    
-                    if (fileExists && this.replaceMSOfile === false) {
-                        //we can set/get the sharing link from an existing file as often as neccessary - it will stay the same
-                        sharingLink = await this.createSharingLink(fileExists) //if file exists fileExists will contain the FILE ID
-                        console.log(`onedriveUpload(): File "${fileName}" exists`, sharingLink);
-                    } else {
-                        sharingLink = await this.uploadAndShareFile(fileName,file);
-                        console.log('onedriveUpload(): Link created:', sharingLink);
-                    }
-                    if (!sharingLink){return}
-
-                    // WRITE Share link to student info ojbect so it can be retrieved on the next student update 
-                    // together with the new examtype office365 and directly load and secure the sharinglink
-                    fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/sharelink/${this.servername}/${this.servertoken}/${studenttoken}`, { 
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json' },
-                        body: JSON.stringify({ sharelink: sharingLink  })
-                        })
-                    .then( res => res.json())
-                    .then( response => {console.log(response.message) })
-                    .catch(err => { console.warn(err) })
-                });
-            }
-        },
+        openAuthWindow(){ ipcRenderer.sendSync('openmsauth')  },
+        onedriveUploadselect: uploadselect,
+        onedriveUpload: upload,
+        onedriveUploadSingle : uploadSingle,
+        uploadAndShareFile: uploadAndShareFile,
+        createSharingLink: createSharingLink,
+        fileExistsInAppFolder: fileExistsInAppFolder,
 
 
         /**
-         * SETS student.status.msofficeshare for ONE STUDENTS
-         * checks if the the file for every connected student already exists on oneDrive
-         * otherwise it will trigger the upload for the specific students and tells the API to set the sharinglink for every student
+         * Drag & Drop Methods
          */
-         async onedriveUploadSingle(student,file){
-            let studenttoken = student.token
-            let fileName =  `${student.clientname}.xlsx`
-            await this.fileExistsInAppFolder(fileName).then(async fileExists => {
-                let sharingLink = false
-                if (fileExists) {
-                    //we can set/get the sharing link from an existing file as often as neccessary - it will stay the same
-                    sharingLink = await this.createSharingLink(fileExists) //if file exists fileExists will contain the FILE ID
-                    console.log(`onedriveUpload(): File "${fileName}" exists`, sharingLink);
-                } else {
-                    sharingLink = await this.uploadAndShareFile(fileName, file);
-                    console.log('onedriveUpload(): Link created:', sharingLink);
-                }
-                if (!sharingLink){
-                    console.log("some students couldn't receive a sharing link")  // happens if file is opened for example
-                    return
-                }
-
-                // WRITE Share link to student info ojbect so it can be retrieved on the next student update 
-                // together with the new examtype office365 and directly load and secure the sharinglink
-                fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/sharelink/${this.servername}/${this.servertoken}/${studenttoken}`, { 
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sharelink: sharingLink  })
-                    })
-                .then( res => res.json())
-                .then( response => {console.log(response.message) })
-                .catch(err => { console.warn(err) })
-            });
-        },
-
-
+        handleDragEndItem:handleDragEndItem,
+        handleMoveItem:handleMoveItem,
+        sortStudentWidgets:sortStudentWidgets,
+        initializeStudentwidgets:initializeStudentwidgets,
 
 
         /**
-         * UPLOADS the current 'msofficeFile' to OneDrive 
-         * Returns a SHARE LINK
-         * @param {*} targetfilename the filename is the username .xlsx
+         * Dashboard Explorer (Filemanager)
          */
-        async uploadAndShareFile(targetfilename, file) {
-            this.config = ipcRenderer.sendSync('getconfig')  // make sure we have an up2date config
-            if (!file){return} //just to be sure
 
-            // Upload the file to the app folder
-            const uploadEndpoint = `https://graph.microsoft.com/v1.0/me/drive/special/approot:/${this.servername}/${targetfilename}:/content`;
-            const fileUploadResponse = await fetch(uploadEndpoint, {
-                method: 'PUT',
-                headers: new Headers({
-                    'Authorization': `Bearer ${this.config.accessToken}`,
-                    'Content-Type': file.type // Use the file's content type
-                }),
-                body: file // Send the file directly as the request body
-            })
-            .then(response => response.json())
-            .catch(error=>{console.warn(error)});
-
-       
-            // Create a sharing link with edit permissions using the file ID
-            const fileId = fileUploadResponse.id; // Retrieve the file ID of the uploaded file
-            const sharingLink = await this.createSharingLink(fileId)
-            return sharingLink;
-        },
-
-        /**
-         * This Method takes a onedrive file ID and RETURNS a SHARE LINK
-         * @param {*} fileId the id of a onedrive file which is needed to create a share link
-         */
-        async createSharingLink(fileId){
-            const sharingEndpoint = `https://graph.microsoft.com/v1.0/me/drive/items/${fileId}/createLink`;
-            const sharingData = {
-                type: 'edit', // edit permissions
-                scope: 'anonymous' // anyone with the link can edit
-            };
-            const sharingResponse = await fetch(sharingEndpoint, {
-                method: 'POST',
-                headers: new Headers({
-                    'Authorization': `Bearer ${this.config.accessToken}`,
-                    'Content-Type': 'application/json'
-                }),
-                body: JSON.stringify(sharingData)
-            })
-            .then(response => response.json())
-            .catch(error => {console.warn(error)});
-
-            if (!sharingResponse.link && sharingResponse.link.webUrl) {return false}
-            const sharingLink = sharingResponse.link.webUrl;
-            return sharingLink;
-        },
-
-
-
-
-        /**
-         * checks if a given filename exists on onedrive
-         * @param {*} fileName usually the username.xlsx
-         */
-        async fileExistsInAppFolder(fileName) {
-            this.config = ipcRenderer.sendSync('getconfig')
-
-            //get the specific exam subfolder ID
-            const folderID = await fetch(`https://graph.microsoft.com/v1.0/me/drive/special/approot/children?$filter=name eq '${this.servername}'`, {
-                method: 'GET',
-                headers: {
-                'Authorization': `Bearer ${this.config.accessToken}`,
-                'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then( data => { 
-                if (data.value && data.value.length > 0) {  return data.value[0].id;  } 
-                else {
-                    console.log('Folder not found');
-                    return null;
-                }
-             })
-            .catch(err => { 
-                console.warn(err)
-            });
-
-            //search for file in specific exam subfolder
-            const appFolderEndpoint = `https://graph.microsoft.com/v1.0/me/drive/items/${folderID}/search(q='${encodeURIComponent(fileName)}')`;
-            const fileExists = await fetch(appFolderEndpoint, {
-                method: 'GET',
-                headers: new Headers({'Authorization': `Bearer ${this.config.accessToken}`})
-            })
-            .then(response => response.json())
-            .then( response => {  
-                if (response.error && response.error.code.includes("InvalidAuthenticationToken")  ){ // this is usually the first method that accesses onedrive api - thats why we test here
-                    console.log("token error - resetting token")  //reset token - something is off here!
-                    this.config = ipcRenderer.sendSync('resetToken')
-                }
-                let res =  response.value.some(file => file.name === fileName);
-                if (!res){return false}
-                else {return response.value[0].id}
-            })
-            .catch(err => { 
-                console.warn(err)
-            })
-            return fileExists
-        },
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        handleDragEndItem() {
-            this.movingItem = this.studentwidgets[this.originalIndex];
-            this.futureItem = this.studentwidgets[this.futureIndex];
-            if (this.movingItem && this.futureItem) {
-                this.studentwidgets[this.futureIndex] = this.movingItem;
-                this.studentwidgets[this.originalIndex] = this.futureItem;
-            }
-            document.querySelectorAll('.studentwidget').forEach((el) => (el.style.backgroundColor = 'transparent'));
-        },
-        handleMoveItem(event) {
-            document.querySelectorAll('.studentwidget').forEach((el) => (el.style.backgroundColor = 'transparent'));
-            const { index, futureIndex } = event.draggedContext;
-            this.originalIndex = index;
-            this.futureIndex = futureIndex;
-            if (this.studentwidgets[this.futureIndex]) { event.to.children[this.futureIndex].style.backgroundColor = 'rgba(13, 202, 240, 0.15)'; }
-            return false; // disable sort
-        },
-        sortStudentWidgets() {
-            this.studentwidgets.sort((a, b) => {
-                let one = a.clientname
-                let two = b.clientname
-                if ( !one) { one = "zzzz"}  // noone is named zzzz so empty widget comes last
-                if ( !two) { two = "zzzz"}
-                if (one > two) {return 1; }
-                if (one < two) {return -1;}
-                return 0;
-            })
-        },
-        // create 40 empty widgets for whole class (should be sufficient)
-        initializeStudentwidgets(){
-            let widgets = []
-            for (let i = 0; i<40; i++ ){
-                widgets.push(this.emptyWidget)
-            }
-            this.studentwidgets = widgets;
-        },
-
-
-
-
-
+        loadFilelist:loadFilelist,
+        print:print, 
+        getLatest:getLatest, 
+        loadImage:loadImage, 
+        loadPDF:loadPDF, 
+        dashboardExplorerSendFile:dashboardExplorerSendFile, 
+        downloadFile:downloadFile, 
+        showWorkfolder:showWorkfolder, 
+        fdelete:fdelete,  
 
 
 
@@ -743,182 +485,7 @@ export default {
 
 
 
-        ////////////////////////
-        // DASHBOARD EXPLORER
-
-        //delete file or folder
-        fdelete(file){
-            this.$swal.fire({
-                title: this.$t("dashboard.sure"),
-                text:  this.$t("dashboard.filedelete"),
-                icon: "question",
-                showCancelButton: true,
-                cancelButtonText: this.$t("dashboard.cancel"),
-                reverseButtons: true
-            })
-            .then((result) => {
-                if (result.isConfirmed) {
-                    fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/delete/${this.servername}/${this.servertoken}`, { 
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json' },
-                        body: JSON.stringify({ filepath:file.path })
-                    })
-                    .then( res => res.json() )
-                    .then( result => { 
-                        console.log(result)
-                        this.loadFilelist(this.currentdirectory)
-                    });
-                }
-            });
-        },
-        // show workfloder  TODO:  the whole workfolder thing is getting to complex.. this should be a standalone vue.js component thats embedded here
-        showWorkfolder(){
-            $("#preview").css("display","block");
-            $("#closefilebrowser").click(function(e) { $("#preview").css("display","none"); });  // the surroundings of #workfolder can be clicked to close the view
-            $('#workfolder').click(function(e){ e.stopPropagation(); });    // don't propagate clicks through the div to the preview div (it would hide the view)
-        },
-        // fetch a file or folder (zip) and open download/save dialog
-        downloadFile(file){
-            if (file === "current"){   //we want to download the file thats currently displayed in preview
-                let a = document.createElement("a");
-                    a.href = this.currentpreview
-                    a.setAttribute("download", this.currentpreviewname);
-                    a.click();
-                return
-            }
-            console.log("requesting file for downlod ")
-            fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/download/${this.servername}/${this.servertoken}`, { 
-                method: 'POST',
-                headers: {'Content-Type': 'application/json' },
-                body: JSON.stringify({ filename : file.name, path: file.path, type: file.type})
-            })
-            .then( res => res.blob() )
-            .then( blob => {
-                    //this is a trick to trigger the download dialog
-                    let a = document.createElement("a");
-                    a.href = window.URL.createObjectURL(blob);
-                    a.setAttribute("download", file.name);
-                    a.click();
-            })
-           .catch(err => { console.warn(err)});
-        },
-        // send a file from dashboard explorer to specific student
-        dashboardExplorerSendFile(file){
-            const inputOptions = new Promise((resolve) => {  // prepare input options for radio buttons
-                let connectedStudents = {}
-                this.studentlist.forEach( (student) => { connectedStudents[student.token]=student.clientname });
-                resolve(connectedStudents)
-            })
-            this.$swal.fire({
-                title: this.$t("dashboard.choosestudent"),
-                input: 'select',
-                icon: 'success',
-                showCancelButton: true,
-                reverseButtons: true,
-                inputOptions: inputOptions,
-                inputValidator: (value) => { if (!value) { return this.$t("dashboard.chooserequire") } }
-            })
-            .then((input) => {
-                if (input.isConfirmed) {
-                    let student = this.studentlist.find(element => element.token === input.value)  // fetch cerrect student that belongs to the token
-                    fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/sendtoclient/${this.servername}/${this.servertoken}/${student.token}`, { 
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json' },
-                        body: JSON.stringify({ files:[ {name:file.name, path:file.path } ] })
-                    })
-                    .then( res => res.json() )
-                    .then( result => { console.log(result)});
-                }
-            });
-        },
-        // fetch file from disc - show preview
-        loadPDF(filepath, filename){
-            const form = new FormData()
-            form.append("filename", filepath)
-            fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getpdf/${this.servername}/${this.servertoken}`, { method: 'POST', body: form })
-            .then( response => response.arrayBuffer())
-            .then( data => {
-                let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
-                this.currentpreview = url   //needed for preview buttons
-                this.currentpreviewname = filename   //needed for preview buttons
-                $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
-                $("#pdfpreview").css("display","block");
-                $("#pdfpreview").click(function(e) {
-                    $("#pdfpreview").css("display","none");
-                });
-             }).catch(err => { console.warn(err)});     
-        },
-        // fetch file from disc - show preview
-        loadImage(file){
-            const form = new FormData()
-            form.append("filename", file)
-            fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getpdf/${this.servername}/${this.servertoken}`, { method: 'POST', body: form })
-                .then( response => response.arrayBuffer())
-                .then( data => {
-                    let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
-                    // wanted to save code here but images need to be presented in a different way than pdf.. so...
-                    $("#pdfembed").css("background-image",`url(${ url  })`);
-                    $("#pdfembed").css("height","60vh");
-                    $("#pdfembed").css("margin-top","-30vh");
-                    $("#pdfembed").attr("src", '')
-
-                    $("#pdfpreview").css("display","block");
-                    $("#pdfpreview").click(function(e) {
-                        $("#pdfpreview").css("display","none");
-                        $("#pdfembed").css("background-image",'');
-                        $("#pdfembed").css("height","96vh");
-                        $("#pdfembed").css("margin-top","-48vh");
-                    });
-               }).catch(err => { console.warn(err)});     
-        },
-        // fetches latest files of all connected students in one combined pdf
-        getLatest(){
-            this.visualfeedback(this.$t("dashboard.summarizepdf"))
-            fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getlatest/${this.servername}/${this.servertoken}`, { 
-                method: 'POST',
-                headers: {'Content-Type': 'application/json' },
-            })
-            .then( response => response.arrayBuffer() )
-            .then( lastestpdf => {
-                if (lastestpdf.byteLength === 0){
-                    console.log("nothing found")
-                    this.status(` ${this.$t("dashboard.nopdf")}`);
-                    return
-                }
-                let url =  URL.createObjectURL(new Blob([lastestpdf], {type: "application/pdf"})) 
-                this.currentpreview = url   //needed for preview buttons
-                this.currentpreviewname = "combined"   //needed for preview buttons
-                $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
-                $("#pdfpreview").css("display","block");
-                $("#pdfpreview").click(function(e) {
-                        $("#pdfpreview").css("display","none");
-                });
-            }).catch(err => { console.warn(err)});
-        },
-        print(){
-            var iframe = $('#pdfembed')[0]; 
-            iframe.contentWindow.focus();
-            iframe.contentWindow.print(); 
-        },
-        loadFilelist(directory){
-            fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getfiles/${this.servername}/${this.servertoken}`, { 
-                method: 'POST',
-                headers: {'Content-Type': 'application/json' },
-                body: JSON.stringify({ dir : directory})
-            })
-            .then( response => response.json() )
-            .then( filelist => {
-                filelist.sort()
-                filelist.reverse()
-                this.localfiles = filelist;
-                this.currentdirectory = directory
-                this.currentdirectoryparent = filelist[filelist.length-1].parentdirectory // the currentdirectory and parentdirectory properties are always on [0]
-                if (directory === this.workdirectory) {this.showWorkfolder(); }
-            }).catch(err => { console.warn(err)});
-        },
- 
-         // DASHBOARD EXPLORER END
-        ////////////////////////////
+        
 
         async setAbgabeInterval(){
             if (!this.autoabgabe) {
@@ -1069,7 +636,8 @@ export default {
                     name:"files",
                     id: "swalFile",
                     class:"form-control",
-                    multiple:"multiple"
+                    multiple:"multiple",
+                    accept: ".pdf, .bak"
                 }
             })
             .then((input) => {
