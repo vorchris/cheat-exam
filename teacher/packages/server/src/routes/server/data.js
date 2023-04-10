@@ -68,6 +68,8 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
     const token = req.params.token
     const servername = req.params.servername
     const mcServer = config.examServerList[servername] // get the multicastserver object
+    let warning = false
+
     if ( token !== mcServer.serverinfo.servertoken ) { return res.json({ status: t("data.tokennotvalid") }) }
     
     let dir =  path.join( config.workdirectory, mcServer.serverinfo.servername);
@@ -82,8 +84,7 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
     }, []);
     console.log(studentfolders)
 
-    // get latest directory of every student (add to array) ATTENTION: this only works with the current file/folder name scheme 
-    // DO NOT CHANGE /Clientname/11:02:23 - or better get real filedate and make it more robust
+    // get latest directory of every student (add to array)
     let latestfolders = []
     for (let studentdir of studentfolders) {
         let latest = {path:"00_00_00", time:"1000000000000"}  // we need this for reference
@@ -92,14 +93,24 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
             if (fs.statSync(filepath).isDirectory()) {
                 let filetime = fs.statSync(filepath).mtime.getTime()
                 if ( !file.includes("focus") ){
-                    if (filetime > latest.time ) { 
+                    if (filetime > latest.time ) { // this cycles over all found student directories (16_50_01, 16_50_23, 16_50_44, ..) and compares filedates - returns only the newest directory
                         latest.time = filetime
                         latest.path = file
                     }
                 }
             }
         }, []);
-        if (latest.time === "1000000000000") {continue}
+        if (latest.time === "1000000000000") {continue} 
+
+        //check if the newest directory is older than 5 minutes..  warn the teacher!
+        const now = Date.now(); // Current time in milliseconds since the UNIX epoch
+        const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
+        if (now - latest.time > fiveMinutes) {
+            warning = true
+            console.log('The file is older than 5 minutes.');
+        } 
+  
+
         const filepath = path.join(studentdir.path, latest.path);
         latestfolders.push( { path: filepath, parent : studentdir.name })  // we store studentdir.name here because in the next step we need to make sure only the main.pdf (studentsname) is used
     }
@@ -112,7 +123,7 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
             const filepath = path.join(folder.path, file);
             if(fs.statSync(filepath).isFile() ){
                 let ext = path.extname(file).toLowerCase()
-                if (ext === ".pdf" && file === `${folder.parent}.pdf`){  // folder.name contains the studentfolder (and main file) name
+                if (ext === ".pdf" && file === `${folder.parent}.pdf`){  // folder.parent contains the studentfolder (and main file) name
                     files.push(filepath)
                 } 
             }
@@ -122,12 +133,16 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
 
     // now create one merged pdf out of all files
     if (files.length === 0) {
-        return res.send()
+        return res.json({warning: warning, pdfBuffer: null})
     }
     else {
         let PDF = await concatPages(files)
-        res.set('Content-Type', 'application/pdf');
-        return res.send( Buffer.from(PDF) )
+        let pdfBuffer = Buffer.from(PDF) 
+          
+        return res.json({warning: warning, pdfBuffer:pdfBuffer });
+
+        //res.set('Content-Type', 'application/pdf');
+        //return res.send( Buffer.from(PDF) )
     }
 })
 

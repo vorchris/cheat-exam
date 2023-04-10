@@ -164,8 +164,8 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
 
             //Add screenshot to formData - "imagemagick" has to be installed for linux - wayland is not (yet) supported by imagemagick !!
             if (this.screenshotAbility){
-                img = await screenshot()
-                .then( (res) => { this.screenshotFails=0; console.log(res); return res} )
+                img = await screenshot()   //grab "screenshot" with screenshot node module
+                .then( (res) => { this.screenshotFails=0; return res} )
                 .catch((err) => { this.screenshotFails+=1; if(this.screenshotFails > 4){ this.screenshotAbility=false;console.log(`requestUpdate Screenshot: switching to PageCapture`) } console.log(`requestUpdate Screenshot: ${err}`) });
             }
             else {
@@ -190,10 +190,6 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
             }
             else { console.log("Image is no buffer:", img) }
 
-
-         
-
-    
             axios({    //send screenshot update
                 method: "post", 
                 url: `https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/updatescreenshot`, 

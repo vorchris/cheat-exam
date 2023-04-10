@@ -39,7 +39,7 @@
     </div>
 
 
-    <!--   workfolder view start -->
+    <!-- dashboard EXPLORER start -->
     <div id=preview class="fadeinslow ">
         <div id=workfolder style="overflow-y:hidden">
             <button id="closefilebrowser" type="button" class=" btn-close pt-2 pe-2 float-end" title="close"></button>
@@ -70,7 +70,7 @@
            </div>
         </div>
     </div>
-    <!-- workfolder view end -->
+    <!-- dashboard EXPLORER end -->
 
 
 

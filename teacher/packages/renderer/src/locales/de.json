@@ -70,7 +70,7 @@
         "choosestudent": "Wählen sie eine Person",
         "chooserequire": "Sie müssen eine Option wählen!",
         "nopdf": "Keine Schülerarbeiten gefunden",
-        "summarizepdf": "Neueste Arbeiten \nals zusammengefasstes PDF \nherunterladen",
+        "summarizepdf": "Neueste Abgaben in\neiner PDF Datei\nzusammenfassen",
         "summarizepdfshort": "Neueste Arbeiten als PDF",
         "download": "herunterladen",
         "print": "drucken",
@@ -102,10 +102,10 @@
         "replace":"Vorhandene Dateien auf OneDrive ersetzen?",
         "examrequest":"Abgabe angefordert",
         "screenshot":"Screenshotupdate",
-
         "screenshottitle":"Screenshot Update",
         "screenshotquestion":"In welchen Abständen sollen die Screenshots aktualisiert werden?",
-        "screenshothint":"(Zeitangabe in Sekunden. 0 == deaktiviert)"
+        "screenshothint":"(Zeitangabe in Sekunden. 0 == deaktiviert)",
+        "oldpdfwarning":"Manche Abgaben sind mehr als 5 Minuten alt!"
     },
     "control": {
         "tokennotvalid": "Das Token ist ungültig",

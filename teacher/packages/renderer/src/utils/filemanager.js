@@ -149,20 +149,31 @@ function loadImage(file){
 
 
 // fetches latest files of all connected students in one combined pdf
-function getLatest(){
+async function getLatest(){
     this.visualfeedback(this.$t("dashboard.summarizepdf"))
     fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getlatest/${this.servername}/${this.servertoken}`, { 
         method: 'POST',
         headers: {'Content-Type': 'application/json' },
     })
-    .then( response => response.arrayBuffer() )
-    .then( lastestpdf => {
-        if (lastestpdf.byteLength === 0){
+    .then( response => response.json() )
+    .then( async(responseObj) => {
+
+        const warning = responseObj.warning;
+        const pdfBuffer = new Uint8Array(responseObj.pdfBuffer.data);
+
+        if (!pdfBuffer ){
             console.log("nothing found")
-            this.status(` ${this.$t("dashboard.nopdf")}`);
+            this.visualfeedback(this.$t("dashboard.nopdf"))
             return
         }
-        let url =  URL.createObjectURL(new Blob([lastestpdf], {type: "application/pdf"})) 
+
+        if (warning){
+            this.$swal.close();
+            this.visualfeedback(this.$t("dashboard.oldpdfwarning",2000))
+            await sleep(2000)
+        }
+
+        let url =  URL.createObjectURL(new Blob([pdfBuffer], {type: "application/pdf"})) 
         this.currentpreview = url   //needed for preview buttons
         this.currentpreviewname = "combined"   //needed for preview buttons
         $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
@@ -171,6 +182,10 @@ function getLatest(){
                 $("#pdfpreview").css("display","none");
         });
     }).catch(err => { console.warn(err)});
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function print(){
