@@ -129,8 +129,6 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
             }
         }, []);
     }
-    //console.log(files)
-
     // now create one merged pdf out of all files
     if (files.length === 0) {
         return res.json({warning: warning, pdfBuffer: null})

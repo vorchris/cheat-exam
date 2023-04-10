@@ -157,15 +157,16 @@ async function getLatest(){
     })
     .then( response => response.json() )
     .then( async(responseObj) => {
-
-        const warning = responseObj.warning;
-        const pdfBuffer = new Uint8Array(responseObj.pdfBuffer.data);
-
-        if (!pdfBuffer ){
+      
+       
+        if (!responseObj.pdfBuffer ){
             console.log("nothing found")
             this.visualfeedback(this.$t("dashboard.nopdf"))
             return
         }
+        
+        const warning = responseObj.warning;
+        const pdfBuffer = new Uint8Array(responseObj.pdfBuffer.data);
 
         if (warning){
             this.$swal.close();
