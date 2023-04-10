@@ -45,6 +45,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
         this.updateStudentIntervall = null
         this.WindowHandler = null
         this.screenshotAbility = false
+        this.screenshotFails = 0 // we count fails and deactivate on 4 consequent fails
     }
  
     init (mc, config) {
@@ -53,7 +54,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
         this.updateStudentIntervall = setInterval(() => { this.requestUpdate() }, 5000)
         this.heartbeatInterval = setInterval(() => { this.sendHeartbeat() }, 4000)
         this.screenshotInterval = setInterval( () => { this.sendScreenshot() }, this.multicastClient.clientinfo.screenshotinterval )
-        if (process.platform !== 'linux' || (  !this.isWayland() && this.imagemagickAvailable()  )){ this.screenshotAbility = true }
+        if (process.platform !== 'linux' || (  !this.isWayland() && this.imagemagickAvailable()  )){ this.screenshotAbility = true } // only on linux we need to check for wayland or the absence of imagemagick - other os have other problems ^^
     }
  
     /**
@@ -163,13 +164,15 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
 
             //Add screenshot to formData - "imagemagick" has to be installed for linux - wayland is not (yet) supported by imagemagick !!
             if (this.screenshotAbility){
-                img = await screenshot().catch((err) => { console.log(`requestUpdate Screenshot: ${err}`) });
+                img = await screenshot()
+                .then( (res) => { this.screenshotFails=0; console.log(res); return res} )
+                .catch((err) => { this.screenshotFails+=1; if(this.screenshotFails > 4){ this.screenshotAbility=false;console.log(`requestUpdate Screenshot: switching to PageCapture`) } console.log(`requestUpdate Screenshot: ${err}`) });
             }
             else {
                 //grab "screenshot" from appwindow
-                let currentFocusedMindow = WindowHandler.getCurrentFocusedWindow()
+                let currentFocusedMindow = WindowHandler.getCurrentFocusedWindow()  //returns exam window if nothing in focus or main window
                 if (currentFocusedMindow) {
-                    img = await currentFocusedMindow.webContents.capturePage()
+                    img = await currentFocusedMindow.webContents.capturePage()  // this should always work because it's onboard electron
                     .then((image) => {
                         const imageBuffer = image.toPNG();// Convert the nativeImage to a Buffer (PNG format)
                         return imageBuffer
@@ -185,10 +188,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
                 formData.append('screenshothash', hash);
                 formData.append('screenshotfilename', screenshotfilename);
             }
-            else {
-                console.log("nobuffer")
-                console.log(img)
-            }
+            else { console.log("Image is no buffer:", img) }
 
 
          

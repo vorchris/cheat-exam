@@ -23,12 +23,16 @@ class WindowHandler {
         this.config = config
     }
 
+    // return electron window in focus or an other electron window depending on the hierachy
     getCurrentFocusedWindow() {
         const focusedWindow = BrowserWindow.getFocusedWindow();
         if (focusedWindow) {
           return focusedWindow
         } else {
-          return false
+            if (this.screenlockWindow){return this.screenlockWindow}
+            else if (this.examwindow){return this.examwindow}
+            else if (this.mainwindow){return this.mainwindow}
+            else { return false }
         }
     }
 
