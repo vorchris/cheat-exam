@@ -41,8 +41,8 @@
     },
     "editor": {
         "leftkiosk": "Sie haben den abgesicherten Modus verlassen!",
-        "tellsomeone": "Melden sie sich umgehend bei der Aufsichtsperson!",
-        "replacecontent1": "Wollen sie den Inhalt des Editors durch den Inhalt der Datei",
+        "tellsomeone": "Melden Sie sich umgehend bei der Aufsichtsperson!",
+        "replacecontent1": "Wollen Sie den Inhalt des Editors durch den Inhalt der Datei",
         "replacecontent2": "ersetzen?",
         "cancel":"Abbrechen",
         "replace":"Ersetzen",
@@ -51,8 +51,8 @@
         "reconnect": "neu verbinden",
         "unlock": "entsperren",
         "exit": "Abgesicherten Modus beenden?",
-        "exitkiosk": "Verlassen sie den abgesicherten Modus nie ohne Freigabe einer Lehrperson.",
-        "info": "Sollte der Vorgang fehlschlagen beenden sie bitte den abgesicherten Modus und versuchen sie es erneut!",
+        "exitkiosk": "Verlassen Sie den abgesicherten Modus nie ohne Freigabe einer Lehrperson.",
+        "info": "Sollte der Vorgang fehlschlagen beenden Sie bitte den abgesicherten Modus und versuchen Sie es erneut!",
         "saved": "Die aktuelle Arbeit wurde gesichert!",
         "leaving": "Abgesicherter Modus beendet"
     },

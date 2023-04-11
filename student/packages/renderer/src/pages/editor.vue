@@ -201,7 +201,8 @@ export default {
             now : 0,
             pincode : this.$route.params.pincode,
             zoom:1,
-            battery: null
+            battery: null,
+            proseMirrorMargin: 150
         }
     },
     methods: {
@@ -367,9 +368,16 @@ export default {
             if (this.zoom > 0.5) this.zoom -= 0.1
             document.getElementById(`editorcontainer`).style.zoom = this.zoom
         },
+        setCSSVariable(variableName, value){
+            console.log(variableName,value)
+            document.documentElement.style.setProperty(variableName, value);
+        }
 
     },
     mounted() {
+
+        this.setCSSVariable('--js-margin', `0 ${this.proseMirrorMargin}px 0 0`);
+
         this.editor = new Editor({
             extensions: [
                 Typography,
@@ -499,7 +507,7 @@ export default {
         border-radius: 0 !important; 
         outline: 0 !important;
         overflow: hidden !important;
-        margin-right: 60px;
+        margin: var(--js-margin);
     }
 
     ::-webkit-scrollbar {
