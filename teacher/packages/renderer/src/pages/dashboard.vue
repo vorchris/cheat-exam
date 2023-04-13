@@ -510,6 +510,7 @@ export default {
                     inputValue: this.abgabeintervalPause
                 }).then((input) => {
                     this.abgabeintervalPause= input.value
+                    if (!this.abgabeintervalPause){this.abgabeintervalPause = 5}   // make sure it is set otherwise we well fetch the exams X times per second
                 })
             }
         },
@@ -738,7 +739,10 @@ export default {
                 title: `<span style="font-weight:normal"> IP:</span>  ${this.serverip} </span> 
                         <span style="font-weight:normal"> Name:</span>  ${this.servername}  
                         <span style="font-weight:normal"> Pin:</span> ${this.pin}`,
-                icon: "info"
+                icon: "info",
+                customClass: {
+                    popup: 'custom-swal2-popup',
+                },
             })
         },
         // get finished exams (ABGABE) from students
@@ -1034,4 +1038,16 @@ hr {
     opacity: 0.25;
 }
 
+</style>
+
+
+<style>
+/**in order to override swal settings the css needs to be global not scoped*/
+.swal2-popup{
+    opacity: 0.9 !important; 
+}
+
+.swal2-container {
+    backdrop-filter: blur(2px); 
+} 
 </style>
