@@ -202,9 +202,13 @@ export default {
             pincode : this.$route.params.pincode,
             zoom:1,
             battery: null,
-            proseMirrorMargin: 150
+            proseMirrorMargin: 90,
+            cmargin: this.$route.params.cmargin
         }
     },
+
+
+
     methods: {
         clock(){
             this.charcount = this.editor.storage.characterCount.characters()
@@ -375,8 +379,19 @@ export default {
 
     },
     mounted() {
-
-        this.setCSSVariable('--js-margin', `0 ${this.proseMirrorMargin}px 0 0`);
+       
+        switch (this.cmargin.size) {
+            case 4:       this.proseMirrorMargin = '90px';   break;
+            case 3.5:     this.proseMirrorMargin = '70px';   break;
+            case 3:       this.proseMirrorMargin = '50px';   break;
+            case 2.5:     this.proseMirrorMargin = '30px';   break;
+            case 2:       this.proseMirrorMargin = '10px';   break;
+            default:      this.proseMirrorMargin = '50px';
+        }
+        if (this.cmargin.side === "right"){ this.setCSSVariable('--js-margin', `0 ${this.proseMirrorMargin} 0 0`);    }
+        else { this.setCSSVariable('--js-margin', `0 0 0 ${this.proseMirrorMargin}`);    }
+        console.log(this.cmargin)
+        console.log(this.proseMirrorMargin)
 
         this.editor = new Editor({
             extensions: [

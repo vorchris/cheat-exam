@@ -68,6 +68,7 @@ async function fetchInfo(to, from){
     to.params.servertoken = clientinfo.servertoken
     to.params.clientname = clientinfo.name
     to.params.pincode = clientinfo.pin
+    to.params.cmargin = clientinfo.cmargin
     return true
 }
 

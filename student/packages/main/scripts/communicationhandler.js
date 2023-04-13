@@ -339,6 +339,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
         if (!primary || primary === "" || !primary.id){ primary = displays[0] }       
        
         this.multicastClient.clientinfo.exammode = true
+        this.multicastClient.clientinfo.cmargin = serverstatus.cmargin  // this is used to configure margin settings for the editor
 
         if (!WindowHandler.examwindow){  // why do we check? because exammode is left if the server connection gets lost but students could reconnect while the exam window is still open and we don't want to create a second one
             console.log("creating exam window")

@@ -581,6 +581,7 @@ router.post('/screenshotinterval/:servername/:csrfservertoken', function (req, r
     mcServer.serverstatus.suggestions = req.body.suggestions
     mcServer.serverstatus.testid = req.body.testid
     mcServer.serverstatus.moodleTestType = req.body.moodleTestType
+    mcServer.serverstatus.cmargin = req.body.cmargin
     
     res.json({ sender: "server", message:t("general.ok"), status: "success" })
 })

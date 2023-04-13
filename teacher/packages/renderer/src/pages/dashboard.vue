@@ -274,7 +274,11 @@ export default {
             freeDiscspace: 1000,
             msOfficeFile: null,
             replaceMSOfile: false,
-            screenshotinterval: 4
+            screenshotinterval: 4,
+            cmargin: {
+                side: "right",
+                size: 3
+            }
         };
     },
 
@@ -318,8 +322,11 @@ export default {
 
 
 
-        
-        // get all information about students status and do some checks
+        /**
+         * Runs every 4 seconds and fetches the current stundentlist from the backend
+         * Handles Student-Widgets (create, delete, update)
+         * Checks Screenshots and MSO Share Links
+         */
         fetchInfo() {
             this.config = ipcRenderer.sendSync('getconfig')  // this is only needed in order to get the accesstoken from the backend for MSAuthentication - but it doesn't hurt
             this.now = new Date().getTime()
@@ -380,6 +387,7 @@ export default {
         }, 
 
 
+
         // enable exam mode 
         async startExam(){
             this.lockscreens(false, false); // deactivate lockscreen
@@ -389,7 +397,7 @@ export default {
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/exam/${this.servername}/${this.servertoken}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },
-                body: JSON.stringify({ exammode: this.exammode, examtype: this.examtype, delfolder: this.delfolder, delfolderonexit: this.delfolderonexit, spellcheck: this.spellcheck, spellchecklang:this.spellchecklang, suggestions: this.suggestions, testid: this.moodleTestId, moodleTestType: this.moodleTestType  })
+                body: JSON.stringify({ exammode: this.exammode, examtype: this.examtype, delfolder: this.delfolder, delfolderonexit: this.delfolderonexit, spellcheck: this.spellcheck, spellchecklang:this.spellchecklang, suggestions: this.suggestions, testid: this.moodleTestId, moodleTestType: this.moodleTestType, cmargin: this.cmargin  })
                 })
             .then( res => res.json())
             .then( response => { })
@@ -460,6 +468,12 @@ export default {
                 .then( response => { console.log(response.data)  })
                 .catch( err => {console.log(err)});
         },
+
+
+
+
+
+
         visualfeedback(message, timeout=1000){
              this.$swal.fire({
                 text: message,
@@ -468,7 +482,6 @@ export default {
                 didOpen: () => { this.$swal.showLoading() }
             });
         },
-
         visualfeedbackClosemanually(message){
             const closeWhenFinished = async () => {
                 while (!this.msOfficeFile) {
@@ -490,11 +503,10 @@ export default {
             });
         },
 
-
-
-
-        
-
+        toggleAutoabgabe(){
+            if (this.autoabgabe) { this.abgabeinterval = setInterval(() => { this.getFiles('all') }, 60000 * this.abgabeintervalPause) }   //trigger getFiles('all') every other minute
+            else { clearInterval( this.abgabeinterval )} 
+        },
         async setAbgabeInterval(){
             if (!this.autoabgabe) {
                 this.$swal.fire({
@@ -514,6 +526,12 @@ export default {
                 })
             }
         },
+
+
+
+        /**
+         * Eduvidual
+         */
         async getTestID(){
             this.$swal.fire({
                 title: this.$t("dashboard.eduvidualid"),
@@ -547,6 +565,9 @@ export default {
                 console.log(this.examtype)
             })  
         },
+        /**
+         * Text Editor
+         */
         async activateSpellcheck(){
             const inputOptions = new Promise((resolve) => {
                 setTimeout(() => {
@@ -560,9 +581,35 @@ export default {
                     })
                 }, 100)
             })
+
+            const updateMarginValueDisplay = () => {
+                const marginValueInput = document.getElementById('marginValue');
+                const marginValueDisplay = document.getElementById('marginValueDisplay');
+                marginValueDisplay.textContent = marginValueInput.value;
+            };
+
             const { value: language } = await this.$swal.fire({
-                title: this.$t("dashboard.spellcheck"),
-                html: `<div>
+                title: this.$t("dashboard.texteditor"),
+                html: `
+                <div>
+                    <label>
+                        ${this.$t("dashboard.cmargin-value")}<br>
+                        <input style="width:100px" type="range" id="marginValue" name="margin_value" min="2" max="4" step="0.5" />
+                        <div style="width:32px; display: inline-block"  id="marginValueDisplay">${this.cmargin.size}</div>(cm)
+                    </label>
+                    <br>
+                    <label>
+                        <input type="radio" name="correction_margin" value="left"  />
+                        ${this.$t("dashboard.cmargin-left")}
+                    </label>
+                    <label>
+                        <input type="radio" name="correction_margin" value="right" checked/>
+                        ${this.$t("dashboard.cmargin-right")}
+                    </label>
+                </div>
+                <br>
+                <div style="border: 0px solid black;">
+                    <h4 style: margin-bottom: 0px;padding-bottom: 0px;>${this.$t("dashboard.spellcheck")}</h4>
                     <input class="form-check-input" type="checkbox" id="checkboxsuggestions">
                     <label class="form-check-label" for="checkboxsuggestions"> ${this.$t("dashboard.suggest")} </label>
                     <br><br>
@@ -570,6 +617,15 @@ export default {
                 </div>`,
                 input: 'select',
                 inputOptions: inputOptions,
+                focusConfirm: false,
+                didOpen: () => {
+                    const marginValueInput = document.getElementById('marginValue');
+                    marginValueInput.addEventListener('input', updateMarginValueDisplay);
+                },
+                willClose: () => {
+                    const marginValueInput = document.getElementById('marginValue');
+                    marginValueInput.removeEventListener('input', updateMarginValueDisplay);
+                },
                 inputValidator: (value) => {
                     if (!value) {
                     return 'You need to choose something!'
@@ -577,14 +633,28 @@ export default {
                 },
                 preConfirm: () => {
                     this.suggestions = document.getElementById('checkboxsuggestions').checked; 
+                    const radioButtons = document.querySelectorAll('input[name="correction_margin"]');
+                    const marginValue = document.getElementById('marginValue').value;
+                    let selectedMargin = '';
+                    radioButtons.forEach((radio) => {
+                        if (radio.checked) {
+                            selectedMargin = radio.value;
+                        }
+                    });
+                    if (marginValue && selectedMargin) {
+                        this.cmargin = {
+                            side: selectedMargin,
+                            size: parseInt(marginValue)
+                        }
+                    }
                 }
             })
+
             if (language) {
                 this.spellcheck = true
                 this.spellchecklang = language
                 if (language === 'none'){this.spellcheck = false}
-            }
-            
+            }  
         },
 
         // show warning
@@ -606,11 +676,6 @@ export default {
             $("#studentinfocontainer").css("display","none");
             this.activestudent = false
         },
-        toggleAutoabgabe(){
-            if (this.autoabgabe) { this.abgabeinterval = setInterval(() => { this.getFiles('all') }, 60000 * this.abgabeintervalPause) }   //trigger getFiles('all') every other minute
-            else { clearInterval( this.abgabeinterval )} 
-        },
-
         //this just keeps the state of the toggle
         toggleScreenshot(){
             if (this.screenshotinterval == 0) { document.getElementById("screenshotinterval").checked = false }
@@ -647,9 +712,7 @@ export default {
                 .catch(err => { console.warn(err) })
             })  
         },
-
-
-
+        // temporarily lock screens
         lockscreens(state, feedback=true){
             if (this.studentlist.length === 0) { this.status(this.$t("dashboard.noclients")); return;}
 
@@ -710,7 +773,10 @@ export default {
                 .catch( err =>{ console.log(`${err}`) })
             });    
         },  
-        //stop and clear this exam server instance
+
+        /** 
+         * Stop and Exit Exam Server Instance
+         */
         stopserver(){
             this.$swal.fire({
                 title: this.$t("dashboard.exitexamsure"),
@@ -770,8 +836,7 @@ export default {
             if (this.freeDiscspace < 0.5) {
                 this.status(this.$t("dashboard.freespacewarning")) 
             }
-        },
-        
+        }, 
     },
     mounted() {  // when ready
         this.$nextTick(function () { // Code that will run only after the entire view has been rendered
