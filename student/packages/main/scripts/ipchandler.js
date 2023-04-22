@@ -84,7 +84,17 @@ class IpcHandler {
 
                 const pdffilepath = path.join(this.config.workdirectory, args.filename);
                 this.WindowHandler.examwindow.webContents.printToPDF(options).then(data => {
-                    fs.writeFile(pdffilepath, data, function (err) { if (err) {console.log(err); }  } );
+                    fs.writeFile(pdffilepath, data, (err) => { 
+                        if (err) {
+                            console.log(err.message); 
+                            if (err.message.includes("permission denied")){
+                                console.log("writing under different name")
+                                let alternatepath = `${pdffilepath}-${this.multicastClient.clientinfo.token}`
+                                fs.writeFile(alternatepath, data, function (err) { if (err) { console.log(err.message); console.log("giving up"); }  } ); 
+                            }
+                        
+                        }  
+                    } ); 
                 }).catch(error => { console.log(error)});
             }
         })

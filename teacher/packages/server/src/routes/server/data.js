@@ -123,8 +123,8 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
             const filepath = path.join(folder.path, file);
             if(fs.statSync(filepath).isFile() ){
                 let ext = path.extname(file).toLowerCase()
-                if (ext === ".pdf" && file === `${folder.parent}.pdf`){  // folder.parent contains the studentfolder (and main file) name
-                    files.push(filepath)
+                if (ext === ".pdf" && (file === `${folder.parent}.pdf` || file.includes(folder.parent))){  // folder.parent contains the studentfolder (and main file) name
+                    files.push(filepath)   // we also allow files here that aren't exactly what we want but close (backup plan just in case saving files didn't work for the student and we needed to chose a different name)
                 } 
             }
         }, []);
