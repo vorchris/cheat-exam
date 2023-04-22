@@ -227,8 +227,7 @@ class WindowHandler {
         else { this.examwindow.webContents.session.setSpellCheckerLanguages([]) }
 
         if (serverstatus.examtype === "editor" ){  // do not under any circumstances allow navigation away from the editor
-            this.examwindow.webContents.on('will-navigate', (event, url) => {  // if a resource (pdf) is openend create an embed element and embed the pdf
-                
+            this.examwindow.webContents.on('will-navigate', (event, url) => {   
                 event.preventDefault()
             })
         }
@@ -237,8 +236,6 @@ class WindowHandler {
             this.examwindow.officeurl = false
             this.examwindow.webContents.on('will-navigate', (event, url) => {  // if a resource (pdf) is openend create an embed element and embed the pdf
                 if (!this.examwindow.officeurl ) { this.examwindow.officeurl = url }
-
-               
                 if (url !== this.examwindow.officeurl ) {
                     console.log("do not navigate away from this test.. it will haunt you forever")
                     event.preventDefault()
@@ -249,7 +246,7 @@ class WindowHandler {
 
         // HANDLE EDUVIDUAL pdf embed
         if (serverstatus.examtype === "eduvidual"){
-
+            console.log("eduvidual mode")
             this.examwindow.webContents.on('did-navigate', (event, url) => {  //create a new div called "nextexamwarning" and "embedbackground"
                 this.examwindow.webContents.executeJavaScript(` 
                     const warning = document.createElement('div')
@@ -262,17 +259,30 @@ class WindowHandler {
                     .catch(err => console.log(err))
             })
             this.examwindow.webContents.on('will-navigate', (event, url) => {  // if a resource (pdf) is openend create an embed element and embed the pdf
-                console.log(url)
-             
-                if (!url.includes(serverstatus.testid) //we block everything except pages that contain the following keyword-combinations
-                    && ( !url.includes("startattempt.php") && !url.includes("eduvidual.at"))
-                    && ( !url.includes("processattempt.php") && !url.includes("eduvidual.at"))
-                    && ( !url.includes("login") && !url.includes("microsoft")) 
-                    && ( !url.includes("logout") && !url.includes("eduvidual.at"))
-                    && ( !url.includes("lookup") && !url.includes("google"))  
-                    ){
-                    event.preventDefault()
+                //we block everything except pages that contain the following keyword-combinations
+                if (!url.includes(serverstatus.testid)){
+                    console.log(url)
+                    //check if this an exception (login, init) - if URL doesn't include either of these combinations - block! EXPLICIT is easier to read ;-)
+                    if ( url.includes("startattempt.php") && url.includes("eduvidual.at") )         { console.log(" url allowed") }
+                    else if ( url.includes("processattempt.php") && url.includes("eduvidual.at") )  { console.log(" url allowed") }
+                    else if ( url.includes("login") && url.includes("Microsoft") )                  { console.log(" url allowed") }
+                    else if ( url.includes("login") && url.includes("Google") )                     { console.log(" url allowed") }
+                    else if ( url.includes("login") && url.includes("microsoftonline") )            { console.log(" url allowed") }
+                    else if ( url.includes("accounts") && url.includes("google.com") )              { console.log(" url allowed") }
+                    else if ( url.includes("logout") && url.includes("eduvidual.at") )              { console.log(" url allowed") }
+                    else if ( url.includes("lookup") && url.includes("google") )                    { console.log(" url allowed") }
+                    else {
+                        console.log("blocked leaving exam mode")
+                        event.preventDefault()
+                    }
                 }
+                else {console.log("entered valid test environment")  }
+
+
+              
+
+
+
                 if (url.includes('resource/view')&& !url.includes('forceview')){
                     event.preventDefault()
                     this.examwindow.webContents.executeJavaScript(` 
@@ -302,9 +312,9 @@ class WindowHandler {
                 enableRestrictions(WindowHandler.examwindow)  // enable restriction only when exam window is fully loaded and in focus
                 await this.sleep(2000) // wait an additional 2 sec for windows restrictions to kick in (they steal focus)
                 this.examwindow.focus()
-               
+                this.addBlurListener()
             }
-            this.addBlurListener()
+           
         })
 
         this.examwindow.on('close', async  (e) => {   // window should not be closed manually.. ever! but if you do make sure to clean examwindow variable and end exam for the client
