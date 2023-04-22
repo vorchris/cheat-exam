@@ -3,6 +3,9 @@ import { app, BrowserWindow, shell, dialog, Menu, MenuItem, screen} from 'electr
 import { join } from 'path'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 
+import playSound from 'play-sound';
+const sound = playSound({});
+
   ////////////////////////////////////////////////////////////
  // Window handling (ipcRenderer Process - Frontend) START
 ////////////////////////////////////////////////////////////
@@ -299,8 +302,9 @@ class WindowHandler {
                 enableRestrictions(WindowHandler.examwindow)  // enable restriction only when exam window is fully loaded and in focus
                 await this.sleep(2000) // wait an additional 2 sec for windows restrictions to kick in (they steal focus)
                 this.examwindow.focus()
-                this.addBlurListener()
+               
             }
+            this.addBlurListener()
         })
 
         this.examwindow.on('close', async  (e) => {   // window should not be closed manually.. ever! but if you do make sure to clean examwindow variable and end exam for the client
@@ -420,6 +424,15 @@ class WindowHandler {
         winhandler.examwindow.show();  // we keep focus on the window.. no matter what
         winhandler.examwindow.moveTop();
         winhandler.examwindow.focus();
+
+        // Play sound
+        let soundfile = null
+        if (app.isPackaged) {
+            soundfile = join(process.resourcesPath, 'app.asar.unpacked', 'public', 'attention.wav');
+        } else {
+            soundfile = join(__dirname, '../../public/attention.wav');
+        }
+        sound.play(soundfile);
 
         if (this.multicastClient.clientinfo.examtype === "eduvidual"){
             // this only works in "eduvidual" mode because otherwise there is no element "warning" to append (clicking on an external link is considered a blur event)
