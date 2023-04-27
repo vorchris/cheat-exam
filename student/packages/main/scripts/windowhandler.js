@@ -301,9 +301,6 @@ class WindowHandler {
        
         this.examwindow.once('ready-to-show', async () => {
             this.examwindow.removeMenu() 
-            this.examwindow.setKiosk(true)
-            this.examwindow.show()
-            
             if (!this.config.development) { 
                 this.examwindow.setKiosk(true)
                 this.examwindow.setMinimizable(false)
@@ -315,7 +312,8 @@ class WindowHandler {
                 this.examwindow.focus()
                 this.addBlurListener()
             }
-           
+            this.examwindow.focus()
+            this.examwindow.show()
         })
 
         this.examwindow.on('close', async  (e) => {   // window should not be closed manually.. ever! but if you do make sure to clean examwindow variable and end exam for the client

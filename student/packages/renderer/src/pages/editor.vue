@@ -1,5 +1,6 @@
  <template>
 
+
     <!-- HEADER START -->
     <div id="editorheader" class="w-100 p-3 text-white bg-dark  text-center" style=" z-index: 10000 !important">
         <div v-if="online" class="text-white m-1">
@@ -101,7 +102,7 @@
     <!-- angabe/pdf preview start -->
     <div id=preview class="fadeinslow p-4">
         <div class="btn btn-dark me-2 btn-lg shadow" style="float: right;" @click="print()"><img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" > </div>
-        <embed src="" id="pdfembed"/>
+        <iframe src="" id="pdfembed"></iframe>
     </div>
     <!-- angabe/pdf preview end -->
 
@@ -373,7 +374,6 @@ export default {
             document.getElementById(`editorcontainer`).style.zoom = this.zoom
         },
         setCSSVariable(variableName, value){
-            console.log(variableName,value)
             document.documentElement.style.setProperty(variableName, value);
         }
 
@@ -390,8 +390,6 @@ export default {
         }
         if (this.cmargin.side === "right"){ this.setCSSVariable('--js-margin', `0 ${this.proseMirrorMargin} 0 0`);    }
         else { this.setCSSVariable('--js-margin', `0 0 0 ${this.proseMirrorMargin}`);    }
-        console.log(this.cmargin)
-        console.log(this.proseMirrorMargin)
 
         this.editor = new Editor({
             extensions: [

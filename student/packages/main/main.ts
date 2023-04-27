@@ -58,7 +58,6 @@ try { //bind to the correct interface
 
 app.commandLine.appendSwitch('lang', 'de')
 
-
 fsExtra.emptyDirSync(config.tempdirectory)  // clean temp directory
 
 WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow

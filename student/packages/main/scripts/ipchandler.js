@@ -89,7 +89,7 @@ class IpcHandler {
                             console.log(err.message); 
                             if (err.message.includes("permission denied")){
                                 console.log("writing under different name")
-                                let alternatepath = `${pdffilepath}-${this.multicastClient.clientinfo.token}`
+                                let alternatepath = `${pdffilepath}-${this.multicastClient.clientinfo.token}.pdf`
                                 fs.writeFile(alternatepath, data, function (err) { if (err) { console.log(err.message); console.log("giving up"); }  } ); 
                             }
                         
