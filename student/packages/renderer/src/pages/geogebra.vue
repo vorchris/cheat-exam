@@ -32,10 +32,10 @@
         <!-- filelist end -->
 
       
-        <span  v-if="online" class="fs-4 align-middle" style="">{{servername}}|{{pincode}}</span>
+       
         <div v-if="!online && exammode" class="btn btn-success p-1 me-1 mb-1 btn-sm"  style="float: left;"  @click="reconnect()"><img src="/src/assets/img/svg/gtk-convert.svg" class="" width="22" height="22"> {{ $t("editor.reconnect")}}</div>
         <div v-if="!online && exammode" class="btn btn-danger p-1 me-1 mb-1 btn-sm"  style="float: left;"  @click="gracefullyexit()"><img src="/src/assets/img/svg/dialog-cancel.svg" class="" width="22" height="22"> {{ $t("editor.unlock")}} </div>
-
+        <span  v-if="servername" class="fs-4 align-middle" style="">{{servername}}|{{pincode}}</span>
 
 
         <span class="fs-4 align-middle" style="float: right">GeoGebra</span>
@@ -45,7 +45,7 @@
             <div class="btn btn-outline-info btn-sm" @click="setsource('classic')"> classic</div>
         </div>
         
-        <span class="fs-4 align-middle me-2" style="float: right">{{timesinceentry}}</span>
+        <span class="fs-4 align-middle me-2" style="float: right; width:120px;">{{timesinceentry}}</span>
         <span v-if="battery && battery.level" class="fs-4 me-3"  style="float: right;">
             <img v-if="battery && battery.level > 0.9" src="/src/assets/img/svg/battery-100.svg"  :title="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
             <img v-if="battery && battery.level > 0.8 && battery.level < 0.9 " src="/src/assets/img/svg/battery-090.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
