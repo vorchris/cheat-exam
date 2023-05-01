@@ -1,6 +1,6 @@
 /**
  * @license GPL LICENSE
- * Copyright (c) 2021-2022 Thomas Michael Weissel
+ * Copyright (c) 2021-2023 Thomas Michael Weissel
  * 
  * This program is free software: you can redistribute it and/or modify it 
  * under the terms of the GNU General Public License as published by the Free Software Foundation,
@@ -20,7 +20,7 @@ import https from 'https'
 import cors from 'cors'
 import fileUpload from "express-fileupload";
 import {serverRouter} from './routes/serverroutes.js' 
-import config from './config.js';
+import config from '../../main/config.js';
 import fsExtra from "fs-extra"
 import path from 'path'
 import rateLimit  from 'express-rate-limit'  //simple ddos protection
@@ -31,7 +31,7 @@ import os from 'os'
 import forge from 'node-forge'
 forge.options.usePureJavaScript = true; 
 import defaultGateway from'default-gateway';
-import multicastClient from './classes/multicastclient.js'
+import multicastClient from '../../main/scripts/multicastclient.js'
 import cookieParser from 'cookie-parser'
 
 

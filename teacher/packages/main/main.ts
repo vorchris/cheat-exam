@@ -1,6 +1,6 @@
 /**
  * @license GPL LICENSE
- * Copyright (c) 2021-2022 Thomas Michael Weissel
+ * Copyright (c) 2021-2023 Thomas Michael Weissel
  * 
  * This program is free software: you can redistribute it and/or modify it 
  * under the terms of the GNU General Public License as published by the Free Software Foundation,
@@ -19,14 +19,20 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow, shell, ipcMain, dialog, powerSaveBlocker, nativeTheme  } from 'electron'
+import { app, BrowserWindow, powerSaveBlocker, nativeTheme  } from 'electron'
 import { release } from 'os'
-import { join } from 'path'
-import config from '../server/src/config.js';
+import config from './config.js';
 import server from "../server/src/server.js"
-import multicastClient from '../server/src/classes/multicastclient.js'
-import checkDiskSpace from 'check-disk-space'
-import fs from 'fs'
+import multicastClient from './scripts/multicastclient.js'
+
+
+import WindowHandler from './scripts/windowhandler.js'
+import IpcHandler from './scripts/ipchandler.js'
+
+WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow
+IpcHandler.init(multicastClient, config, WindowHandler)  //controll all Inter Process Communication
+
+
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -40,106 +46,6 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 
-let win: BrowserWindow | null = null
-
-async function createWindow() {
-
-    win = new BrowserWindow({
-        title: 'Main window',
-        icon: join(__dirname, '../../public/icons/icon.png'),
-        center:true,
-        width: 1000,
-        height: 700,
-        minWidth: 800,
-        minHeight: 600,
-        webPreferences: {
-            preload: join(__dirname, '../preload/preload.cjs')
-        },
-    })
-
-    if (app.isPackaged || process.env["DEBUG"]) {
-        win.removeMenu() 
-        win.loadFile(join(__dirname, '../renderer/index.html'))
-    } 
-    else {
-        const url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}`
-        win.removeMenu() 
-        win.loadURL(url)
-    }
-
-    if (config.showdevtools) { win.webContents.openDevTools()  }
-
-
-    // Make all links open with the browser, not with the application
-    // win.webContents.setWindowOpenHandler(({ url }) => {
-    //     if (url.startsWith('https:')) shell.openExternal(url)
-    //     return { action: 'deny' }
-    // })
-
-
-    win.webContents.session.setCertificateVerifyProc((request, callback) => {
-        var { hostname, certificate, validatedCertificate, verificationResult, errorCode } = request;
-        callback(0);
-    });
-
-
-    win.on('close', async  (e) => {   //ask before closing
-        if (!config.development) {
-            if (win?.webContents.getURL().includes("dashboard")){console.log("do not close running exam this way"); e.preventDefault(); return}
-            let choice = dialog.showMessageBoxSync(win, {
-                type: 'question',
-                buttons: ['Ja', 'Nein'],
-                title: 'Programm beenden',
-                message: 'Sind sie sicher?',
-                cancelId: 1
-            });
-            if(choice == 1){
-                e.preventDefault();
-            }
-        }
-     });
-}
-
-
-
-
- /**
-     * Screenlock Window (to cover everything) - block students from working
-     * @param display 
-     */
-
- let authwin: BrowserWindow | null = null
-
- async function createMsauthWindow() {
-    authwin = new BrowserWindow({
-        show: false,
-        center:true,
-        title: 'OAuth',
-        width: 500,
-        height: 800,
-        minimizable: false,
-        icon: join(__dirname, '../../public/icons/icon.png'),
-        webPreferences: {
-            preload: join(__dirname, '../preload/preload.cjs'),
-        },
-    });
-
-    let url = `https://localhost:22422/server/control/oauth`
-    authwin.loadURL(url)
-    if (config.showdevtools) { authwin.webContents.openDevTools()  }
-    authwin.once('ready-to-show', () => {
-        authwin?.removeMenu() 
-        authwin?.setMinimizable(false)
-        authwin?.show()
-        authwin?.moveTop();
-    })
-}
-
-
-
-
-
-
 // SSL/TSL: this is the self signed certificate support
 app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
     console.log(certificate)
@@ -151,15 +57,15 @@ app.on('certificate-error', (event, webContents, url, error, certificate, callba
 
 
 app.on('window-all-closed', () => {
-    win = null
+    WindowHandler.mainwindow = null
     if (process.platform !== 'darwin') app.quit()
 })
 
 app.on('second-instance', () => {
-    if (win) {
+    if (WindowHandler.mainwindow) {
         // Focus on the main window if the user tried to open another
-        if (win.isMinimized()) win.restore()
-        win.focus()
+        if (WindowHandler.mainwindow.isMinimized()) WindowHandler.mainwindow.restore()
+        WindowHandler.mainwindow.focus()
     }
 })
 
@@ -168,7 +74,7 @@ app.on('activate', () => {
     if (allWindows.length) {
         allWindows[0].focus()
     } else {
-        createWindow()
+        WindowHandler.createWindow()
     }
 })
 
@@ -184,79 +90,5 @@ app.whenReady().then(()=>{
         multicastClient.init()
     }
     powerSaveBlocker.start('prevent-display-sleep')
-    createWindow()
+    WindowHandler.createWindow()
 })
-
-
-
-ipcMain.on('openmsauth', (event) => { createMsauthWindow();  event.returnValue = true })  
-
-ipcMain.on('getconfig', (event) => {  
-    const clonedObject = copyConfig(config);  // we cant just copy the config because it contains examServerList which contains confic (circular structure)
-    event.returnValue = clonedObject
-})  
-
-ipcMain.on('resetToken', (event) => {  
-    config.accessToken = false
-    const clonedObject = copyConfig(config);  // we cant just copy the config because it contains examServerList which contains confic (circular structure)
-    event.returnValue = clonedObject
-})  
-
-ipcMain.on('getCurrentWorkdir', (event) => {   event.returnValue = config.workdirectory  })
-
-ipcMain.on('checkDiscspace', async (event) => {   
-    let freespace = await checkDiskSpace(config.workdirectory).then((diskSpace) => {
-        let free = Math.round(diskSpace.free/1024/1024/1024 * 1000)/1000
-        return free
-
-    })
-    event.returnValue = freespace
-})
-
-ipcMain.on('setworkdir', async (event, arg) => {
-    const result = await dialog.showOpenDialog( win, {
-      properties: ['openDirectory']
-    })
-    if (!result.canceled){
-        console.log('directories selected', result.filePaths)
-        let message = ""
-        try {
-            let testdir = join(result.filePaths[0]   , config.examdirectory)
-            if (!fs.existsSync(testdir)){fs.mkdirSync(testdir)}
-            message = "success"
-            config.workdirectory = testdir
-        }
-        catch (e){
-            message = "error"
-            console.log(e)
-        }
-        event.returnValue = {workdir: config.workdirectory, message : message}
-    }
-    else {
-        event.returnValue = {workdir: config.workdirectory, message : 'canceled'}
-    }
-  })
-
-
-
-  function copyConfig(obj) {
-    if (obj === null || typeof obj !== 'object') {
-      return obj;
-    }
-  
-    const clonedObj = Array.isArray(obj) ? [] : {};
-  
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        if (key !== 'examServerList') {
-          if (typeof obj[key] === 'object') {
-            clonedObj[key] = cloneObjectExcludingExamServerList(obj[key]);
-          } else {
-            clonedObj[key] = obj[key];
-          }
-        }
-      }
-    }
-  
-    return clonedObj;
-  }

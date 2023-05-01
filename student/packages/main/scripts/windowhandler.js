@@ -78,6 +78,7 @@ class WindowHandler {
         
         blockwin.removeMenu() 
         blockwin.setKiosk(true)
+        blockwin.setAlwaysOnTop(true, "screen-saver", 1) 
         blockwin.show()
         blockwin.moveTop();
         this.blockwindows.push(blockwin)
@@ -85,7 +86,7 @@ class WindowHandler {
 
 
     /**
-     * Screenlock Window (to cover everything) - block students from working
+     * Screenlock Window (to cover the mainscreen) - block students from working
      * @param display 
      */
 

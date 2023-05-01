@@ -1,6 +1,6 @@
 /**
  * @license GPL LICENSE
- * Copyright (c) 2021-2022 Thomas Michael Weissel
+ * Copyright (c) 2021-2023 Thomas Michael Weissel
  * 
  * This program is free software: you can redistribute it and/or modify it 
  * under the terms of the GNU General Public License as published by the Free Software Foundation,
@@ -17,10 +17,10 @@
 
 import { Router } from 'express'
 const router = Router()
-import multiCastserver from '../../classes/multicastserver.js'
-import multiCastclient from '../../classes/multicastclient.js'
+import multiCastserver from '../../../../main/scripts/multicastserver.js'
+import multiCastclient from '../../../../main/scripts/multicastclient.js'
 import crypto from 'crypto';
-import config from '../../config.js'
+import config from '../../../../main/config.js'
 import path from 'path'
 import i18n from '../../../../renderer/src/locales/locales.js'
 const { t } = i18n.global
