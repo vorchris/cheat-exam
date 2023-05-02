@@ -28,7 +28,7 @@ class MulticastClient {
     constructor () {
         this.PORT = config.multicastClientPort
         this.MULTICAST_ADDR = '239.255.255.250'
-        this.client = dgram.createSocket('udp4')
+        this.client = null
        
         this.refreshExamsIntervall = null
         this.updateStudentIntervall = null
@@ -59,13 +59,23 @@ class MulticastClient {
      * starts an intervall to check server status and reacts on information given by the server instance
      */
     init () {
-        this.client.bind(this.PORT, '0.0.0.0',  () => { 
-            this.client.setBroadcast(true)
-            this.client.setMulticastTTL(128); 
-            this.client.addMembership(this.MULTICAST_ADDR)
-            console.log(`UDP MC Client listening on http://${config.hostip}:${this.client.address().port}`)
-        })
-        
+        this.client = dgram.createSocket('udp4')  // moving this here will allow to respawn it if binding fails
+
+        this.client.on('error', (err) => {
+            console.error(`UDP MC Client error:\n${err.stack}`);
+            this.client.close();
+        });
+
+        try {
+            this.client.bind(this.PORT, '0.0.0.0',  () => { 
+                this.client.setBroadcast(true)
+                this.client.setMulticastTTL(128); 
+                this.client.addMembership(this.MULTICAST_ADDR)
+                console.log(`UDP MC Client listening on http://${config.hostip}:${this.client.address().port}`)
+            })
+        }
+        catch (e){console.log(e)}
+            
         this.client.on('message', (message, rinfo) => { this.messageReceived(message, rinfo) })
         //start loops
         this.refreshExamsIntervall = setInterval(() => {  this.isDeprecatedInstance()  }, 5000)

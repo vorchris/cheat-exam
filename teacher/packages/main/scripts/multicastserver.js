@@ -15,11 +15,8 @@
  * If not, see <http://www.gnu.org/licenses/>
  */
 
-
-
 import { createSocket } from 'dgram'
 import config from '../config.js'
-import ip from 'ip'
 import crypto from 'crypto';
 
 /**
@@ -46,25 +43,7 @@ class MulticastServer {
      */
     init (servername, pin, password) {
         this.server = createSocket('udp4')
-     
-        this.serverinfo = this.initMessage(servername, pin, password)
-        this.server.bind(this.SRC_PORT,'0.0.0.0',  () => { // Add the HOST_IP_ADDRESS for reliability
-          
-            this.server.setBroadcast(true)
-            this.server.setMulticastTTL(128)
-            this.server.setTTL(128)
-            this.server.addMembership(this.MULTICAST_ADDR); 
-
-            this.broadcastInterval = setInterval(() => { this.multicastNew() }, 2000)
-            console.log(`UDP MC Server listening on http://${config.hostip}:${this.server.address().port}`)
-        })
-    }
-
-    /**
-     * creates the message object
-     */
-    initMessage (servername, pin, password) {
-        const message = {
+        this.serverinfo = {
             servername: servername,   //should be unique if several servers are allowed
             pin: pin,
             password: password,
@@ -73,13 +52,22 @@ class MulticastServer {
             ip: config.hostip,
             servertoken: `server-${crypto.randomUUID()}`
         }
-        return message
+        
+        this.server.bind(this.SRC_PORT,'0.0.0.0',  () => { // Add the HOST_IP_ADDRESS for reliability
+            this.server.setBroadcast(true)
+            this.server.setMulticastTTL(128)
+            this.server.setTTL(128)
+            this.server.addMembership(this.MULTICAST_ADDR); 
+            this.broadcastInterval = setInterval(() => { this.sendMulticastMessage() }, 2000)
+            console.log(`UDP MC Server listening on http://${config.hostip}:${this.server.address().port}`)
+        })
     }
+
 
     /**
      * updates the server timestamp and actually broadcasts the message (serverinfo)
      */
-    multicastNew () {
+    sendMulticastMessage () {
         this.serverinfo.timestamp = new Date().getTime()
         let message = {
             servername: this.serverinfo.servername,
@@ -88,10 +76,8 @@ class MulticastServer {
             ip: this.serverinfo.ip
         }
         const preparedMessage = new Buffer.from(JSON.stringify(message))
-        //broadcast to clients
-        this.server.send(preparedMessage, 0, preparedMessage.length, this.ClientPORT, this.MULTICAST_ADDR)
-        //broadcast to other server(clients) - servers also want to know what other servers are in the network
-        this.server.send(preparedMessage, 0, preparedMessage.length, config.multicastServerClientPort, this.MULTICAST_ADDR)
+        this.server.send(preparedMessage, 0, preparedMessage.length, this.ClientPORT, this.MULTICAST_ADDR)  //broadcast to clients
+        this.server.send(preparedMessage, 0, preparedMessage.length, config.multicastServerClientPort, this.MULTICAST_ADDR)        //broadcast to other server(clients) - servers also want to know what other servers are in the network
     }
 }
 

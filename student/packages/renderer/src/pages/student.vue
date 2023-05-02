@@ -94,7 +94,7 @@ export default {
     },
     methods: {
         fetchInfo() {
-            let getinfo = ipcRenderer.sendSync('getinfo')  // we need to fetch the updated version of the systemconfig from express api (server.js)
+            let getinfo = ipcRenderer.sendSync('getinfo')  // gets serverlist and clientinfo from multicastclient
             
             this.clientinfo = getinfo.clientinfo;
             this.token = this.clientinfo.token;

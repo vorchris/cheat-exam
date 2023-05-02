@@ -1,5 +1,5 @@
 
-import { app, BrowserWindow, shell, dialog, Menu, MenuItem, screen} from 'electron'
+import { app, BrowserWindow, dialog, Menu, MenuItem, screen} from 'electron'
 import { join } from 'path'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 
@@ -390,12 +390,6 @@ class WindowHandler {
         }
 
         if (this.config.showdevtools) { this.mainwindow.webContents.openDevTools()  } // you don't want this in the final build
-
-        // Make all links open with the browser, not with the application // this would trigger blur event in exam mode
-        this.mainwindow.webContents.setWindowOpenHandler(({ url }) => {
-            if (url.startsWith('https:')) shell.openExternal(url)
-            return { action: 'deny' }
-        })
 
         this.mainwindow.webContents.session.setCertificateVerifyProc((request, callback) => {
             var { hostname, certificate, validatedCertificate, verificationResult, errorCode } = request;
