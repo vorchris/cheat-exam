@@ -26,6 +26,7 @@ import { disableRestrictions} from './scripts/platformrestrictions.js';
 import WindowHandler from './scripts/windowhandler.js'
 import CommHandler from './scripts/communicationhandler.js'
 import IpcHandler from './scripts/ipchandler.js'
+import { preventSleep } from './scripts/prevent-sleep.mjs';
 import config from './config.js';
 import multicastClient from './scripts/multicastclient.js'
 import defaultGateway from'default-gateway';
@@ -117,6 +118,7 @@ app.whenReady()
     nativeTheme.themeSource = 'light'
     if (config.hostip) { multicastClient.init() }
     powerSaveBlocker.start('prevent-display-sleep')
+    if (process.platform === 'win32') { preventSleep();}
     WindowHandler.createMainWindow()
 })
 
