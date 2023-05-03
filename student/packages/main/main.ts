@@ -26,7 +26,7 @@ import { disableRestrictions} from './scripts/platformrestrictions.js';
 import WindowHandler from './scripts/windowhandler.js'
 import CommHandler from './scripts/communicationhandler.js'
 import IpcHandler from './scripts/ipchandler.js'
-import { preventSleep } from './scripts/prevent-sleep.js';
+import preventSleep from 'node-prevent-sleep';
 import config from './config.js';
 import multicastClient from './scripts/multicastclient.js'
 import defaultGateway from'default-gateway';
@@ -58,7 +58,6 @@ try { //bind to the correct interface
  }
 
 app.commandLine.appendSwitch('lang', 'de')
-
 fsExtra.emptyDirSync(config.tempdirectory)  // clean temp directory
 
 WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow
@@ -79,7 +78,6 @@ if (process.platform ==='darwin') {  app.dock.hide() }  // safer fullscreen
 
 
 // hide certificate warnings in console.. we know we use a self signed cert and do not validate it
-
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
 const originalEmitWarning = process.emitWarning
 process.emitWarning = (warning, options) => {
@@ -118,7 +116,7 @@ app.whenReady()
     nativeTheme.themeSource = 'light'
     if (config.hostip) { multicastClient.init() }
     powerSaveBlocker.start('prevent-display-sleep')
-    if (process.platform === 'win32') { preventSleep();}
+    if (process.platform === 'win32') {preventSleep.enable();}
     WindowHandler.createMainWindow()
 })
 
