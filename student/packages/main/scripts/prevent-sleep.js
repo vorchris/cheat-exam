@@ -12,6 +12,14 @@ const ES_SYSTEM_REQUIRED = 0x00000001;
 
 // Prevent sleep by resetting the system idle timer every 60 seconds
 export function preventSleep() {
-  kernel32.SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED);
+
+    try {
+        kernel32.SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED);
+        setTimeout(preventSleep, 60 * 1000);
+      } catch (error) {
+        console.error('Error in preventSleep:', error);
+      }
+
+  
   setTimeout(preventSleep, 60 * 1000);
 }
