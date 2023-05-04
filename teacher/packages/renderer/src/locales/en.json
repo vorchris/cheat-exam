@@ -110,7 +110,8 @@
         "screenshottitle":"Screenshot Update",
         "screenshotquestion":"Set the interval to update Screenshots",
         "screenshothint":"(Time in seconds. 0 == deaktivated)",
-        "oldpdfwarning":"Some of the files are older than 5 minutes!"
+        "oldpdfwarning":"Some of the files are older than 5 minutes!",
+        "gforms": "Google Forms"
 
         
     },

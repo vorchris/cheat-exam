@@ -30,8 +30,8 @@
                     <b>{{activestudent.clientname}}</b><br>
                     <div style="font-size: 0.6em; margin-bottom: 0px;">{{activestudent.clientip}}</div>
                     <div style="font-size: 0.6em; margin-top: 0px;">{{activestudent.hostname}}</div>
-                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent.token)"  style="width: 100px">{{$t('dashboard.sendfile')}}</div>
-                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="getFiles(activestudent.token, true)"  style="width: 100px">{{$t('dashboard.getfile')}}</div>
+                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent.token)" :class="(examtype === 'eduvidual' || examtype === 'gforms' ||examtype === 'microsoft365' )? 'disabledblue':''"  style="width: 100px">{{$t('dashboard.sendfile')}}</div>
+                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="getFiles(activestudent.token, true)" :class="(examtype === 'eduvidual' || examtype === 'gforms')? 'disabledblue':''" style="width: 100px">{{$t('dashboard.getfile')}}</div>
                     <div class="col d-inlineblock btn btn-warning m-1 btn-sm"   @click='kick(activestudent.token,activestudent.clientip);hideStudentview()'  style="width: 100px">{{$t('dashboard.kick')}}</div>
                 </div>
             </div>
@@ -107,6 +107,12 @@
             <input v-model="examtype" @click="getTestID()" value="eduvidual" class="form-check-input" type="radio" name="examtype" id="examtype3">
             <label class="form-check-label" for="examtype3"> {{$t('dashboard.eduvidual')}}  </label>
         </div>
+        <!-- google forms -->
+        <div class="form-check m-1 mb-1" :class="(exammode)? 'disabledexam':''">
+            <input v-model="examtype" @click="getFormsID()" value="gforms" class="form-check-input" type="radio" name="examtype" id="examtype5">
+            <label class="form-check-label" for="examtype4"> {{$t('dashboard.gforms')}}  </label>
+        </div>
+
         <!-- microsoft365 -->
         <div class="form-check m-1 mb-3" :class="(exammode)? 'disabledexam':''">
             <input v-model="examtype" value="microsoft365" class="form-check-input" type="radio" name="examtype" id="examtype4">
@@ -127,12 +133,15 @@
                 <span style="padding: 0 6px 0 4px; vertical-align:middle;">{{msOfficeFile.name}} </span>
             </button>
         </div>
+
+
+
         <!-- other options -->
-        <div class="form-check form-switch m-1 mb-2"  :class="(exammode || examtype === 'eduvidual'|| examtype === 'microsoft365')? 'disabledexam':''">
+        <div class="form-check form-switch m-1 mb-2"  :class="(exammode || examtype === 'eduvidual'|| examtype === 'microsoft365'  || examtype === 'gforms')? 'disabledexam':''">
             <input v-model="delfolder" @click="delfolderquestion()" value="del" class="form-check-input" type="checkbox" name="delfolder" id="delfolder">
             <label class="form-check-label" for="delfolder"> {{$t('dashboard.del')}}  </label>
         </div>
-        <div class="form-check form-switch  m-1 mb-2" :class="(examtype === 'eduvidual')? 'disabledexam':''">
+        <div class="form-check form-switch  m-1 mb-2" :class="(examtype === 'eduvidual' || examtype === 'gforms')? 'disabledexam':''">
             <input @change="toggleAutoabgabe()"  @click="setAbgabeInterval()" v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
             <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
             <span v-if="autoabgabe" > ({{ abgabeintervalPause }}min)</span>
@@ -157,8 +166,8 @@
         <div v-if="(exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="endExam()" >{{numberOfConnections}} {{$t('dashboard.stopexam')}}</div>
         <div v-if="(!exammode)" @click="startExam()" :class="(examtype === 'microsoft365' && (!config.accessToken || !msOfficeFile))? 'disabledgreen':''" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px; height:62px;">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
      
-        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="sendFiles('all')" :class="(examtype === 'eduvidual' || examtype === 'microsoft365' )? 'disabledblue':''"  style="width:100px; height:62px;">{{$t('dashboard.sendfile')}}</div>
-        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="getFiles('all', true)" :class="(examtype === 'eduvidual')? 'disabledblue':''"  style="width:100px; height:62px;" >{{$t('dashboard.getfile')}}</div>
+        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="sendFiles('all')" :class="(examtype === 'eduvidual' || examtype === 'gforms' ||examtype === 'microsoft365' )? 'disabledblue':''"  style="width:100px; height:62px;">{{$t('dashboard.sendfile')}}</div>
+        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="getFiles('all', true)" :class="(examtype === 'eduvidual' || examtype === 'gforms')? 'disabledblue':''"  style="width:100px; height:62px;" >{{$t('dashboard.getfile')}}</div>
         <div class="col d-inlineblock btn btn-dark m-1 mt-0 text-start ms-0 " @click="loadFilelist(workdirectory)"  style="width: 100px;">{{$t('dashboard.showworkfolder')}} </div>
         <div  v-if="(screenslocked)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(false)"> <img src="/src/assets/img/svg/shield-lock-fill.svg" class="white mt-2" title="unlock" width="32" height="32" >   </div>
         <div  v-if="(!screenslocked)" class="btn btn-dark m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(true)"> <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" title="lock" width="32" height="32" >  </div>
@@ -262,6 +271,7 @@ export default {
             suggestions: false,
             moodleTestId: null,
             moodleTestType: null,
+            gformsTestId: null,
             screenslocked: false,
             studentwidgets: [],
             emptyWidget: {
@@ -398,8 +408,20 @@ export default {
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/exam/${this.servername}/${this.servertoken}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },
-                body: JSON.stringify({ exammode: this.exammode, examtype: this.examtype, delfolder: this.delfolder, delfolderonexit: this.delfolderonexit, spellcheck: this.spellcheck, spellchecklang:this.spellchecklang, suggestions: this.suggestions, testid: this.moodleTestId, moodleTestType: this.moodleTestType, cmargin: this.cmargin  })
+                body: JSON.stringify({ 
+                    exammode: this.exammode, 
+                    examtype: this.examtype, 
+                    delfolder: this.delfolder, 
+                    delfolderonexit: this.delfolderonexit, 
+                    spellcheck: this.spellcheck, 
+                    spellchecklang:this.spellchecklang, 
+                    suggestions: this.suggestions, 
+                    testid: this.moodleTestId, 
+                    moodleTestType: this.moodleTestType, 
+                    gformsTestId: this.gformsTestId, 
+                    cmargin: this.cmargin  
                 })
+            })
             .then( res => res.json())
             .then( response => { })
             .catch(err => { console.warn(err) })
@@ -528,7 +550,28 @@ export default {
             }
         },
 
-
+        /**
+         * Google Forms
+         */
+         async getFormsID(){
+            this.$swal.fire({
+                title: this.$t("dashboard.gforms"),
+                icon: 'question',
+                input: 'text',
+                html: `
+                ${this.$t("dashboard.eduvidualidhint")} <br>
+                <span style="font-size:0.8em">
+                    (https://docs.google.com/forms/d/e/<span style="background-color: lightblue; padding:0 3px 0 3px;">1FAIpQLScuTG7yldD0VRhFgOC_2fhbVdgXn95Kf_w2rUbJm79S1kJBnA</span>/viewform)
+                </span>`,
+                inputValidator: (value) => {
+                    if (!value) {return 'No ID given!'}
+                }
+            }).then((input) => {
+                if (!input.value) {document.getElementById('examtype2').checked = true; this.examtype = "math"}
+                this.gformsTestId = input.value
+                console.log(this.examtype)
+            })  
+        },
 
         /**
          * Eduvidual

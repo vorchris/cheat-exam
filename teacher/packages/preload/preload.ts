@@ -1,6 +1,6 @@
 /**
  * @license GPL LICENSE
- * Copyright (c) 2021-2022 Thomas Michael Weissel
+ * Copyright (c) 2021-2023 Thomas Michael Weissel
  * 
  * This program is free software: you can redistribute it and/or modify it 
  * under the terms of the GNU General Public License as published by the Free Software Foundation,
@@ -20,9 +20,7 @@
  */
 
 
-//import fs from 'fs'
 import { contextBridge, ipcRenderer } from 'electron'
-import fs from 'fs' 
 
 let config = ipcRenderer.sendSync('getconfig')  // we need to fetch the updated version of the systemconfig from express api (server.js)
 
@@ -47,14 +45,10 @@ function domReady(condition: DocumentReadyState[] = ['complete', 'interactive'])
     await domReady()
 })()
 
-const pathJoin = (...args) => args.join(require('path').sep);  //path module isn't available in the preload script since it's a built-in Node.js module
-
 
 // --------- Expose some API to the Renderer process. ---------
-//contextBridge.exposeInMainWorld('fs', fs)
 contextBridge.exposeInMainWorld('ipcRenderer', withPrototype(ipcRenderer))
 contextBridge.exposeInMainWorld('config', config )  // expose configuration (readonly) to the renderer (frontend)
-contextBridge.exposeInMainWorld('join',  pathJoin );
 
 // `exposeInMainWorld` can't detect attributes and methods of `prototype`, manually patching it.
 function withPrototype(obj: Record<string, any>): Record<string, any> {

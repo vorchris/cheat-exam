@@ -147,8 +147,8 @@ class WindowHandler {
      */
     async createExamWindow(examtype, token, serverstatus, primarydisplay) {
         // just to be sure we check some important vars here
-        if (examtype !== "eduvidual" && examtype !== "editor" && examtype !== "math" && examtype !== "microsoft365" || !token){  // for now.. we probably should stop everything here
-            console.log("missing parameters for exam-mode!")
+        if (examtype !== "gforms" && examtype !== "eduvidual" && examtype !== "editor" && examtype !== "math" && examtype !== "microsoft365" || !token){  // for now.. we probably should stop everything here
+            console.log("missing parameters for exam-mode or mode not in allowed list!")
             examtype = "editor" 
         } 
         
@@ -181,6 +181,10 @@ class WindowHandler {
         // Load correct url 
         if (examtype === "eduvidual"){    //external page
             let url =`https://eduvidual.at/mod/${serverstatus.moodleTestType}/view.php?id=${serverstatus.testid}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287  
+            this.examwindow.loadURL(url)
+        }
+        else if (examtype === "gforms"){    //external page
+            let url =`https://docs.google.com/forms/d/e/${serverstatus.gformsTestId}/viewform`  //https://docs.google.com/forms/d/e/1FAIpQLScuTG7yldD0VRhFgOC_2fhbVdgXn95Kf_w2rUbJm79S1kJBnA/viewform
             this.examwindow.loadURL(url)
         }
         else if (examtype === "microsoft365"  ) { //external page
@@ -245,6 +249,59 @@ class WindowHandler {
         }
 
 
+        // HANDLE GOOGLE Forms
+        if (serverstatus.examtype === "gforms"){
+            console.log("gforms mode")
+            this.examwindow.webContents.on('did-navigate', (event, url) => {  //create a new div called "nextexamwarning" and "embedbackground" - this is shown onBlur()
+                //console.log(url)
+                this.examwindow.webContents.executeJavaScript(` 
+                    const warning = document.createElement('div')
+                    warning.setAttribute('id', 'nextexamwaring')
+                    warning.setAttribute('style', 'display: none');
+                    const background = document.createElement('div');
+                    background.setAttribute('id', 'embedbackground')
+                    background.setAttribute('style', 'display: none');
+                    const embed = document.createElement('embed');` , true)
+                    .catch(err => console.log(err))
+            })
+            this.examwindow.webContents.on('will-navigate', (event, url) => {  // if a resource (pdf) is openend create an embed element and embed the pdf
+                //console.log(url)
+                //we block everything except pages that contain the following keyword-combinations
+                if (!url.includes(serverstatus.gformsTestId)){
+                    console.log(url)
+                    //check if this an exception (login, init) - if URL doesn't include either of these combinations - block! EXPLICIT is easier to read ;-)
+                    if ( url.includes("docs.google.com") && url.includes("formResponse") )           { console.log(" url allowed") }
+                    else if ( url.includes("docs.google.com") && url.includes("viewscore") )         { console.log(" url allowed") }
+                    else {
+                        console.log("blocked leaving exam mode")
+                        event.preventDefault()
+                    }
+                }
+                else {console.log("entered valid test environment")  }
+            })
+
+            // if a new window should open triggered by window.open()
+            this.examwindow.webContents.on('new-window', (event, url) => {
+                event.preventDefault(); // Prevent the new window from opening
+                // Optionally, navigate to the URL in the same window
+                if ( url.includes("docs.google.com") && url.includes("viewscore") )         {
+                    this.examwindow.loadURL(url);
+                }
+            });
+
+            // if a new window should open triggered by target="_blank"
+            this.examwindow.webContents.setWindowOpenHandler(({ url }) => {
+                // Optionally, navigate to the URL in the same window
+                if ( url.includes("docs.google.com") && url.includes("viewscore") ) {     
+                    this.examwindow.loadURL(url);
+                }
+                // Prevent the new window from opening
+               return { action: 'deny' };
+              });
+        }
+
+
+
         // HANDLE EDUVIDUAL pdf embed
         if (serverstatus.examtype === "eduvidual"){
             console.log("eduvidual mode")
@@ -279,11 +336,6 @@ class WindowHandler {
                 }
                 else {console.log("entered valid test environment")  }
 
-
-              
-
-
-
                 if (url.includes('resource/view')&& !url.includes('forceview')){
                     event.preventDefault()
                     this.examwindow.webContents.executeJavaScript(` 
@@ -297,9 +349,12 @@ class WindowHandler {
                 }
             })
         }
+
+
+
+
         if (this.config.showdevtools) { this.examwindow.webContents.openDevTools()  }
 
-       
         this.examwindow.once('ready-to-show', async () => {
             this.examwindow.removeMenu() 
             if (!this.config.development) { 
@@ -438,7 +493,7 @@ class WindowHandler {
         }
         sound.play(soundfile);
 
-        if (this.multicastClient.clientinfo.examtype === "eduvidual"){
+        if (this.multicastClient.clientinfo.examtype === "eduvidual" || this.multicastClient.clientinfo.examtype === "gforms" ){
             // this only works in "eduvidual" mode because otherwise there is no element "warning" to append (clicking on an external link is considered a blur event)
             winhandler.examwindow.webContents.executeJavaScript(` 
                         if (typeof warning !== 'undefined'){
