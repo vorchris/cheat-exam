@@ -95,7 +95,7 @@ class WindowHandler {
             show: false,
             x: display.bounds.x + 0,
             y: display.bounds.y + 0,
-            parent: this.mainwindow,
+            //parent: this.mainwindow,  // leads to visible titlebar on gnome
             skipTaskbar:true,
             title: 'Screenlock',
             width: display.bounds.width,
