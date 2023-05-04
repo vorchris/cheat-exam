@@ -110,7 +110,7 @@
         <!-- office365 -->
         <div class="form-check m-1 mb-3" :class="(exammode)? 'disabledexam':''">
             <input v-model="examtype" value="office365" class="form-check-input" type="radio" name="examtype" id="examtype4">
-            <label class="form-check-label" for="examtype4"> Office365 <span v-if="(config.accessToken)">({{$t('dashboard.connected')}})</span> </label>
+            <label class="form-check-label" for="examtype4"> Microsoft365 <span v-if="(config.accessToken)">({{$t('dashboard.connected')}})</span> </label>
             
             <button v-if="(examtype === 'office365' && !config.accessToken)"  @click="openAuthWindow()" class="btn btn-sm btn-primary mt-1  ">
                 <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
@@ -128,11 +128,11 @@
             </button>
         </div>
         <!-- other options -->
-        <div class="form-check form-switch m-1 mb-2"  :class="(exammode)? 'disabledexam':''">
+        <div class="form-check form-switch m-1 mb-2"  :class="(exammode || examtype === 'eduvidual'|| examtype === 'office365')? 'disabledexam':''">
             <input v-model="delfolder" @click="delfolderquestion()" value="del" class="form-check-input" type="checkbox" name="delfolder" id="delfolder">
             <label class="form-check-label" for="delfolder"> {{$t('dashboard.del')}}  </label>
         </div>
-        <div class="form-check form-switch  m-1 mb-2">
+        <div class="form-check form-switch  m-1 mb-2" :class="(examtype === 'eduvidual')? 'disabledexam':''">
             <input @change="toggleAutoabgabe()"  @click="setAbgabeInterval()" v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
             <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
             <span v-if="autoabgabe" > ({{ abgabeintervalPause }}min)</span>
@@ -155,10 +155,10 @@
         
         <!-- control buttons start -->        
         <div v-if="(exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="endExam()" >{{numberOfConnections}} {{$t('dashboard.stopexam')}}</div>
-        <div v-if="(!exammode)" @click="startExam()" :class="(examtype === 'office365' && (!config.accessToken || !msOfficeFile))? 'disabledexambutton':''" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px; height:62px;">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
+        <div v-if="(!exammode)" @click="startExam()" :class="(examtype === 'office365' && (!config.accessToken || !msOfficeFile))? 'disabledgreen':''" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px; height:62px;">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
      
-        <div class="btn btn-info m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="sendFiles('all')">{{$t('dashboard.sendfile')}}</div>
-        <div class="btn btn-info m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="getFiles('all', true)">{{$t('dashboard.getfile')}}</div>
+        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="sendFiles('all')" :class="(examtype === 'eduvidual' || examtype === 'office365' )? 'disabledblue':''"  style="width:100px; height:62px;">{{$t('dashboard.sendfile')}}</div>
+        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="getFiles('all', true)" :class="(examtype === 'eduvidual')? 'disabledblue':''"  style="width:100px; height:62px;" >{{$t('dashboard.getfile')}}</div>
         <div class="col d-inlineblock btn btn-dark m-1 mt-0 text-start ms-0 " @click="loadFilelist(workdirectory)"  style="width: 100px;">{{$t('dashboard.showworkfolder')}} </div>
         <div  v-if="(screenslocked)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(false)"> <img src="/src/assets/img/svg/shield-lock-fill.svg" class="white mt-2" title="unlock" width="32" height="32" >   </div>
         <div  v-if="(!screenslocked)" class="btn btn-dark m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(true)"> <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" title="lock" width="32" height="32" >  </div>
@@ -227,6 +227,7 @@ export default {
     },
     data() {
         return {
+            examtype: 'math',
             version: this.$route.params.version,
             title: document.title,
             fetchinterval: null,
@@ -247,7 +248,6 @@ export default {
             config :this.$route.params.config,
             now : null,
             files: null,
-            examtype: 'math',
             autoabgabe: false,
             activestudent: null,
             localfiles: null,
@@ -986,15 +986,23 @@ export default {
     overflow-y:auto;
 }
 
+.disabledblue {
+    filter: contrast(100%) grayscale(50%) brightness(120%) blur(0.9px);
+   pointer-events: none;
+   color: #adebff;
+}
+
+.disabledgreen {
+    filter: contrast(100%) grayscale(50%) brightness(120%) blur(0.9px);
+   pointer-events: none;
+   color: #d6ffe1
+}
 
 .disabledexam {
     filter: contrast(100%) grayscale(100%) brightness(80%) blur(0.6px);
    pointer-events: none;
 }
-.disabledexambutton {
-    filter: contrast(47%) grayscale(98%) brightness(170%) blur(0.6px);
-    pointer-events: none;
-}
+
 
 #pdfpreview {
     display: none;
