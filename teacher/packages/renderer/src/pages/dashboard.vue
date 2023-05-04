@@ -45,7 +45,7 @@
             <button id="closefilebrowser" type="button" class=" btn-close pt-2 pe-2 float-end" title="close"></button>
             <h4>{{$t('dashboard.filesfolder')}}: <br> <h6 class="ms-3 mb-3"><strong> {{currentdirectory}}</strong>  </h6></h4>
             <div class="btn btn-dark pe-3 ps-3 me-1 mb-3 btn-sm" @click="loadFilelist(workdirectory) "><img src="/src/assets/img/svg/go-home.svg" class="" width="22" height="22" > </div>
-            <div class="btn btn-primary pe-3 ps-3 me-1 mb-3 btn-sm" style="float: right;" :title="$t('dashboard.summarizepdf')" @click="getLatest() "><img src="/src/assets/img/svg/edit-copy.svg" class="" width="22" height="22" >{{$t('dashboard.summarizepdfshort')}}</div>
+            <div :class="( examtype === 'eduvidual'|| examtype === 'microsoft365')? 'disabledblue':''" class="btn btn-primary pe-3 ps-3 me-1 mb-3 btn-sm" style="float: right;" :title="$t('dashboard.summarizepdf')" @click="getLatest() "><img src="/src/assets/img/svg/edit-copy.svg" class="" width="22" height="22" >{{$t('dashboard.summarizepdfshort')}}</div>
             <div  v-if="(currentdirectory !== workdirectory)" class="btn btn-dark pe-3 ps-3 me-1 mb-3 btn-sm" @click="loadFilelist(currentdirectoryparent) "><img src="/src/assets/img/svg/edit-undo.svg" class="" width="22" height="22" >up </div>
             <div style="height: 76vh; overflow-y:auto;">
                 <div v-for="file in localfiles" class="d-inline">
@@ -59,7 +59,7 @@
                     <!-- other files -->
                     <div v-if="(file.type == 'file' && !(file.ext === '.pdf' || file.ext === '.png'|| file.ext === '.jpg'|| file.ext === '.webp'|| file.ext === '.jpeg' )  )" class="btn btn-info pe-3 ps-3 me-3 mb-2 btn-sm"  style=" max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default;"><img src="/src/assets/img/svg/document.svg" class="" width="22" height="22" > {{file.name}} </div>
 
-                    <div v-if="(file.type == 'file')"  :class="(studentlist.length == 0)? 'disabled':''"  class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="dashboardExplorerSendFile(file)" :title="$t('dashboard.send')"><img src="/src/assets/img/svg/document-send.svg" class="" width="22" height="22" ></div>
+                    <div v-if="(file.type == 'file')" :class="(studentlist.length == 0 || examtype === 'eduvidual'|| examtype === 'microsoft365')? 'disabledexam':''"    class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="dashboardExplorerSendFile(file)" :title="$t('dashboard.send')"><img src="/src/assets/img/svg/document-send.svg" class="" width="22" height="22" ></div>
                     <div v-if="(file.type == 'file')" class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="downloadFile(file)" :title="$t('dashboard.download')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" ></div>
                     <div v-if="(file.type == 'file' && file.ext === '.pdf')" class="btn btn-dark me-1 mb-2 btn-sm" style="float: right;" @click="loadPDF(file.path, file.name)" :title="$t('dashboard.preview')"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
                     <div v-if="(file.type == 'file' && (file.ext === '.png'|| file.ext === '.jpg'|| file.ext === '.webp'|| file.ext === '.jpeg' ))" class="btn btn-dark me-1 mb-2 btn-sm" style="float: right;" @click="loadImage(file.path)" :title="$t('dashboard.preview')"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
@@ -107,28 +107,28 @@
             <input v-model="examtype" @click="getTestID()" value="eduvidual" class="form-check-input" type="radio" name="examtype" id="examtype3">
             <label class="form-check-label" for="examtype3"> {{$t('dashboard.eduvidual')}}  </label>
         </div>
-        <!-- office365 -->
+        <!-- microsoft365 -->
         <div class="form-check m-1 mb-3" :class="(exammode)? 'disabledexam':''">
-            <input v-model="examtype" value="office365" class="form-check-input" type="radio" name="examtype" id="examtype4">
+            <input v-model="examtype" value="microsoft365" class="form-check-input" type="radio" name="examtype" id="examtype4">
             <label class="form-check-label" for="examtype4"> Microsoft365 <span v-if="(config.accessToken)">({{$t('dashboard.connected')}})</span> </label>
             
-            <button v-if="(examtype === 'office365' && !config.accessToken)"  @click="openAuthWindow()" class="btn btn-sm btn-primary mt-1  ">
+            <button v-if="(examtype === 'microsoft365' && !config.accessToken)"  @click="openAuthWindow()" class="btn btn-sm btn-primary mt-1  ">
                 <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
                 <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Verbinden </span>
             </button>
 
-            <button v-if="(examtype === 'office365' && config.accessToken && !msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-info mt-1  ">
+            <button v-if="(examtype === 'microsoft365' && config.accessToken && !msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-info mt-1  ">
                 <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
                 <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Datei wählen </span>
             </button>
 
-            <button v-if="(examtype === 'office365' && config.accessToken && msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-success mt-1  " style=" white-space: nowrap;  width: 170px;overflow: hidden; text-overflow: ellipsis; ">
+            <button v-if="(examtype === 'microsoft365' && config.accessToken && msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-success mt-1  " style=" white-space: nowrap;  width: 170px;overflow: hidden; text-overflow: ellipsis; ">
                 <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
                 <span style="padding: 0 6px 0 4px; vertical-align:middle;">{{msOfficeFile.name}} </span>
             </button>
         </div>
         <!-- other options -->
-        <div class="form-check form-switch m-1 mb-2"  :class="(exammode || examtype === 'eduvidual'|| examtype === 'office365')? 'disabledexam':''">
+        <div class="form-check form-switch m-1 mb-2"  :class="(exammode || examtype === 'eduvidual'|| examtype === 'microsoft365')? 'disabledexam':''">
             <input v-model="delfolder" @click="delfolderquestion()" value="del" class="form-check-input" type="checkbox" name="delfolder" id="delfolder">
             <label class="form-check-label" for="delfolder"> {{$t('dashboard.del')}}  </label>
         </div>
@@ -155,9 +155,9 @@
         
         <!-- control buttons start -->        
         <div v-if="(exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="endExam()" >{{numberOfConnections}} {{$t('dashboard.stopexam')}}</div>
-        <div v-if="(!exammode)" @click="startExam()" :class="(examtype === 'office365' && (!config.accessToken || !msOfficeFile))? 'disabledgreen':''" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px; height:62px;">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
+        <div v-if="(!exammode)" @click="startExam()" :class="(examtype === 'microsoft365' && (!config.accessToken || !msOfficeFile))? 'disabledgreen':''" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px; height:62px;">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
      
-        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="sendFiles('all')" :class="(examtype === 'eduvidual' || examtype === 'office365' )? 'disabledblue':''"  style="width:100px; height:62px;">{{$t('dashboard.sendfile')}}</div>
+        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="sendFiles('all')" :class="(examtype === 'eduvidual' || examtype === 'microsoft365' )? 'disabledblue':''"  style="width:100px; height:62px;">{{$t('dashboard.sendfile')}}</div>
         <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="getFiles('all', true)" :class="(examtype === 'eduvidual')? 'disabledblue':''"  style="width:100px; height:62px;" >{{$t('dashboard.getfile')}}</div>
         <div class="col d-inlineblock btn btn-dark m-1 mt-0 text-start ms-0 " @click="loadFilelist(workdirectory)"  style="width: 100px;">{{$t('dashboard.showworkfolder')}} </div>
         <div  v-if="(screenslocked)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(false)"> <img src="/src/assets/img/svg/shield-lock-fill.svg" class="white mt-2" title="unlock" width="32" height="32" >   </div>
@@ -217,7 +217,7 @@ import $ from 'jquery'
 import axios from "axios"
 import FormData from 'form-data'
 import { VueDraggableNext } from 'vue-draggable-next'
-import { uploadselect, upload, uploadSingle, uploadAndShareFile, createSharingLink, fileExistsInAppFolder} from '../msalutils/onedrive'
+import { uploadselect, upload, uploadSingle, uploadAndShareFile, createSharingLink, fileExistsInAppFolder, downloadFilesFromOneDrive} from '../msalutils/onedrive'
 import { handleDragEndItem, handleMoveItem, sortStudentWidgets, initializeStudentwidgets} from '../utils/dragndrop'
 import {loadFilelist, print, getLatest, loadImage, loadPDF, dashboardExplorerSendFile, downloadFile, showWorkfolder, fdelete  } from '../utils/filemanager'
 
@@ -296,6 +296,7 @@ export default {
         uploadAndShareFile: uploadAndShareFile,
         createSharingLink: createSharingLink,
         fileExistsInAppFolder: fileExistsInAppFolder,
+        downloadFilesFromOneDrive: downloadFilesFromOneDrive,
 
 
         /**
@@ -345,7 +346,7 @@ export default {
                   
 
                         // if the chosen exam mode is OFFICE and everything is Setup already check if students already got their share link (re-connect, late-connect)
-                        if (this.examtype === "office365" && this.config.accessToken && this.msOfficeFile){
+                        if (this.examtype === "microsoft365" && this.config.accessToken && this.msOfficeFile){
                             if (!student.status.msofficeshare) {  // this one is late to the party
                                 console.log("this student has no sharing link yet")
                                 this.onedriveUploadSingle(student, this.msOfficeFile)   // trigger upload of this.msOfficeFile, create sharelink and set student.status.msofficeshare to sharelink
@@ -815,10 +816,19 @@ export default {
         getFiles(who, feedfack=false){
             this.checkDiscspace()
             if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); console.log("no clients connected"); return; }
-            axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/fetch/${this.servername}/${this.servertoken}/${who}`)  //who is either all or token
-            .then( async (response) => { if (feedfack){ this.visualfeedback(response.data.message, 2000) }else { this.status(response.data.message); } })  // we do not want intrusive feedback on automated tasks })
-            .catch( err => {console.log(err)});
+
+            if (this.examtype === "microsoft365"){ //fetch files from onedrive
+                this.downloadFilesFromOneDrive()
+                if (feedfack){ this.visualfeedback(this.$t("dashboard.examrequest"), 2000) }else { this.status(this.$t("dashboard.examrequest")); }
+            }
+            else { // fetch files from clients
+                axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/fetch/${this.servername}/${this.servertoken}/${who}`)  //who is either all or token
+                .then( async (response) => { if (feedfack){ this.visualfeedback(response.data.message, 2000) }else { this.status(response.data.message); } })  // we do not want intrusive feedback on automated tasks })
+                .catch( err => {console.log(err)});
+            }
         },
+
+
         // show status message
         async status(text){  
             $("#statusdiv").text(text)

@@ -461,7 +461,7 @@ for (let i = 0; i<4; i++ ){
 
 
 /**
- * SET cients SHARE LINK for office365 mode
+ * SET cients SHARE LINK for microsoft365 mode
  * @param servename the servers name
  * @param csrfservertoken the servers token to authenticate
  * @param studenttoken the students token who should be kicked

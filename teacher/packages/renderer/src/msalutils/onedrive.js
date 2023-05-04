@@ -1,7 +1,5 @@
 
 
-
-
 //upload file to authorized onedrive "next-exam" appfolder
 async function uploadselect() {
     this.$swal.fire({
@@ -77,7 +75,7 @@ async function upload(file){
             if (!sharingLink){return}
 
             // WRITE Share link to student info ojbect so it can be retrieved on the next student update 
-            // together with the new examtype office365 and directly load and secure the sharinglink
+            // together with the new examtype microsoft365 and directly load and secure the sharinglink
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/sharelink/${this.servername}/${this.servertoken}/${studenttoken}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },
@@ -115,7 +113,7 @@ async function uploadSingle(student,file){
         }
 
         // WRITE Share link to student info ojbect so it can be retrieved on the next student update 
-        // together with the new examtype office365 and directly load and secure the sharinglink
+        // together with the new examtype microsoft365 and directly load and secure the sharinglink
         fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/sharelink/${this.servername}/${this.servertoken}/${studenttoken}`, { 
             method: 'POST',
             headers: {'Content-Type': 'application/json' },
@@ -184,11 +182,11 @@ async function createSharingLink(fileId){
 }
 
 
-  /**
-         * checks if a given filename exists on onedrive
-         * @param {*} fileName usually the username.xlsx
-         */
-  async function fileExistsInAppFolder(fileName) {
+/**
+ * checks if a given filename exists on onedrive
+ * @param {*} fileName usually the username.xlsx
+ */
+async function fileExistsInAppFolder(fileName) {
     this.config = ipcRenderer.sendSync('getconfig')
 
     //get the specific exam subfolder ID
@@ -235,4 +233,58 @@ async function createSharingLink(fileId){
 
 
 
-export {uploadselect, upload, uploadSingle, uploadAndShareFile, createSharingLink, fileExistsInAppFolder}
+/**
+ *  Fetch all Files from Exam Directory and store them in student folders 
+ *  files are identified and distributen only via filename. equals student.clientname
+ */
+
+async function downloadFilesFromOneDrive() {
+
+    //get the specific exam subfolder ID
+    const folderID = await fetch(`https://graph.microsoft.com/v1.0/me/drive/special/approot/children?$filter=name eq '${this.servername}'`, {
+        method: 'GET',
+        headers: {
+        'Authorization': `Bearer ${this.config.accessToken}`,
+        'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then( data => { 
+        if (data.value && data.value.length > 0) {  return data.value[0].id;  } 
+        else { console.log('Folder not found'); return null; }
+     })
+    .catch(err => { console.warn(err) });
+
+    const appFolderEndpoint = `https://graph.microsoft.com/v1.0/me/drive/items/${folderID}/children`
+
+    // fetch all files from folder
+    await fetch(appFolderEndpoint, {
+        headers: {'Authorization': `Bearer ${this.config.accessToken}` },
+    })
+    .then(response => response.json())
+    .then( async data => { 
+        const files = data.value;
+        //console.log(files)
+        // save file for every student (this is done in the backend therefore we trigger an IPC)
+        for (let student of this.studentlist) {
+            for (let file of files) { // check if there is a file that equals the student name
+                if (file.name === `${student.clientname}.xlsx`){  
+                    ipcRenderer.send('storeOnedriveFiles', {studentName: student.clientname, fileName: file.name, fileID: file.id, accessToken: this.config.accessToken, servername: this.servername })
+                }
+            }
+        }
+        console.log('All files downloaded successfully');
+    })
+    .catch(err => { 
+        console.warn(err)
+    });
+  }
+
+
+
+
+
+
+
+
+export {uploadselect, upload, uploadSingle, uploadAndShareFile, createSharingLink, fileExistsInAppFolder, downloadFilesFromOneDrive}

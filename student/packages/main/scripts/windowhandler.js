@@ -95,7 +95,7 @@ class WindowHandler {
             show: false,
             x: display.bounds.x + 0,
             y: display.bounds.y + 0,
-            parent: this.mainwindow,
+            // parent: this.mainwindow,   // leads to visible titlebar in gnome-desktop
             skipTaskbar:true,
             title: 'Screenlock',
             width: display.bounds.width,
@@ -147,7 +147,7 @@ class WindowHandler {
      */
     async createExamWindow(examtype, token, serverstatus, primarydisplay) {
         // just to be sure we check some important vars here
-        if (examtype !== "eduvidual" && examtype !== "editor" && examtype !== "math" && examtype !== "office365" || !token){  // for now.. we probably should stop everything here
+        if (examtype !== "eduvidual" && examtype !== "editor" && examtype !== "math" && examtype !== "microsoft365" || !token){  // for now.. we probably should stop everything here
             console.log("missing parameters for exam-mode!")
             examtype = "editor" 
         } 
@@ -183,11 +183,11 @@ class WindowHandler {
             let url =`https://eduvidual.at/mod/${serverstatus.moodleTestType}/view.php?id=${serverstatus.testid}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287  
             this.examwindow.loadURL(url)
         }
-        else if (examtype === "office365"  ) { //external page
-            console.log("starting office365 exam...")
+        else if (examtype === "microsoft365"  ) { //external page
+            console.log("starting microsoft365 exam...")
             let url = this.multicastClient.clientinfo.msofficeshare   
             if (!url) {// we wait for the next update tick - msofficeshare needs to be set !
-                console.log("no url for office365 was set")
+                console.log("no url for microsoft365 was set")
                 console.log(this.multicastClient.clientinfo)
                 this.examwindow.destroy(); 
                 this.examwindow = null;
@@ -233,7 +233,7 @@ class WindowHandler {
             })
         }
 
-        if ( serverstatus.examtype === "office365"){  // do not under any circumstances allow navigation away from the editor
+        if ( serverstatus.examtype === "microsoft365"){  // do not under any circumstances allow navigation away from the editor
             this.examwindow.officeurl = false
             this.examwindow.webContents.on('will-navigate', (event, url) => {  // if a resource (pdf) is openend create an embed element and embed the pdf
                 if (!this.examwindow.officeurl ) { this.examwindow.officeurl = url }

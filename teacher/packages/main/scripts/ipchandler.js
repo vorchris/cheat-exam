@@ -22,6 +22,7 @@ import i18n from '../../renderer/src/locales/locales.js'
 const { t } = i18n.global
 import {  ipcMain } from 'electron'
 import checkDiskSpace from 'check-disk-space'
+import {join} from 'path'
 
 class IpcHandler {
     constructor () {
@@ -82,6 +83,48 @@ class IpcHandler {
                 event.returnValue = {workdir: config.workdirectory, message : 'canceled'}
             }
         })
+
+        ipcMain.on('storeOnedriveFiles', async (event, args) => {   
+            const studentName = args.studentName
+            const accessToken = args.accessToken
+            const fileName = args.fileName
+            const fileID = args.fileID
+            const servername = args.servername
+
+            // create user abgabe directory
+            let studentdirectory =  join(config.workdirectory, servername ,studentName)
+            if (!fs.existsSync(studentdirectory)){ fs.mkdirSync(studentdirectory, { recursive: true });  }
+
+            // create archive directory
+            let time = new Date(new Date().getTime()).toLocaleTimeString();  //convert to locale string otherwise the foldernames will be created in UTC
+            let tstring = String(time).replace(/:/g, "_");
+            let studentarchivedir = join(studentdirectory, tstring)
+            if (!fs.existsSync(studentarchivedir)){ fs.mkdirSync(studentarchivedir, { recursive: true }); }
+
+            const fileResponse = await fetch(`https://graph.microsoft.com/v1.0/me/drive/items/${fileID}/content`, {
+                headers: {'Authorization': `Bearer ${accessToken}`,  },
+            });
+            const fileBuffer = await fileResponse.arrayBuffer();
+            fs.writeFileSync(join(studentarchivedir, fileName), Buffer.from(fileBuffer));
+
+            
+           
+            const pdfFileResponse = await fetch(`https://graph.microsoft.com/v1.0/me/drive/items/${fileID}/content?format=pdf`, {
+                headers: {'Authorization': `Bearer ${accessToken}`,  },
+            });
+
+            if (pdfFileResponse.ok) {
+                const pdfFileBuffer = await pdfFileResponse.arrayBuffer();
+                const pdfFilePath = join(studentarchivedir, `${fileName}.pdf`);
+                fs.writeFileSync(pdfFilePath, Buffer.from(pdfFileBuffer));
+            }
+
+
+            console.log(`Downloaded ${fileName} and ${fileName}.pdf`);
+        })
+
+
+
     }
 
 
