@@ -171,6 +171,44 @@ class IpcHandler {
         })
 
 
+        /**
+         * Store content from Geogebra as ggb file - as backup 
+         * @param args contains an object with  { filename:`${this.clientname}.ggb`, content: base64 }
+         */
+        ipcMain.on('saveGGB', (event, args) => {   
+            const content = args.content
+            const filename = args.filename
+            const ggbFilePath = path.join(this.config.workdirectory, filename);
+            if (content) { 
+                console.log("saving students work to disk...")
+                const fileData = Buffer.from(content, 'base64');
+                fs.writeFileSync(ggbFilePath, fileData);
+                event.returnValue = { sender: "client", message:t("data.filestored") , status:"success" }
+            }
+        })
+
+
+
+        /**
+         * load content from ggb file and send it to the frontend 
+         * @param args contains an object { filename:`${this.clientname}.ggb` }
+         */
+        ipcMain.on('loadGGB', (event, filename) => {   
+           
+            const ggbFilePath = path.join(this.config.workdirectory, filename);
+
+            try {
+                // Read the file and convert it to base64
+                const fileData = fs.readFileSync(ggbFilePath);
+                const base64GgbFile = fileData.toString('base64');
+                event.returnValue = { sender: "client", content:base64GgbFile, status:"success" }
+            } 
+            catch (error) {
+                event.returnValue = { sender: "client", content: false , status:"error" }
+            }     
+        })
+
+
 
 
 
@@ -186,7 +224,6 @@ class IpcHandler {
                 event.returnValue = data
             }
         })
-
 
 
         /**
@@ -205,15 +242,15 @@ class IpcHandler {
                 let filelist =  fs.readdirSync(workdir, { withFileTypes: true })
                     .filter(dirent => dirent.isFile())
                     .map(dirent => dirent.name)
-                    .filter( file => path.extname(file).toLowerCase() === ".pdf" || path.extname(file).toLowerCase() === ".bak" || path.extname(file).toLowerCase() === ".mtml")
+                    .filter( file => path.extname(file).toLowerCase() === ".pdf" || path.extname(file).toLowerCase() === ".bak" || path.extname(file).toLowerCase() === ".ggb")
                 
                 let files = []
                 filelist.forEach( file => {
                     let modified = fs.statSync(   path.join(workdir,file)  ).mtime
                     let mod = modified.getTime()
-                    if  (path.extname(file).toLowerCase() === ".pdf"){ files.push( {name: file, type: "pdf", mod: mod})   }
-                    else if  (path.extname(file).toLowerCase() === ".bak"){ files.push( {name: file, type: "bak", mod: mod})   }
-                    else if  (path.extname(file).toLowerCase() === ".mtml"){ files.push( {name: file, type: "mtml", mod: mod})   }  // imaginary multiple choice testformat from the future
+                    if  (path.extname(file).toLowerCase() === ".pdf"){ files.push( {name: file, type: "pdf", mod: mod})   }         //pdf
+                    else if  (path.extname(file).toLowerCase() === ".bak"){ files.push( {name: file, type: "bak", mod: mod})   }   // editor backup
+                    else if  (path.extname(file).toLowerCase() === ".ggb"){ files.push( {name: file, type: "ggb", mod: mod})   }  // gogebra
                     
                 })
                 this.multicastClient.clientinfo.numberOfFiles = filelist.length
