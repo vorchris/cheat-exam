@@ -24,6 +24,9 @@
         "productName": "Next-Exam-Teacher",
         "appId": "com.nextexam-teacher.app",
         "asar": true,
+        "asarUnpack": [
+            "public"
+        ],
         "afterSign": "scripts/notarize.cjs",
         "directories": {
             "output": "../release/${version}"

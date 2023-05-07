@@ -33,7 +33,7 @@ forge.options.usePureJavaScript = true;
 import defaultGateway from'default-gateway';
 import multicastClient from '../../main/scripts/multicastclient.js'
 import cookieParser from 'cookie-parser'
-
+import { app } from 'electron'
 
 
 config.workdirectory = path.join(os.homedir(), config.examdirectory)  //Attention! In Electron this makes sense. the WEBserver version will most likely need another Workdirectory
@@ -67,12 +67,20 @@ const limiter = rateLimit({
 // clean temp directory
 fsExtra.emptyDirSync(config.tempdirectory)
 
-// copy dictionary files to /tmp/dicts (served via static for students)
-fsExtra.copy('public/', `${config.tempdirectory}/`, function (err) {
-    if (err) return console.error(err)
-    console.log('success!')
+// Legen Sie den Pfad zur `public/`-Ressource basierend auf dem Modus fest.
+const publicPath = app.isPackaged
+  ? path.join(process.resourcesPath,'app.asar.unpacked', 'public')
+  : path.join('public');
+
+// Kopieren Sie den Inhalt von `public/` in das `config.tempdirectory`.
+fsExtra.copy(publicPath, `${config.tempdirectory}/`, function (err) {
+  if (err) return console.error(err);
+  console.log('success!');
 });
-  
+
+
+
+
 
 
 // init express API
