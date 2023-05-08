@@ -1,7 +1,7 @@
 
 /**
  * @license GPL LICENSE
- * Copyright (c) 2021-2022 Thomas Michael Weissel
+ * Copyright (c) 2021-2023 Thomas Michael Weissel
  * 
  * This program is free software: you can redistribute it and/or modify it 
  * under the terms of the GNU General Public License as published by the Free Software Foundation,
@@ -19,7 +19,7 @@
 import { Router } from 'express'
 const router = Router()
 import path  from 'path'
-import config from '../../config.js'
+import config from '../../../../main/config.js'
 import fs from 'fs' 
 import extract from 'extract-zip'
 import i18n from '../../../../renderer/src/locales/locales.js'
@@ -68,6 +68,8 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
     const token = req.params.token
     const servername = req.params.servername
     const mcServer = config.examServerList[servername] // get the multicastserver object
+    let warning = false
+
     if ( token !== mcServer.serverinfo.servertoken ) { return res.json({ status: t("data.tokennotvalid") }) }
     
     let dir =  path.join( config.workdirectory, mcServer.serverinfo.servername);
@@ -82,8 +84,7 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
     }, []);
     console.log(studentfolders)
 
-    // get latest directory of every student (add to array) ATTENTION: this only works with the current file/folder name scheme 
-    // DO NOT CHANGE /Clientname/11:02:23 - or better get real filedate and make it more robust
+    // get latest directory of every student (add to array)
     let latestfolders = []
     for (let studentdir of studentfolders) {
         let latest = {path:"00_00_00", time:"1000000000000"}  // we need this for reference
@@ -92,14 +93,24 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
             if (fs.statSync(filepath).isDirectory()) {
                 let filetime = fs.statSync(filepath).mtime.getTime()
                 if ( !file.includes("focus") ){
-                    if (filetime > latest.time ) { 
+                    if (filetime > latest.time ) { // this cycles over all found student directories (16_50_01, 16_50_23, 16_50_44, ..) and compares filedates - returns only the newest directory
                         latest.time = filetime
                         latest.path = file
                     }
                 }
             }
         }, []);
-        if (latest.time === "1000000000000") {continue}
+        if (latest.time === "1000000000000") {continue} 
+
+        //check if the newest directory is older than 5 minutes..  warn the teacher!
+        const now = Date.now(); // Current time in milliseconds since the UNIX epoch
+        const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
+        if (now - latest.time > fiveMinutes) {
+            warning = true
+            console.log('The file is older than 5 minutes.');
+        } 
+  
+
         const filepath = path.join(studentdir.path, latest.path);
         latestfolders.push( { path: filepath, parent : studentdir.name })  // we store studentdir.name here because in the next step we need to make sure only the main.pdf (studentsname) is used
     }
@@ -112,22 +123,24 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
             const filepath = path.join(folder.path, file);
             if(fs.statSync(filepath).isFile() ){
                 let ext = path.extname(file).toLowerCase()
-                if (ext === ".pdf" && file === `${folder.parent}.pdf`){  // folder.name contains the studentfolder (and main file) name
-                    files.push(filepath)
+                if (ext === ".pdf" && (file === `${folder.parent}.pdf` || file.includes(folder.parent))){  // folder.parent contains the studentfolder (and main file) name
+                    files.push(filepath)   // we also allow files here that aren't exactly what we want but close (backup plan just in case saving files didn't work for the student and we needed to chose a different name)
                 } 
             }
         }, []);
     }
-    //console.log(files)
-
     // now create one merged pdf out of all files
     if (files.length === 0) {
-        return res.send()
+        return res.json({warning: warning, pdfBuffer: null})
     }
     else {
         let PDF = await concatPages(files)
-        res.set('Content-Type', 'application/pdf');
-        return res.send( Buffer.from(PDF) )
+        let pdfBuffer = Buffer.from(PDF) 
+          
+        return res.json({warning: warning, pdfBuffer:pdfBuffer });
+
+        //res.set('Content-Type', 'application/pdf');
+        //return res.send( Buffer.from(PDF) )
     }
 })
 
@@ -334,7 +347,6 @@ router.post('/upload/:servername/:servertoken/:studenttoken', async (req, res, n
     if (!fs.existsSync(uploaddirectory)){ fs.mkdirSync(uploaddirectory, { recursive: true });  }
 
 
-
     if (req.files){
         let filesArray = []  // depending on the number of files this comes as array of objects or object
         if (!Array.isArray(req.files.files)){ filesArray.push(req.files.files)}
@@ -343,11 +355,12 @@ router.post('/upload/:servername/:servertoken/:studenttoken', async (req, res, n
         let files = []        
     
         for await (let file of  filesArray) {
-            let absoluteFilepath = path.join(uploaddirectory, file.name);
+            let filename = decodeURIComponent(file.name)  //encode to prevent non-ascii chars weirdness
+            let absoluteFilepath = path.join(uploaddirectory, filename);
             await file.mv(absoluteFilepath, (err) => {  
                 if (err) { console.log( t("data.couldnotstore") ) }
             }); 
-            files.push({ name:file.name , path:absoluteFilepath });
+            files.push({ name:filename , path:absoluteFilepath });
         }
 
        

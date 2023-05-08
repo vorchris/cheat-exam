@@ -1,7 +1,7 @@
-import pjson from "../../../package.json"
+import pjson from "../../package.json"
 
 const config = {
-    development: false,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
+    development: true,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
     showdevtools: false,
     buildforWEB: false,
 
@@ -19,5 +19,6 @@ const config = {
     multicastServerAdrr: '239.255.255.250',
     hostip: "0.0.0.0",
     examServerList: {},
+    accessToken: false
 }
 export default config

@@ -20,12 +20,13 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow, powerSaveBlocker, nativeTheme} from 'electron'
+import { app, BrowserWindow, powerSaveBlocker, nativeTheme, globalShortcut} from 'electron'
 import { release } from 'os'
 import { disableRestrictions} from './scripts/platformrestrictions.js';
 import WindowHandler from './scripts/windowhandler.js'
 import CommHandler from './scripts/communicationhandler.js'
 import IpcHandler from './scripts/ipchandler.js'
+import preventSleep from 'node-prevent-sleep';
 import config from './config.js';
 import multicastClient from './scripts/multicastclient.js'
 import defaultGateway from'default-gateway';
@@ -57,8 +58,6 @@ try { //bind to the correct interface
  }
 
 app.commandLine.appendSwitch('lang', 'de')
-
-
 fsExtra.emptyDirSync(config.tempdirectory)  // clean temp directory
 
 WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow
@@ -79,7 +78,6 @@ if (process.platform ==='darwin') {  app.dock.hide() }  // safer fullscreen
 
 
 // hide certificate warnings in console.. we know we use a self signed cert and do not validate it
-
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
 const originalEmitWarning = process.emitWarning
 process.emitWarning = (warning, options) => {
@@ -87,11 +85,17 @@ process.emitWarning = (warning, options) => {
     return originalEmitWarning.call(process, warning, options)
 }
 
+app.on('certificate-error', (event, webContents, url, error, certificate, callback) => { // SSL/TSL: this is the self signed certificate support
+    event.preventDefault(); // On certificate error we disable default behaviour (stop loading the page)
+    callback(true);  // and we then say "it is all fine - true" to the callback
+});
+
 app.on('window-all-closed', () => {  // if window is closed
     clearInterval( CommHandler.updateStudentIntervall )
     disableRestrictions()
     WindowHandler.mainwindow = null
-    if (process.platform !== 'darwin') app.quit()
+    // if (process.platform !== 'darwin'){ app.quit() }
+    app.quit()
 })
 
 app.on('second-instance', () => {
@@ -112,7 +116,14 @@ app.whenReady()
     nativeTheme.themeSource = 'light'
     if (config.hostip) { multicastClient.init() }
     powerSaveBlocker.start('prevent-display-sleep')
+    if (process.platform === 'win32') {preventSleep.enable();}
     WindowHandler.createMainWindow()
+    globalShortcut.register('CommandOrControl+R', () => {});
+    globalShortcut.register('F5', () => {});
+    globalShortcut.register('CommandOrControl+Shift+R', () => {});
+    globalShortcut.register('Alt+F4', () => {console.log("Alt+F4")});
+    globalShortcut.register('CommandOrControl+W', () => {});
+    globalShortcut.register('CommandOrControl+Q', () => {});
 })
 
   ////////////////////////////////

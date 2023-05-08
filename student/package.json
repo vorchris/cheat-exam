@@ -1,26 +1,27 @@
 {
     "name": "next-exam-student",
-    "version": "0.8.0",
+    "version": "0.8.99",
     "main": "dist/main/main.cjs",
     "author": {
         "name": "Thomas Michael Weissel",
         "email": "valueerror@gmail.com",
-        "url": "https://life-edu.eu"
+        "url": "https://next-exam.at"
     },
-    "homepage": "https://life-edu.eu",
+    "homepage": "https://next-exam.at",
     "license": "GPL-3.0",
     "description": "An exam managment tool for digital exams",
     "type": "module",
     "scripts": {
         "dev": "node scripts/watch.mjs",
         "build": "node scripts/build.mjs && electron-builder -l",
-        "build:mac": "node scripts/build.mjs && electron-builder -m -c.mac.identity=null",
+        "build:mac": "node scripts/build.mjs && electron-builder -m",
         "build:win": "node scripts/build.mjs && electron-builder -w"
     },
     "build": {
         "productName": "Next-Exam-Student",
         "appId": "com.nextexam-student.app",
         "asar": true,
+        "afterSign": "scripts/notarize.cjs",
         "asarUnpack": [
             "node_modules/screenshot-desktop/lib/win32",
             "public"
@@ -41,12 +42,20 @@
         "mac": {
             "icon": "public/icons/icon.png",
             "artifactName": "${productName}_${version}_${arch}.${ext}",
+            "hardenedRuntime": true,
+            "gatekeeperAssess": false,
+            "entitlements": "entitlements.mac.plist",
+            "entitlementsInherit": "entitlements.mac.plist",
+            "category": "public.app-category.utilities",
             "target": {
                 "target": "dmg",
                 "arch": [
                     "universal"
                 ]
             }
+        },
+        "dmg": {
+            "sign": "true"
         },
         "portable": {
             "unpackDirName": true
@@ -72,8 +81,9 @@
         "@types/jquery": "^3.5.14",
         "@types/screenshot-desktop": "^1.12.0",
         "@vitejs/plugin-vue": "^2.1.0",
-        "electron": "^21.1.0",
-        "electron-builder": "^22.14.5",
+        "electron": "^24.1.2",
+        "electron-builder": "^24.2.1",
+        "electron-notarize": "^1.2.2",
         "nodemon": "^2.0.15",
         "typescript": "^4.5.5",
         "vite": "^2.7.13",
@@ -97,6 +107,7 @@
         "@tiptap/extension-character-count": "^2.0.0-beta.26",
         "@tiptap/extension-code": "^2.0.0-beta.26",
         "@tiptap/extension-code-block-lowlight": "^2.0.0-beta.68",
+        "@tiptap/extension-color": "^2.0.0-beta.220",
         "@tiptap/extension-document": "^2.0.0-beta.15",
         "@tiptap/extension-dropcursor": "^2.0.0-beta.25",
         "@tiptap/extension-gapcursor": "^2.0.0-beta.34",
@@ -117,6 +128,7 @@
         "@tiptap/extension-table-row": "^2.0.0-beta.202",
         "@tiptap/extension-text": "^2.0.0-beta.15",
         "@tiptap/extension-text-align": "^2.0.0-beta.29",
+        "@tiptap/extension-text-style": "^2.0.0-beta.220",
         "@tiptap/extension-typography": "^2.0.0-beta.199",
         "@tiptap/extension-underline": "^2.0.0-beta.23",
         "@tiptap/vue-3": "^2.0.0-beta.90",
@@ -133,6 +145,8 @@
         "lowlight": "^2.5.0",
         "node-forge": "^1.3.1",
         "node-notifier": "^10.0.1",
+        "node-prevent-sleep": "^0.0.4",
+        "play-sound": "^1.1.5",
         "sass": "^1.49.9",
         "screenshot-desktop": "^1.12.7",
         "validator": "^13.7.0",

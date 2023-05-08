@@ -6,6 +6,7 @@ import i18n from '../../renderer/src/locales/locales.js'
 const { t } = i18n.global
 import {  ipcMain } from 'electron'
 import defaultGateway from'default-gateway';
+import os from 'os'
 
   ////////////////////////////////
  // IPC handling (Backend) START
@@ -72,7 +73,7 @@ class IpcHandler {
                 var options = {
                     margins: {top:0.5, right:0.5, bottom:0.5, left:0.5 },
                     pageSize: 'A4',
-                    printBackground: true,
+                    printBackground: false,
                     printSelectionOnly: false,
                     landscape: args.landscape,
                     displayHeaderFooter:true,
@@ -83,7 +84,17 @@ class IpcHandler {
 
                 const pdffilepath = path.join(this.config.workdirectory, args.filename);
                 this.WindowHandler.examwindow.webContents.printToPDF(options).then(data => {
-                    fs.writeFile(pdffilepath, data, function (err) { if (err) {console.log(err); }  } );
+                    fs.writeFile(pdffilepath, data, (err) => { 
+                        if (err) {
+                            console.log(err.message); 
+                            if (err.message.includes("permission denied")){
+                                console.log("writing under different name")
+                                let alternatepath = `${pdffilepath}-${this.multicastClient.clientinfo.token}.pdf`
+                                fs.writeFile(alternatepath, data, function (err) { if (err) { console.log(err.message); console.log("giving up"); }  } ); 
+                            }
+                        
+                        }  
+                    } ); 
                 }).catch(error => { console.log(error)});
             }
         })
@@ -110,14 +121,15 @@ class IpcHandler {
             const serverip = args.serverip
             const servername = args.servername
             const clientip = ip.address()
+            const hostname = os.hostname()
             const version = this.config.version
 
-            if (this.multicastClient.clientinfo.token){
+            if (this.multicastClient.clientinfo.token){ //#FIXME das sollte eigentlich vom server kommen 
                 event.returnValue = { sender: "client", message: t("control.alreadyregistered"), status:"error" }
             }
         
             axios({ method:'get', 
-                    url:`https://${serverip}:${this.config.serverApiPort}/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}/${version}`,
+                    url:`https://${serverip}:${this.config.serverApiPort}/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}/${hostname}/${version}`,
                     timeout: 8000})
             .then(response => {
                 if (response.data && response.data.status == "success") { // registration successfull otherwise data would be "false"
@@ -125,6 +137,7 @@ class IpcHandler {
                     this.multicastClient.clientinfo.serverip = serverip
                     this.multicastClient.clientinfo.servername = servername
                     this.multicastClient.clientinfo.ip = clientip
+                    this.multicastClient.clientinfo.hostname = hostname
                     this.multicastClient.clientinfo.token = response.data.token // we need to store the client token in order to check against it before processing critical api calls
                     this.multicastClient.clientinfo.focus = true
                     this.multicastClient.clientinfo.pin = pin
@@ -158,6 +171,44 @@ class IpcHandler {
         })
 
 
+        /**
+         * Store content from Geogebra as ggb file - as backup 
+         * @param args contains an object with  { filename:`${this.clientname}.ggb`, content: base64 }
+         */
+        ipcMain.on('saveGGB', (event, args) => {   
+            const content = args.content
+            const filename = args.filename
+            const ggbFilePath = path.join(this.config.workdirectory, filename);
+            if (content) { 
+                console.log("saving students work to disk...")
+                const fileData = Buffer.from(content, 'base64');
+                fs.writeFileSync(ggbFilePath, fileData);
+                event.returnValue = { sender: "client", message:t("data.filestored") , status:"success" }
+            }
+        })
+
+
+
+        /**
+         * load content from ggb file and send it to the frontend 
+         * @param args contains an object { filename:`${this.clientname}.ggb` }
+         */
+        ipcMain.on('loadGGB', (event, filename) => {   
+           
+            const ggbFilePath = path.join(this.config.workdirectory, filename);
+
+            try {
+                // Read the file and convert it to base64
+                const fileData = fs.readFileSync(ggbFilePath);
+                const base64GgbFile = fileData.toString('base64');
+                event.returnValue = { sender: "client", content:base64GgbFile, status:"success" }
+            } 
+            catch (error) {
+                event.returnValue = { sender: "client", content: false , status:"error" }
+            }     
+        })
+
+
 
 
 
@@ -173,7 +224,6 @@ class IpcHandler {
                 event.returnValue = data
             }
         })
-
 
 
         /**
@@ -192,15 +242,15 @@ class IpcHandler {
                 let filelist =  fs.readdirSync(workdir, { withFileTypes: true })
                     .filter(dirent => dirent.isFile())
                     .map(dirent => dirent.name)
-                    .filter( file => path.extname(file).toLowerCase() === ".pdf" || path.extname(file).toLowerCase() === ".bak" || path.extname(file).toLowerCase() === ".mtml")
+                    .filter( file => path.extname(file).toLowerCase() === ".pdf" || path.extname(file).toLowerCase() === ".bak" || path.extname(file).toLowerCase() === ".ggb")
                 
                 let files = []
                 filelist.forEach( file => {
                     let modified = fs.statSync(   path.join(workdir,file)  ).mtime
                     let mod = modified.getTime()
-                    if  (path.extname(file).toLowerCase() === ".pdf"){ files.push( {name: file, type: "pdf", mod: mod})   }
-                    else if  (path.extname(file).toLowerCase() === ".bak"){ files.push( {name: file, type: "bak", mod: mod})   }
-                    else if  (path.extname(file).toLowerCase() === ".mtml"){ files.push( {name: file, type: "mtml", mod: mod})   }  // imaginary multiple choice testformat from the future
+                    if  (path.extname(file).toLowerCase() === ".pdf"){ files.push( {name: file, type: "pdf", mod: mod})   }         //pdf
+                    else if  (path.extname(file).toLowerCase() === ".bak"){ files.push( {name: file, type: "bak", mod: mod})   }   // editor backup
+                    else if  (path.extname(file).toLowerCase() === ".ggb"){ files.push( {name: file, type: "ggb", mod: mod})   }  // gogebra
                     
                 })
                 this.multicastClient.clientinfo.numberOfFiles = filelist.length

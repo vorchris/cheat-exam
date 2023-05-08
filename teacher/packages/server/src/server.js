@@ -1,6 +1,6 @@
 /**
  * @license GPL LICENSE
- * Copyright (c) 2021-2022 Thomas Michael Weissel
+ * Copyright (c) 2021-2023 Thomas Michael Weissel
  * 
  * This program is free software: you can redistribute it and/or modify it 
  * under the terms of the GNU General Public License as published by the Free Software Foundation,
@@ -20,7 +20,7 @@ import https from 'https'
 import cors from 'cors'
 import fileUpload from "express-fileupload";
 import {serverRouter} from './routes/serverroutes.js' 
-import config from './config.js';
+import config from '../../main/config.js';
 import fsExtra from "fs-extra"
 import path from 'path'
 import rateLimit  from 'express-rate-limit'  //simple ddos protection
@@ -31,7 +31,9 @@ import os from 'os'
 import forge from 'node-forge'
 forge.options.usePureJavaScript = true; 
 import defaultGateway from'default-gateway';
-import multicastClient from './classes/multicastclient.js'
+import multicastClient from '../../main/scripts/multicastclient.js'
+import cookieParser from 'cookie-parser'
+import { app } from 'electron'
 
 
 config.workdirectory = path.join(os.homedir(), config.examdirectory)  //Attention! In Electron this makes sense. the WEBserver version will most likely need another Workdirectory
@@ -65,12 +67,19 @@ const limiter = rateLimit({
 // clean temp directory
 fsExtra.emptyDirSync(config.tempdirectory)
 
-// copy dictionary files to /tmp/dicts (served via static for students)
-fsExtra.copy('public/dicts', `${config.tempdirectory}/dicts`, function (err) {
-    if (err) return console.error(err)
-    console.log('success!')
+// Legen Sie den Pfad zur `public/`-Ressource basierend auf dem Modus fest.
+const publicPath = app.isPackaged
+  ? path.join(process.resourcesPath,'app.asar.unpacked', 'public')
+  : path.join('public');
+
+// Kopieren Sie den Inhalt von `public/` in das `config.tempdirectory`.
+fsExtra.copy(publicPath, `${config.tempdirectory}/`, function (err) {
+  if (err) return console.error(err);
+  console.log('success!');
 });
-  
+
+
+
 
 
 
@@ -80,10 +89,11 @@ api.use(zip())
 api.use(fileUpload())  //When you upload a file, the file will be accessible from req.files (init before routes)
 api.use(cors())
 api.use(express.json())
-api.use(express.static(config.tempdirectory));
+api.use("/static",express.static(config.tempdirectory));
 api.use(express.urlencoded({extended: true}));
 //api.use(limiter)  //disabled for now because this need a lot of testing to find good parameter
 api.use('/server', serverRouter)
+api.use(cookieParser());
 
 
 let certs = createCACert()  // we can not use self signed certs for web (fallback to let's encrypt!)

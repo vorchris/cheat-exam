@@ -1,6 +1,6 @@
 /**
  * @license GPL LICENSE
- * Copyright (c) 2021-2022 Thomas Michael Weissel
+ * Copyright (c) 2021-2023 Thomas Michael Weissel
  * 
  * This program is free software: you can redistribute it and/or modify it 
  * under the terms of the GNU General Public License as published by the Free Software Foundation,
@@ -17,22 +17,126 @@
 
 import { Router } from 'express'
 const router = Router()
-import multiCastserver from '../../classes/multicastserver.js'
-import multiCastclient from '../../classes/multicastclient.js'
+import multiCastserver from '../../../../main/scripts/multicastserver.js'
+import multiCastclient from '../../../../main/scripts/multicastclient.js'
 import crypto from 'crypto';
-import config from '../../config.js'
+import config from '../../../../main/config.js'
 import path from 'path'
 import i18n from '../../../../renderer/src/locales/locales.js'
 const { t } = i18n.global
 import fs from 'fs' 
+import qs from 'qs'
+import axios from "axios"
+import { msalConfig } from '../../../../renderer/src/msalutils/authConfig'
+
+
 
 
 /**
- * GET the server config.js 
+ * GET the server config.js  // this is currently not in use (probably in router.js in the future if we move from electron to pure web)
  */
- router.get('/getconfig', function (req, res, next) {
-    res.send({config:config, status: "success"})
+ router.post('/getconfig/:servername/:csrfservertoken', function (req, res, next) {
+    const servername = req.params.servername
+    const mcServer = config.examServerList[servername]
+
+    if (mcServer && req.params.csrfservertoken === mcServer.serverinfo.servertoken) {
+        const clonedObject = copyConfig(config); 
+        res.send({config:clonedObject, status: "success"})
+    }
 })
+
+
+
+/**
+ * this route generates the nessesary codeVerifier and codeChallenge für PKCE 
+ * authorization flow for the microsoft onedrive graph API
+ * it receives a code and then redirects to /msauth which will aquire an
+ * accesstoken
+ */
+  
+router.get('/oauth', (req, res) => {
+    const codeVerifier = generateCodeVerifier();
+    const codeChallenge = base64UrlEncode(sha256(Buffer.from(codeVerifier, 'utf-8')));
+    res.cookie('codeVerifier', codeVerifier, { httpOnly: true });
+    config.codeVerifier = codeVerifier
+
+    const authUrlParams = {
+        client_id: msalConfig.auth.clientId,
+        response_type: 'code',
+        redirect_uri: msalConfig.auth.redirectUri,
+        response_mode: 'query',
+        scope: 'openid profile offline_access Files.ReadWrite.AppFolder',
+        state: '12345',
+        code_challenge: codeChallenge,
+        code_challenge_method: 'S256',
+    };
+    const authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${qs.stringify(authUrlParams)}`;
+    res.redirect(authUrl);
+});
+  
+/**
+ * this uses the code from /oauth route together with the client_id to receive
+ * an accessToken for the microsoft ondrive API
+ * the token is stored on the global config object and can be requested via /getconfig or ipcRenderer 'getconfig
+ */
+router.get('/msauth', async (req, res) => {
+    const code = req.query.code;
+    const codeVerifier =  config.codeVerifier;
+    try {
+        const response = await axios.post('https://login.microsoftonline.com/common/oauth2/v2.0/token', qs.stringify({
+            client_id: msalConfig.auth.clientId,
+            grant_type: 'authorization_code',
+            scope: 'openid profile offline_access Files.ReadWrite.AppFolder ',
+            code,
+            redirect_uri: msalConfig.auth.redirectUri,
+            code_verifier: codeVerifier,
+            }), {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Origin': 'https://localhost',
+            },
+        });
+
+        config.accessToken = response.data.access_token     // we received the access token - store it on global config object
+
+        let html = `
+        <!DOCTYPE html>
+        <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Custom Button</title>
+                <link rel="stylesheet" href="/static/css/staticstyles.css">
+                <script>
+                function closeWindowAfterFourSeconds() { setTimeout(function() { window.close(); }, 4000); }
+                </script>
+            </head>
+            <body onload="closeWindowAfterFourSeconds()"><br>
+                <h3>Login OK!</h3> <br>
+            </body>
+        </html>`
+        res.send(html);
+    } catch (error) {
+        console.error(error.response.data);
+        let html = `
+        <!DOCTYPE html>
+        <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Custom Button</title>
+                <link rel="stylesheet" href="/static/css/staticstyles.css">
+            </head>
+            <body><br>
+                <h4>${error.response.data.error_description}</h4> <br>
+                Please restart the Application <br>
+                <button onclick="window.close()" class="custom-btn custom-btn-danger">Close Window</button>
+            </body>
+        </html>`
+        res.status(500).send(html);
+    }
+  });
+
 
 
 
@@ -154,6 +258,32 @@ router.get('/serverlist', function (req, res, next) {
 
 
 
+
+
+let democlients = []
+for (let i = 0; i<4; i++ ){
+    let democlient = {
+        clientname: `user-${ crypto.randomBytes(6).toString('hex')  }`,
+        token: `csrf-${crypto.randomUUID()}`,
+        ip: false,
+        hostname: false,
+        serverip: false,
+        servername: false,
+        focus: true,
+        exammode: false,
+        timestamp: new Date().getTime() ,
+        virtualized: true,  // this config setting is set by simplevmdetect.js (electron preload)
+        examtype : false,
+        pin: false,
+        screenlock: false,
+        imageurl:"user-black.svg",
+        status : {} 
+    }
+    democlients.push(democlient)
+}
+
+
+
 /**
  *  sends a list of all connected students { clientname: clientname, token: token, clientip: clientip }
  * @param servername the name of the exam server in question
@@ -162,6 +292,11 @@ router.get('/serverlist', function (req, res, next) {
  router.get('/studentlist/:servername/:csrfservertoken', function (req, res, next) {
     const servername = req.params.servername
     const mcServer = config.examServerList[servername]
+
+        //demo users start
+       //for (let i = 0; i<democlients.length; i++ ){ democlients[i].timestamp= new Date().getTime()  }
+      // mcServer.studentList = democlients
+        //demo users end
 
     if (mcServer && req.params.csrfservertoken === mcServer.serverinfo.servertoken) {
         res.send({studentlist: mcServer.studentList})
@@ -180,7 +315,7 @@ router.get('/serverlist', function (req, res, next) {
  *  @param clientname the name of the student
  *  @param clientip the clients ip address for api calls
  */
- router.get('/registerclient/:servername/:pin/:clientname/:clientip/:version', function (req, res, next) {
+ router.get('/registerclient/:servername/:pin/:clientname/:clientip/:hostname/:version', function (req, res, next) {
     const clientname = req.params.clientname
     const clientip = req.params.clientip
     const pin = req.params.pin
@@ -188,9 +323,17 @@ router.get('/serverlist', function (req, res, next) {
     const servername = req.params.servername
     const token = `csrf-${crypto.randomUUID()}`
     const mcServer = config.examServerList[servername] // get the multicastserver object
-    
+    const hostname = req.params.hostname
+
+    // this needs to change once we reached v1.0 (featurefreeze for stable version)
+    let vteacher = config.version.split('.').slice(0, 2),
+    versionteacher = vteacher.join('.'); 
+    let vstudent = version.split('.').slice(0, 2),
+    versionstudent = vstudent.join('.'); 
+
+  
     if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
-    if (version !== config.version ) {  return res.send({sender: "server", message:t("control.versionmismatch"), status: "error"} )  }  
+    if (versionteacher !== versionstudent ) {  return res.send({sender: "server", message:t("control.versionmismatch"), status: "error"} )  }  
     if (pin === mcServer.serverinfo.pin) {
         let registeredClient = mcServer.studentList.find(element => element.clientname === clientname)
 
@@ -198,6 +341,7 @@ router.get('/serverlist', function (req, res, next) {
             console.log('adding new client')
             const client = {    // we have a different representation of the clientobject on the server than on the client - why exactly? we could just send the whole client object via POST (as we already do in /update route )
                 clientname: clientname,
+                hostname: hostname,
                 token: token,
                 clientip: clientip,
                 timestamp: new Date().getTime(),
@@ -262,7 +406,6 @@ router.get('/serverlist', function (req, res, next) {
     const mcServer = config.examServerList[servername]
     const files = req.body.files   //  { files:[ {name:file.name, path:file.path }, {name:file.name, path:file.path } ] }
    
-
     if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {  //first check if csrf token is valid and server is allowed to trigger this api request
         if (studenttoken === "all"){
             for (let student of mcServer.studentList){ 
@@ -313,6 +456,57 @@ router.get('/serverlist', function (req, res, next) {
         res.send( {sender: "server", message: t("control.actiondenied"), status: "error"} )
     }
 })
+
+
+
+
+/**
+ * SET cients SHARE LINK for microsoft365 mode
+ * @param servename the servers name
+ * @param csrfservertoken the servers token to authenticate
+ * @param studenttoken the students token who should be kicked
+ */
+router.post('/sharelink/:servername/:csrfservertoken/:studenttoken', function (req, res, next) {
+    const servername = req.params.servername
+    const studenttoken = req.params.studenttoken
+    const mcServer = config.examServerList[servername]
+    const sharelink = req.body.sharelink
+
+    if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {  //first check if csrf token is valid and server is allowed to trigger this api request
+        let student = mcServer.studentList.find(element => element.token === studenttoken)
+        if (student) {   
+            student.status.msofficeshare = sharelink
+         }
+        res.send( {sender: "server", message: t("control.studentupdate"), status: "success"} )
+    }
+    else {
+        res.send( {sender: "server", message: t("control.actiondenied"), status: "error"} )
+    }
+})
+
+
+
+/**
+ * SET Screenshot Interval
+ * @param servename the servers name
+ * @param csrfservertoken the servers token to authenticate
+ */
+router.post('/screenshotinterval/:servername/:csrfservertoken', function (req, res, next) {
+    const servername = req.params.servername
+    const mcServer = config.examServerList[servername]
+
+    if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {  //first check if csrf token is valid and server is allowed to trigger this api request
+        mcServer.serverstatus.screenshotinterval = req.body.screenshotinterval
+        res.send( {sender: "server", message: t("control.studentupdate"), status: "success"} )
+    }
+    else {
+        res.send( {sender: "server", message: t("control.actiondenied"), status: "error"} )
+    }
+})
+
+
+
+
 
 
 /**
@@ -387,6 +581,8 @@ router.get('/serverlist', function (req, res, next) {
     mcServer.serverstatus.suggestions = req.body.suggestions
     mcServer.serverstatus.testid = req.body.testid
     mcServer.serverstatus.moodleTestType = req.body.moodleTestType
+    mcServer.serverstatus.cmargin = req.body.cmargin
+    mcServer.serverstatus.gformsTestId = req.body.gformsTestId
     
     res.json({ sender: "server", message:t("general.ok"), status: "success" })
 })
@@ -395,7 +591,7 @@ router.get('/serverlist', function (req, res, next) {
 
 
 /**
- * Change specific value in mcServer.serverstatus 
+ * Activate Screenlock 
  * req.body should contain the updated serverstatus information
  * @param servername the name of the server at which the student is registered
  * @param csrfservertoken servertoken to authenticate before the request is processed
@@ -422,7 +618,6 @@ router.post('/serverstatus/:servername/:csrfservertoken', function (req, res, ne
  * UPDATES Clientinfo - the specified students timestamp (used in dashboard to mark user as online) and other status updates
  * FETCHES Serverstatus & Studentstatus
  * usually triggered by the clients directly from the Main Process (loop)
- * POST Data contains a screenshot of the clients desktop !!
  * @param servername the name of the server at which the student is registered
  * @param token the students token to search and update the entry in the list
  */
@@ -432,10 +627,44 @@ router.post('/serverstatus/:servername/:csrfservertoken', function (req, res, ne
     const exammode = clientinfo.exammode
     const servername = clientinfo.servername
 
-    
+    //check if server and student exist
     const mcServer = config.examServerList[servername]
     if ( !mcServer) {  return res.send({sender: "server", message:"notavailable", status: "error"} )  }
-    
+    let student = mcServer.studentList.find(element => element.token === studenttoken)
+    if ( !student ) {return res.send({ sender: "server", message:"removed", status: "error" }) } //check if the student is registered on this server
+
+    //update important student attributes
+    student.focus = clientinfo.focus  
+    student.virtualized = clientinfo.virtualized
+    student.timestamp = new Date().getTime()   //last seen  / this is like a heartbeat - update lastseen
+    student.exammode = exammode  
+    student.files = clientinfo.numberOfFiles
+    if (clientinfo.focus) { student.status.restorefocusstate = false }  // remove task because its obviously done
+    if (clientinfo.screenshotinterval == 0){ student.imageurl = "person-lines-fill.svg"  }
+    // return current serverinformation to process on clientside
+    res.charset = 'utf-8';
+    res.send({sender: "server", message:t("control.studentupdate"), status:"success", serverstatus:mcServer.serverstatus, studentstatus: student.status })
+})
+
+
+
+
+
+
+/**
+ * UPDATE SCREENSHOT
+ * POST Data contains a screenshot of the clients desktop !!
+ * @param servername the name of the server at which the student is registered
+ * @param token the students token to search and update the screenshot
+ */
+router.post('/updatescreenshot', function (req, res, next) {
+    const clientinfo = JSON.parse(req.body.clientinfo)
+    const studenttoken = clientinfo.token
+    const servername = clientinfo.servername
+
+    // check if student@server exists
+    const mcServer = config.examServerList[servername]
+    if ( !mcServer) {  return res.send({sender: "server", message:"notavailable", status: "error"} )  }
     let student = mcServer.studentList.find(element => element.token === studenttoken)
     if ( !student ) {return res.send({ sender: "server", message:"removed", status: "error" }) } //check if the student is registered on this server
   
@@ -457,23 +686,24 @@ router.post('/serverstatus/:servername/:csrfservertoken', function (req, res, ne
         else { console.log("md5hash missmatch - do not update file")}
     }
     else {
-        console.log("no screenshot received - probably missing image library (imagemagick)")
+        //console.log("no screenshot received - probably missing image library (imagemagick)")
         student.imageurl = "person-lines-fill.svg"
     }
-    
-
-    if (clientinfo.focus) { student.status.restorefocusstate = false }  // remove task because its obviously done
-
-    //update important student attributes
-    student.focus = clientinfo.focus  
-    student.virtualized = clientinfo.virtualized
-    student.timestamp = new Date().getTime()   //last seen  / this is like a heartbeat - update lastseen
-    student.exammode = exammode  
-    student.files = clientinfo.numberOfFiles
-
-    // return current serverinformation 
-    res.send({sender: "server", message:t("control.studentupdate"), status:"success", serverstatus:mcServer.serverstatus, studentstatus: student.status })
+    res.send({sender: "server", message:t("control.studentupdate"), status:"success" })
 })
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -539,5 +769,38 @@ function requestSourceAllowed(req,res){
     return false 
 }
 
+
+//in order to get a copy of the config to the frontend we need to remove circular references like examserverlist
+function copyConfig(obj) {
+    if (obj === null || typeof obj !== 'object') { return obj; }
+    const clonedObj = Array.isArray(obj) ? [] : {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        if (key !== 'examServerList') {
+          if (typeof obj[key] === 'object') {
+            clonedObj[key] = cloneObjectExcludingExamServerList(obj[key]);
+          } else {
+            clonedObj[key] = obj[key];
+          }
+        }
+      }
+    }
+    return clonedObj;
+}
+
+
+//this is needed by the /oauth and /msauth routes 
+function generateCodeVerifier() {
+    return crypto.randomBytes(32).toString('hex');
+}
+function sha256(buffer) {
+    return crypto.createHash('sha256').update(buffer).digest();
+}
+function base64UrlEncode(str) {
+    return str.toString('base64')
+    .replace('+', '-')
+    .replace('/', '_')
+    .replace(/=+$/, '');
+}
 
 

@@ -42,7 +42,7 @@ const routes = [
     { path: '/editor/:token',   name:"editor",      component: editor,      beforeEnter: [addParams, fetchInfo] },  
     { path: '/math/:token',     name:"math",        component: geogebra,    beforeEnter: [addParams, fetchInfo] },
     { path: '/lock',            name:"lock",        component: lock },
-    { path: '/:pathMatch(.*)*', name:"404",         component: notfound },
+    { path: '/:pathMatch(.*)*', name:"404",         component: notfound },   // to load a specific view just replace the error view and load an unknown component at path: /
 ]
 
 
@@ -68,6 +68,7 @@ async function fetchInfo(to, from){
     to.params.servertoken = clientinfo.servertoken
     to.params.clientname = clientinfo.name
     to.params.pincode = clientinfo.pin
+    to.params.cmargin = clientinfo.cmargin
     return true
 }
 

@@ -21,7 +21,9 @@
         "advanced": "advanced",
         "simple": "simple",
         "workfolder": "Workdirectory",
-        "select": "Select Workdirectory"
+        "select": "Select Workdirectory",
+        "freespacewarning" : "Not enough free discspace",
+        "directoryerror": "Directory not writeable"
     },
     "dashboard":{
         "server": "Server",
@@ -31,6 +33,8 @@
         "stopserver": "stop",
         "filesend": "Send Files",
         "filesendtext": "Please choose one or several Files",
+        "officefilesend": "Upload File",
+        "officefilesendtext": "Please choose an xlsx File for the Exam",
         "cancel": "Cancel",
         "nofiles": "No Files selected",
         "uploadfiles": "uploading files",
@@ -46,7 +50,7 @@
         "stopexam": "Release devices",
         "sure": "Are you sure?",
         "exitexamsure": "Close Exam Server?",
-        "exitexam": "This stops the exam for all students",
+        "exitexam": "This kills the connection to all students \nDid you backup everything?",
         "exitkiosk": "exit safe exam mode",
         "reallykick": "remove student from server",
         "kick": "remove",
@@ -80,6 +84,11 @@
         "spellcheckchoose": "Please choose a language",
         "suggest":"Show suggestions",
         "none": "none",
+        "cmargin": "Correction Margin Position",
+        "cmargin-left": "left",
+        "cmargin-right": "right",
+        "cmargin-value": "Correction Margin size (cm)",
+        "texteditor": "Texteditor Settings",
         "de": "German",
         "en":"English",
         "es":"Spanish",
@@ -91,7 +100,20 @@
         "eduvidualid": "Eduvidual Test",
         "eduvidualidhint": "Please enter a valid id!",
         "lock":"lock displays",
-        "unlock":"unlock displays"
+        "unlock":"unlock displays",
+        "freespacewarning" : "Running out of free discspace!!",
+        "invalid_file" : "Wrong Filetype",
+        "invalid_file_text": "Only Files with the .xlsx extension are allowed",
+        "replace":"Replace existing Files on OneDrive?",
+        "examrequest":"Exam requested",
+        "screenshot":"Screenshotupdate",
+        "screenshottitle":"Screenshot Update",
+        "screenshotquestion":"Set the interval to update Screenshots",
+        "screenshothint":"(Time in seconds. 0 == deaktivated)",
+        "oldpdfwarning":"Some of the files are older than 5 minutes!",
+        "gforms": "Google Forms"
+
+        
     },
     "control": {
         "tokennotvalid": "token is not valid",
@@ -114,7 +136,8 @@
         "studentleft": "student left the exam",
         "staterestore": "safe exam state restored",
         "virtualized": "next-exam is run in a virtual machine",
-        "versionmismatch": "Application versions mismatch"
+        "versionmismatch": "Application versions mismatch",
+        "examrequest": "Exams requested"
     },  
     "data": {
         "tokennotvalid": "the token is not valid",
@@ -124,7 +147,7 @@
         "filessent": "files sent",
         "couldnotstore": "student could not store file",
         "filereceived": "files received",
-        "nofliereceived": "no files received",
+        "nofilereceived": "no files received",
         "fdeleted": "deleted"
     }
 }

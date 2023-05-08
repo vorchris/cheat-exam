@@ -1,6 +1,6 @@
 /**
  * @license GPL LICENSE
- * Copyright (c) 2021-2022 Thomas Michael Weissel
+ * Copyright (c) 2021-2023 Thomas Michael Weissel
  * 
  * This program is free software: you can redistribute it and/or modify it 
  * under the terms of the GNU General Public License as published by the Free Software Foundation,
@@ -19,12 +19,18 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow, shell, ipcMain, dialog, powerSaveBlocker, nativeTheme  } from 'electron'
+import { app, BrowserWindow, powerSaveBlocker, nativeTheme  } from 'electron'
 import { release } from 'os'
-import { join } from 'path'
-import config from '../server/src/config.js';
+import config from './config.js';
 import server from "../server/src/server.js"
-import multicastClient from '../server/src/classes/multicastclient.js'
+import multicastClient from './scripts/multicastclient.js'
+import WindowHandler from './scripts/windowhandler.js'
+import IpcHandler from './scripts/ipchandler.js'
+import preventSleep from 'node-prevent-sleep';
+
+WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow
+IpcHandler.init(multicastClient, config, WindowHandler)  //controll all Inter Process Communication
+
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -37,132 +43,39 @@ if (!app.requestSingleInstanceLock()) {
     process.exit(0)
 }
 
-
-let win: BrowserWindow | null = null
-
-async function createWindow() {
-
-    win = new BrowserWindow({
-        title: 'Main window',
-        icon: join(__dirname, '../../public/icons/icon.png'),
-        center:true,
-        width: 1000,
-        height: 700,
-        minWidth: 800,
-        minHeight: 600,
-        webPreferences: {
-            preload: join(__dirname, '../preload/preload.cjs')
-        },
-    })
-
-    if (app.isPackaged || process.env["DEBUG"]) {
-        win.removeMenu() 
-        win.loadFile(join(__dirname, '../renderer/index.html'))
-    } 
-    else {
-        const url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}`
-        win.removeMenu() 
-        win.loadURL(url)
-    }
-
-    if (config.showdevtools) { win.webContents.openDevTools()  }
-
-
-    // Make all links open with the browser, not with the application
-    win.webContents.setWindowOpenHandler(({ url }) => {
-        if (url.startsWith('https:')) shell.openExternal(url)
-        return { action: 'deny' }
-    })
-
-
-    win.webContents.session.setCertificateVerifyProc((request, callback) => {
-        var { hostname, certificate, validatedCertificate, verificationResult, errorCode } = request;
-        callback(0);
-    });
-
-
-    win.on('close', async  (e) => {   //ask before closing
-        if (!config.development) {
-            let choice = dialog.showMessageBoxSync(win, {
-                type: 'question',
-                buttons: ['Ja', 'Nein'],
-                title: 'Programm beenden',
-                message: 'Sind sie sicher?',
-                cancelId: 1
-            });
-            
-            if(choice == 1){
-                e.preventDefault();
-            }
-        }
-     });
-}
-
-
-// SSL/TSL: this is the self signed certificate support
-app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
-    console.log(certificate)
-    // On certificate error we disable default behaviour (stop loading the page)
-    // and we then say "it is all fine - true" to the callback
-    event.preventDefault();
-    callback(true);
+app.on('certificate-error', (event, webContents, url, error, certificate, callback) => { // SSL/TSL: this is the self signed certificate support
+    event.preventDefault(); // On certificate error we disable default behaviour (stop loading the page)
+    callback(true);  // and we then say "it is all fine - true" to the callback
 });
 
-
 app.on('window-all-closed', () => {
-    win = null
+    WindowHandler.mainwindow = null
     if (process.platform !== 'darwin') app.quit()
 })
 
 app.on('second-instance', () => {
-    if (win) {
-        // Focus on the main window if the user tried to open another
-        if (win.isMinimized()) win.restore()
-        win.focus()
+    if (WindowHandler.mainwindow) {
+        if (WindowHandler.mainwindow.isMinimized()) WindowHandler.mainwindow.restore()
+        WindowHandler.mainwindow.focus() // Focus on the main window if the user tried to open another
     }
 })
 
 app.on('activate', () => {
     const allWindows = BrowserWindow.getAllWindows()
-    if (allWindows.length) {
-        allWindows[0].focus()
-    } else {
-        createWindow()
-    }
+    if (allWindows.length) { allWindows[0].focus()} // if there is a window - focus
+    else { WindowHandler.createWindow() }       // if not create new
 })
 
 app.whenReady().then(()=>{
-    nativeTheme.themeSource = 'light'
-    server.listen(config.serverApiPort, () => {  
+    nativeTheme.themeSource = 'light'  // make sure it does't apply dark system themes (we have dark icons in editor)
+    server.listen(config.serverApiPort, () => {  // start express API
         console.log(`Express listening on https://${config.hostip}:${config.serverApiPort}`)
         console.log(`Vite-vue listening on http://${config.hostip}:${config.serverVitePort}`)
     }) 
 })
 .then(()=>{
-    if (config.hostip) {
-        multicastClient.init()
-    }
+    if (config.hostip) { multicastClient.init()  } //multicas client only tracks other exam instances on the net
     powerSaveBlocker.start('prevent-display-sleep')
-    createWindow()
+    if (process.platform === 'win32') {preventSleep.enable();}
+    WindowHandler.createWindow()
 })
-
-
-ipcMain.on('getconfig', (event) => {   event.returnValue = config   })  // we can not send the whole config to the frontend "an object can not be cloned error"
-
-
-ipcMain.on('getCurrentWorkdir', (event) => {   event.returnValue = config.workdirectory  })
-
-
-ipcMain.on('setworkdir', async (event, arg) => {
-    const result = await dialog.showOpenDialog( win, {
-      properties: ['openDirectory']
-    })
-    if (!result.canceled){
-        console.log('directories selected', result.filePaths)
-        config.workdirectory = join(result.filePaths[0]   , config.examdirectory)
-        event.returnValue = config.workdirectory
-    }
-    else {
-        event.returnValue = config.workdirectory
-    }
-  })

@@ -18,7 +18,6 @@
 
 
 
-
 <div id="wrapper" class="w-100 h-100 d-flex" >
     
     <div id="studentinfocontainer" class="fadeinslow p-4">
@@ -29,23 +28,24 @@
                 <div id="controlbuttons" style="text-align: center;">
                     <button class="btn btn-close  btn-close-white align-right" @click="hideStudentview()"  style="width: 100px"></button>
                     <b>{{activestudent.clientname}}</b><br>
-                    <span style="font-size: 0.7em;">{{activestudent.clientip}}</span>
-                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent.token)"  style="width: 100px">{{$t('dashboard.sendfile')}}</div>
-                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="getFiles(activestudent.token, true)"  style="width: 100px">{{$t('dashboard.getfile')}}</div>
-                    <div class="col d-inlineblock btn btn-warning m-1 btn-sm"   @click='kick(activestudent.token,activestudent.clientip)'  style="width: 100px">{{$t('dashboard.kick')}}</div>
+                    <div style="font-size: 0.6em; margin-bottom: 0px;">{{activestudent.clientip}}</div>
+                    <div style="font-size: 0.6em; margin-top: 0px;">{{activestudent.hostname}}</div>
+                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent.token)" :class="(examtype === 'eduvidual' || examtype === 'gforms' ||examtype === 'microsoft365' )? 'disabledblue':''"  style="width: 100px">{{$t('dashboard.sendfile')}}</div>
+                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="getFiles(activestudent.token, true)" :class="(examtype === 'eduvidual' || examtype === 'gforms')? 'disabledblue':''" style="width: 100px">{{$t('dashboard.getfile')}}</div>
+                    <div class="col d-inlineblock btn btn-warning m-1 btn-sm"   @click='kick(activestudent.token,activestudent.clientip);hideStudentview()'  style="width: 100px">{{$t('dashboard.kick')}}</div>
                 </div>
             </div>
         </div>
     </div>
 
 
-    <!--   workfolder view start -->
+    <!-- dashboard EXPLORER start -->
     <div id=preview class="fadeinslow ">
         <div id=workfolder style="overflow-y:hidden">
             <button id="closefilebrowser" type="button" class=" btn-close pt-2 pe-2 float-end" title="close"></button>
             <h4>{{$t('dashboard.filesfolder')}}: <br> <h6 class="ms-3 mb-3"><strong> {{currentdirectory}}</strong>  </h6></h4>
             <div class="btn btn-dark pe-3 ps-3 me-1 mb-3 btn-sm" @click="loadFilelist(workdirectory) "><img src="/src/assets/img/svg/go-home.svg" class="" width="22" height="22" > </div>
-            <div class="btn btn-primary pe-3 ps-3 me-1 mb-3 btn-sm" style="float: right;" :title="$t('dashboard.summarizepdf')" @click="getLatest() "><img src="/src/assets/img/svg/edit-copy.svg" class="" width="22" height="22" >{{$t('dashboard.summarizepdfshort')}}</div>
+            <div :class="( examtype === 'eduvidual'|| examtype === 'microsoft365')? 'disabledblue':''" class="btn btn-primary pe-3 ps-3 me-1 mb-3 btn-sm" style="float: right;" :title="$t('dashboard.summarizepdf')" @click="getLatest() "><img src="/src/assets/img/svg/edit-copy.svg" class="" width="22" height="22" >{{$t('dashboard.summarizepdfshort')}}</div>
             <div  v-if="(currentdirectory !== workdirectory)" class="btn btn-dark pe-3 ps-3 me-1 mb-3 btn-sm" @click="loadFilelist(currentdirectoryparent) "><img src="/src/assets/img/svg/edit-undo.svg" class="" width="22" height="22" >up </div>
             <div style="height: 76vh; overflow-y:auto;">
                 <div v-for="file in localfiles" class="d-inline">
@@ -59,7 +59,7 @@
                     <!-- other files -->
                     <div v-if="(file.type == 'file' && !(file.ext === '.pdf' || file.ext === '.png'|| file.ext === '.jpg'|| file.ext === '.webp'|| file.ext === '.jpeg' )  )" class="btn btn-info pe-3 ps-3 me-3 mb-2 btn-sm"  style=" max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default;"><img src="/src/assets/img/svg/document.svg" class="" width="22" height="22" > {{file.name}} </div>
 
-                    <div v-if="(file.type == 'file')"  :class="(studentlist.length == 0)? 'disabled':''"  class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="dashboardExplorerSendFile(file)" :title="$t('dashboard.send')"><img src="/src/assets/img/svg/document-send.svg" class="" width="22" height="22" ></div>
+                    <div v-if="(file.type == 'file')" :class="(studentlist.length == 0 || examtype === 'eduvidual'|| examtype === 'microsoft365')? 'disabledexam':''"    class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="dashboardExplorerSendFile(file)" :title="$t('dashboard.send')"><img src="/src/assets/img/svg/document-send.svg" class="" width="22" height="22" ></div>
                     <div v-if="(file.type == 'file')" class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="downloadFile(file)" :title="$t('dashboard.download')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" ></div>
                     <div v-if="(file.type == 'file' && file.ext === '.pdf')" class="btn btn-dark me-1 mb-2 btn-sm" style="float: right;" @click="loadPDF(file.path, file.name)" :title="$t('dashboard.preview')"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
                     <div v-if="(file.type == 'file' && (file.ext === '.png'|| file.ext === '.jpg'|| file.ext === '.webp'|| file.ext === '.jpeg' ))" class="btn btn-dark me-1 mb-2 btn-sm" style="float: right;" @click="loadImage(file.path)" :title="$t('dashboard.preview')"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
@@ -70,7 +70,7 @@
            </div>
         </div>
     </div>
-    <!-- workfolder view end -->
+    <!-- dashboard EXPLORER end -->
 
 
 
@@ -85,86 +85,136 @@
 
 
 
-    <!-- sidebar start -->
+    <!-- SIDEBAR start -->
     <div class="p-3 text-white bg-dark h-100 " style="width: 240px; min-width: 240px;">
         <div class="btn btn-light m-1 mt-0 text-start infobutton" @click="showinfo()">{{$t('dashboard.name')}} <br><b> {{$route.params.servername}}</b> </div><br>
         <div class="btn btn-light m-1 text-start infobutton" @click="showinfo()">{{$t('dashboard.server')}} <br><b>{{serverip}}</b> </div><br>
         <div class="btn btn-light m-1 mb-3 text-start infobutton" @click="showinfo()">{{$t('dashboard.pin')}}<br><b> {{ $route.params.pin }} </b>  </div><br>
         
-        <div class="form-check m-1 mb-1">
+        <div style="font-size:0.9em">
+        <!-- geogebra -->
+        <div class="form-check m-1 mb-1"  :class="(exammode)? 'disabledexam':''">
             <input v-model="examtype" value="math" class="form-check-input" type="radio" name="examtype" id="examtype2" checked>
             <label class="form-check-label" for="examtype2"> {{$t('dashboard.math')}}  </label>
         </div>
-        <div class="form-check m-1">
+        <!-- editor -->
+        <div class="form-check m-1" :class="(exammode)? 'disabledexam':''">
             <input v-model="examtype" @click="activateSpellcheck()" value="editor" class="form-check-input" type="radio" name="examtype" id="examtype1">
             <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}} <span v-if="(spellcheck)">({{spellchecklang}})</span></label>
         </div>
-        <div class="form-check m-1 mb-3">
+        <!-- eduvidual -->
+        <div class="form-check m-1 mb-1" :class="(exammode)? 'disabledexam':''">
             <input v-model="examtype" @click="getTestID()" value="eduvidual" class="form-check-input" type="radio" name="examtype" id="examtype3">
             <label class="form-check-label" for="examtype3"> {{$t('dashboard.eduvidual')}}  </label>
         </div>
-
-
-        <div class="form-check form-switch  m-1 mb-2">
-            <input @change="toggleAutoabgabe()"  @click="setAbgabeInterval()" v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
-            <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
+        <!-- google forms -->
+        <div class="form-check m-1 mb-1" :class="(exammode)? 'disabledexam':''">
+            <input v-model="examtype" @click="getFormsID()" value="gforms" class="form-check-input" type="radio" name="examtype" id="examtype5">
+            <label class="form-check-label" for="examtype4"> {{$t('dashboard.gforms')}}  </label>
         </div>
-        <div class="form-check form-switch m-1 mb-2">
+
+        <!-- microsoft365 -->
+        <div class="form-check m-1 mb-3" :class="(exammode)? 'disabledexam':''">
+            <input v-model="examtype" value="microsoft365" class="form-check-input" type="radio" name="examtype" id="examtype4">
+            <label class="form-check-label" for="examtype4"> Microsoft365 <span v-if="(config.accessToken)">({{$t('dashboard.connected')}})</span> </label>
+            
+            <button v-if="(examtype === 'microsoft365' && !config.accessToken)"  @click="openAuthWindow()" class="btn btn-sm btn-primary mt-1  ">
+                <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
+                <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Verbinden </span>
+            </button>
+
+            <button v-if="(examtype === 'microsoft365' && config.accessToken && !msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-info mt-1  ">
+                <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
+                <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Datei wählen </span>
+            </button>
+
+            <button v-if="(examtype === 'microsoft365' && config.accessToken && msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-success mt-1  " style=" white-space: nowrap;  width: 170px;overflow: hidden; text-overflow: ellipsis; ">
+                <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
+                <span style="padding: 0 6px 0 4px; vertical-align:middle;">{{msOfficeFile.name}} </span>
+            </button>
+        </div>
+
+
+
+        <!-- other options -->
+        <div class="form-check form-switch m-1 mb-2"  :class="(exammode || examtype === 'eduvidual'|| examtype === 'microsoft365'  || examtype === 'gforms')? 'disabledexam':''">
             <input v-model="delfolder" @click="delfolderquestion()" value="del" class="form-check-input" type="checkbox" name="delfolder" id="delfolder">
             <label class="form-check-label" for="delfolder"> {{$t('dashboard.del')}}  </label>
         </div>
-
+        <div class="form-check form-switch  m-1 mb-2" :class="(examtype === 'eduvidual' || examtype === 'gforms')? 'disabledexam':''">
+            <input @change="toggleAutoabgabe()"  @click="setAbgabeInterval()" v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
+            <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
+            <span v-if="autoabgabe" > ({{ abgabeintervalPause }}min)</span>
+        </div>
+        <div class="form-check form-switch  m-1 mb-2">
+            <input  @change="toggleScreenshot()" @click="setScreenshotInterval()" checked class="form-check-input" type="checkbox" id="screenshotinterval">
+            <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.screenshot')}}</label>
+            <span v-if="screenshotinterval > 0" > ({{ screenshotinterval }}s)</span>
+        </div>
+    </div>
 
         <div id="statusdiv" class="btn btn-warning m-1"> {{$t('dashboard.connected')}}  </div>
         <span style="position: absolute; bottom:2px; left: 4px; font-size:0.8em">{{version}}</span>
     </div>
-    <!-- sidebar end -->
+    <!-- SIDEBAR end -->
 
 
    
     <div id="content" class="fadeinslow p-3">
-        <!-- control buttons start -->
-        <div v-if="(!exammode)" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px; height:62px;"  @click="startExam()">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
+        
+        <!-- control buttons start -->        
         <div v-if="(exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="endExam()" >{{numberOfConnections}} {{$t('dashboard.stopexam')}}</div>
-        <div class="btn btn-info m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="sendFiles('all')">{{$t('dashboard.sendfile')}}</div>
-        <div class="btn btn-info m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="getFiles('all', true)">{{$t('dashboard.getfile')}}</div>
+        <div v-if="(!exammode)" @click="startExam()" :class="(examtype === 'microsoft365' && (!config.accessToken || !msOfficeFile))? 'disabledgreen':''" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px; height:62px;">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
+     
+        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="sendFiles('all')" :class="(examtype === 'eduvidual' || examtype === 'gforms' ||examtype === 'microsoft365' )? 'disabledblue':''"  style="width:100px; height:62px;">{{$t('dashboard.sendfile')}}</div>
+        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="getFiles('all', true)" :class="(examtype === 'eduvidual' || examtype === 'gforms')? 'disabledblue':''"  style="width:100px; height:62px;" >{{$t('dashboard.getfile')}}</div>
         <div class="col d-inlineblock btn btn-dark m-1 mt-0 text-start ms-0 " @click="loadFilelist(workdirectory)"  style="width: 100px;">{{$t('dashboard.showworkfolder')}} </div>
-          
-        <div  v-if="(screenslocked)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(false)"> 
-            <img src="/src/assets/img/svg/shield-lock-fill.svg" class="white mt-2" title="unlock" width="32" height="32" >  
-        </div>
-        <div  v-if="(!screenslocked)" class="btn btn-dark m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(true)"> 
-            <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" title="lock" width="32" height="32" >  
-        </div>
-
-
-
+        <div  v-if="(screenslocked)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(false)"> <img src="/src/assets/img/svg/shield-lock-fill.svg" class="white mt-2" title="unlock" width="32" height="32" >   </div>
+        <div  v-if="(!screenslocked)" class="btn btn-dark m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(true)"> <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" title="lock" width="32" height="32" >  </div>
         <!-- control buttons end -->
 
+
+
+
         <!-- studentlist start -->
-        <div id="studentslist" class="placeholder pt-1"> 
-            <div v-for="student in studentlist" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':'' "  class="studentwidget btn border-0 rounded-3 btn-block ">
-                <div id="image" class="rounded"   style="position: relative; height:132px;">
-                    <div v-cloak :id="student.token" style="position: relative;background-size: cover; height: 132px; background-image: url('user-black.svg')"></div>
-                    <div v-if="student.virtualized" class="virtualizedinfo" >{{$t("dashboard.virtualized")}}</div>
-                    <div v-if="!student.focus" class="kioskwarning" >{{$t("dashboard.leftkiosk")}}</div>
-                    <span style="">   
-                        <img v-for="file in student.files" style="width:22px; margin-left:-4px; position: relative; filter: sepia(10%) hue-rotate(306deg) brightness(0.3) saturate(75);" class="" src="/src/assets/img/svg/document.svg"><br>
-                        {{student.clientname}}  
-                        <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-2 pe-2 float-end" title="kick user"></button> 
-                    </span>
-               </div>
-                <div class="btn-group pt-0" role="group">
-                    <button v-if="(now - 20000 < student.timestamp)" @click="showStudentview(student)" type="button" class="btn btn-outline-success btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">{{$t('dashboard.online')}} </button>
-                    <button v-if="(now - 20000 > student.timestamp)" type="button" class="btn btn-outline-danger btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">{{$t('dashboard.offline')}} </button>
-                    <button v-if="(now - 20000 < student.timestamp) && student.exammode && student.focus"  @click='showStudentview(student)' type="button" class="btn btn-outline-warning btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;">{{$t('dashboard.secure')}}</button>
-                    <button v-if="(now - 20000 < student.timestamp) && !student.focus "   @click='restore(student.token)' type="button" class="btn btn-danger btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;"> {{$t('dashboard.restore')}} </button>
-                </div>
-            </div>  
+        <div id="studentslist" class="placeholder pt-1">        
+            <draggable v-model="studentwidgets" :move="handleMoveItem" @end="handleDragEndItem" ghost-class="ghost">
+    
+                <div v-for="student in studentwidgets" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':''" class="studentwidget btn rounded-3 btn-block ">
+                    <div v-if="student.clientname">
+                        <div class="studentimage rounded" style="position: relative; height:132px;">     
+                            <div v-cloak :id="student.token" style="position: relative;background-size: cover; height: 132px;" v-bind:style="(student.imageurl && now - 20000 < student.timestamp)? `background-image: url('${student.imageurl}')`:'background-image: url(user-red.svg)'"></div>
+                            <div v-if="student.virtualized" class="virtualizedinfo" >{{$t("dashboard.virtualized")}}</div>
+                            <div v-if="!student.focus" class="kioskwarning" >{{$t("dashboard.leftkiosk")}}</div>
+                            <div v-if="student.status.sendexam" class="examrequest" >{{$t("dashboard.examrequest")}}</div>
+                           
+                            <span>   
+                                <div style="display:inline;" v-bind:title="(student.files) ? 'Documents: '+student.files : ''"> 
+                                    <img v-for="file in student.files" style="width:22px; margin-left:-4px; position: relative; filter: sepia(10%) hue-rotate(306deg) brightness(0.3) saturate(75);" class="" src="/src/assets/img/svg/document.svg"><br>
+                                </div>
+                                {{student.clientname}}  
+                                <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-1 pe-2 float-end" title="kick user"></button> 
+                            </span>
+                        </div>
+
+                        <div class="btn-group pt-0" role="group">
+                            <button v-if="(now - 20000 < student.timestamp)" @click="showStudentview(student)" type="button" class="btn btn-outline-success btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">{{$t('dashboard.online')}} </button>
+                            <button v-if="(now - 20000 > student.timestamp)" type="button" class="btn btn-outline-danger btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">{{$t('dashboard.offline')}} </button>
+                            <button v-if="(now - 20000 < student.timestamp) && student.exammode && student.focus"  @click='showStudentview(student)' type="button" class="btn btn-outline-warning btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;">{{$t('dashboard.secure')}}</button>
+                            <button v-if="(now - 20000 < student.timestamp) && !student.focus "   @click='restore(student.token)' type="button" class="btn btn-danger btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;"> {{$t('dashboard.restore')}} </button>
+                        </div>
+                    </div>
+                </div> 
+               
+            </draggable>  
         </div>
         <!-- studentlist end -->
     </div>
-  
+ 
+    <div style="position: fixed; bottom:20px; right: 20px; filter:opacity(50%)" class="col d-inlineblock btn " @click="sortStudentWidgets()">
+     <img src="/src/assets/img/svg/view-sort-ascending-name.svg" class="white" title="sort" width="24" height="24" >  
+ </div>
+
 
 </div>
 </template>
@@ -175,22 +225,18 @@
 import $ from 'jquery'
 import axios from "axios"
 import FormData from 'form-data'
-
-
- /** use this as visible feedback for some actions
- 
- this.$swal.fire({
-        timer: 2000,
-        timerProgressBar: true,
-        didOpen: () => { this.$swal.showLoading() }
-    });
-*/
-
-
+import { VueDraggableNext } from 'vue-draggable-next'
+import { uploadselect, upload, uploadSingle, uploadAndShareFile, createSharingLink, fileExistsInAppFolder, downloadFilesFromOneDrive} from '../msalutils/onedrive'
+import { handleDragEndItem, handleMoveItem, sortStudentWidgets, initializeStudentwidgets} from '../utils/dragndrop'
+import {loadFilelist, print, getLatest, loadImage, loadPDF, dashboardExplorerSendFile, downloadFile, showWorkfolder, fdelete  } from '../utils/filemanager'
 
 export default {
+    components: {
+        draggable: VueDraggableNext,
+    },
     data() {
         return {
+            examtype: 'math',
             version: this.$route.params.version,
             title: document.title,
             fetchinterval: null,
@@ -208,9 +254,9 @@ export default {
             electron: this.$route.params.electron,
             hostname: window.location.hostname,
             pin : this.$route.params.pin,
+            config :this.$route.params.config,
             now : null,
             files: null,
-            examtype: 'math',
             autoabgabe: false,
             activestudent: null,
             localfiles: null,
@@ -225,54 +271,166 @@ export default {
             suggestions: false,
             moodleTestId: null,
             moodleTestType: null,
+            gformsTestId: null,
             screenslocked: false,
+            studentwidgets: [],
+            emptyWidget: {
+                clientname: false,
+                token: `${Math.random()}`,
+                imageurl:"user-black.svg"
+            },
+            originalIndex: 20,
+            futureIndex: 20,
+            freeDiscspace: 1000,
+            msOfficeFile: null,
+            replaceMSOfile: false,
+            screenshotinterval: 4,
+            cmargin: {
+                side: "right",
+                size: 3
+            }
         };
     },
-    components: { },
+
+
+
+
     methods: {
-        // get all information about students status and do some checks
+        /**
+         * Microsoft OneDrive API Authentication and File Handling
+         */
+        openAuthWindow(){ ipcRenderer.sendSync('openmsauth')  },
+        onedriveUploadselect: uploadselect,
+        onedriveUpload: upload,
+        onedriveUploadSingle : uploadSingle,
+        uploadAndShareFile: uploadAndShareFile,
+        createSharingLink: createSharingLink,
+        fileExistsInAppFolder: fileExistsInAppFolder,
+        downloadFilesFromOneDrive: downloadFilesFromOneDrive,
+
+
+        /**
+         * Drag & Drop Methods
+         */
+        handleDragEndItem:handleDragEndItem,
+        handleMoveItem:handleMoveItem,
+        sortStudentWidgets:sortStudentWidgets,
+        initializeStudentwidgets:initializeStudentwidgets,
+
+
+        /**
+         * Dashboard Explorer (Filemanager)
+         */
+        loadFilelist:loadFilelist,
+        print:print, 
+        getLatest:getLatest, 
+        loadImage:loadImage, 
+        loadPDF:loadPDF, 
+        dashboardExplorerSendFile:dashboardExplorerSendFile, 
+        downloadFile:downloadFile, 
+        showWorkfolder:showWorkfolder, 
+        fdelete:fdelete,  
+
+
+
+        /**
+         * Runs every 4 seconds and fetches the current stundentlist from the backend
+         * Handles Student-Widgets (create, delete, update)
+         * Checks Screenshots and MSO Share Links
+         */
         fetchInfo() {
+            this.config = ipcRenderer.sendSync('getconfig')  // this is only needed in order to get the accesstoken from the backend for MSAuthentication - but it doesn't hurt
             this.now = new Date().getTime()
             axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/studentlist/${this.servername}/${this.servertoken}`)
             .then( response => {
                 this.studentlist = response.data.studentlist;
                 this.numberOfConnections = this.studentlist.length
+
+                if (this.numberOfConnections === this.studentwidgets.length){ this.studentwidgets.push(this.emptyWidget)}
+
                 if (this.studentlist && this.studentlist.length > 0){
-                    this.studentlist.forEach(student =>{  // on studentlist-receive update active student (for student-details)
-                        if (this.activestudent && student.token === this.activestudent.token) { this.activestudent = student}
-                        try {
-                            if (this.now - 20000 > student.timestamp){ 
-                                document.getElementById(`${student.token}`).style.backgroundImage = 'url("user-red.svg")'
+                    this.studentlist.forEach( student => { 
+                        if (this.activestudent && student.token === this.activestudent.token) { this.activestudent = student}  // on studentlist-receive update active student (for student-details)
+                        if (!student.imageurl){ student.imageurl = "user-black.svg"  }
+                        
+                  
+
+                        // if the chosen exam mode is OFFICE and everything is Setup already check if students already got their share link (re-connect, late-connect)
+                        if (this.examtype === "microsoft365" && this.config.accessToken && this.msOfficeFile){
+                            if (!student.status.msofficeshare) {  // this one is late to the party
+                                console.log("this student has no sharing link yet")
+                                this.onedriveUploadSingle(student, this.msOfficeFile)   // trigger upload of this.msOfficeFile, create sharelink and set student.status.msofficeshare to sharelink
                             }
-                            else {document.getElementById(`${student.token}`).style.backgroundImage = 'url(' + student.imageurl + ')'}
-                        } catch (e) {  }
+                        }
                     });
+
+                    //update widgets list here - we keep our own independent widgetlist (aka studentlist) for drag&drop 
+                    for (let student of this.studentlist) {
+                        let studentWidget = this.studentwidgets.filter( el => el.token ===  student.token)  // get widget with the same token
+                        if ( studentWidget.length > 0){  //studentwidget exists -> update it
+                            for (let i = 0; i < this.studentwidgets.length; i++){  // we cant use (for .. of) or forEach because it creates a workingcopy of the original object
+                                if (student.token == this.studentwidgets[i].token){ this.studentwidgets[i] = student; }  //now update the entry in the original widgets object
+                            }
+                        }
+                        else {
+                            //replace empty widget with student
+                            for (let i = 0; i < this.studentwidgets.length; i++){  // we cant use (for .. of) or forEach because it creates a workingcopy of the original object
+                                if (!this.studentwidgets[i].clientname){ 
+                                    this.studentwidgets[i] = student; // replace studentwidget with emptywidget
+                                    break;
+                                } 
+                            }
+                        }
+                    }
                 }
-                this.studentlist.sort((a, b) => a.clientname.localeCompare(b.clientname))
+                //remove studentwidget from widgetslist if student was removed
+                for (let widget of this.studentwidgets) { //find student in studentwidgets list  
+                    let studentExists = this.studentlist.filter( el => el.token ===  widget.token).length === 0 ? false : true  // now check if a widget has a student in studentlist otherwise remove it
+                    if (!studentExists && widget.token.includes('csrf')){ //if the student the widget belongs to does not exist (and the widget actually represents a student - token starting with csrf)
+                        for (let i = 0; i < this.studentwidgets.length; i++){  // we cant use (for .. of) or forEach because it creates a workingcopy of the original object
+                             if (widget.token == this.studentwidgets[i].token){ 
+                                this.studentwidgets[i] = this.emptyWidget; // replace studentwidget with emptywidget
+                            } 
+                        }
+                    } 
+                }
             }).catch( err => {console.log(err)});
         }, 
+
+
+
         // enable exam mode 
-        startExam(){
+        async startExam(){
             this.lockscreens(false, false); // deactivate lockscreen
             this.exammode = true;
+            console.log("starting")
             this.visualfeedback(this.$t("dashboard.startexam"))
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/exam/${this.servername}/${this.servertoken}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },
-                body: JSON.stringify({ exammode: this.exammode, examtype: this.examtype, delfolder: this.delfolder, delfolderonexit: this.delfolderonexit, spellcheck: this.spellcheck, spellchecklang:this.spellchecklang, suggestions: this.suggestions, testid: this.moodleTestId, moodleTestType: this.moodleTestType  })
+                body: JSON.stringify({ 
+                    exammode: this.exammode, 
+                    examtype: this.examtype, 
+                    delfolder: this.delfolder, 
+                    delfolderonexit: this.delfolderonexit, 
+                    spellcheck: this.spellcheck, 
+                    spellchecklang:this.spellchecklang, 
+                    suggestions: this.suggestions, 
+                    testid: this.moodleTestId, 
+                    moodleTestType: this.moodleTestType, 
+                    gformsTestId: this.gformsTestId, 
+                    cmargin: this.cmargin  
                 })
+            })
             .then( res => res.json())
             .then( response => { })
             .catch(err => { console.warn(err) })
         },
         // disable exammode 
         endExam(){
-            
             this.getFiles('all') // fetch files from students before ending exam for everybody
-
             this.$swal.fire({
                 title: this.$t("dashboard.sure"),
-              
                 html: `<div>
                     <input class="form-check-input" type="checkbox" id="checkboxdel">
                     <label class="form-check-label" for="checkboxdel"> ${this.$t("dashboard.exitdelete")} </label>
@@ -333,6 +491,12 @@ export default {
                 .then( response => { console.log(response.data)  })
                 .catch( err => {console.log(err)});
         },
+
+
+
+
+
+
         visualfeedback(message, timeout=1000){
              this.$swal.fire({
                 text: message,
@@ -341,189 +505,31 @@ export default {
                 didOpen: () => { this.$swal.showLoading() }
             });
         },
-
-
-
-
-
-
-        ////////////////////////
-        // DASHBOARD EXPLORER
-
-        //delete file or folder
-        fdelete(file){
-            this.$swal.fire({
-                title: this.$t("dashboard.sure"),
-                text:  this.$t("dashboard.filedelete"),
-                icon: "question",
-                showCancelButton: true,
-                cancelButtonText: this.$t("dashboard.cancel"),
-                reverseButtons: true
-            })
-            .then((result) => {
-                if (result.isConfirmed) {
-                    fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/delete/${this.servername}/${this.servertoken}`, { 
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json' },
-                        body: JSON.stringify({ filepath:file.path })
-                    })
-                    .then( res => res.json() )
-                    .then( result => { 
-                        console.log(result)
-                        this.loadFilelist(this.currentdirectory)
-                    });
+        visualfeedbackClosemanually(message){
+            const closeWhenFinished = async () => {
+                while (!this.msOfficeFile) {
+                    await new Promise((resolve) => setTimeout(resolve, 100));
                 }
+                this.$swal.close();
+            };
+            // Your existing Swal configuration
+            this.$swal.fire({
+                text: message,
+                timerProgressBar: true,
+                didOpen: () => {
+                    this.$swal.showLoading();
+                    closeWhenFinished();
+                },
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
             });
         },
-        // show workfloder  TODO:  the whole workfolder thing is getting to complex.. this should be a standalone vue.js component thats embedded here
-        showWorkfolder(){
-            $("#preview").css("display","block");
-            $("#closefilebrowser").click(function(e) { $("#preview").css("display","none"); });  // the surroundings of #workfolder can be clicked to close the view
-            $('#workfolder').click(function(e){ e.stopPropagation(); });    // don't propagate clicks through the div to the preview div (it would hide the view)
-        },
-        // fetch a file or folder (zip) and open download/save dialog
-        downloadFile(file){
-            if (file === "current"){   //we want to download the file thats currently displayed in preview
-                let a = document.createElement("a");
-                    a.href = this.currentpreview
-                    a.setAttribute("download", this.currentpreviewname);
-                    a.click();
-                return
-            }
-            console.log("requesting file for downlod ")
-            fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/download/${this.servername}/${this.servertoken}`, { 
-                method: 'POST',
-                headers: {'Content-Type': 'application/json' },
-                body: JSON.stringify({ filename : file.name, path: file.path, type: file.type})
-            })
-            .then( res => res.blob() )
-            .then( blob => {
-                    //this is a trick to trigger the download dialog
-                    let a = document.createElement("a");
-                    a.href = window.URL.createObjectURL(blob);
-                    a.setAttribute("download", file.name);
-                    a.click();
-            })
-           .catch(err => { console.warn(err)});
-        },
-        // send a file from dashboard explorer to specific student
-        dashboardExplorerSendFile(file){
-            const inputOptions = new Promise((resolve) => {  // prepare input options for radio buttons
-                let connectedStudents = {}
-                this.studentlist.forEach( (student) => { connectedStudents[student.token]=student.clientname });
-                resolve(connectedStudents)
-            })
-            this.$swal.fire({
-                title: this.$t("dashboard.choosestudent"),
-                input: 'select',
-                icon: 'success',
-                showCancelButton: true,
-                reverseButtons: true,
-                inputOptions: inputOptions,
-                inputValidator: (value) => { if (!value) { return this.$t("dashboard.chooserequire") } }
-            })
-            .then((input) => {
-                if (input.isConfirmed) {
-                    let student = this.studentlist.find(element => element.token === input.value)  // fetch cerrect student that belongs to the token
-                    fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/sendtoclient/${this.servername}/${this.servertoken}/${student.token}`, { 
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json' },
-                        body: JSON.stringify({ files:[ {name:file.name, path:file.path } ] })
-                    })
-                    .then( res => res.json() )
-                    .then( result => { console.log(result)});
-                }
-            });
-        },
-        // fetch file from disc - show preview
-        loadPDF(filepath, filename){
-            const form = new FormData()
-            form.append("filename", filepath)
-            fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getpdf/${this.servername}/${this.servertoken}`, { method: 'POST', body: form })
-            .then( response => response.arrayBuffer())
-            .then( data => {
-                let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
-                this.currentpreview = url   //needed for preview buttons
-                this.currentpreviewname = filename   //needed for preview buttons
-                $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
-                $("#pdfpreview").css("display","block");
-                $("#pdfpreview").click(function(e) {
-                    $("#pdfpreview").css("display","none");
-                });
-             }).catch(err => { console.warn(err)});     
-        },
-        // fetch file from disc - show preview
-        loadImage(file){
-            const form = new FormData()
-            form.append("filename", file)
-            fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getpdf/${this.servername}/${this.servertoken}`, { method: 'POST', body: form })
-                .then( response => response.arrayBuffer())
-                .then( data => {
-                    let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
-                    // wanted to save code here but images need to be presented in a different way than pdf.. so...
-                    $("#pdfembed").css("background-image",`url(${ url  })`);
-                    $("#pdfembed").css("height","60vh");
-                    $("#pdfembed").css("margin-top","-30vh");
-                    $("#pdfembed").attr("src", '')
 
-                    $("#pdfpreview").css("display","block");
-                    $("#pdfpreview").click(function(e) {
-                        $("#pdfpreview").css("display","none");
-                        $("#pdfembed").css("background-image",'');
-                        $("#pdfembed").css("height","96vh");
-                        $("#pdfembed").css("margin-top","-48vh");
-                    });
-               }).catch(err => { console.warn(err)});     
+        toggleAutoabgabe(){
+            if (this.autoabgabe) { this.abgabeinterval = setInterval(() => { this.getFiles('all') }, 60000 * this.abgabeintervalPause) }   //trigger getFiles('all') every other minute
+            else { clearInterval( this.abgabeinterval )} 
         },
-        // fetches latest files of all connected students in one combined pdf
-        getLatest(){
-            this.visualfeedback(this.$t("dashboard.summarizepdf"))
-            fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getlatest/${this.servername}/${this.servertoken}`, { 
-                method: 'POST',
-                headers: {'Content-Type': 'application/json' },
-            })
-            .then( response => response.arrayBuffer() )
-            .then( lastestpdf => {
-                if (lastestpdf.byteLength === 0){
-                    console.log("nothing found")
-                    this.status(` ${this.$t("dashboard.nopdf")}`);
-                    return
-                }
-                let url =  URL.createObjectURL(new Blob([lastestpdf], {type: "application/pdf"})) 
-                this.currentpreview = url   //needed for preview buttons
-                this.currentpreviewname = "combined"   //needed for preview buttons
-                $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
-                $("#pdfpreview").css("display","block");
-                $("#pdfpreview").click(function(e) {
-                        $("#pdfpreview").css("display","none");
-                });
-            }).catch(err => { console.warn(err)});
-        },
-        print(){
-            var iframe = $('#pdfembed')[0]; 
-            iframe.contentWindow.focus();
-            iframe.contentWindow.print(); 
-        },
-        loadFilelist(directory){
-            fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getfiles/${this.servername}/${this.servertoken}`, { 
-                method: 'POST',
-                headers: {'Content-Type': 'application/json' },
-                body: JSON.stringify({ dir : directory})
-            })
-            .then( response => response.json() )
-            .then( filelist => {
-                filelist.sort()
-                filelist.reverse()
-                this.localfiles = filelist;
-                this.currentdirectory = directory
-                this.currentdirectoryparent = filelist[filelist.length-1].parentdirectory // the currentdirectory and parentdirectory properties are always on [0]
-                if (directory === this.workdirectory) {this.showWorkfolder(); }
-            }).catch(err => { console.warn(err)});
-        },
- 
-         // DASHBOARD EXPLORER END
-        ////////////////////////////
-
         async setAbgabeInterval(){
             if (!this.autoabgabe) {
                 this.$swal.fire({
@@ -539,44 +545,73 @@ export default {
                     inputValue: this.abgabeintervalPause
                 }).then((input) => {
                     this.abgabeintervalPause= input.value
+                    if (!this.abgabeintervalPause){this.abgabeintervalPause = 5}   // make sure it is set otherwise we well fetch the exams X times per second
                 })
             }
         },
+
+        /**
+         * Google Forms
+         */
+         async getFormsID(){
+            this.$swal.fire({
+                title: this.$t("dashboard.gforms"),
+                icon: 'question',
+                input: 'text',
+                html: `
+                ${this.$t("dashboard.eduvidualidhint")} <br>
+                <span style="font-size:0.8em">
+                    (https://docs.google.com/forms/d/e/<span style="background-color: lightblue; padding:0 3px 0 3px;">1FAIpQLScuTG7yldD0VRhFgOC_2fhbVdgXn95Kf_w2rUbJm79S1kJBnA</span>/viewform)
+                </span>`,
+                inputValidator: (value) => {
+                    if (!value) {return 'No ID given!'}
+                }
+            }).then((input) => {
+                if (!input.value) {document.getElementById('examtype2').checked = true; this.examtype = "math"}
+                this.gformsTestId = input.value
+                console.log(this.examtype)
+            })  
+        },
+
+        /**
+         * Eduvidual
+         */
         async getTestID(){
-            if (!this.autoabgabe) {
-                this.$swal.fire({
-                    title: this.$t("dashboard.eduvidualid"),
-                    icon: 'question',
-                    input: 'number',
-                    html: `
-                     <div style="text-align:left; width: 140px; margin: auto auto;">
-                        <input class="form-check-input" name=etesttype type="radio" id="quiz" value="quiz" checked>
-                        <label class="form-check-label" for="quiz"> 
-                            <img  width="24" height="24" src="data:image/png;base64,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"/>
-                            Test 
-                        </label>
-                        <br>
-                        <input class="form-check-input"  name=etesttype type="radio" id="activequiz" value="activequiz">
-                        <label class="form-check-label" for="activequiz"> 
-                            <img  width="24" height="24" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJcAAACXCAIAAACX/V4uAAAACXBIWXMAABYlAAAWJQFJUiTwAAAOT0lEQVR42u2de3BT95XHjx7WvZIs62FLtlTZll/yG2ODecaGGIMhUCh1oMm0mQkNA5OGppllp9vZljZt2k7bLTvZbNIOGVqyk+2khRISGgIONgE7gPET4/dbNl7JloRe1tOS5f3jdlTaUgrW1bWlnO+f19f8ztwP53fP7/7O72vWwsICoKJcbHwESBG1LMQN8/cN1pE7k1eNdh0AdIzXha6XZdQAgEKsWZG2OVmSwWZx8FlHTqzFvRfHjV23dfWd45/Mei1cDpdPEkK+IFWRJRYoAMDnd/Xq2v0Bv8frC8wHAKAy/5mVmuoMRQk+8WVB0eI0nLzyLwbrCEkQxVmlhdm5fGEw9FOP18vlcuK4caErPjevo69rYLLb6/Mppdn71n0HWS4lRafXeq7leMd4nUgo3L7hqaQkMhgMztwzG2fc0ybL2HTv39xfrFkvEnHVanGiRAoATjvng2tnZl0urXLNVzZ8TxavxKfPNMVxY9epT7/t8Tv2Vn0pKYnvcDr7hwwdg82P8rvxpKREW5afq4jjxhkM7o+aPgzMB17ecRKTklGKHWOX3m06lpIk37t1uz/g7xnQNXc3L2Kwmg3bNamJbCDrmq6N6Ue2rzxcU3IQGTBBsa7r5KXbJ1YVlK0pKTSYjB/U14UzXjwpeXrHVj5JftZ6u3ukuzL/mb1rjiKGyFKksnBXxa5UtbS9p7+lu42WUWur9yjkCWPj5rrmi5iRkV31jxu73m06tmHl2lS1tLmdNoQAcLb+w4kJe2ZGUnF28aXbJ8aNXUgiIhSdXuupT7+dkiQvyde29/R3DrXRO/DHN84bTY4nyldmqrLfuHjQ4jQgDPopnms57l9w7d263Why0JiFf/XG/azR4/XWVGzicrh/uPFjhEEzRYvT0DFet3VdlT/gP1v/YYTGdnqtFz+9FQTvroo9Q4YWnFdppvhRx1sioVCtSmrvGono8DO2Sd3de0qlQCQUnmn+GfKgjaLBOtI5XvfFTbscTiftr8O/1/WO5mAw+KVN+wzWEUzHxekBexp3Jq+SBCEW8251TDAQgdNr+7+7vtR0NkkQt3X1D/mgs3r16tiG0dbWRlsuXh88U5hVGAwGH/EDW/hq7WsBgLy04sb+3wcX5jG3wqXo9FpnPZaVuUUz98yMBTFjm/QH/GUFJQAwYxtHKuFSHNLfIgmCRy5M3XUxGcc9Y5AQzHE53DuTV5FKuBRNs1NxXC4ADEx0MxnHyMRdAOCTBNU2gAqLotGuS0mSA4DTa2c+mvu3l1HhrheDwSDDcZhsMwBQqFl1f/MOapEUO8brMpX5Treb4TimbWMAQMQJEQltuYiKboplGTVjhv54gYDhOFIkmQBgdxsRCW25yGYznaNySTIA3DWOUo2sqLAoKsSaabMJAOJJMfPRuDxuREIDRblI7Q8EACAvvZjJOLLTUwHA4/UpxBqkEi5FrWqt1+fzehbUqYyWi2LZgsfFDswHVqRtRirhUownpUpJdmtva3JiEoOlTTqfJHtHBkWkTCnNRio0VDfrc/dO6KfYbPbq3CeYCWJ1QTkAdI92lmZsQySL0AP2FwvVFe/f+g+3K5CrlbcNRjyCeFL6hVTCbPZ6fb6VmuqH3Lno7bfPYy7K4pVlGTV/unYxIT6+LHddpCPYWLaWzWZfuvGxUpqNPf90rhd3lr1ksdum9OayFZGtGJMlaZrURLPZM+tyHaz6T+RBJ0VZvHL7ysNX2xrjuHG11XsiN/yOJ9ey2exzVz4oy6jBU1Q0UwSAJwu/CvPEhasNCnnCuuKIzKu11Xv4JHnu8iV+XAKe1ogIRR6X/8rOdyYN+q7+odKinFItzZ1LVau2KeQJLV2902bTgSd/EU9KEQb9FKl59eUdJ2/cvmUwmtetyqcxI2ur9+Rqk8fGze19Hc9VvIZFTZh61JNvG1auLcnXGk2OMFvFQyffWrp62/s68MAUQxQBYNzY9cbFg2lK1c7NW/wBf8cd3eKaHJ/asDs1VcRms89dvjRtNj1X8VpZ5nZkwBBFALA4Da9feB44vs2rK9WqpEWfCJ/Smy83X4ljCQ88+QucSJmmCABzAc+nvb+7dPuETCz54qYdAiGXcmeYuuuy2K0PdGeQJIiUX+BR7gx2+9yfrn0063KVZdTsXXMUy5mloRhKygsdb1FOG+kqdXlhOclnhX7q8XoBgE+Sf2HvZd0e7Okd7fX6fKUZNbvKXsJ14dJTDLHsnWq6OXjOYBshCSKOy6X6HzOV+QAwZugHgGmziXItEvFlG3P3rUjbjPsVy4tiSE6vdUh/yzQ7db+JWMg+TC5Sa1VrcfJc7hRRy33Vj0KKKKSIehyF64/qGu0xNZ53TwwCgLH+dOi6ono/AAjSc+WVuwWaPBaHi8962VU39u6bpitnjQ1/nLPMsHmcOCHBE/PFebmEXA0A826H8frNeZ/f7/IF5+YBQL3vJXlVrbh4PT7xZUHRa5jo/s7TrtEerpBIqViVsi6HjPc85H6fN2GqocfU0hlw+YRZRdp/fQNZLiVFv808/PpRY/1pQirIPbAzQfXnTza2oZmZ1nEAcOj+cog8QZMEAMnlGRJtMnXFbRf1vvmez+qWrq7K/bdfkcp0fPpMU7R33+z97rMBp7noSG2CCgDA1Dmhvz4yO2mB4MP+BTaPI86UK1aly0vTAcCqg/63zwbn5kt/fQWTklGKM5f/0P/D50WaxJIjWwDApbf1nfrMZ328MxUiTWL2l1cJVZLgAjnw7k3LnWHNC8c0B/4dGTBBUXfqp7rfvKbeWqqpyQGA3pON1oHpRY8nzUspPFgJAKMf9huautX7Xsr+1i8RQ2QpUlmYf2hXolYw5/B0HP8k4PKFOSQhFZR8cwsvgW/sdg39zwXMyMhStHff7HyxSrN7jbpSYxua6TnZ+PBX4GOsUoVE3lfXSbTJVEbiOzJS3278NnPvd58VaRLVlZo5h4dGhAAQcPkGftc85/Bk7cmXrcjpfLHKa5hAGPRTHH79aNBnKzmyhZpIaUQYAtn13w0AkPfcejaPM/jzbyAMmil6DRPG+tPar20GgOHTreG/Cx/8QcDq7j3ZyGZ58w/VWtuu2LtvIg86KY6d+D4hFchyxLahmXAq0n8q68C0S2+TaoCQCoZ++TLyoI2ia7THWH+64PBOABg+0xrpCEbebweAwiPPukZ7MB1po2hqPM8VEsIklqlz4nGX9ovQrO6eqXNCIJ7lCgnTlbOIZDE1/99f0p97O2VDAQDor48wE4SxfUJemi5fUzp15q2sIz/7R9tY6HL7qLnot5nnLDOqTYUAMDtpYSZ6+5gJANRbigDArRvA3AqXoqW1gSskeOScvmmI9tXFP1Jwbt42NEOQDjaPY2o8j1TCpeiZGuXwOEwmIiVqbytOSFBtA6iwKLonBqmtQZdhCfxROQT6o9K3XgSAeZ+fyTioHWbFxvX3N++gFknRWH9auqIYAObnlsBLnyNIQCR05iIqiikqqvdb73QDAFXjMCyfaQqR0JmLDBcaVEllHxikGllRYVEUpOdShYZQuQT+qHN2DyKhgSJfnUXVNaI0GZNxJJdnAIDf5ROk5yKVcCnKyrcEXD6fi62q0AKbxVAQPI5Em+x18oNz8/LK3UglXIpxkiRhVtHUJ20AIFAwVPcLVRIAmG4e5smShVlFSIWG6ka1++uWPj0ApKzNYCYI1cZsAJhualdseRqR0EMxccNTPqvb61hQVWgJacT/JAMhFchL0x36hYDLJ6+qRST0UCSV6Yrq/X1vfwIAmqci7gFfcOAJABg8dUGYVYT9jIvTg/djMw//qHnfacuwXV6afrdhwD0dqS/j0rwUoUri0IPP6i59+48Pvxm9ih9v1U8q0zUvHBs93QQARYcquUIiIv+DhATV7d/z5llF9X48RUUzRQBIffZbCyxR78lGXgK/+PAm2lcdbB6n7Og2AOh6s4Ebn5TzynGEQT9FDiksO3HNOjA91agTqiRFByvpBMlmFTz/BC+Br6sbntXdK/zJe3GSJIRBP0VqXi399RXd+Rb7uFWiTS59ZSstUytXSKz53i6JNtnY7Zq63Jn/g3ewqAlTnFdfffVhIJNTgcUeOnGKTQqTilIUq9KtgzN+5+JbxaV5KWVHazhEnK5uePz9Rs0Lx9S1LyKGMPVIp1Cpw1Oho4emzgndx92P26pKSAU5+8qpA+JdbzbM6u7l/+Cd5K1fQQYMUQQAr2Gi4/Am1sJs1v4KWY4YHvlEOLBZojSZamM2dSLcMmwf+t+rbEJS+JP3cCJlmiIAzHtdd9/7L91vXhOkiAsObSMT/lzs6JuGZictLoN93uefn5untpd5Yj4pFYrSZKoKLXWby7zQd+KCz+pWVO/PeeU4ljNLQzGUlGMnvk85bcgKVOpt5YTwYR06c16e/lrv9I2+gMunqN6fefhHuC5ceoohlvdufKw//1vK+IbD41Cb9VTnFdXz4dCZKdcinixZtfeQvHI37lcsL4oh+W1mS2uDZ2r0fhOxkH0YX50lK9+Ck+dyp4ha7qt+FFJEIUUUUkSKKKSIWgqh4/TneL2IjtPRTREdp6ObIjpORz1FdJyOeoroOB31FNFxOuopouN01FNEx+mo/3aDjtOxQBEdp6OeIjpOxwJFdJyOeoroOB0LFNFxOuqEjtPLSOg4jTPqfULH6VigiI7TsUARHadjZ70I6Dgd1RTRcTqmchEVxRTRcTqmchEdp6OYIjpOxwJFdJyOBYroOB0LFNFxOkaqG3ScjgWK6DgdCxTRcTrqhI7TsbvqR8fpWKAI6DgdGxTRcToWKAI6TkeP0HE6FoSO058bioCO07FBEdBxOjYohpISHaejnmKIJTpORz3FkNBxOhYoopb7qh+FFFFIEfUYcrAdz7BYLBaLhc8iepXw/2lJoBSoWaM9AAAAAElFTkSuQmCC"/>
-                            LiveTest
-                        </label>
-                    </div><br>
-                    ${this.$t("dashboard.eduvidualidhint")} <br>
-                    <span style="font-size:0.8em">(https://www.eduvidual.at/mod/quiz/view.php?id=<span style="background-color: lightblue; padding:0 3px 0 3px;">4172287</span>)</span>`,
-                    inputValidator: (value) => {
-                        if (!value) {return 'No ID given!'}
-                    },
-                    preConfirm: () => {
-                        this.moodleTestType =  document.querySelector('input[name="etesttype"]:checked').value;  
-                    }
-                }).then((input) => {
-                    if (!input.value) {document.getElementById('examtype2').checked = true;}
-                    this.moodleTestId = input.value
-                    console.log(this.moodleTestType)
-                })
-            }
+            this.$swal.fire({
+                title: this.$t("dashboard.eduvidualid"),
+                icon: 'question',
+                input: 'number',
+                html: `
+                    <div style="text-align:left; width: 140px; margin: auto auto;">
+                    <input class="form-check-input" name=etesttype type="radio" id="quiz" value="quiz" checked>
+                    <label class="form-check-label" for="quiz"> 
+                        <img  width="24" height="24" src="data:image/png;base64,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"/>
+                        Test 
+                    </label>
+                    <br>
+                    <input class="form-check-input"  name=etesttype type="radio" id="activequiz" value="activequiz">
+                    <label class="form-check-label" for="activequiz"> 
+                        <img  width="24" height="24" src="data:image/png;base64,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"/>
+                        LiveTest
+                    </label>
+                </div><br>
+                ${this.$t("dashboard.eduvidualidhint")} <br>
+                <span style="font-size:0.8em">(https://www.eduvidual.at/mod/quiz/view.php?id=<span style="background-color: lightblue; padding:0 3px 0 3px;">4172287</span>)</span>`,
+                inputValidator: (value) => {
+                    if (!value) {return 'No ID given!'}
+                },
+                preConfirm: () => {
+                    this.moodleTestType =  document.querySelector('input[name="etesttype"]:checked').value;  
+                }
+            }).then((input) => {
+                if (!input.value) {document.getElementById('examtype2').checked = true; this.examtype = "math"}
+                this.moodleTestId = input.value
+                console.log(this.examtype)
+            })  
         },
+        /**
+         * Text Editor
+         */
         async activateSpellcheck(){
             const inputOptions = new Promise((resolve) => {
                 setTimeout(() => {
@@ -590,9 +625,35 @@ export default {
                     })
                 }, 100)
             })
+
+            const updateMarginValueDisplay = () => {
+                const marginValueInput = document.getElementById('marginValue');
+                const marginValueDisplay = document.getElementById('marginValueDisplay');
+                marginValueDisplay.textContent = marginValueInput.value;
+            };
+
             const { value: language } = await this.$swal.fire({
-                title: this.$t("dashboard.spellcheck"),
-                html: `<div>
+                title: this.$t("dashboard.texteditor"),
+                html: `
+                <div>
+                    <label>
+                        ${this.$t("dashboard.cmargin-value")}<br>
+                        <input style="width:100px" type="range" id="marginValue" name="margin_value" min="2" max="4" step="0.5" />
+                        <div style="width:32px; display: inline-block"  id="marginValueDisplay">${this.cmargin.size}</div>(cm)
+                    </label>
+                    <br>
+                    <label>
+                        <input type="radio" name="correction_margin" value="left"  />
+                        ${this.$t("dashboard.cmargin-left")}
+                    </label>
+                    <label>
+                        <input type="radio" name="correction_margin" value="right" checked/>
+                        ${this.$t("dashboard.cmargin-right")}
+                    </label>
+                </div>
+                <br>
+                <div style="border: 0px solid black;">
+                    <h4 style: margin-bottom: 0px;padding-bottom: 0px;>${this.$t("dashboard.spellcheck")}</h4>
                     <input class="form-check-input" type="checkbox" id="checkboxsuggestions">
                     <label class="form-check-label" for="checkboxsuggestions"> ${this.$t("dashboard.suggest")} </label>
                     <br><br>
@@ -600,6 +661,15 @@ export default {
                 </div>`,
                 input: 'select',
                 inputOptions: inputOptions,
+                focusConfirm: false,
+                didOpen: () => {
+                    const marginValueInput = document.getElementById('marginValue');
+                    marginValueInput.addEventListener('input', updateMarginValueDisplay);
+                },
+                willClose: () => {
+                    const marginValueInput = document.getElementById('marginValue');
+                    marginValueInput.removeEventListener('input', updateMarginValueDisplay);
+                },
                 inputValidator: (value) => {
                     if (!value) {
                     return 'You need to choose something!'
@@ -607,14 +677,28 @@ export default {
                 },
                 preConfirm: () => {
                     this.suggestions = document.getElementById('checkboxsuggestions').checked; 
+                    const radioButtons = document.querySelectorAll('input[name="correction_margin"]');
+                    const marginValue = document.getElementById('marginValue').value;
+                    let selectedMargin = '';
+                    radioButtons.forEach((radio) => {
+                        if (radio.checked) {
+                            selectedMargin = radio.value;
+                        }
+                    });
+                    if (marginValue && selectedMargin) {
+                        this.cmargin = {
+                            side: selectedMargin,
+                            size: parseInt(marginValue)
+                        }
+                    }
                 }
             })
+
             if (language) {
                 this.spellcheck = true
                 this.spellchecklang = language
                 if (language === 'none'){this.spellcheck = false}
-            }
-            
+            }  
         },
 
         // show warning
@@ -636,11 +720,43 @@ export default {
             $("#studentinfocontainer").css("display","none");
             this.activestudent = false
         },
-        toggleAutoabgabe(){
-            if (this.autoabgabe) { this.abgabeinterval = setInterval(() => { this.getFiles('all') }, 60000 * this.abgabeintervalPause) }   //trigger getFiles('all') every other minute
-            else { clearInterval( this.abgabeinterval )} 
+        //this just keeps the state of the toggle
+        toggleScreenshot(){
+            if (this.screenshotinterval == 0) { document.getElementById("screenshotinterval").checked = false }
+            else { document.getElementById("screenshotinterval").checked = true}
         },
+        //sets a new screenshot update interval - the value is sent to the students and then used to update the screenshots
+        setScreenshotInterval(){
+            this.$swal.fire({
+                title: this.$t("dashboard.screenshottitle"),
+                icon: 'question',
+                input: 'range',
+                html: `${this.$t("dashboard.screenshotquestion")} <br>  ${this.$t("dashboard.screenshothint")}`,
+                inputAttributes: {
+                    min: 0,
+                    max: 60,
+                    step: 4
+                },
+                inputValue: this.screenshotinterval
+            }).then((input) => {
+                this.screenshotinterval= input.value
+                if (this.screenshotinterval == 0) { document.getElementById("screenshotinterval").checked = false }
+                else { document.getElementById("screenshotinterval").checked = true}
+                if (!this.screenshotinterval){this.screenshotinterval = 4}
 
+                console.log(this.screenshotinterval)
+                // WRITE screenshotinterval serverstatus ojbect so it can be retrieved on the next student update 
+                fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/screenshotinterval/${this.servername}/${this.servertoken}`, { 
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json' },
+                    body: JSON.stringify({ screenshotinterval: this.screenshotinterval  })
+                    })
+                .then( res => res.json())
+                .then( response => {console.log(response.message) })
+                .catch(err => { console.warn(err) })
+            })  
+        },
+        // temporarily lock screens
         lockscreens(state, feedback=true){
             if (this.studentlist.length === 0) { this.status(this.$t("dashboard.noclients")); return;}
 
@@ -673,7 +789,8 @@ export default {
                     name:"files",
                     id: "swalFile",
                     class:"form-control",
-                    multiple:"multiple"
+                    multiple:"multiple",
+                    accept: ".pdf, .bak"
                 }
             })
             .then((input) => {
@@ -687,20 +804,23 @@ export default {
                 formData.append('servername', this.servername);
 
                 for (const i of Object.keys(this.files)) {
-                    formData.append('files', this.files[i])  // single file is sent as object.. multiple files as array..
+                    let filename = encodeURIComponent(this.files[i].name) // we need to encode the filename because sending formdata encodes non-ASCII characters in a not reversable way
+                    formData.append('files', this.files[i], filename)  // single file is sent as object.. multiple files as array..
                 }
-
+                
                 axios({
                     method: "post", 
                     url: `https://${this.serverip}:${this.serverApiPort}/server/data/upload/${this.servername}/${this.servertoken}/${who}`, 
                     data: formData, 
-                    headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
                 })
                 .then( (response) => {console.log(response.data) })
                 .catch( err =>{ console.log(`${err}`) })
             });    
         },  
-        //stop and clear this exam server instance
+
+        /** 
+         * Stop and Exit Exam Server Instance
+         */
         stopserver(){
             this.$swal.fire({
                 title: this.$t("dashboard.exitexamsure"),
@@ -729,17 +849,29 @@ export default {
                 title: `<span style="font-weight:normal"> IP:</span>  ${this.serverip} </span> 
                         <span style="font-weight:normal"> Name:</span>  ${this.servername}  
                         <span style="font-weight:normal"> Pin:</span> ${this.pin}`,
-                icon: "info"
+                icon: "info",
+                customClass: {
+                    popup: 'custom-swal2-popup',
+                },
             })
         },
         // get finished exams (ABGABE) from students
         getFiles(who, feedfack=false){
-           
+            this.checkDiscspace()
             if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); console.log("no clients connected"); return; }
-            axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/fetch/${this.servername}/${this.servertoken}/${who}`)  //who is either all or token
-            .then( async (response) => { if (feedfack){ this.visualfeedback(response.data.message, 2000) }else { this.status(response.data.message); } })  // we do not want intrusive feedback on automated tasks })
-            .catch( err => {console.log(err)});
+
+            if (this.examtype === "microsoft365"){ //fetch files from onedrive
+                this.downloadFilesFromOneDrive()
+                if (feedfack){ this.visualfeedback(this.$t("dashboard.examrequest"), 2000) }else { this.status(this.$t("dashboard.examrequest")); }
+            }
+            else { // fetch files from clients
+                axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/fetch/${this.servername}/${this.servertoken}/${who}`)  //who is either all or token
+                .then( async (response) => { if (feedfack){ this.visualfeedback(response.data.message, 2000) }else { this.status(response.data.message); } })  // we do not want intrusive feedback on automated tasks })
+                .catch( err => {console.log(err)});
+            }
         },
+
+
         // show status message
         async status(text){  
             $("#statusdiv").text(text)
@@ -751,13 +883,19 @@ export default {
         // implementing a sleep (wait) function
         sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
-        }
-        
+        },
+        checkDiscspace(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
+            this.freeDiscspace = ipcRenderer.sendSync('checkDiscspace')
+            if (this.freeDiscspace < 0.5) {
+                this.status(this.$t("dashboard.freespacewarning")) 
+            }
+        }, 
     },
     mounted() {  // when ready
         this.$nextTick(function () { // Code that will run only after the entire view has been rendered
             $("#statusdiv").fadeOut("slow")
-            this.fetchInfo();
+            this.fetchInfo()
+            this.initializeStudentwidgets()
             this.fetchinterval = setInterval(() => { this.fetchInfo() }, 4000)
         })
         if (this.electron){
@@ -771,10 +909,70 @@ export default {
         clearInterval( this.abgabeinterval )
     }
 }
-
 </script>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <style scoped>
+
+.studentwidget {
+    width: 204px;
+    height: 172px;
+    white-space: nowrap;
+    text-overflow:    ellipsis; 
+    overflow: hidden; 
+    padding: 0;
+    text-align: left; 
+    padding-top:0px;
+    border: 0px solid #5f5f5f46;
+    margin: 0 !important;;
+    margin-right: 4px!important;
+    background-color: transparent;
+    transition: 0.5s;
+}
+
+
+.studentwidget span {
+    margin:0;
+    backdrop-filter: blur(1px);
+    display: inline-block; 
+    width:100%; 
+    color: white; 
+    font-size: 1em; 
+    background: linear-gradient(0deg,rgba(0, 0, 0, 0.808) 0%,  rgba(0, 0, 0, 0.5) 31%, rgba(0, 0, 0, 0.1) 77%,rgba(255,255,255,0) 100% );
+    padding: 2px;
+    padding-left:6px;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+
+.studentimage {
+    background-color:transparent!important;
+}
+
+.ghost {
+   opacity: 0.3;
+}
+
 
 [v-cloak] { display: none; }
 .virtualizedinfo {
@@ -804,6 +1002,20 @@ export default {
     border-top-right-radius: 5px;
 }
 
+.examrequest {
+    position: absolute;
+    top:54px;
+    left:0;
+    background-color: #0dcaf0;
+    font-size: 0.7em;
+    padding: 2px;
+    padding-left: 4px;
+    padding-right: 10px;
+    border-bottom-right-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+
 
 #content {
     background-color: whitesmoke;
@@ -822,18 +1034,28 @@ export default {
     width: 100%;
     height: 90%;
     /* border: 1px solid rgb(99, 187, 175); */
-  
+    padding-bottom:100px;
     transition:0.1s;
     overflow-y:auto;
 }
-.studentwidget{
-    margin-right: 4px!important;
+
+.disabledblue {
+    filter: contrast(100%) grayscale(50%) brightness(120%) blur(0.9px);
+   pointer-events: none;
+   color: #adebff;
+}
+
+.disabledgreen {
+    filter: contrast(100%) grayscale(50%) brightness(120%) blur(0.9px);
+   pointer-events: none;
+   color: #d6ffe1
 }
 
 .disabledexam {
-    filter: contrast(20%) grayscale(100%) brightness(180%);
+    filter: contrast(100%) grayscale(100%) brightness(80%) blur(0.6px);
    pointer-events: none;
 }
+
 
 #pdfpreview {
     display: none;
@@ -899,9 +1121,6 @@ export default {
 
 
 
-
-
-
 #studentinfocontainer {
     display: none;
     position: absolute;
@@ -909,9 +1128,7 @@ export default {
     left: 0;
     width:100vw;
     height: 100vh;
-    
     z-index:100;
-    
 }
 #studentinfodiv {
     position: absolute;
@@ -923,6 +1140,7 @@ export default {
     background-repeat: no-repeat;
     overflow:hidden;
     background-color: #343a40;
+ 
 }
 #controlbuttons {
     backdrop-filter: blur(3px);
@@ -946,4 +1164,16 @@ hr {
     opacity: 0.25;
 }
 
+</style>
+
+
+<style>
+/**in order to override swal settings the css needs to be global not scoped*/
+.swal2-popup{
+    opacity: 0.9 !important; 
+}
+
+.swal2-container {
+    backdrop-filter: blur(2px); 
+} 
 </style>

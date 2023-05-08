@@ -1,7 +1,22 @@
+/**
+ * @license GPL LICENSE
+ * Copyright (c) 2021-2023 Thomas Michael Weissel
+ * 
+ * This program is free software: you can redistribute it and/or modify it 
+ * under the terms of the GNU General Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * You should have received a copy of the GNU General Public License along with this program.
+ * If not, see <http://www.gnu.org/licenses/>
+ */
 
 import { createSocket } from 'dgram'
 import config from '../config.js'
-import ip from 'ip'
 import crypto from 'crypto';
 
 /**
@@ -28,25 +43,7 @@ class MulticastServer {
      */
     init (servername, pin, password) {
         this.server = createSocket('udp4')
-     
-        this.serverinfo = this.initMessage(servername, pin, password)
-        this.server.bind(this.SRC_PORT,'0.0.0.0',  () => { // Add the HOST_IP_ADDRESS for reliability
-          
-            this.server.setBroadcast(true)
-            this.server.setMulticastTTL(128)
-            this.server.setTTL(128)
-            this.server.addMembership(this.MULTICAST_ADDR); 
-
-            this.broadcastInterval = setInterval(() => { this.multicastNew() }, 2000)
-            console.log(`UDP MC Server listening on http://${config.hostip}:${this.server.address().port}`)
-        })
-    }
-
-    /**
-     * creates the message object
-     */
-    initMessage (servername, pin, password) {
-        const message = {
+        this.serverinfo = {
             servername: servername,   //should be unique if several servers are allowed
             pin: pin,
             password: password,
@@ -55,13 +52,22 @@ class MulticastServer {
             ip: config.hostip,
             servertoken: `server-${crypto.randomUUID()}`
         }
-        return message
+        
+        this.server.bind(this.SRC_PORT,'0.0.0.0',  () => { // Add the HOST_IP_ADDRESS for reliability
+            this.server.setBroadcast(true)
+            this.server.setMulticastTTL(128)
+            this.server.setTTL(128)
+            this.server.addMembership(this.MULTICAST_ADDR); 
+            this.broadcastInterval = setInterval(() => { this.sendMulticastMessage() }, 2000)
+            console.log(`UDP MC Server listening on http://${config.hostip}:${this.server.address().port}`)
+        })
     }
+
 
     /**
      * updates the server timestamp and actually broadcasts the message (serverinfo)
      */
-    multicastNew () {
+    sendMulticastMessage () {
         this.serverinfo.timestamp = new Date().getTime()
         let message = {
             servername: this.serverinfo.servername,
@@ -70,10 +76,8 @@ class MulticastServer {
             ip: this.serverinfo.ip
         }
         const preparedMessage = new Buffer.from(JSON.stringify(message))
-        //broadcast to clients
-        this.server.send(preparedMessage, 0, preparedMessage.length, this.ClientPORT, this.MULTICAST_ADDR)
-        //broadcast to other server(clients) - servers also want to know what other servers are in the network
-        this.server.send(preparedMessage, 0, preparedMessage.length, config.multicastServerClientPort, this.MULTICAST_ADDR)
+        this.server.send(preparedMessage, 0, preparedMessage.length, this.ClientPORT, this.MULTICAST_ADDR)  //broadcast to clients
+        this.server.send(preparedMessage, 0, preparedMessage.length, config.multicastServerClientPort, this.MULTICAST_ADDR)        //broadcast to other server(clients) - servers also want to know what other servers are in the network
     }
 }
 

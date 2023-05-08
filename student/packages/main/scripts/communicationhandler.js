@@ -26,30 +26,63 @@ import screenshot from 'screenshot-desktop'
 import FormData from 'form-data/lib/form_data.js';     //we need to import the file directly otherwise it will introduce a "window" variable in the backend and fail
 import { join } from 'path'
 import { screen } from 'electron'
-
 import WindowHandler from './windowhandler.js'
+
+import { execSync } from 'child_process';
+const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
+
+
+
 
  /**
   * Handles information fetching from the server and acts on status updates
   */
  
  class CommHandler {
-     constructor () {
-       this.multicastClient = null
-       this.config = null
-       this.updateStudentIntervall = null
-       this.WindowHandler = null
-     }
+    constructor () {
+        this.multicastClient = null
+        this.config = null
+        this.updateStudentIntervall = null
+        this.WindowHandler = null
+        this.screenshotAbility = false
+        this.screenshotFails = 0 // we count fails and deactivate on 4 consequent fails
+    }
  
-  
-     init (mc, config) {
+    init (mc, config) {
         this.multicastClient = mc
         this.config = config
         this.updateStudentIntervall = setInterval(() => { this.requestUpdate() }, 5000)
         this.heartbeatInterval = setInterval(() => { this.sendHeartbeat() }, 4000)
-     }
+        this.screenshotInterval = setInterval( () => { this.sendScreenshot() }, this.multicastClient.clientinfo.screenshotinterval )
+        if (process.platform !== 'linux' || (  !this.isWayland() && this.imagemagickAvailable()  )){ this.screenshotAbility = true } // only on linux we need to check for wayland or the absence of imagemagick - other os have other problems ^^
+    }
  
-
+    /**
+     * checks for wayland session on linux - no screenshots here for now
+     * @returns true or false
+     */
+    isWayland(){
+        try{ 
+            let output = shell(`loginctl show-session $(loginctl | grep $(whoami) | awk '{print $1}') -p Type`); 
+            if (output.includes('wayland')){ return true } 
+            return false
+        } catch(error){
+            console.log("Next-Exam detected a Wayland Session - Screenshots are not supported yet")
+            return false
+        }
+    }
+    
+    /**
+     * Checks if imagemagick on linux is available
+     * @returns true or false
+     */
+    imagemagickAvailable(){
+        try{ shell(`which import`); return true}
+        catch(error){
+            console.log("ImageMagick is required to take screenshots on linux")
+            return false
+        }
+    }
 
     /** 
      * SEND HEARTBEAT in order to set Online/Offline Status 
@@ -65,7 +98,7 @@ import WindowHandler from './windowhandler.js'
             if (this.multicastClient.clientinfo.exammode === true) {
                 // lets try to allow students to gracefully exit exam on connection loss manually (only in geogebra and editor for now bc. we control the ui) 
                 // this should lead to less irritation when the teacher connection is lost
-                if (this.multicastClient.clientinfo.examtype === "eduvidual") {
+                if (this.multicastClient.clientinfo.examtype === "eduvidual" || this.multicastClient.clientinfo.examtype === "microsoft365" ) {
                     this.gracefullyEndExam()  // this should end kiosk mode, the blur listener and all (keyboard) restrictions but not kill the window
                 }else {
                     console.log("Keeping Examwindow Lockdown")
@@ -93,23 +126,12 @@ import WindowHandler from './windowhandler.js'
 
 
     /** 
-     * Update current Serverstatus + Studenttstatus
-     * Update Screenshot on Server 
+     * Update current Serverstatus + Studenttstatus (every 5 seconds)
      */
     async requestUpdate(){
         if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip
-            //create screenshot ATTENTION! "imagemagick" has to be installed for linux !!
-            let img = await screenshot().catch((err) => { console.log(`SendBeacon Screenshot: ${err}`) });
             const formData = new FormData()  //create formdata
             formData.append('clientinfo', JSON.stringify(this.multicastClient.clientinfo) );   //we send the complete clientinfo object
-
-            if (Buffer.isBuffer(img)){
-                let screenshotfilename = this.multicastClient.clientinfo.token +".jpg"
-                formData.append(screenshotfilename, img, screenshotfilename );
-                let hash = crypto.createHash('md5').update(img).digest("hex");
-                formData.append('screenshothash', hash);
-                formData.append('screenshotfilename', screenshotfilename);
-            }
 
             axios({    //send update and fetch server status
                 method: "post", 
@@ -118,9 +140,7 @@ import WindowHandler from './windowhandler.js'
                 headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
             })
             .then( response => {
-                if (response.data && response.data.status === "error") { 
-                     console.log("requestUpdate Axios: status error - try again in 5 seconds")
-                }
+                if (response.data && response.data.status === "error") { console.log("requestUpdate Axios: status error - try again in 5 seconds") }
                 else if (response.data && response.data.status === "success") { 
                     this.multicastClient.beaconsLost = 0 // this also counts as successful heartbeat - keep connection
                     this.processUpdatedServerstatus(response.data.serverstatus, response.data.studentstatus)
@@ -129,6 +149,72 @@ import WindowHandler from './windowhandler.js'
             .catch(error => { console.log(`requestUpdate Axios: ${error}`); console.log("requestUpdate Axios: failed - try again in 5 seconds")});
         }
     }
+
+
+
+    /** 
+     * Update Screenshot on Server  (every 4 seconds - or depending on the server setting)
+     */
+    async sendScreenshot(){
+        if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip
+    
+            let img = null
+            const formData = new FormData()  //create formdata
+            formData.append('clientinfo', JSON.stringify(this.multicastClient.clientinfo) );   //we send the complete clientinfo object
+
+            //Add screenshot to formData - "imagemagick" has to be installed for linux - wayland is not (yet) supported by imagemagick !!
+            if (this.screenshotAbility){
+                img = await screenshot()   //grab "screenshot" with screenshot node module
+                .then( (res) => { this.screenshotFails=0; return res} )
+                .catch((err) => { this.screenshotFails+=1; if(this.screenshotFails > 4){ this.screenshotAbility=false;console.log(`requestUpdate Screenshot: switching to PageCapture`) } console.log(`requestUpdate Screenshot: ${err}`) });
+            }
+            else {
+                //grab "screenshot" from appwindow
+                let currentFocusedMindow = WindowHandler.getCurrentFocusedWindow()  //returns exam window if nothing in focus or main window
+                if (currentFocusedMindow) {
+                    img = await currentFocusedMindow.webContents.capturePage()  // this should always work because it's onboard electron
+                    .then((image) => {
+                        const imageBuffer = image.toPNG();// Convert the nativeImage to a Buffer (PNG format)
+                        return imageBuffer
+                      })
+                    .catch((err) => {console.log(`requestUpdate Screenshot: ${err}`)   });
+                }
+            }
+
+            if (Buffer.isBuffer(img)){
+                let screenshotfilename = this.multicastClient.clientinfo.token +".jpg"
+                formData.append(screenshotfilename, img, screenshotfilename );
+                let hash = crypto.createHash('md5').update(img).digest("hex");
+                formData.append('screenshothash', hash);
+                formData.append('screenshotfilename', screenshotfilename);
+            }
+            else { console.log("Image is no buffer:", img) }
+
+            axios({    //send screenshot update
+                method: "post", 
+                url: `https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/updatescreenshot`, 
+                data: formData, 
+                headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
+            })
+            .then( response => {
+                if (response.data && response.data.status === "error") { console.log("sendScreenshot Axios: status error",  response.data.message ) }
+            })
+            .catch(error => { console.log(`sendScreenshot Axios: ${error}`); });
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -151,14 +237,35 @@ import WindowHandler from './windowhandler.js'
             if (studentstatus.fetchfiles === true){
                 this.requestFileFromServer(studentstatus.files)
             }
+
+            // this is an microsoft365 thing. check if exam mode is office, check if this is set - otherwise do not enter exammode - it will fail
+            if (studentstatus.msofficeshare){
+                console.log("officeshare is set")
+                //set or update sharing link - it will be used in "microsoft365" exam mode
+                this.multicastClient.clientinfo.msofficeshare = studentstatus.msofficeshare
+            }
+
         }
 
         // global status updates
         if (serverstatus.screenlock && !this.multicastClient.clientinfo.screenlock) {  this.activateScreenlock() }
         else if (!serverstatus.screenlock ) { this.killScreenlock() }
 
-
-        if (serverstatus.exammode && !this.multicastClient.clientinfo.exammode){ 
+        //update screenshotinterval
+        if (serverstatus.screenshotinterval) { 
+            if (this.multicastClient.clientinfo.screenshotinterval !== serverstatus.screenshotinterval*1000) {
+                console.log("ScreenshotInterval changed to", serverstatus.screenshotinterval*1000)
+                this.multicastClient.clientinfo.screenshotinterval = serverstatus.screenshotinterval*1000
+                
+                // clear old interval and start new interval if set to something bigger than zero
+                clearInterval( this.screenshotInterval )
+                if (this.multicastClient.clientinfo.screenshotinterval > 0){
+                    this.screenshotInterval = setInterval( () => { this.sendScreenshot() }, this.multicastClient.clientinfo.screenshotinterval )
+                }
+            }
+        }
+        
+        if (serverstatus.exammode && !this.multicastClient.clientinfo.exammode){
             this.killScreenlock() // remove lockscreen immediately - don't wait for server info
             this.startExam(serverstatus)
         }
@@ -231,11 +338,16 @@ import WindowHandler from './windowhandler.js'
         let primary = screen.getPrimaryDisplay()
         if (!primary || primary === "" || !primary.id){ primary = displays[0] }       
        
+        this.multicastClient.clientinfo.exammode = true
+        this.multicastClient.clientinfo.cmargin = serverstatus.cmargin  // this is used to configure margin settings for the editor
+
         if (!WindowHandler.examwindow){  // why do we check? because exammode is left if the server connection gets lost but students could reconnect while the exam window is still open and we don't want to create a second one
+            console.log("creating exam window")
             this.multicastClient.clientinfo.examtype = serverstatus.examtype
             WindowHandler.createExamWindow(serverstatus.examtype, this.multicastClient.clientinfo.token, serverstatus, primary);
         }
         else if (WindowHandler.examwindow){  //reconnect into active exam session with exam window already open
+            console.error("communicationhandler @ startExam: found existing Examwindow..")
             try {  // switch existing window back to exam mode
                 WindowHandler.examwindow.show() 
                 if (!this.config.development) { 
@@ -263,7 +375,7 @@ import WindowHandler from './windowhandler.js'
                 }
             }
         }
-        this.multicastClient.clientinfo.exammode = true
+       
     }
 
 
@@ -355,6 +467,7 @@ import WindowHandler from './windowhandler.js'
         }
         
         let data = JSON.stringify({ 'files' : files, 'type': 'studentfilerequest'})
+        
         axios({
             method: "post", 
             url: `https://${serverip}:${this.config.serverApiPort}/server/data/download/${servername}/${token}`, 

@@ -1,5 +1,17 @@
+ <!-- 
+    Made with GeoGebra https://www.geogebra.org
+    License Information: 
+        https://stage.geogebra.org/license#NonCommercialLicenseAgreement
+        https://www.gnu.org/licenses/gpl-3.0.html
+
+    This page allows you to use geogebra classic and geogebra suite in the context of next-exam 
+    Some features of geogebra are hidden because of the restrictive nature of the digital exam environment
+    Tracking features have been removed to comply with dsgvo regulations
+  -->
+ 
+ 
  <template> 
-    <div id="apphead" class="w-100 p-3 text-white bg-dark shadow text-center">
+    <div id="apphead" class="w-100 pt-2 ps-2 pe-2 text-white bg-dark shadow text-center">
 
         <div v-if="online" class="text-white m-1">
             <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style="float: left;" />
@@ -13,18 +25,9 @@
              <span class="fs-4 align-middle me-4 red" style="float: left;"> | {{ $t("student.disconnected") }} </span>  
         </div>
 
-        <!-- filelist start - show local files from workfolder (pdf only)-->
-             <div v-for="file in localfiles" class="d-inline">
-                <div v-if="(file.type == 'pdf')" class="btn btn-secondary me-2 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file.name}} </div>
-            </div>
-        <!-- filelist end -->
-
-      
-        <span  v-if="online" class="fs-4 align-middle" style="">{{servername}}|{{pincode}}</span>
         <div v-if="!online && exammode" class="btn btn-success p-1 me-1 mb-1 btn-sm"  style="float: left;"  @click="reconnect()"><img src="/src/assets/img/svg/gtk-convert.svg" class="" width="22" height="22"> {{ $t("editor.reconnect")}}</div>
         <div v-if="!online && exammode" class="btn btn-danger p-1 me-1 mb-1 btn-sm"  style="float: left;"  @click="gracefullyexit()"><img src="/src/assets/img/svg/dialog-cancel.svg" class="" width="22" height="22"> {{ $t("editor.unlock")}} </div>
-
-
+        <span  v-if="servername" class="fs-4 align-middle" style="">{{servername}}|{{pincode}}</span>
 
         <span class="fs-4 align-middle" style="float: right">GeoGebra</span>
 
@@ -33,23 +36,35 @@
             <div class="btn btn-outline-info btn-sm" @click="setsource('classic')"> classic</div>
         </div>
         
-        <span class="fs-4 align-middle me-2" style="float: right">{{timesinceentry}}</span>
+        <span class="fs-4 align-middle me-2" style="float: right; width:120px;">{{timesinceentry}}</span>
         <span v-if="battery && battery.level" class="fs-4 me-3"  style="float: right;">
             <img v-if="battery && battery.level > 0.9" src="/src/assets/img/svg/battery-100.svg"  :title="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
-            <img v-if="battery && battery.level > 0.8 && battery.level < 0.9 " src="/src/assets/img/svg/battery-090.svg" :title="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
-            <img v-if="battery && battery.level > 0.7 && battery.level < 0.8 " src="/src/assets/img/svg/battery-080.svg" :title="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
-            <img v-if="battery && battery.level > 0.6 && battery.level < 0.7 " src="/src/assets/img/svg/battery-070.svg" :title="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
-            <img v-if="battery && battery.level > 0.5 && battery.level < 0.6 " src="/src/assets/img/svg/battery-060.svg" :title="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
-            <img v-if="battery && battery.level > 0.4 && battery.level < 0.5 " src="/src/assets/img/svg/battery-050.svg" :title="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
-            <img v-if="battery && battery.level > 0.3 && battery.level < 0.4 " src="/src/assets/img/svg/battery-040.svg" :title="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
-            <img v-if="battery && battery.level > 0.2 && battery.level < 0.3 " src="/src/assets/img/svg/battery-030.svg" :title="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
-            <img v-if="battery && battery.level > 0.1 && battery.level < 0.2 " src="/src/assets/img/svg/battery-020.svg" :title="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
-            <img v-if="battery && battery.level < 0.1" :title="battery.level*100+'%'" src="/src/assets/img/svg/battery-010.svg" class=" align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
+            <img v-if="battery && battery.level > 0.8 && battery.level < 0.9 " src="/src/assets/img/svg/battery-090.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
+            <img v-if="battery && battery.level > 0.7 && battery.level < 0.8 " src="/src/assets/img/svg/battery-080.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
+            <img v-if="battery && battery.level > 0.6 && battery.level < 0.7 " src="/src/assets/img/svg/battery-070.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
+            <img v-if="battery && battery.level > 0.5 && battery.level < 0.6 " src="/src/assets/img/svg/battery-060.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
+            <img v-if="battery && battery.level > 0.4 && battery.level < 0.5 " src="/src/assets/img/svg/battery-050.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
+            <img v-if="battery && battery.level > 0.3 && battery.level < 0.4 " src="/src/assets/img/svg/battery-040.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
+            <img v-if="battery && battery.level > 0.2 && battery.level < 0.3 " src="/src/assets/img/svg/battery-030.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
+            <img v-if="battery && battery.level > 0.1 && battery.level < 0.2 " src="/src/assets/img/svg/battery-020.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
+            <img v-if="battery && battery.level < 0.1" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" src="/src/assets/img/svg/battery-010.svg" class=" align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
         </span>
-
     </div>
 
+
+    <!-- filelist start - show local files from workfolder (pdf and gbb only)-->
+    <div id="toolbar" class="d-inline p-1 pb-0">  
+        <button title="backup" @click="saveContent(true); " class="btn  d-inline btn-success p-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/document-save.svg" class="white" width="22" height="22" ></button>
+
+        <div v-for="file in localfiles" class="d-inline">
+            <div v-if="(file.type == 'pdf')" class="btn btn-secondary ms-2 mb-1 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file.name}} </div>
+            <div v-if="(file.type == 'ggb')" class="btn btn-info ms-2 mb-1  btn-sm" @click="selectedFile=file.name; loadGGB(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file.name}} </div>
+        </div>
+    </div>
+    <!-- filelist end -->
     
+
+
     
     <!-- angabe/pdf preview start -->
     <div id=preview class="fadeinslow p-4">
@@ -98,6 +113,7 @@ export default {
             clientinfo: null,
             entrytime: 0,
             timesinceentry: 0,
+            now : new Date().getTime(),
             localfiles: null,
             battery: null
         }
@@ -194,8 +210,8 @@ export default {
             iFrame.parentNode.replaceChild(iFrame.cloneNode(), iFrame);
         },  
         clock(){
-            let now = new Date().getTime()
-            this.timesinceentry =  new Date(now - this.entrytime).toISOString().substr(11, 8)
+            this.now = new Date().getTime()
+            this.timesinceentry =  new Date(this.now - this.entrytime).toISOString().substr(11, 8)
         },  
         async fetchInfo() {
             let getinfo = ipcRenderer.sendSync('getinfo')  // we need to fetch the updated version of the systemconfig from express api (server.js)
@@ -214,12 +230,79 @@ export default {
             this.battery = await navigator.getBattery();
         }, 
 
-       
-        /** Converts the Editor View into a multipage PDF */
-        async saveContent() {  
-            let filename = this.currentFile.replace(/\.[^/.]+$/, "")  // we dont need the extension
-            ipcRenderer.send('printpdf', {clientname:this.clientname, filename: `${filename}.pdf`, landscape: true })
+         /** Saves Content as GGB */
+        async saveContent(manual) {  
+            const ggbIframe = document.getElementById('geogebraframe');
+            const ggbApplet = ggbIframe.contentWindow.ggbApplet;   // get the geogebra applet and all of its methods
+            let filename = `${this.clientname}.ggb`
+            if (manual){ 
+                await this.$swal({
+                    title: this.$t("math.filename") ,
+                    input: 'text',
+                    inputPlaceholder: 'Type here...',
+                    showCancelButton: true,
+                    inputAttributes: {
+                        maxlength: 20,
+                    },
+                    confirmButtonText: 'Ok',
+                    cancelButtonText: this.$t("editor.cancel"),
+                    inputValidator: (value) => {
+                        const regex = /^[A-Za-z0-9]+$/;
+                        if (!value.match(regex)) {
+                            return  this.$t("math.nospecial") ;
+                        }                   
+                     },
+                 }).then((result) => {
+                    if (result.isConfirmed) { filename = `${result.value}-bak.ggb`}
+                    else {return; }
+                });
+            }
+            
+            ggbApplet.getBase64((base64GgbFile) => {
+                let response = ipcRenderer.sendSync('saveGGB', {filename: filename, content: base64GgbFile})   // send base64 string to backend for saving
+                if (response.status === "success" && manual){  // we wait for a response - only show feed back if manually saved
+                    this.loadFilelist()
+                    this.$swal.fire({
+                        title: this.$t("editor.saved"),
+                        text: filename,
+                        icon: "info"
+                    })
+                }
+            })
         },
+
+
+
+        // get file from local workdirectory and replace editor content with it
+        loadGGB(file){
+            this.$swal.fire({
+                title: this.$t("editor.replace"),
+                html:  `${this.$t("editor.replacecontent1")} <b>${file}</b> ${this.$t("editor.replacecontent2")}`,
+                icon: "question",
+                showCancelButton: true,
+                cancelButtonText: this.$t("editor.cancel"),
+                reverseButtons: true
+            })
+            .then((result) => {
+                if (result.isConfirmed) {
+
+                    const result = ipcRenderer.sendSync('loadGGB', file);
+                    if (result.status === "success") {
+                        const base64GgbFile = result.content;
+                        const ggbIframe = document.getElementById('geogebraframe');
+                        const ggbApplet = ggbIframe.contentWindow.ggbApplet;
+                        ggbApplet.setBase64(base64GgbFile);
+                    } else {
+                        console.error('Error loading file');
+                    }
+                } 
+            }); 
+        },
+
+
+
+
+       
     },
     beforeUnmount() {
         clearInterval( this.fetchinterval )

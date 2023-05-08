@@ -1,7 +1,10 @@
 
-import { app, BrowserWindow, shell, dialog, Menu, MenuItem, screen} from 'electron'
+import { app, BrowserWindow, dialog, Menu, MenuItem, screen} from 'electron'
 import { join } from 'path'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
+
+import playSound from 'play-sound';
+const sound = playSound({});
 
   ////////////////////////////////////////////////////////////
  // Window handling (ipcRenderer Process - Frontend) START
@@ -23,7 +26,18 @@ class WindowHandler {
         this.config = config
     }
 
-
+    // return electron window in focus or an other electron window depending on the hierachy
+    getCurrentFocusedWindow() {
+        const focusedWindow = BrowserWindow.getFocusedWindow();
+        if (focusedWindow) {
+          return focusedWindow
+        } else {
+            if (this.screenlockWindow){return this.screenlockWindow}
+            else if (this.examwindow){return this.examwindow}
+            else if (this.mainwindow){return this.mainwindow}
+            else { return false }
+        }
+    }
 
 
     /**
@@ -64,6 +78,7 @@ class WindowHandler {
         
         blockwin.removeMenu() 
         blockwin.setKiosk(true)
+        blockwin.setAlwaysOnTop(true, "screen-saver", 1) 
         blockwin.show()
         blockwin.moveTop();
         this.blockwindows.push(blockwin)
@@ -71,7 +86,7 @@ class WindowHandler {
 
 
     /**
-     * Screenlock Window (to cover everything) - block students from working
+     * Screenlock Window (to cover the mainscreen) - block students from working
      * @param display 
      */
 
@@ -80,7 +95,7 @@ class WindowHandler {
             show: false,
             x: display.bounds.x + 0,
             y: display.bounds.y + 0,
-            parent: this.mainwindow,
+            // parent: this.mainwindow,   // leads to visible titlebar in gnome-desktop
             skipTaskbar:true,
             title: 'Screenlock',
             width: display.bounds.width,
@@ -132,8 +147,8 @@ class WindowHandler {
      */
     async createExamWindow(examtype, token, serverstatus, primarydisplay) {
         // just to be sure we check some important vars here
-        if (examtype !== "eduvidual" && examtype !== "editor" && examtype !== "math" || !token){  // for now.. we probably should stop everything here
-            console.log("missing parameters for exam-mode!")
+        if (examtype !== "gforms" && examtype !== "eduvidual" && examtype !== "editor" && examtype !== "math" && examtype !== "microsoft365" || !token){  // for now.. we probably should stop everything here
+            console.log("missing parameters for exam-mode or mode not in allowed list!")
             examtype = "editor" 
         } 
         
@@ -168,6 +183,25 @@ class WindowHandler {
             let url =`https://eduvidual.at/mod/${serverstatus.moodleTestType}/view.php?id=${serverstatus.testid}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287  
             this.examwindow.loadURL(url)
         }
+        else if (examtype === "gforms"){    //external page
+            let url =`https://docs.google.com/forms/d/e/${serverstatus.gformsTestId}/viewform`  //https://docs.google.com/forms/d/e/1FAIpQLScuTG7yldD0VRhFgOC_2fhbVdgXn95Kf_w2rUbJm79S1kJBnA/viewform
+            this.examwindow.loadURL(url)
+        }
+        else if (examtype === "microsoft365"  ) { //external page
+            console.log("starting microsoft365 exam...")
+            let url = this.multicastClient.clientinfo.msofficeshare   
+            if (!url) {// we wait for the next update tick - msofficeshare needs to be set !
+                console.log("no url for microsoft365 was set")
+                console.log(this.multicastClient.clientinfo)
+                this.examwindow.destroy(); 
+                this.examwindow = null;
+                disableRestrictions()
+                this.multicastClient.clientinfo.exammode = false
+                this.multicastClient.clientinfo.focus = true
+                return
+            }
+            this.examwindow.loadURL(url)
+        }
         else { 
             let url = examtype   // editor || math || tbd.
             if (app.isPackaged) {
@@ -183,7 +217,7 @@ class WindowHandler {
         // HANDLE SPELLCHECK 
         if (serverstatus.spellcheck){  
             console.log(serverstatus.spellchecklang)
-            this.examwindow.webContents.session.setSpellCheckerDictionaryDownloadURL(`https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/dicts/`)
+            this.examwindow.webContents.session.setSpellCheckerDictionaryDownloadURL(`https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/static/dicts/`)
             this.examwindow.webContents.session.setSpellCheckerLanguages([serverstatus.spellchecklang])
             if (serverstatus.suggestions){
                 this.examwindow.webContents.on('context-menu', (event, params) => {
@@ -197,9 +231,80 @@ class WindowHandler {
         }
         else { this.examwindow.webContents.session.setSpellCheckerLanguages([]) }
 
+        if (serverstatus.examtype === "editor" ){  // do not under any circumstances allow navigation away from the editor
+            this.examwindow.webContents.on('will-navigate', (event, url) => {   
+                event.preventDefault()
+            })
+        }
+
+        if ( serverstatus.examtype === "microsoft365"){  // do not under any circumstances allow navigation away from the editor
+            this.examwindow.officeurl = false
+            this.examwindow.webContents.on('will-navigate', (event, url) => {  // if a resource (pdf) is openend create an embed element and embed the pdf
+                if (!this.examwindow.officeurl ) { this.examwindow.officeurl = url }
+                if (url !== this.examwindow.officeurl ) {
+                    console.log("do not navigate away from this test.. it will haunt you forever")
+                    event.preventDefault()
+                }  
+            })
+        }
+
+
+        // HANDLE GOOGLE Forms
+        if (serverstatus.examtype === "gforms"){
+            console.log("gforms mode")
+            this.examwindow.webContents.on('did-navigate', (event, url) => {  //create a new div called "nextexamwarning" and "embedbackground" - this is shown onBlur()
+                //console.log(url)
+                this.examwindow.webContents.executeJavaScript(` 
+                    const warning = document.createElement('div')
+                    warning.setAttribute('id', 'nextexamwaring')
+                    warning.setAttribute('style', 'display: none');
+                    const background = document.createElement('div');
+                    background.setAttribute('id', 'embedbackground')
+                    background.setAttribute('style', 'display: none');
+                    const embed = document.createElement('embed');` , true)
+                    .catch(err => console.log(err))
+            })
+            this.examwindow.webContents.on('will-navigate', (event, url) => {  // if a resource (pdf) is openend create an embed element and embed the pdf
+                //console.log(url)
+                //we block everything except pages that contain the following keyword-combinations
+                if (!url.includes(serverstatus.gformsTestId)){
+                    console.log(url)
+                    //check if this an exception (login, init) - if URL doesn't include either of these combinations - block! EXPLICIT is easier to read ;-)
+                    if ( url.includes("docs.google.com") && url.includes("formResponse") )           { console.log(" url allowed") }
+                    else if ( url.includes("docs.google.com") && url.includes("viewscore") )         { console.log(" url allowed") }
+                    else {
+                        console.log("blocked leaving exam mode")
+                        event.preventDefault()
+                    }
+                }
+                else {console.log("entered valid test environment")  }
+            })
+
+            // if a new window should open triggered by window.open()
+            this.examwindow.webContents.on('new-window', (event, url) => {
+                event.preventDefault(); // Prevent the new window from opening
+                // Optionally, navigate to the URL in the same window
+                if ( url.includes("docs.google.com") && url.includes("viewscore") )         {
+                    this.examwindow.loadURL(url);
+                }
+            });
+
+            // if a new window should open triggered by target="_blank"
+            this.examwindow.webContents.setWindowOpenHandler(({ url }) => {
+                // Optionally, navigate to the URL in the same window
+                if ( url.includes("docs.google.com") && url.includes("viewscore") ) {     
+                    this.examwindow.loadURL(url);
+                }
+                // Prevent the new window from opening
+               return { action: 'deny' };
+              });
+        }
+
+
+
         // HANDLE EDUVIDUAL pdf embed
         if (serverstatus.examtype === "eduvidual"){
-
+            console.log("eduvidual mode")
             this.examwindow.webContents.on('did-navigate', (event, url) => {  //create a new div called "nextexamwarning" and "embedbackground"
                 this.examwindow.webContents.executeJavaScript(` 
                     const warning = document.createElement('div')
@@ -212,17 +317,25 @@ class WindowHandler {
                     .catch(err => console.log(err))
             })
             this.examwindow.webContents.on('will-navigate', (event, url) => {  // if a resource (pdf) is openend create an embed element and embed the pdf
-                console.log(url)
-             
-                if (!url.includes(serverstatus.testid) //we block everything except pages that contain the following keyword-combinations
-                    && ( !url.includes("startattempt.php") && !url.includes("eduvidual.at"))
-                    && ( !url.includes("processattempt.php") && !url.includes("eduvidual.at"))
-                    && ( !url.includes("login") && !url.includes("microsoft")) 
-                    && ( !url.includes("logout") && !url.includes("eduvidual.at"))
-                    && ( !url.includes("lookup") && !url.includes("google"))  
-                    ){
-                    event.preventDefault()
+                //we block everything except pages that contain the following keyword-combinations
+                if (!url.includes(serverstatus.testid)){
+                    console.log(url)
+                    //check if this an exception (login, init) - if URL doesn't include either of these combinations - block! EXPLICIT is easier to read ;-)
+                    if ( url.includes("startattempt.php") && url.includes("eduvidual.at") )         { console.log(" url allowed") }
+                    else if ( url.includes("processattempt.php") && url.includes("eduvidual.at") )  { console.log(" url allowed") }
+                    else if ( url.includes("login") && url.includes("Microsoft") )                  { console.log(" url allowed") }
+                    else if ( url.includes("login") && url.includes("Google") )                     { console.log(" url allowed") }
+                    else if ( url.includes("login") && url.includes("microsoftonline") )            { console.log(" url allowed") }
+                    else if ( url.includes("accounts") && url.includes("google.com") )              { console.log(" url allowed") }
+                    else if ( url.includes("logout") && url.includes("eduvidual.at") )              { console.log(" url allowed") }
+                    else if ( url.includes("lookup") && url.includes("google") )                    { console.log(" url allowed") }
+                    else {
+                        console.log("blocked leaving exam mode")
+                        event.preventDefault()
+                    }
                 }
+                else {console.log("entered valid test environment")  }
+
                 if (url.includes('resource/view')&& !url.includes('forceview')){
                     event.preventDefault()
                     this.examwindow.webContents.executeJavaScript(` 
@@ -236,17 +349,18 @@ class WindowHandler {
                 }
             })
         }
+
+
+
+
         if (this.config.showdevtools) { this.examwindow.webContents.openDevTools()  }
 
-       
         this.examwindow.once('ready-to-show', async () => {
             this.examwindow.removeMenu() 
-            this.examwindow.show()
-            
             if (!this.config.development) { 
                 this.examwindow.setKiosk(true)
                 this.examwindow.setMinimizable(false)
-                this.examwindow.setAlwaysOnTop(true, "screen-saver", 1) 
+                this.examwindow.setAlwaysOnTop(true, "popUpMenu", 0) 
                 this.examwindow.moveTop();
                
                 enableRestrictions(WindowHandler.examwindow)  // enable restriction only when exam window is fully loaded and in focus
@@ -254,6 +368,8 @@ class WindowHandler {
                 this.examwindow.focus()
                 this.addBlurListener()
             }
+            this.examwindow.focus()
+            this.examwindow.show()
         })
 
         this.examwindow.on('close', async  (e) => {   // window should not be closed manually.. ever! but if you do make sure to clean examwindow variable and end exam for the client
@@ -330,12 +446,6 @@ class WindowHandler {
 
         if (this.config.showdevtools) { this.mainwindow.webContents.openDevTools()  } // you don't want this in the final build
 
-        // Make all links open with the browser, not with the application // this would trigger blur event in exam mode
-        this.mainwindow.webContents.setWindowOpenHandler(({ url }) => {
-            if (url.startsWith('https:')) shell.openExternal(url)
-            return { action: 'deny' }
-        })
-
         this.mainwindow.webContents.session.setCertificateVerifyProc((request, callback) => {
             var { hostname, certificate, validatedCertificate, verificationResult, errorCode } = request;
             callback(0);
@@ -374,7 +484,16 @@ class WindowHandler {
         winhandler.examwindow.moveTop();
         winhandler.examwindow.focus();
 
-        if (this.multicastClient.clientinfo.examtype === "eduvidual"){
+        // Play sound
+        let soundfile = null
+        if (app.isPackaged) {
+            soundfile = join(process.resourcesPath, 'app.asar.unpacked', 'public', 'attention.wav');
+        } else {
+            soundfile = join(__dirname, '../../public/attention.wav');
+        }
+        sound.play(soundfile);
+
+        if (this.multicastClient.clientinfo.examtype === "eduvidual" || this.multicastClient.clientinfo.examtype === "gforms" ){
             // this only works in "eduvidual" mode because otherwise there is no element "warning" to append (clicking on an external link is considered a blur event)
             winhandler.examwindow.webContents.executeJavaScript(` 
                         if (typeof warning !== 'undefined'){
