@@ -57,6 +57,8 @@
         "leaving": "Abgesicherter Modus beendet"
     },
     "math": {
-        "exit":"Abgesicherten Modus beenden?"
+        "exit":"Abgesicherten Modus beenden?",
+        "filename": "Dateiname",
+        "nospecial": "Bitte geben Sie nur Buchstaben oder Zahlen ein."
     }
 }

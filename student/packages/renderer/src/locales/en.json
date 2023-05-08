@@ -57,6 +57,8 @@
         "leaving": "Leaving Exam mode"
     },
     "math": {
-        "exit":"Exit safe exam mode"
+        "exit":"Exit safe exam mode",
+        "filename": "Filename",
+        "nospecial": "Please enter only letters and numbers without special characters"
     }
 }

@@ -53,12 +53,12 @@
 
 
     <!-- filelist start - show local files from workfolder (pdf and gbb only)-->
-    <div id="toolbar" class="d-inline p-1">  
-        <button title="backup" @click="saveContent(true); " class="btn  d-inline btn-success p-1 ms-2  btn-sm"><img src="/src/assets/img/svg/document-save.svg" class="white" width="22" height="22" ></button>
+    <div id="toolbar" class="d-inline p-1 pb-0">  
+        <button title="backup" @click="saveContent(true); " class="btn  d-inline btn-success p-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/document-save.svg" class="white" width="22" height="22" ></button>
 
         <div v-for="file in localfiles" class="d-inline">
-            <div v-if="(file.type == 'pdf')" class="btn btn-secondary ms-2 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file.name}} </div>
-            <div v-if="(file.type == 'ggb')" class="btn btn-info ms-2 btn-sm" @click="selectedFile=file.name; loadGGB(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file.name}}  ({{ new Date(this.now - file.mod).toISOString().substr(11, 5) }})</div>
+            <div v-if="(file.type == 'pdf')" class="btn btn-secondary ms-2 mb-1 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file.name}} </div>
+            <div v-if="(file.type == 'ggb')" class="btn btn-info ms-2 mb-1  btn-sm" @click="selectedFile=file.name; loadGGB(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file.name}} </div>
         </div>
     </div>
     <!-- filelist end -->
@@ -235,15 +235,36 @@ export default {
             const ggbIframe = document.getElementById('geogebraframe');
             const ggbApplet = ggbIframe.contentWindow.ggbApplet;   // get the geogebra applet and all of its methods
             let filename = `${this.clientname}.ggb`
-            if (manual){ filename = `${this.clientname}-backup.ggb`  }
+            if (manual){ 
+                await this.$swal({
+                    title: this.$t("math.filename") ,
+                    input: 'text',
+                    inputPlaceholder: 'Type here...',
+                    showCancelButton: true,
+                    inputAttributes: {
+                        maxlength: 20,
+                    },
+                    confirmButtonText: 'Ok',
+                    cancelButtonText: this.$t("editor.cancel"),
+                    inputValidator: (value) => {
+                        const regex = /^[A-Za-z0-9]+$/;
+                        if (!value.match(regex)) {
+                            return  this.$t("math.nospecial") ;
+                        }                   
+                     },
+                 }).then((result) => {
+                    if (result.isConfirmed) { filename = `${result.value}-bak.ggb`}
+                    else {return; }
+                });
+            }
             
             ggbApplet.getBase64((base64GgbFile) => {
-                console.log("got it")
                 let response = ipcRenderer.sendSync('saveGGB', {filename: filename, content: base64GgbFile})   // send base64 string to backend for saving
                 if (response.status === "success" && manual){  // we wait for a response - only show feed back if manually saved
                     this.loadFilelist()
                     this.$swal.fire({
                         title: this.$t("editor.saved"),
+                        text: filename,
                         icon: "info"
                     })
                 }
