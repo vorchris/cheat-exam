@@ -22,6 +22,18 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int nCmdSho
                               100, 100, 250, 150,
                               NULL, NULL, NULL, NULL);
 
+    // Register for raw input from touchpad
+    RAWINPUTDEVICE rid;
+    rid.usUsagePage = 0x01; // Generic Desktop Controls
+    rid.usUsage = 0x05;     // Mouse
+    rid.dwFlags = RIDEV_INPUTSINK;
+    rid.hwndTarget = hwnd;
+
+    if (!RegisterRawInputDevices(&rid, 1, sizeof(rid))) {
+        MessageBox(NULL, L"Failed to register raw input device.", L"Error", MB_ICONERROR | MB_OK);
+        return -1;
+    }
+
     MSG msg = {0};
 
     while (GetMessage(&msg, NULL, 0, 0)) {
