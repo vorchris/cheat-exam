@@ -1,12 +1,25 @@
 #include <windows.h>
-#include <stdio.h>
-#include <hidusage.h>
+#include <objbase.h>
+#include <Windows.UI.Input.h>
+#include <wrl.h>
+#include <wrl/client.h>
+#include <wrl/implements.h>
+#include <wrl/wrappers/corewrappers.h>
+#include <wrl/event.h>
 
-// Function prototype for handling messages
-LRESULT CALLBACK WindowProcedure(HWND, UINT, WPARAM, LPARAM);
 
-int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int nCmdShow) {
-    WNDCLASSW wc = { 0 };
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+    HRESULT hr = CoInitialize(NULL);
+    if (FAILED(hr))
+    {
+        MessageBox(NULL, L"Failed to initialize COM library.", L"Error", MB_ICONERROR | MB_OK);
+        return 0;
+    }
+
+    // create a window and message loop
+
+    WNDCLASSW wc = {0};
 
     wc.hbrBackground = (HBRUSH)COLOR_WINDOW;
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
@@ -14,79 +27,85 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int nCmdSho
     wc.lpszClassName = L"TouchpadBlocker";
     wc.lpfnWndProc = WindowProcedure;
 
-    // Register the window class
     if (!RegisterClassW(&wc)) {
         return -1;
     }
 
-    // Create the window
     HWND hwnd = CreateWindowW(wc.lpszClassName, L"TouchpadBlocker",
-        WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-        100, 100, 250, 150,
-        NULL, NULL, NULL, NULL);
+                              WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+                              100, 100, 250, 150,
+                              NULL, NULL, NULL, NULL);
 
-    // Register for raw input from touchpad
-    RAWINPUTDEVICE rid;
-    rid.usUsagePage = 0x01; // Generic Desktop Controls
-    rid.usUsage = 0x02;     // Mouse
-    rid.dwFlags = RIDEV_INPUTSINK;
-    rid.hwndTarget = hwnd;
+    MSG msg = {0};
 
-    // Register the raw input device
-    if (!RegisterRawInputDevices(&rid, 1, sizeof(rid))) {
-        MessageBox(NULL, L"Failed to register raw input device.", L"Error", MB_ICONERROR | MB_OK);
-        return -1;
-    }
-
-    // Main message loop
-    MSG msg = { 0 };
     while (GetMessage(&msg, NULL, 0, 0)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
 
+
+
+    CoUninitialize();
     return 0;
 }
 
-LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
-    switch (msg) {
-    case WM_INPUT: {
-        UINT dwSize = 0;
 
-        // Get the size of the raw input data
-        GetRawInputData((HRAWINPUT)lp, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER));
 
-        // Allocate memory to store the raw input data
-        LPBYTE lpb = new BYTE[dwSize];
 
-        if (lpb == NULL) {
-            return 0;
+LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    static Microsoft::WRL::ComPtr<IGestureRecognizer> gestureRecognizer;
+
+    switch (uMsg)
+    {
+    case WM_CREATE:
+    {
+        HRESULT hr = RoInitialize(RO_INIT_MULTITHREADED);
+        if (FAILED(hr))
+        {
+            MessageBox(NULL, L"Failed to initialize the Windows Runtime.", L"Error", MB_ICONERROR | MB_OK);
+            return -1;
         }
 
-        // Get the raw input data
-        GetRawInputData((HRAWINPUT)lp, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
-
-        // Process the raw input data
-        RAWINPUT* raw = (RAWINPUT*)lpb;
-
-        // Check if the raw input data is from a mouse
-        if (raw->header.dwType == RIM_TYPEMOUSE) {
-            // Handle raw input from the mouse and prevent it from being processed further
-            delete[] lpb;
-            return 0;
+        hr = RoGetActivationFactory(Microsoft::WRL::Wrappers::HStringReference(RuntimeClass_Windows_UI_Input_GestureRecognizer).Get(), IID_PPV_ARGS(&gestureRecognizer));
+        if (FAILED(hr))
+        {
+            MessageBox(NULL, L"Failed to create GestureRecognizer.", L"Error", MB_ICONERROR | MB_OK);
+            return -1;
         }
-
-        delete[] lpb;
-        break;
     }
+    break;
 
     case WM_DESTROY:
         PostQuitMessage(0);
-        return 0;
+        break;
+
+    case WM_POINTERDOWN:
+    case WM_POINTERUPDATE:
+    case WM_POINTERUP:
+    {
+        POINTER_INFO pointerInfo;
+        if (GetPointerInfo(GET_POINTERID_WPARAM(wParam), &pointerInfo))
+        {
+            POINT pt = pointerInfo.ptPixelLocation;
+            ScreenToClient(hwnd, &pt);
+
+            Microsoft::WRL::ComPtr<IPointerPoint> pointerPoint;
+            HRESULT hr = GestureRecognizerUtilities::CreatePointerPointForMouseMessage(hwnd, uMsg, wParam, lParam, &pointerPoint);
+            if (SUCCEEDED(hr))
+            {
+                hr = gestureRecognizer->ProcessDownEvent(pointerPoint.Get());
+            }
+
+            // Prevent touchpad gestures from triggering system events
+            return 0;
+        }
+    }
+    break;
 
     default:
-        return DefWindowProcW(hwnd, msg, wp, lp);
+        return DefWindowProc(hwnd, uMsg, wParam, lParam);
     }
 
-    return DefWindowProcW(hwnd, msg, wp, lp);
+    return 0;
 }
