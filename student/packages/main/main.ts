@@ -20,7 +20,7 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow, powerSaveBlocker, nativeTheme} from 'electron'
+import { app, BrowserWindow, powerSaveBlocker, nativeTheme, globalShortcut} from 'electron'
 import { release } from 'os'
 import { disableRestrictions} from './scripts/platformrestrictions.js';
 import WindowHandler from './scripts/windowhandler.js'
@@ -118,6 +118,12 @@ app.whenReady()
     powerSaveBlocker.start('prevent-display-sleep')
     if (process.platform === 'win32') {preventSleep.enable();}
     WindowHandler.createMainWindow()
+    globalShortcut.register('CommandOrControl+R', () => {});
+    globalShortcut.register('F5', () => {});
+    globalShortcut.register('CommandOrControl+Shift+R', () => {});
+    globalShortcut.register('Alt+F4', () => {console.log("Alt+F4")});
+    globalShortcut.register('CommandOrControl+W', () => {});
+    globalShortcut.register('CommandOrControl+Q', () => {});
 })
 
   ////////////////////////////////
