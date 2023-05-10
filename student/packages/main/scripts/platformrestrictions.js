@@ -28,6 +28,12 @@
  * hardcoding the keyboardshortcuts we want to capture into iohook(or n-g-k-l) and manually compiling it for mac and windows could be done - (but not until i get paid for this amount of work ;-) 
  */
 
+
+/**
+ * the next best solution i came up with is to kill all of the shells - starting with explorer.exe because its absolutely impossible to 
+ * deactivate this nasty "windows" button or 3FingerSlideUp Gesture in windows 11 - you could edit the registry and reboot but thats obviously not what we want
+ */
+
 import { join } from 'path'
 import childProcess from 'child_process'   //needed to run bash commands on linux 
 import { TouchBar } from 'electron'
@@ -67,11 +73,14 @@ const gnomeDashToDockKeybindings = ['app-ctrl-hotkey-1','app-ctrl-hotkey-10','ap
 
 function enableRestrictions(win){
 
-    // PLASMA/KDE
+    /**
+     * L I N U X
+     */
     if (process.platform === 'linux') {
-        /////////
-        // KDE
-        /////////
+        
+        //////////////
+        // PLASMASHELL
+        //////////////
 
         console.log("enabling platform restrictions")
         
@@ -125,7 +134,12 @@ function enableRestrictions(win){
         childProcess.exec('xsel -bc')
     }
 
-    // WINDOWS
+
+
+
+    /**
+     *  W I N D O W S
+     */
     if (process.platform === 'win32') {
         //block important keyboard shortcuts (disable-shortcuts.exe is a selfmade C application - shortcuts are hardcoded there - need to rebuild if adding shortcuts)
         let executable1 = join(__dirname, '../../public/disable-shortcuts.exe')
@@ -134,16 +148,34 @@ function enableRestrictions(win){
             if (error)  {  console.log(error)   }
         })
 
-        //clear clipboard
+        //clear clipboard - stop copy before and paste after examstart
         let executable0 = join(__dirname, '../../public/clear-clipboard.bat')
         childProcess.execFile(executable0, [], (error, stdout, stderr) => {
             if (stderr) { console.log(stderr) }
             if (error) { console.log(error) }
         })
 
+
+        // kill windowsbutton and swipe gestures - kill everything else
+        childProcess.exec('taskkill /f /im explorer.exe', (error, stdout, stderr) => {
+            if (error) {
+              console.error(`exec error: ${error}`);
+              return;
+            }
+            console.log(`stdout: ${stdout}`);
+            console.error(`stderr: ${stderr}`);
+          });
+
+
     }
 
-    // MacOS
+
+
+
+
+    /**
+     * M A C O S  
+     */
     if (process.platform === 'darwin') {
         const { TouchBarLabel, TouchBarButton, TouchBarSpacer } = TouchBar
         const textlabel = new TouchBarLabel({label: "Next-Exam"})
@@ -195,7 +227,36 @@ function disableRestrictions(){
         childProcess.execFile('gsettings', ['reset' ,'org.gnome.mutter', `overlay-key`])
     }
 
-    // TODO: undo restrictions for windows an mac
+
+    /**
+     *  W I N D O W S
+     */
+    if (process.platform === 'win32') {
+        //unblock important keyboard shortcuts (disable-shortcuts.exe)
+ 
+        childProcess.exec('taskkill /f /im disable-shortcuts.exe', (error, stdout, stderr) => {
+            if (error) {
+                console.error(`exec error: ${error}`);
+                return;
+            }
+            console.log(`stdout: ${stdout}`);
+            console.error(`stderr: ${stderr}`);
+          });
+
+
+        // start explorer.exe windowsshell again
+        childProcess.exec('start explorer.exe', (error, stdout, stderr) => {
+            if (error) {
+                console.error(`exec error: ${error}`);
+                return;
+            }
+            console.log(`stdout: ${stdout}`);
+            console.error(`stderr: ${stderr}`);
+        });
+    }
+
+
+    // TODO: undo restrictions mac (currently only touchbar which should be reset once we close next-exam)
 }
 
 export {enableRestrictions, disableRestrictions}
