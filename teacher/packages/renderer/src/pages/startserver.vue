@@ -18,6 +18,7 @@
 
 <div id="wrapper" class="w-100 h-100 d-flex" >
 
+    <!-- sidebar -->
     <div class="p-3 text-white bg-dark h-100 " style="width: 240px; min-width: 240px;">
         <div class="btn btn-light m-0 text-start infobutton">
             <img src='/src/assets/img/svg/server.svg' class="me-2"  width="16" height="16" > 
@@ -30,30 +31,35 @@
     
         <div v-if="!advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("startserver.advanced") }}</div>
         <div v-if="advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("startserver.simple") }}</div> 
-        
         <div v-if="freeDiscspace < 0.1" class="warning">  {{ $t("startserver.freespacewarning") }}   </div>
         
+        <div id="previous" class="mt-4" v-if="previousExams.length > 0">
+            <span class="small">{{$t("startserver.previousexams")}}</span>
+            <div v-for="exam of previousExams">
+                <div class="btn btn-sm btn-secondary mt-1" :id="exam" @click="setPreviousExam(exam)">{{exam}}</div>
+            </div>
+        </div>
+
+
         
         <div class="m-2">
             <br><div id="statusdiv" class="btn btn-warning m-2 hidden">{{$t("startserver.connected")}}</div>
-        </div><br>
+        </div>
+        <br>
         <span style="position: absolute; bottom:2px; left: 4px; font-size:0.8em">{{version}}</span>
     </div>
 
-
+    <!-- maincontent -->
     <div id="content" class="fadeinslow p-3">
         <div class="col-7">
             <div class="input-group  mb-1">
                 <span class="input-group-text col-4" style="width:135px;" id="inputGroup-sizing-lg">{{$t("startserver.examname")}}</span>
-                <input v-model="servername" type="text" class="form-control" id="servername" placeholder="Mathe-5a" style="width:135px;max-width:135px;min-width:135px;">
+                <input v-model="servername" maxlength="20" type="text" class="form-control" id="servername" placeholder="Mathe-5a" style="width:200px;max-width:200px;min-width:135px;">
             </div>   
             <div class="input-group  mb-3" :class="(electron) ? 'hidden':''"> <!-- we do not need to display the password in electron standalone version because no other exams are ever listed and you can not leave the exam without ending the server -->
                 <span class="input-group-text col-4" style="width:135px;" id="inputGroup-sizing-lg">{{$t("startserver.pwd")}}</span>
                 <input v-model="password" type="text" class="form-control " id="password" placeholder="password" style="width:135px;max-width:135px;min-width:135px;">
             </div>
-
-
-
             <div  v-if="hostip" class="col mb-4" >
                 <button @click="startServer()" id="examstart" class="btn btn-success" value="start exam" style="width:135px;">{{$t("startserver.start")}}</button>
             </div>
@@ -61,13 +67,12 @@
 
         
         <div v-if="advanced" id="list" class="placeholder">
-           
-            <div class="input-group input-group-sm" style="max-width: fit-content"> 
-                
+            <div class="input-group input-group-sm" style="max-width: fit-content">  
                 <button @click="setWorkdir()" id="examstart" class="btn btn-sm btn-info" value="start exam" style="width:195px;">{{$t("startserver.select")}}</button>
                 <span class="form-control " style="font-family: monospace; white-space: pre; font-size:0.8em; padding-top: 5px;">{{ workdir }}</span>
             </div>
         </div>
+
     </div>
 </div>
 </template>
@@ -91,7 +96,8 @@ export default {
             hostip: this.$route.params.config.hostip,
             advanced: false,
             workdir: this.$route.params.config.workdirectory,
-            freeDiscspace: 0
+            freeDiscspace: 0,
+            previousExams: []
         };
     },
     components: {},
@@ -100,18 +106,24 @@ export default {
            this.freeDiscspace = ipcRenderer.sendSync('checkDiscspace')
         },
 
+        getPreviousExams(){
+            this.previousExams = ipcRenderer.sendSync('scanWorkdir')
+            console.log(this.previousExams)
+        },
+
+        setPreviousExam(name){
+            document.getElementById('servername').value = name
+        },
+
         setWorkdir(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
             let response = ipcRenderer.sendSync('setworkdir')
             this.workdir = response.workdir
-
             if (response.message == "error"){
                 this.status(this.$t("startserver.directoryerror"))
             }
-           
-
             this.checkDiscspace()
-
         },
+
         toggleAdvanced(){
             if (this.advanced) {this.advanced = false} else {this.advanced = true}
         },
@@ -124,8 +136,6 @@ export default {
                 this.status(this.$t("startserver.emptypw")); 
             }
             else {
-
-
                 fetch(`https://${this.hostname}:${this.serverApiPort}/server/control/start/${this.servername}/${this.password}`, { 
                     method: 'POST',
                     headers: {'Content-Type': 'application/json' },
@@ -148,14 +158,8 @@ export default {
                         else {window.location.href = `#/dashboard/${this.servername}/${this.password}`}
                     }
                     else { this.status(response.message); }
-
                 })
                 .catch(err => { this.status(err); console.warn(err) })
-
-
-
-
-
             } 
         },
 
@@ -183,7 +187,16 @@ export default {
         if (this.electron){
             this.hostname = "localhost"
             this.checkDiscspace()
+            this.getPreviousExams()
         }
+
+        // add event listener to exam input field to supress all special chars 
+        document.getElementById("servername").addEventListener("keypress", function(e) {
+            var lettersOnly = /^[a-zA-Z0-9-_]+$/;
+            var key = e.key || String.fromCharCode(e.which);
+            if (!lettersOnly.test(key)) { e.preventDefault(); }
+        });
+
     },
     beforeUnmount() {
         clearInterval( this.fetchinterval )

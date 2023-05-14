@@ -84,6 +84,21 @@ class IpcHandler {
             }
         })
 
+
+        /**
+         * returns old exam folders in workdirectory
+         */
+        ipcMain.on('scanWorkdir', async (event, arg) => {
+            let examfolders = fs.readdirSync(config.workdirectory, { withFileTypes: true })
+                .filter(dirent => dirent.isDirectory())
+                .map(dirent => dirent.name);
+            event.returnValue = examfolders
+        })
+
+
+        /**
+         * Downloads the files for a specific student to his workdirectory (abgabe)
+         */
         ipcMain.on('storeOnedriveFiles', async (event, args) => {   
             const studentName = args.studentName
             const accessToken = args.accessToken
@@ -107,8 +122,6 @@ class IpcHandler {
             const fileBuffer = await fileResponse.arrayBuffer();
             fs.writeFileSync(join(studentarchivedir, fileName), Buffer.from(fileBuffer));
 
-            
-           
             const pdfFileResponse = await fetch(`https://graph.microsoft.com/v1.0/me/drive/items/${fileID}/content?format=pdf`, {
                 headers: {'Authorization': `Bearer ${accessToken}`,  },
             });
@@ -118,7 +131,6 @@ class IpcHandler {
                 const pdfFilePath = join(studentarchivedir, `${fileName}.pdf`);
                 fs.writeFileSync(pdfFilePath, Buffer.from(pdfFileBuffer));
             }
-
 
             console.log(`Downloaded ${fileName} and ${fileName}.pdf`);
         })
@@ -132,19 +144,17 @@ class IpcHandler {
         if (obj === null || typeof obj !== 'object') {
         return obj;
         }
-    
         const clonedObj = Array.isArray(obj) ? [] : {};
-    
         for (const key in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            if (key !== 'examServerList') {
-            if (typeof obj[key] === 'object') {
-                clonedObj[key] = cloneObjectExcludingExamServerList(obj[key]);
-            } else {
-                clonedObj[key] = obj[key];
+            if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                if (key !== 'examServerList') {
+                    if (typeof obj[key] === 'object') {
+                        clonedObj[key] = copyConfig(obj[key]);
+                    } else {
+                        clonedObj[key] = obj[key];
+                    }
+                }
             }
-            }
-        }
         }
         return clonedObj;
     }

@@ -180,8 +180,14 @@ class WindowHandler {
     
         // Load correct url 
         if (examtype === "eduvidual"){    //external page
-            let url =`https://eduvidual.at/mod/${serverstatus.moodleTestType}/view.php?id=${serverstatus.testid}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287  
-            this.examwindow.loadURL(url)
+            if (serverstatus.moodleDomain === "eduvidual.at"){
+                let url =`https://eduvidual.at/mod/${serverstatus.moodleTestType}/view.php?id=${serverstatus.testid}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287  
+                this.examwindow.loadURL(url)
+            }
+            else {
+                let url =`https://${serverstatus.moodleDomain}/mod/${serverstatus.moodleTestType}/view.php?id=${serverstatus.testid}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287  
+                this.examwindow.loadURL(url)
+            }
         }
         else if (examtype === "gforms"){    //external page
             let url =`https://docs.google.com/forms/d/e/${serverstatus.gformsTestId}/viewform`  //https://docs.google.com/forms/d/e/1FAIpQLScuTG7yldD0VRhFgOC_2fhbVdgXn95Kf_w2rUbJm79S1kJBnA/viewform
@@ -214,7 +220,9 @@ class WindowHandler {
             }
         }
 
-        // HANDLE SPELLCHECK 
+        /**
+         * HANDLE SPELLCHECK 
+         */ 
         if (serverstatus.spellcheck){  
             console.log(serverstatus.spellchecklang)
             this.examwindow.webContents.session.setSpellCheckerDictionaryDownloadURL(`https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/static/dicts/`)
@@ -231,12 +239,19 @@ class WindowHandler {
         }
         else { this.examwindow.webContents.session.setSpellCheckerLanguages([]) }
 
+
+        /**
+         * Handle special NAVIGATION situations
+         */
+
+        // Texteditor
         if (serverstatus.examtype === "editor" ){  // do not under any circumstances allow navigation away from the editor
             this.examwindow.webContents.on('will-navigate', (event, url) => {   
                 event.preventDefault()
             })
         }
 
+        // Microsoft Excel
         if ( serverstatus.examtype === "microsoft365"){  // do not under any circumstances allow navigation away from the editor
             this.examwindow.officeurl = false
             this.examwindow.webContents.on('will-navigate', (event, url) => {  // if a resource (pdf) is openend create an embed element and embed the pdf
@@ -248,8 +263,7 @@ class WindowHandler {
             })
         }
 
-
-        // HANDLE GOOGLE Forms
+        // Google Forms
         if (serverstatus.examtype === "gforms"){
             console.log("gforms mode")
             this.examwindow.webContents.on('did-navigate', (event, url) => {  //create a new div called "nextexamwarning" and "embedbackground" - this is shown onBlur()
@@ -302,9 +316,9 @@ class WindowHandler {
 
 
 
-        // HANDLE EDUVIDUAL pdf embed
+        // EDUVIDUAL / Moodle
         if (serverstatus.examtype === "eduvidual"){
-            console.log("eduvidual mode")
+         
             this.examwindow.webContents.on('did-navigate', (event, url) => {  //create a new div called "nextexamwarning" and "embedbackground"
                 this.examwindow.webContents.executeJavaScript(` 
                     const warning = document.createElement('div')
@@ -316,19 +330,20 @@ class WindowHandler {
                     const embed = document.createElement('embed');` , true)
                     .catch(err => console.log(err))
             })
+
             this.examwindow.webContents.on('will-navigate', (event, url) => {  // if a resource (pdf) is openend create an embed element and embed the pdf
                 //we block everything except pages that contain the following keyword-combinations
                 if (!url.includes(serverstatus.testid)){
                     console.log(url)
                     //check if this an exception (login, init) - if URL doesn't include either of these combinations - block! EXPLICIT is easier to read ;-)
-                    if ( url.includes("startattempt.php") && url.includes("eduvidual.at") )         { console.log(" url allowed") }
-                    else if ( url.includes("processattempt.php") && url.includes("eduvidual.at") )  { console.log(" url allowed") }
-                    else if ( url.includes("login") && url.includes("Microsoft") )                  { console.log(" url allowed") }
-                    else if ( url.includes("login") && url.includes("Google") )                     { console.log(" url allowed") }
-                    else if ( url.includes("login") && url.includes("microsoftonline") )            { console.log(" url allowed") }
-                    else if ( url.includes("accounts") && url.includes("google.com") )              { console.log(" url allowed") }
-                    else if ( url.includes("logout") && url.includes("eduvidual.at") )              { console.log(" url allowed") }
-                    else if ( url.includes("lookup") && url.includes("google") )                    { console.log(" url allowed") }
+                    if ( url.includes("startattempt.php") && url.includes(serverstatus.moodleDomain) )          { console.log(" url allowed") }
+                    else if ( url.includes("processattempt.php") && url.includes(serverstatus.moodleDomain) )   { console.log(" url allowed") }
+                    else if ( url.includes("login") && url.includes("Microsoft") )                              { console.log(" url allowed") }
+                    else if ( url.includes("login") && url.includes("Google") )                                 { console.log(" url allowed") }
+                    else if ( url.includes("login") && url.includes("microsoftonline") )                        { console.log(" url allowed") }
+                    else if ( url.includes("accounts") && url.includes("google.com") )                          { console.log(" url allowed") }
+                    else if ( url.includes("logout") && url.includes(serverstatus.moodleDomain) )               { console.log(" url allowed") }
+                    else if ( url.includes("lookup") && url.includes("google") )                                { console.log(" url allowed") }
                     else {
                         console.log("blocked leaving exam mode")
                         event.preventDefault()
@@ -336,7 +351,7 @@ class WindowHandler {
                 }
                 else {console.log("entered valid test environment")  }
 
-                if (url.includes('resource/view')&& !url.includes('forceview')){
+                if (url.includes('resource/view')&& !url.includes('forceview')){  // embed pdfs rather than open a new window/tab
                     event.preventDefault()
                     this.examwindow.webContents.executeJavaScript(` 
                         background.onclick = function() {  document.getElementById('embedbackground').style = "display: none;" };

@@ -23,7 +23,8 @@
         "workfolder": "Workdirectory",
         "select": "Select Workdirectory",
         "freespacewarning" : "Not enough free discspace",
-        "directoryerror": "Directory not writeable"
+        "directoryerror": "Directory not writeable",
+        "previousexams": "Previous Exams"
     },
     "dashboard":{
         "server": "Server",
@@ -97,8 +98,9 @@
         "abgabeauto":"Automatic Retreival",
         "abgabeautoquestion":"Please set the interval for automatic retreival?",
         "abgabeautohint":"(Timeframe in minutes)",
-        "eduvidualid": "Eduvidual Test",
+        "eduvidualid": "Eduvidual / Moodle",
         "eduvidualidhint": "Please enter a valid id!",
+        "eduvidualdomain": "Please provide your moodle domain if it's not eduvidual.at",
         "lock":"lock displays",
         "unlock":"unlock displays",
         "freespacewarning" : "Running out of free discspace!!",
