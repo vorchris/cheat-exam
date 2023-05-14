@@ -158,14 +158,8 @@ export default {
                         else {window.location.href = `#/dashboard/${this.servername}/${this.password}`}
                     }
                     else { this.status(response.message); }
-
                 })
                 .catch(err => { this.status(err); console.warn(err) })
-
-
-
-
-
             } 
         },
 
@@ -198,7 +192,7 @@ export default {
 
         // add event listener to exam input field to supress all special chars 
         document.getElementById("servername").addEventListener("keypress", function(e) {
-            var lettersOnly = /^[a-zA-Z-_]+$/;
+            var lettersOnly = /^[a-zA-Z0-9-_]+$/;
             var key = e.key || String.fromCharCode(e.which);
             if (!lettersOnly.test(key)) { e.preventDefault(); }
         });
