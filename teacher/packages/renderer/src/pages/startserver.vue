@@ -33,7 +33,7 @@
         <div v-if="advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("startserver.simple") }}</div> 
         <div v-if="freeDiscspace < 0.1" class="warning">  {{ $t("startserver.freespacewarning") }}   </div>
         
-        <div id="previous" class="mt-4">
+        <div id="previous" class="mt-4" v-if="previousExams.length > 0">
             <span class="small">{{$t("startserver.previousexams")}}</span>
             <div v-for="exam of previousExams">
                 <div class="btn btn-sm btn-secondary mt-1" :id="exam" @click="setPreviousExam(exam)">{{exam}}</div>
