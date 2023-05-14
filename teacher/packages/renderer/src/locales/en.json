@@ -23,7 +23,8 @@
         "workfolder": "Workdirectory",
         "select": "Select Workdirectory",
         "freespacewarning" : "Not enough free discspace",
-        "directoryerror": "Directory not writeable"
+        "directoryerror": "Directory not writeable",
+        "previousexams": "Previous Exams"
     },
     "dashboard":{
         "server": "Server",

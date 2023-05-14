@@ -23,7 +23,8 @@
         "workfolder": "Arbeitsverzeichnis",
         "select": "Arbeitsverzeichnis wählen",
         "freespacewarning" : "Zu wenig freier Speicherplatz",
-        "directoryerror": "Fehlende Schreibrechte im gewählten Verzeichnis"
+        "directoryerror": "Fehlende Schreibrechte im gewählten Verzeichnis",
+        "previousexams": "Vergangene Prüfungen"
     },
     "dashboard":{
         "server": "Server",
