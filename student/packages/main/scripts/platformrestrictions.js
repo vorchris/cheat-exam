@@ -107,6 +107,9 @@ function enableRestrictions(win){
         // GNOME
         ///////////
 
+        //we probably should do it the "windows - way" and just kill gnomeshell for as long as the exam-mode is active
+        
+
         // for gnome3 we need to set every key individually => reset will obviously set defaults (so we may mess up customized shortcuts here)
         // possible fix: instead of set > reset we could use get - set - set.. first get the current bindings and store them - then set to nothing - then set to previous setting
         for (let binding of gnomeKeybindings){
