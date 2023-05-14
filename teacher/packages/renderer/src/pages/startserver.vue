@@ -103,15 +103,12 @@ export default {
         setWorkdir(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
             let response = ipcRenderer.sendSync('setworkdir')
             this.workdir = response.workdir
-
             if (response.message == "error"){
                 this.status(this.$t("startserver.directoryerror"))
             }
-           
-
             this.checkDiscspace()
-
         },
+
         toggleAdvanced(){
             if (this.advanced) {this.advanced = false} else {this.advanced = true}
         },
@@ -124,8 +121,6 @@ export default {
                 this.status(this.$t("startserver.emptypw")); 
             }
             else {
-
-
                 fetch(`https://${this.hostname}:${this.serverApiPort}/server/control/start/${this.servername}/${this.password}`, { 
                     method: 'POST',
                     headers: {'Content-Type': 'application/json' },
@@ -184,6 +179,14 @@ export default {
             this.hostname = "localhost"
             this.checkDiscspace()
         }
+
+        // add event listener to exam input field to supress all special chars 
+        document.getElementById("servername").addEventListener("keypress", function(e) {
+            var lettersOnly = /^[a-zA-Z ]+$/;
+            var key = e.key || String.fromCharCode(e.which);
+            if (!lettersOnly.test(key)) { e.preventDefault(); }
+        });
+
     },
     beforeUnmount() {
         clearInterval( this.fetchinterval )
