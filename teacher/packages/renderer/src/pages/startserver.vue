@@ -113,6 +113,7 @@ export default {
 
         setPreviousExam(name){
             document.getElementById('servername').value = name
+            this.servername = name
         },
 
         setWorkdir(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
@@ -129,10 +130,10 @@ export default {
         },
 
         async startServer(){
-            if (this.servername ==="" ){
+            if (this.servername === "" ){
                 this.status(this.$t("startserver.emptyname")); 
             }
-            else if (this.password ===""){
+            else if (this.password === ""){
                 this.status(this.$t("startserver.emptypw")); 
             }
             else {
