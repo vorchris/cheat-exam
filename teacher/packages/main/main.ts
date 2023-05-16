@@ -26,7 +26,7 @@ import server from "../server/src/server.js"
 import multicastClient from './scripts/multicastclient.js'
 import WindowHandler from './scripts/windowhandler.js'
 import IpcHandler from './scripts/ipchandler.js'
-import preventSleep from 'node-prevent-sleep';
+
 
 WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow
 IpcHandler.init(multicastClient, config, WindowHandler)  //controll all Inter Process Communication
@@ -76,6 +76,12 @@ app.whenReady().then(()=>{
 .then(()=>{
     if (config.hostip) { multicastClient.init()  } //multicas client only tracks other exam instances on the net
     powerSaveBlocker.start('prevent-display-sleep')
-    if (process.platform === 'win32') {preventSleep.enable();}
+    
+    if (process.platform === 'win32') {
+        import('node-prevent-sleep').then( preventSleep => {
+            preventSleep.enable();
+        })
+    }
+
     WindowHandler.createWindow()
 })
