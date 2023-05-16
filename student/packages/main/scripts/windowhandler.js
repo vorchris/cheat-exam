@@ -132,8 +132,13 @@ class WindowHandler {
             this.screenlockWindow.setAlwaysOnTop(true, "screen-saver", 1) 
             this.screenlockWindow.show()
             this.screenlockWindow.moveTop();
+            this.screenlockWindow.setClosable(true)
             this.addBlurListener("screenlock")
         })
+
+        this.screenlockWindow.on('close', async  (e) => {   // window should not be closed manually.. ever! but if you do make sure to clean examwindow variable and end exam for the client
+            if (!this.config.development) { e.preventDefault(); }  
+        });
     }
 
 
