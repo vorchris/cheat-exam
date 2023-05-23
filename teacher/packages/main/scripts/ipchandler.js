@@ -89,9 +89,12 @@ class IpcHandler {
          * returns old exam folders in workdirectory
          */
         ipcMain.on('scanWorkdir', async (event, arg) => {
-            let examfolders = fs.readdirSync(config.workdirectory, { withFileTypes: true })
+            let examfolders = []
+            if (fs.existsSync(config.workdirectory)){
+                    examfolders = fs.readdirSync(config.workdirectory, { withFileTypes: true })
                 .filter(dirent => dirent.isDirectory())
                 .map(dirent => dirent.name);
+            }
             event.returnValue = examfolders
         })
 

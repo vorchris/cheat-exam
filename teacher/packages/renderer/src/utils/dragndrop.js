@@ -30,7 +30,7 @@ function sortStudentWidgets() {
 // create 10 empty widgets for whole class (should be sufficient)
 function initializeStudentwidgets(){
     let widgets = []
-    for (let i = 0; i<10; i++ ){
+    for (let i = 0; i<30; i++ ){
         widgets.push(this.emptyWidget)
     }
     this.studentwidgets = widgets;

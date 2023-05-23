@@ -12,7 +12,7 @@ the next iteration of the life-exam project
 * jquery
 
 
-Node v19.0.1
+Node v20.1.0
 
 ## install necessary modules 
 
@@ -22,30 +22,18 @@ Node v19.0.1
 
 ```npm run dev```
 
-## run next-exam webversion (teacher only wip)
-
-```npm run dev:web```
-
 ## build next-exam 
 
 ```npm run build```
 ```npm run build:win```
- ```npm run build:mac```
+```npm run build:mac```
 
 attention : build for windows on windows and for mac on macos 
 #
 on linux "imagemagick" has to be installed for taking screenshots  ```sudo apt install imagemagick```
 
 ## download latest builds
-https://life-edu.eu/next-exam/
-
-
-
-
-## more information
-
-read [concept.md](/info/concept.md)
-
+https://next-exam.at
 
 
 

@@ -348,7 +348,7 @@ export default {
                 this.studentlist = response.data.studentlist;
                 this.numberOfConnections = this.studentlist.length
 
-                if (this.numberOfConnections === this.studentwidgets.length){ this.studentwidgets.push(this.emptyWidget)}
+                if (this.numberOfConnections >= this.studentwidgets.length){ this.studentwidgets.push(this.emptyWidget); this.studentwidgets.push(this.emptyWidget)}
 
                 if (this.studentlist && this.studentlist.length > 0){
                     this.studentlist.forEach( student => { 

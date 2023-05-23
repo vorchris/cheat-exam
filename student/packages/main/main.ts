@@ -26,7 +26,6 @@ import { disableRestrictions} from './scripts/platformrestrictions.js';
 import WindowHandler from './scripts/windowhandler.js'
 import CommHandler from './scripts/communicationhandler.js'
 import IpcHandler from './scripts/ipchandler.js'
-import preventSleep from 'node-prevent-sleep';
 import config from './config.js';
 import multicastClient from './scripts/multicastclient.js'
 import defaultGateway from'default-gateway';
@@ -116,7 +115,11 @@ app.whenReady()
     nativeTheme.themeSource = 'light'
     if (config.hostip) { multicastClient.init() }
     powerSaveBlocker.start('prevent-display-sleep')
-    if (process.platform === 'win32') {preventSleep.enable();}
+    if (process.platform === 'win32') {
+        import('node-prevent-sleep').then( preventSleep => {
+            preventSleep.enable();
+        })
+    }
     WindowHandler.createMainWindow()
     globalShortcut.register('CommandOrControl+R', () => {});
     globalShortcut.register('F5', () => {});
@@ -125,6 +128,11 @@ app.whenReady()
     globalShortcut.register('CommandOrControl+W', () => {});
     globalShortcut.register('CommandOrControl+Q', () => {});
 })
+
+//capture global keyboard shortcuts like alt+tab and send a signal to the frontend that a key combination has been detected 
+    
+
+
 
   ////////////////////////////////
  // APP handling (Backend) END
