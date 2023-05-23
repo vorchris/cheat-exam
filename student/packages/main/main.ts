@@ -126,6 +126,11 @@ app.whenReady()
     globalShortcut.register('CommandOrControl+Q', () => {});
 })
 
+//capture global keyboard shortcuts like alt+tab and send a signal to the frontend that a key combination has been detected 
+    
+
+
+
   ////////////////////////////////
  // APP handling (Backend) END
 ////////////////////////////////

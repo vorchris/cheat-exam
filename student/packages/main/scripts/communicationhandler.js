@@ -98,7 +98,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
             if (this.multicastClient.clientinfo.exammode === true) {
                 // lets try to allow students to gracefully exit exam on connection loss manually (only in geogebra and editor for now bc. we control the ui) 
                 // this should lead to less irritation when the teacher connection is lost
-                if (this.multicastClient.clientinfo.examtype === "eduvidual" || this.multicastClient.clientinfo.examtype === "microsoft365" ) {
+                if (this.multicastClient.clientinfo.examtype === "eduvidual" || this.multicastClient.clientinfo.examtype === "microsoft365" || this.multicastClient.clientinfo.examtype === "gforms") {
                     this.gracefullyEndExam()  // this should end kiosk mode, the blur listener and all (keyboard) restrictions but not kill the window
                 }else {
                     console.log("Keeping Examwindow Lockdown")
