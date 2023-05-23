@@ -6,6 +6,8 @@ dist
 dist-ssr
 *.local
 
+.vscode/
+
 csrf*.jpg
 teacher/package-lock.json
 student/package-lock.json
