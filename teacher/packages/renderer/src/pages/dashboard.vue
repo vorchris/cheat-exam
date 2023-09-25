@@ -348,15 +348,13 @@ export default {
                 this.studentlist = response.data.studentlist;
                 this.numberOfConnections = this.studentlist.length
 
-                if (this.numberOfConnections >= this.studentwidgets.length){ this.studentwidgets.push(this.emptyWidget); this.studentwidgets.push(this.emptyWidget)}
+                if (this.numberOfConnections >= this.studentwidgets.length){ this.studentwidgets.push(this.emptyWidget); this.studentwidgets.push(this.emptyWidget)} //check if there are more students connected than empty widgets available. 
 
                 if (this.studentlist && this.studentlist.length > 0){
                     this.studentlist.forEach( student => { 
                         if (this.activestudent && student.token === this.activestudent.token) { this.activestudent = student}  // on studentlist-receive update active student (for student-details)
                         if (!student.imageurl){ student.imageurl = "user-black.svg"  }
                         
-                  
-
                         // if the chosen exam mode is OFFICE and everything is Setup already check if students already got their share link (re-connect, late-connect)
                         if (this.examtype === "microsoft365" && this.config.accessToken && this.msOfficeFile){
                             if (!student.status.msofficeshare) {  // this one is late to the party
@@ -377,14 +375,15 @@ export default {
                         else {
                             //replace empty widget with student
                             for (let i = 0; i < this.studentwidgets.length; i++){  // we cant use (for .. of) or forEach because it creates a workingcopy of the original object
-                                if (!this.studentwidgets[i].clientname){ 
-                                    this.studentwidgets[i] = student; // replace studentwidget with emptywidget
+                                if (!this.studentwidgets[i].clientname){ //clientname == false in an emptyWidget so we found one
+                                    this.studentwidgets[i] = student; // replace emptywidget
                                     break;
                                 } 
                             }
                         }
                     }
                 }
+                
                 //remove studentwidget from widgetslist if student was removed
                 for (let widget of this.studentwidgets) { //find student in studentwidgets list  
                     let studentExists = this.studentlist.filter( el => el.token ===  widget.token).length === 0 ? false : true  // now check if a widget has a student in studentlist otherwise remove it
