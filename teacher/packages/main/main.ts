@@ -74,7 +74,7 @@ app.whenReady().then(()=>{
     }) 
 })
 .then(()=>{
-    if (config.hostip) { multicastClient.init()  } //multicas client only tracks other exam instances on the net
+    if (config.hostip) { multicastClient.init()  } //multicast client only tracks other exam instances on the net
     powerSaveBlocker.start('prevent-display-sleep')
     
     if (process.platform === 'win32') {

@@ -58,7 +58,7 @@
             "sign": "true"
         },
         "portable": {
-            "unpackDirName": true
+            "unpackDirName": "next-exam-student"
         },
         "win": {
             "icon": "public/icons/icon.ico",
@@ -70,7 +70,9 @@
                     ]
                 }
             ],
-            "artifactName": "${productName}_${version}.${ext}"
+            "artifactName": "${productName}_${version}.${ext}",
+            "certificateSubjectName": "OSOS Austria",
+            "signingHashAlgorithms": ["sha256"]
         }
     },
     "engines": {

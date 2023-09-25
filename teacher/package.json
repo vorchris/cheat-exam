@@ -59,6 +59,9 @@
         "dmg": {
             "sign": "true"
         },
+        "portable": {
+            "unpackDirName": "next-exam-teacher"
+        },
         "win": {
             "icon": "public/icons/icon.ico",
             "target": [
@@ -69,7 +72,9 @@
                     ]
                 }
             ],
-            "artifactName": "${productName}_${version}.${ext}"
+            "artifactName": "${productName}_${version}.${ext}",
+            "certificateSubjectName": "OSOS Austria",
+            "signingHashAlgorithms": ["sha256"]
         }
     },
     "engines": {
