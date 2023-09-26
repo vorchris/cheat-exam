@@ -72,6 +72,7 @@ const gnomeDashToDockKeybindings = ['app-ctrl-hotkey-1','app-ctrl-hotkey-10','ap
 
 
 function enableRestrictions(win){
+    if (this.config.development) {return}
 
     /**
      * L I N U X
@@ -131,7 +132,7 @@ function enableRestrictions(win){
         childProcess.execFile('gsettings', ['set' ,'org.gnome.mutter', `overlay-key`, `''`])
 
 
-        // clier clipboard gnome and x11  (this will fail unless xclip or xsell are installed)
+        // clear clipboard gnome and x11  (this will fail unless xclip or xsell are installed)
         childProcess.exec('xclip -i /dev/null')
         childProcess.exec('xclip -selection clipboard')
         childProcess.exec('xsel -bc')
@@ -200,8 +201,21 @@ function enableRestrictions(win){
 
 
 function disableRestrictions(){
+
+    if (this.config.development) {return}
+
     // disable global keyboardshortcuts on PLASMA/KDE
     if (process.platform === 'linux') {
+
+        // Clear Clipboard history 
+        childProcess.execFile('qdbus', ['org.kde.klipper' ,'/klipper', 'org.kde.klipper.klipper.clearClipboardHistory'])
+        // on wayland
+        childProcess.execFile('wl-copy', ['-c'])
+        // clear clipboard gnome and x11  (this will fail unless xclip or xsell are installed)
+        childProcess.exec('xclip -i /dev/null')
+        childProcess.exec('xclip -selection clipboard')
+        childProcess.exec('xsel -bc')
+
         // reset all shortcuts KDE
         childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'false'])
         // activate ALL 3d Effects (present window, change desktop, etc.) 
@@ -256,6 +270,13 @@ function disableRestrictions(){
             console.log(`stdout: ${stdout}`);
             console.error(`stderr: ${stderr}`);
         });
+
+        //clear clipboard - stop keeping screenshots of exam in clipboard
+        let executable0 = join(__dirname, '../../public/clear-clipboard.bat')
+        childProcess.execFile(executable0, [], (error, stdout, stderr) => {
+            if (stderr) { console.log(stderr) }
+            if (error) { console.log(error) }
+        })
     }
 
 
