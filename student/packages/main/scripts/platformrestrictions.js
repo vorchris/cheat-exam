@@ -72,7 +72,7 @@ const gnomeDashToDockKeybindings = ['app-ctrl-hotkey-1','app-ctrl-hotkey-10','ap
 
 
 function enableRestrictions(win){
-    if (this.config.development) {return}
+    if (config.development) {return}
 
     /**
      * L I N U X
@@ -202,7 +202,7 @@ function enableRestrictions(win){
 
 function disableRestrictions(){
 
-    if (this.config.development) {return}
+    if (config.development) {return}
 
     // disable global keyboardshortcuts on PLASMA/KDE
     if (process.platform === 'linux') {
@@ -262,14 +262,31 @@ function disableRestrictions(){
 
 
         // start explorer.exe windowsshell again
-        childProcess.exec('start explorer.exe', (error, stdout, stderr) => {
+        // Überprüfe, ob explorer.exe läuft
+        childProcess.exec('tasklist /FI "IMAGENAME eq explorer.exe"', (error, stdout, stderr) => {
             if (error) {
-                console.error(`exec error: ${error}`);
+                console.error(`tasklist error: ${error}`);
                 return;
             }
-            console.log(`stdout: ${stdout}`);
-            console.error(`stderr: ${stderr}`);
+
+            // Prüfe, ob "explorer.exe" in der Ausgabe vorhanden ist
+            if (!stdout.includes('explorer.exe')) {
+                // Starte explorer.exe, wenn es nicht läuft
+                childProcess.exec('start explorer.exe', (error, stdout, stderr) => {
+                    if (error) {
+                        console.error(`exec error: ${error}`);
+                        return;
+                    }
+                    console.log(`stdout: ${stdout}`);
+                    console.error(`stderr: ${stderr}`);
+                });
+            }
         });
+
+
+
+
+
 
         //clear clipboard - stop keeping screenshots of exam in clipboard
         let executable0 = join(__dirname, '../../public/clear-clipboard.bat')

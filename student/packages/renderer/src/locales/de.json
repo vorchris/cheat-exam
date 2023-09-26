@@ -88,7 +88,8 @@
         "delrow":"Reihe löschen",
         "mergeorsplit":"Vereinen oder Teilen",
         "headercolumn":"Titelspalte",
-        "headerrow":"Titelreihe" 
+        "headerrow":"Titelreihe",
+        "selected":"Wörter/Zeichen in Auswahl"
     },
     "math": {
         "exit":"Abgesicherten Modus beenden?",

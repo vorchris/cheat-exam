@@ -124,7 +124,7 @@
             <editor-content :editor="editor" class='p-0' id="editorcontent" style="background-color: #fff; border-radius:0;" />
         </div>
         <div id="statusbar">
-             <span> {{ $t("editor.chars") }}: {{charcount}}</span> | <span> {{ $t("editor.words") }}: {{wordcount}}</span> 
+             <span> {{ $t("editor.chars") }}: {{charcount}}</span> | <span> {{ $t("editor.words") }}: {{wordcount}}</span> | <span> {{ $t("editor.selected") }}: {{selectedWordCount}}/{{selectedCharCount}}</span> 
              <img @click="zoomin()" src="/src/assets/img/svg/zoom-in.svg" class="zoombutton">  
              <img @click="zoomout()" src="/src/assets/img/svg/zoom-out.svg" class="zoombutton">
         </div>
@@ -203,7 +203,9 @@ export default {
             zoom:1,
             battery: null,
             proseMirrorMargin: 90,
-            cmargin: this.$route.params.cmargin
+            cmargin: this.$route.params.cmargin,
+            selectedWordCount:0,
+            selectedCharCount:0
         }
     },
 
@@ -374,11 +376,20 @@ export default {
         },
         setCSSVariable(variableName, value){
             document.documentElement.style.setProperty(variableName, value);
+        },
+        getSelectedTextInfo() {
+            const selectedText = window.getSelection().toString();
+            this.selectedWordCount = selectedText ? selectedText.split(/\s+/).filter(Boolean).length : 0;
+            this.selectedCharCount = selectedText ? selectedText.length : 0;
+            return
         }
 
     },
     mounted() {
        
+        // count selected words
+        document.addEventListener('mouseup', () => { this.getSelectedTextInfo() });
+
         switch (this.cmargin.size) {
             case 4:       this.proseMirrorMargin = '90px';   break;
             case 3.5:     this.proseMirrorMargin = '70px';   break;
