@@ -36,7 +36,11 @@
         <div id="previous" class="mt-4" v-if="previousExams.length > 0">
             <span class="small">{{$t("startserver.previousexams")}}</span>
             <div v-for="exam of previousExams">
-                <div class="btn btn-sm btn-secondary mt-1" :id="exam" @click="setPreviousExam(exam)">{{exam}}</div>
+                <div class="input-group">
+                    <div class="btn btn-sm btn-warning mt-1" @click="delPreviousExam(exam)">x</div>
+                    <div class="btn btn-sm btn-secondary mt-1" :id="exam" @click="setPreviousExam(exam)">{{exam}}</div>
+                </div>
+                
             </div>
         </div>
 
@@ -115,7 +119,29 @@ export default {
             document.getElementById('servername').value = name
             this.servername = name
         },
+        delPreviousExam(name){
+            // ASK for confirmation!
+            this.$swal.fire({
+                title: this.$t("startserver.previousexams"),
+                text: this.$t("startserver.folderdelete"),
+                icon: "warning",
+                showCancelButton: true,
+                cancelButtonText: this.$t("dashboard.cancel"),
+                reverseButtons: true
+            })
+            .then((result) => {
+                if (result.isConfirmed) { 
+                    let response = ipcRenderer.sendSync('delPrevious', name)
+                    console.log(response)
+                    this.getPreviousExams()
+                } 
+            });  
 
+
+        
+           
+
+        },
         setWorkdir(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
             let response = ipcRenderer.sendSync('setworkdir')
             this.workdir = response.workdir

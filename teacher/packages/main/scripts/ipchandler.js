@@ -100,6 +100,24 @@ class IpcHandler {
 
 
         /**
+         * deletes old exam folder in workdirectory
+         */
+         ipcMain.on('delPrevious', async (event, arg) => {
+            
+            let examdir = join( config.workdirectory, arg)
+
+
+            if (fs.statSync(examdir).isDirectory()){
+                fs.rmSync(examdir, { recursive: true, force: true });
+            }   
+
+      
+            event.returnValue = examdir
+        })
+
+
+
+        /**
          * Downloads the files for a specific student to his workdirectory (abgabe)
          */
         ipcMain.on('storeOnedriveFiles', async (event, args) => {   
