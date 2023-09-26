@@ -50,7 +50,8 @@ class MulticastClient {
             pin: false,
             screenlock: false,
             msofficeshare: false,
-            screenshotinterval: 4000   //milliseconds
+            screenshotinterval: 4000,   //milliseconds
+            printrequest : false
         }
     }
 

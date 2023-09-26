@@ -89,7 +89,8 @@
         "mergeorsplit":"mergeorsplit",
         "headercolumn":"headercolumn",
         "headerrow":"headerrow",
-        "selected":"selected words/chars"
+        "selected":"selected words/chars",
+        "requestsent":"print request sent"
     },
     "math": {
         "exit":"Exit safe exam mode",

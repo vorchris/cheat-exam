@@ -258,6 +258,14 @@ class IpcHandler {
             }
         })
 
+         /**
+         * Append PrintRequest to clientinfo  
+         */ 
+        ipcMain.on('sendPrintRequest', (event) => {   
+            this.multicastClient.clientinfo.printrequest = true  //set this to false after the request left the client to prevent double triggering
+            event.returnValue = true
+        })
+
 
     }
 }

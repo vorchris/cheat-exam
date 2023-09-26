@@ -185,6 +185,51 @@ async function getLatest(){
     }).catch(err => { console.warn(err)});
 }
 
+
+
+// fetches latest file of specific student
+async function getLatestFromStudent(student){
+    this.visualfeedback(this.$t("dashboard.summarizepdf"))
+
+
+    fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getLatestFromStudent/${this.servername}/${this.servertoken}/${student}`, { 
+        method: 'POST',
+        headers: {'Content-Type': 'application/json' },
+    })
+    .then( response => response.json() )
+    .then( async(responseObj) => {
+        if (!responseObj.pdfBuffer ){
+            console.log("nothing found")
+            this.visualfeedback(this.$t("dashboard.nopdf"))
+            return
+        }
+        
+        const warning = responseObj.warning;
+        const pdfBuffer = new Uint8Array(responseObj.pdfBuffer.data);
+
+        if (warning){
+            this.$swal.close();
+            this.visualfeedback(this.$t("dashboard.oldpdfwarning",2000))
+            await sleep(2000)
+        }
+
+        let url =  URL.createObjectURL(new Blob([pdfBuffer], {type: "application/pdf"})) 
+        this.currentpreview = url   //needed for preview buttons
+        this.currentpreviewname = "combined"   //needed for preview buttons
+        $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
+        $("#pdfpreview").css("display","block");
+        $("#pdfpreview").click(function(e) {
+                $("#pdfpreview").css("display","none");
+        });
+    }).catch(err => { console.warn(err)});
+}
+
+
+
+
+
+
+
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }

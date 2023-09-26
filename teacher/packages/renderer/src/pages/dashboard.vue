@@ -362,6 +362,13 @@ export default {
                                 this.onedriveUploadSingle(student, this.msOfficeFile)   // trigger upload of this.msOfficeFile, create sharelink and set student.status.msofficeshare to sharelink
                             }
                         }
+
+                        if (student.printrequest){
+                            console.log("printrequest received!")
+                            //get latest file from student
+                            this.getLatestFromStudent(student)
+                        }
+
                     });
 
                     //update widgets list here - we keep our own independent widgetlist (aka studentlist) for drag&drop 

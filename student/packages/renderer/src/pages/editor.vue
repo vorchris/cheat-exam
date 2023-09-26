@@ -354,9 +354,12 @@ export default {
             this.loadFilelist()
         },
         print(){
-            var iframe = $('#pdfembed')[0]; 
-            iframe.contentWindow.focus();
-            iframe.contentWindow.print(); 
+           //make sure to post print request to teacher for the latest work
+           ipcRenderer.sendSync('sendPrintRequest') 
+           this.$swal.fire({
+                title: this.$t("editor.requestsent"),
+                icon: "info"
+            })
         },
 
         // show confirmation

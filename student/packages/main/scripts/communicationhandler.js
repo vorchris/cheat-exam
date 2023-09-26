@@ -225,7 +225,9 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
      * could also handle kick, focusrestore, and even trigger file requests
      */
     processUpdatedServerstatus(serverstatus, studentstatus){
- 
+
+        this.multicastClient.clientinfo.printrequest = false  //low priority request - always deactivate after sending once to avoid triggering it twice
+
         // individual status updates
         if ( studentstatus && Object.keys(studentstatus).length !== 0) {  // we have status updates (tasks) - do it!
             if (studentstatus.restorefocusstate === true){

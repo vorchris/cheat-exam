@@ -89,7 +89,8 @@
         "mergeorsplit":"Vereinen oder Teilen",
         "headercolumn":"Titelspalte",
         "headerrow":"Titelreihe",
-        "selected":"Wörter/Zeichen in Auswahl"
+        "selected":"Wörter/Zeichen in Auswahl",
+        "requestsent":"Druckanfrage gesendet!"
     },
     "math": {
         "exit":"Abgesicherten Modus beenden?",
