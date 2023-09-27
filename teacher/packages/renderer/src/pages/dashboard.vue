@@ -228,7 +228,7 @@ import axios from "axios"
 import { VueDraggableNext } from 'vue-draggable-next'
 import { uploadselect, upload, uploadSingle, uploadAndShareFile, createSharingLink, fileExistsInAppFolder, downloadFilesFromOneDrive} from '../msalutils/onedrive'
 import { handleDragEndItem, handleMoveItem, sortStudentWidgets, initializeStudentwidgets} from '../utils/dragndrop'
-import {loadFilelist, print, getLatest, loadImage, loadPDF, dashboardExplorerSendFile, downloadFile, showWorkfolder, fdelete  } from '../utils/filemanager'
+import {loadFilelist, print, getLatest, getLatestFromStudent,  loadImage, loadPDF, dashboardExplorerSendFile, downloadFile, showWorkfolder, fdelete  } from '../utils/filemanager'
 import {stopserver, toggleScreenshot, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, toggleAutoabgabe, setAbgabeInterval } from '../utils/exammanagement.js'
 
 export default {
@@ -326,6 +326,7 @@ export default {
         loadFilelist:loadFilelist,
         print:print, 
         getLatest:getLatest, 
+        getLatestFromStudent:getLatestFromStudent, 
         loadImage:loadImage, 
         loadPDF:loadPDF, 
         dashboardExplorerSendFile:dashboardExplorerSendFile, 

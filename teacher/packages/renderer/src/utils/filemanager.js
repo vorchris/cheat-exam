@@ -189,10 +189,10 @@ async function getLatest(){
 
 // fetches latest file of specific student
 async function getLatestFromStudent(student){
-    this.visualfeedback(this.$t("dashboard.summarizepdf"))
+    this.visualfeedback(this.$t("dashboard.printrequest"))
+ 
 
-
-    fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getLatestFromStudent/${this.servername}/${this.servertoken}/${student}`, { 
+    fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getLatestFromStudent/${this.servername}/${this.servertoken}/${student.clientname}`, { 
         method: 'POST',
         headers: {'Content-Type': 'application/json' },
     })
@@ -205,15 +205,24 @@ async function getLatestFromStudent(student){
         }
         
         const warning = responseObj.warning;
-        const pdfBuffer = new Uint8Array(responseObj.pdfBuffer.data);
+       
+        console.log(responseObj)
+        console.log(responseObj.pdfBuffer)
 
+
+        const pdfDataArray = responseObj.pdfBuffer.data;
+        const pdfBuffer = new Uint8Array(pdfDataArray);
+        const blob = new Blob([pdfBuffer.buffer], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+
+        
         if (warning){
             this.$swal.close();
             this.visualfeedback(this.$t("dashboard.oldpdfwarning",2000))
             await sleep(2000)
         }
 
-        let url =  URL.createObjectURL(new Blob([pdfBuffer], {type: "application/pdf"})) 
+        //let url =  URL.createObjectURL(new Blob([pdfBuffer], {type: "application/pdf"})) 
         this.currentpreview = url   //needed for preview buttons
         this.currentpreviewname = "combined"   //needed for preview buttons
         $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
@@ -257,4 +266,4 @@ function loadFilelist(directory){
     }).catch(err => { console.warn(err)});
 }
  
-export {loadFilelist, print, getLatest, loadImage, loadPDF, dashboardExplorerSendFile, downloadFile, showWorkfolder, fdelete  }
+export {loadFilelist, print, getLatest, getLatestFromStudent, loadImage, loadPDF, dashboardExplorerSendFile, downloadFile, showWorkfolder, fdelete  }
