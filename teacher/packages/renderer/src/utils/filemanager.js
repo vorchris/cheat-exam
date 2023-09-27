@@ -157,23 +157,18 @@ async function getLatest(){
     })
     .then( response => response.json() )
     .then( async(responseObj) => {
-      
-       
         if (!responseObj.pdfBuffer ){
             console.log("nothing found")
             this.visualfeedback(this.$t("dashboard.nopdf"))
             return
         }
-        
         const warning = responseObj.warning;
         const pdfBuffer = new Uint8Array(responseObj.pdfBuffer.data);
-
         if (warning){
             this.$swal.close();
             this.visualfeedback(this.$t("dashboard.oldpdfwarning",2000))
             await sleep(2000)
         }
-
         let url =  URL.createObjectURL(new Blob([pdfBuffer], {type: "application/pdf"})) 
         this.currentpreview = url   //needed for preview buttons
         this.currentpreviewname = "combined"   //needed for preview buttons
@@ -189,48 +184,57 @@ async function getLatest(){
 
 // fetches latest file of specific student
 async function getLatestFromStudent(student){
-    this.visualfeedback(this.$t("dashboard.printrequest"))
- 
+   
+    //show info (who sent the request) and wait for confirmation // handle multiple print requests (send "printrequest denied" if there is already an ongoing request)
+    //introduce printlock variable that blocks additional popups
 
-    fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getLatestFromStudent/${this.servername}/${this.servertoken}/${student.clientname}`, { 
-        method: 'POST',
-        headers: {'Content-Type': 'application/json' },
+    this.$swal.fire({
+        title: this.$t("dashboard.printrequest"),
+        html:  `${this.$t("dashboard.printrequestshow")} <br> <b> ${student.clientname}.pdf</b>`,
+        icon: "question",
+        showCancelButton: true,
+        cancelButtonText: this.$t("dashboard.cancel"),
+        reverseButtons: true
     })
-    .then( response => response.json() )
-    .then( async(responseObj) => {
-        if (!responseObj.pdfBuffer ){
-            console.log("nothing found")
-            this.visualfeedback(this.$t("dashboard.nopdf"))
-            return
-        }
+    .then((result) => {
+        if (result.isConfirmed) {
+            fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getLatestFromStudent/${this.servername}/${this.servertoken}/${student.clientname}`, { 
+                method: 'POST',
+                headers: {'Content-Type': 'application/json' },
+            })
+            .then( response => response.json() )
+            .then( async(responseObj) => {
+                if (!responseObj.pdfBuffer ){
+                    console.log("nothing found")
+                    this.visualfeedback(this.$t("dashboard.nopdf"))
+                    return
+                }
+                const blob = new Blob([new Uint8Array(responseObj.pdfBuffer.data).buffer], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
         
-        const warning = responseObj.warning;
-       
-        console.log(responseObj)
-        console.log(responseObj.pdfBuffer)
-
-
-        const pdfDataArray = responseObj.pdfBuffer.data;
-        const pdfBuffer = new Uint8Array(pdfDataArray);
-        const blob = new Blob([pdfBuffer.buffer], { type: 'application/pdf' });
-        const url = URL.createObjectURL(blob);
-
+                if (responseObj.warning){
+                    this.$swal.close();
+                    this.visualfeedback(this.$t("dashboard.oldpdfwarningsingle",2000))
+                    await sleep(2000)
+                }
         
-        if (warning){
-            this.$swal.close();
-            this.visualfeedback(this.$t("dashboard.oldpdfwarning",2000))
-            await sleep(2000)
-        }
+                //let url =  URL.createObjectURL(new Blob([pdfBuffer], {type: "application/pdf"})) 
+                this.currentpreview = url   //needed for preview buttons
+                this.currentpreviewname = "combined"   //needed for preview buttons
+                $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
+                $("#pdfpreview").css("display","block");
+                $("#pdfpreview").click(function(e) {
+                        $("#pdfpreview").css("display","none");
+                });
+            }).catch(err => { console.warn(err)});
 
-        //let url =  URL.createObjectURL(new Blob([pdfBuffer], {type: "application/pdf"})) 
-        this.currentpreview = url   //needed for preview buttons
-        this.currentpreviewname = "combined"   //needed for preview buttons
-        $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
-        $("#pdfpreview").css("display","block");
-        $("#pdfpreview").click(function(e) {
-                $("#pdfpreview").css("display","none");
-        });
-    }).catch(err => { console.warn(err)});
+
+
+
+
+        }
+    });
+
 }
 
 

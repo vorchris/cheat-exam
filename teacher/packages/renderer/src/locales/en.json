@@ -75,6 +75,7 @@
         "summarizepdf": "Download newest versions \nas single pdf",
         "summarizepdfshort": "All Exams as PDF",
         "printrequest": "printrequest received",
+        "printrequestshow": "Do you want to open the document?",
         "download": "download",
         "print": "print",
         "preview": "preview",
@@ -115,6 +116,7 @@
         "screenshotquestion":"Set the interval to update Screenshots",
         "screenshothint":"(Time in seconds. 0 == deaktivated)",
         "oldpdfwarning":"Some of the files are older than 5 minutes!",
+        "oldpdfwarningsingle":"The local version of the file may be outdated!",
         "gforms": "Google Forms"
 
         

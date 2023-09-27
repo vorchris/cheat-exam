@@ -75,6 +75,7 @@
         "summarizepdf": "Neueste Abgaben in\neiner PDF Datei\nzusammenfassen",
         "summarizepdfshort": "Neueste Arbeiten als PDF",
         "printrequest": "Druckanfrage erhalten",
+        "printrequestshow": "Wollen sie das Dokument ansehen?",
         "download": "herunterladen",
         "print": "drucken",
         "preview": "ansehen",
@@ -115,6 +116,7 @@
         "screenshotquestion":"In welchen Abständen sollen die Screenshots aktualisiert werden?",
         "screenshothint":"(Zeitangabe in Sekunden. 0 == deaktiviert)",
         "oldpdfwarning":"Manche Abgaben sind mehr als 5 Minuten alt!",
+        "oldpdfwarningsingle":"Die lokale Version der Datei ist möglicherweise veraltet!",
         "gforms": "Google Forms"
     },
     "control": {
