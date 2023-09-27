@@ -90,7 +90,8 @@
         "headercolumn":"headercolumn",
         "headerrow":"headerrow",
         "selected":"selected words/chars",
-        "requestsent":"print request sent"
+        "requestsent":"print request sent",
+        "requestdenied":"print request denied"
     },
     "math": {
         "exit":"Exit safe exam mode",

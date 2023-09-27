@@ -90,7 +90,8 @@
         "headercolumn":"Titelspalte",
         "headerrow":"Titelreihe",
         "selected":"Wörter/Zeichen in Auswahl",
-        "requestsent":"Druckanfrage gesendet!"
+        "requestsent":"Druckanfrage gesendet!",
+        "requestdenied":"Druckanfrage abgelehnt. Bitte warten und erneut senden."
     },
     "math": {
         "exit":"Abgesicherten Modus beenden?",

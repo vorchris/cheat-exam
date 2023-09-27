@@ -358,7 +358,20 @@ export default {
            ipcRenderer.sendSync('sendPrintRequest') 
            this.$swal.fire({
                 title: this.$t("editor.requestsent"),
-                icon: "info"
+                icon: "info",
+                timer: 1500,
+                timerProgressBar: true,
+                didOpen: () => { this.$swal.showLoading() }
+            })
+        },
+        printdenied(why){
+            console.log("Print request denied")
+            this.$swal.fire({
+                title: `${this.$t("editor.requestdenied")}`,
+                icon: "info",
+                timer: 2000,
+                timerProgressBar: true,
+                didOpen: () => { this.$swal.showLoading() }
             })
         },
 
@@ -456,6 +469,9 @@ export default {
         ipcRenderer.on('save', (event, why) => {  //trigger document save by signal "save" sent from sendExamtoteacher in communication handler
             console.log("Save event received")
             this.saveContent(true, why) 
+        }); 
+        ipcRenderer.on('denied', (event, why) => {  //print request was denied by teacher because he can not handle so much requests at once
+            this.printdenied(why)
         }); 
         ipcRenderer.on('backup', (event, filename) => {  
             console.log("Replace event received ")

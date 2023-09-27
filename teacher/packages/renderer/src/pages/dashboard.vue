@@ -290,7 +290,8 @@ export default {
             cmargin: {
                 side: "right",
                 size: 3
-            }
+            },
+            printrequest: false
         };
     },
 
@@ -363,7 +364,9 @@ export default {
                                 this.onedriveUploadSingle(student, this.msOfficeFile)   // trigger upload of this.msOfficeFile, create sharelink and set student.status.msofficeshare to sharelink
                             }
                         }
-                        if (student.printrequest){this.getLatestFromStudent(student) }   // student sent a printrequest to the teacher
+                        if (student.printrequest){  // student sent a printrequest to the teacher
+                            this.getLatestFromStudent(student) 
+                        }   
                     });
 
                     //update widgets list here - we keep our own independent widgetlist (aka studentlist) for drag&drop 

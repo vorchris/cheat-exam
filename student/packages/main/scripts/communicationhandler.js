@@ -230,6 +230,10 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
 
         // individual status updates
         if ( studentstatus && Object.keys(studentstatus).length !== 0) {  // we have status updates (tasks) - do it!
+            if (studentstatus.printdenied) {
+                WindowHandler.examwindow.webContents.send('denied','toomany')   //trigger, why
+            }
+
             if (studentstatus.restorefocusstate === true){
                 this.multicastClient.clientinfo.focus = true
             }

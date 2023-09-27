@@ -396,7 +396,7 @@ for (let i = 0; i<16; i++ ){
 
 /**
  * INFORM Client(s) about a "sendfile" request from the server (clients should download the file(s) via /data/download/... route) 
- * @param servename the server that wants to kick the client
+ * @param servename the server that waits with the file
  * @param csrfservertoken the servers token to authenticate
  * @param studenttoken the students token who should send the exam (false means everybody)
  */
@@ -505,15 +505,18 @@ router.post('/screenshotinterval/:servername/:csrfservertoken', function (req, r
 })
 
 
-
+/** There are some occasions where a simple change in studentstatus is neccessary in order to inform the student
+ * on the next update cycle that it has to do sometihng (unlock, change focusstate, show warning or something similar)
+ * for now there is an api route for every single one of them instead of one api route for all of them
+ */
 
 
 
 /**
  * RESTORE cients focused state 
- * @param servename the server that wants to kick the client
+ * @param servename the server 
  * @param csrfservertoken the servers token to authenticate
- * @param studenttoken the students token who should be kicked
+ * @param studenttoken the students token who's state should be restored
  */
  router.get('/restore/:servername/:csrfservertoken/:studenttoken', function (req, res, next) {
     const servername = req.params.servername
@@ -531,6 +534,42 @@ router.post('/screenshotinterval/:servername/:csrfservertoken', function (req, r
         res.send( {sender: "server", message: t("control.actiondenied"), status: "error"} )
     }
 })
+
+
+/**
+ * Inform Client about a denied printrequest (we handle one request at a time) 
+ * and possibly other things. write this API route in a way that it can handle multiple status updates 
+ * in order to simplify this code
+ * @param servename the server 
+ * @param csrfservertoken the servers token to authenticate
+ * @param studenttoken the students token who should be informed
+ */
+router.post('/inform/:servername/:csrfservertoken/:studenttoken', function (req, res, next) {
+    const servername = req.params.servername
+    const studenttoken = req.params.studenttoken
+    const mcServer = config.examServerList[servername]
+    const printdenied = req.body.printdenied
+
+    if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {  //first check if csrf token is valid and server is allowed to trigger this api request
+        let student = mcServer.studentList.find(element => element.token === studenttoken)
+        if (student) {  
+
+            // here we could handle different forms of information that needs to be set on studentstatus
+            if (printdenied){ student.status.printdenied = true } // set student.status so that the student can act on it on the next update
+
+         }
+        res.send( {sender: "server", message: t("control.studentupdate"), status: "success"} )
+    }
+    else {
+        res.send( {sender: "server", message: t("control.actiondenied"), status: "error"} )
+    }
+})
+
+
+
+
+
+
 
 /**
  * FETCH EXAMS from connected clients (set student.status - students will then send their workdirectory to /data/receive)
@@ -641,11 +680,18 @@ router.post('/serverstatus/:servername/:csrfservertoken', function (req, res, ne
     student.exammode = exammode  
     student.files = clientinfo.numberOfFiles
     student.printrequest = clientinfo.printrequest
+
     if (clientinfo.focus) { student.status.restorefocusstate = false }  // remove task because its obviously done
     if (clientinfo.screenshotinterval == 0){ student.imageurl = "person-lines-fill.svg"  }
+
+    let studentstatus = JSON.parse(JSON.stringify(student.status))  // copy current status > send copy of original to student
+   
+    // reset some status values that are only used to transport something once
+    student.status.printdenied = false 
+
     // return current serverinformation to process on clientside
     res.charset = 'utf-8';
-    res.send({sender: "server", message:t("control.studentupdate"), status:"success", serverstatus:mcServer.serverstatus, studentstatus: student.status })
+    res.send({sender: "server", message:t("control.studentupdate"), status:"success", serverstatus:mcServer.serverstatus, studentstatus: studentstatus })
 })
 
 

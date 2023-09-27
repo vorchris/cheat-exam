@@ -183,11 +183,26 @@ async function getLatest(){
 
 
 // fetches latest file of specific student
+//show info (who sent the request) and wait for confirmation // handle multiple print requests (send "printrequest denied" if there is already an ongoing request)
+//introduce printlock variable that blocks additional popups
 async function getLatestFromStudent(student){
-   
-    //show info (who sent the request) and wait for confirmation // handle multiple print requests (send "printrequest denied" if there is already an ongoing request)
-    //introduce printlock variable that blocks additional popups
 
+    if (this.printrequest){ 
+        // inform student that request was denied
+        fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/inform/${this.servername}/${this.servertoken}/${student.token}`, { 
+            method: 'POST',
+            headers: {'Content-Type': 'application/json' },
+            body: JSON.stringify({ printdenied : true } )
+        })
+        .then( res => res.json() )
+        .then( result => { console.log(result)});
+
+        return
+    }
+
+    this.printrequest = true // this is a new one - we allow it and block others for the time beeing
+    console.log("print request accepted")
+    
     this.$swal.fire({
         title: this.$t("dashboard.printrequest"),
         html:  `${this.$t("dashboard.printrequestshow")} <br> <b> ${student.clientname}.pdf</b>`,
@@ -197,6 +212,9 @@ async function getLatestFromStudent(student){
         reverseButtons: true
     })
     .then((result) => {
+
+        this.printrequest = false // allow new requests
+        
         if (result.isConfirmed) {
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getLatestFromStudent/${this.servername}/${this.servertoken}/${student.clientname}`, { 
                 method: 'POST',
