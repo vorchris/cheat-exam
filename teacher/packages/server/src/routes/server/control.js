@@ -65,7 +65,7 @@ router.get('/oauth', (req, res) => {
         response_type: 'code',
         redirect_uri: msalConfig.auth.redirectUri,
         response_mode: 'query',
-        scope: 'openid profile offline_access Files.ReadWrite.AppFolder',
+        scope: 'openid profile offline_access Files.ReadWrite.AppFolder Files.Read Files.ReadWrite',
         state: '12345',
         code_challenge: codeChallenge,
         code_challenge_method: 'S256',
@@ -86,7 +86,7 @@ router.get('/msauth', async (req, res) => {
         const response = await axios.post('https://login.microsoftonline.com/common/oauth2/v2.0/token', qs.stringify({
             client_id: msalConfig.auth.clientId,
             grant_type: 'authorization_code',
-            scope: 'openid profile offline_access Files.ReadWrite.AppFolder ',
+            scope: 'openid profile offline_access Files.ReadWrite.AppFolder Files.Read Files.ReadWrite',
             code,
             redirect_uri: msalConfig.auth.redirectUri,
             code_verifier: codeVerifier,

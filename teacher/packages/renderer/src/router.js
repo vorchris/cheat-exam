@@ -8,19 +8,14 @@ import startserver from '/src/pages/startserver.vue'
 import dashboard from '/src/pages/dashboard.vue'
 import serverlist from '/src/pages/serverlist.vue'
 
-
-
 // check if we run this app in electron (host is always "localhost" then)
 let electron = false
 
 const userAgent = navigator.userAgent.toLowerCase();
 if (userAgent.indexOf(' electron/') > -1) {
     electron = true
-    console.log(`Electron App: ${electron}`)
-
-
+    // console.log(`Electron App: ${electron}`)
 }
-
 
 // first try to get config into frontend for webversion 
 // bugs: code does not wait for axios request, axios request does not accept self signed https cert)
@@ -31,8 +26,6 @@ if (electron === false){
     .catch( err => {console.log(err)})
     console.log(webconfig)  // config is exposed to the renderer (frontend) in preload.js (it's readonly here!) but only in electron (not for web)
 }
-
-
 
 
 const routes = [
@@ -51,8 +44,6 @@ function addParams(to){
     to.params.workdirectory = config.workdirectory   //attention.. this is the server base workdirectory > we add servername to get the actual exam workdirectory in the view
     to.params.config = config
 }
-
-
 
 
 //we double check the password for now..  use proper auth process in the future ;-)

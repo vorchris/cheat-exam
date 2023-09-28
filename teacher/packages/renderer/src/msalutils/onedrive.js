@@ -58,12 +58,26 @@ async function uploadselect() {
  * otherwise it will trigger the upload for the specific students and tells the API to set the sharinglink for every student
  */
 async function upload(file){
+    if (this.studentlist.length == 0){ console.log("no students connected - upload delayed")}
     for (let student of this.studentlist){
         let studenttoken = student.token
         let fileName =  `${student.clientname}.xlsx`
+
         await this.fileExistsInAppFolder(fileName).then(async fileExists => {
             let sharingLink = false
             
+            // handle first onedrive api access problems when we try to access the appfolder
+            if (fileExists == 403) { 
+                console.log("Access Denied! Contact your organizations Administrator to grant Access to Next-Exam" )
+                this.$swal.fire({
+                    title: this.$t("dashboard.accessDenied"),
+                    text: this.$t("dashboard.accessDeniedtext"),
+                    icon: 'error',
+                    });
+                document.getElementById('examtype2').checked = true; this.examtype = "math"
+                return   // it makes no sense to try other things. access was denied and needs to be granted in https://entra.microsoft.com/
+            }
+
             if (fileExists && this.replaceMSOfile === false) {
                 //we can set/get the sharing link from an existing file as often as neccessary - it will stay the same
                 sharingLink = await this.createSharingLink(fileExists) //if file exists fileExists will contain the FILE ID
@@ -74,7 +88,7 @@ async function upload(file){
             }
             if (!sharingLink){return}
 
-            // WRITE Share link to student info ojbect so it can be retrieved on the next student update 
+            // WRITE Share link to student.status info object so it can be retrieved on the next student update 
             // together with the new examtype microsoft365 and directly load and secure the sharinglink
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/sharelink/${this.servername}/${this.servertoken}/${studenttoken}`, { 
                 method: 'POST',
@@ -90,7 +104,7 @@ async function upload(file){
 
 
 /**
- * SETS student.status.msofficeshare for ONE STUDENTS
+ * SETS student.status.msofficeshare for ONE STUDENT
  * checks if the the file for every connected student already exists on oneDrive
  * otherwise it will trigger the upload for the specific students and tells the API to set the sharinglink for every student
  */
@@ -99,6 +113,19 @@ async function uploadSingle(student,file){
     let fileName =  `${student.clientname}.xlsx`
     await this.fileExistsInAppFolder(fileName).then(async fileExists => {
         let sharingLink = false
+
+        // handle first onedrive api access problems when we try to access the appfolder
+        if (fileExists == 403) { 
+            console.log("Access Denied! Contact your organizations Administrator to grant Access to Next-Exam" )
+            this.$swal.fire({
+                title: this.$t("dashboard.accessDenied"),
+                text: this.$t("dashboard.accessDeniedtext"),
+                icon: 'error',
+                });
+            document.getElementById('examtype2').checked = true; this.examtype = "math"
+            return   // it makes no sense to try other things. access was denied and needs to be granted in https://entra.microsoft.com/
+        }
+
         if (fileExists) {
             //we can set/get the sharing link from an existing file as often as neccessary - it will stay the same
             sharingLink = await this.createSharingLink(fileExists) //if file exists fileExists will contain the FILE ID
@@ -147,7 +174,6 @@ async function uploadAndShareFile(targetfilename, file) {
     .then(response => response.json())
     .catch(error=>{console.warn(error)});
 
-
     // Create a sharing link with edit permissions using the file ID
     const fileId = fileUploadResponse.id; // Retrieve the file ID of the uploaded file
     const sharingLink = await this.createSharingLink(fileId)
@@ -176,7 +202,8 @@ async function createSharingLink(fileId){
     .then(response => response.json())
     .catch(error => {console.warn(error)});
 
-    if (!sharingResponse.link && sharingResponse.link.webUrl) {return false}
+    //if (!sharingResponse.link && sharingResponse.link.webUrl) {return false}
+    if (!sharingResponse.link) {return false}
     const sharingLink = sharingResponse.link.webUrl;
     return sharingLink;
 }
@@ -201,13 +228,20 @@ async function fileExistsInAppFolder(fileName) {
     .then( data => { 
         if (data.value && data.value.length > 0) {  return data.value[0].id;  } 
         else {
-            console.log('Folder not found');
-            return null;
+           //console.log(data.error)
+            return data.error.code;   // it's either "accessDenied" or "  "
         }
      })
     .catch(err => { 
-        console.warn(err)
+        console.warn(`Get AppRoot error: ${err}`)
     });
+
+    //check if folderID was received correctly
+    if (folderID === "accessDenied") { return 403}
+    if (folderID === "notFound")     { console.log("appfolder does not exist") }
+   
+
+ 
 
     //search for file in specific exam subfolder
     const appFolderEndpoint = `https://graph.microsoft.com/v1.0/me/drive/items/${folderID}/search(q='${encodeURIComponent(fileName)}')`;
@@ -227,6 +261,7 @@ async function fileExistsInAppFolder(fileName) {
     })
     .catch(err => { 
         console.warn(err)
+        return null
     })
     return fileExists
 }

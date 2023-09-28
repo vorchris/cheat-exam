@@ -117,7 +117,9 @@
         "screenshothint":"(Zeitangabe in Sekunden. 0 == deaktiviert)",
         "oldpdfwarning":"Manche Abgaben sind mehr als 5 Minuten alt!",
         "oldpdfwarningsingle":"Die lokale Version der Datei ist möglicherweise veraltet!",
-        "gforms": "Google Forms"
+        "gforms": "Google Forms",
+        "accessDenied":"Zugriff verweigert!",
+        "accessDeniedtext":"Bitte kontaktieren sie ihren Systemadministrator um der Applikation Next-Exam Zugriff zu gewähren"
     },
     "control": {
         "tokennotvalid": "Das Token ist ungültig",

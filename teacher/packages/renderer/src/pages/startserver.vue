@@ -112,7 +112,7 @@ export default {
 
         getPreviousExams(){
             this.previousExams = ipcRenderer.sendSync('scanWorkdir')
-            console.log(this.previousExams)
+            //console.log(this.previousExams)
         },
 
         setPreviousExam(name){

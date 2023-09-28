@@ -117,7 +117,10 @@
         "screenshothint":"(Time in seconds. 0 == deaktivated)",
         "oldpdfwarning":"Some of the files are older than 5 minutes!",
         "oldpdfwarningsingle":"The local version of the file may be outdated!",
-        "gforms": "Google Forms"
+        "gforms": "Google Forms",
+        "accessDenied":"Access Denied!",
+        "accessDeniedtext":"Contact your organizations Administrator to grant Access to Next-Exam"
+    
 
         
     },
