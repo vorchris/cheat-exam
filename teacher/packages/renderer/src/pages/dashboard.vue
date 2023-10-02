@@ -226,7 +226,7 @@ import $ from 'jquery'
 import axios from "axios"
 
 import { VueDraggableNext } from 'vue-draggable-next'
-import { uploadselect, upload, uploadSingle, uploadAndShareFile, createSharingLink, fileExistsInAppFolder, downloadFilesFromOneDrive} from '../msalutils/onedrive'
+import { uploadselect, onedriveUpload, onedriveUploadSingle, uploadAndShareFile, createSharingLink, fileExistsInAppFolder, downloadFilesFromOneDrive} from '../msalutils/onedrive'
 import { handleDragEndItem, handleMoveItem, sortStudentWidgets, initializeStudentwidgets} from '../utils/dragndrop'
 import {loadFilelist, print, getLatest, getLatestFromStudent,  loadImage, loadPDF, dashboardExplorerSendFile, downloadFile, showWorkfolder, fdelete  } from '../utils/filemanager'
 import {stopserver, toggleScreenshot, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, toggleAutoabgabe, setAbgabeInterval } from '../utils/exammanagement.js'
@@ -304,8 +304,8 @@ export default {
          */
         openAuthWindow(){ ipcRenderer.sendSync('openmsauth')  },
         onedriveUploadselect: uploadselect,
-        onedriveUpload: upload,
-        onedriveUploadSingle : uploadSingle,
+        onedriveUpload: onedriveUpload,
+        onedriveUploadSingle : onedriveUploadSingle,
         uploadAndShareFile: uploadAndShareFile,
         createSharingLink: createSharingLink,
         fileExistsInAppFolder: fileExistsInAppFolder,

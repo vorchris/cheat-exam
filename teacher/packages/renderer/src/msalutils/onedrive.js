@@ -57,49 +57,22 @@ async function uploadselect() {
  * checks if the the file for every connected student already exists on oneDrive
  * otherwise it will trigger the upload for the specific students and tells the API to set the sharinglink for every student
  */
-async function upload(file){
+async function onedriveUpload(file){
     if (this.studentlist.length == 0){ console.log("no students connected - upload delayed")}
+   
+   
+   
     for (let student of this.studentlist){
-        let studenttoken = student.token
-        let fileName =  `${student.clientname}.xlsx`
-
-        await this.fileExistsInAppFolder(fileName).then(async fileExists => {
-            let sharingLink = false
-            
-            // handle first onedrive api access problems when we try to access the appfolder
-            if (fileExists == 403) { 
-                console.log("Access Denied! Contact your organizations Administrator to grant Access to Next-Exam" )
-                this.$swal.fire({
-                    title: this.$t("dashboard.accessDenied"),
-                    text: this.$t("dashboard.accessDeniedtext"),
-                    icon: 'error',
-                    });
-                document.getElementById('examtype2').checked = true; this.examtype = "math"
-                return   // it makes no sense to try other things. access was denied and needs to be granted in https://entra.microsoft.com/
-            }
-
-            if (fileExists && this.replaceMSOfile === false) {
-                //we can set/get the sharing link from an existing file as often as neccessary - it will stay the same
-                sharingLink = await this.createSharingLink(fileExists) //if file exists fileExists will contain the FILE ID
-                console.log(`onedriveUpload(): File "${fileName}" exists`, sharingLink);
-            } else {
-                sharingLink = await this.uploadAndShareFile(fileName,file);
-                console.log('onedriveUpload(): Link created:', sharingLink);
-            }
-            if (!sharingLink){return}
-
-            // WRITE Share link to student.status info object so it can be retrieved on the next student update 
-            // together with the new examtype microsoft365 and directly load and secure the sharinglink
-            fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/sharelink/${this.servername}/${this.servertoken}/${studenttoken}`, { 
-                method: 'POST',
-                headers: {'Content-Type': 'application/json' },
-                body: JSON.stringify({ sharelink: sharingLink  })
-                })
-            .then( res => res.json())
-            .then( response => {console.log(response.message) })
-            .catch(err => { console.warn(err) })
-        });
+        //reuse onedriveUploadSingle() here (but check replaceMSOfile)
+        this.onedriveUploadSingle(student,file)
     }
+
+
+
+
+    //if the teacher changed the file to another version and checked "replace" 
+    //revert back to standard behaviour and NOT replace after this upload session finished
+    if (this.replaceMSOfile === true){ this.replaceMSOfile = false }
 }
 
 
@@ -108,7 +81,7 @@ async function upload(file){
  * checks if the the file for every connected student already exists on oneDrive
  * otherwise it will trigger the upload for the specific students and tells the API to set the sharinglink for every student
  */
-async function uploadSingle(student,file){
+async function onedriveUploadSingle(student,file){
     let studenttoken = student.token
     let fileName =  `${student.clientname}.xlsx`
     await this.fileExistsInAppFolder(fileName).then(async fileExists => {
@@ -126,7 +99,7 @@ async function uploadSingle(student,file){
             return   // it makes no sense to try other things. access was denied and needs to be granted in https://entra.microsoft.com/
         }
 
-        if (fileExists) {
+        if (fileExists && this.replaceMSOfile === false) {
             //we can set/get the sharing link from an existing file as often as neccessary - it will stay the same
             sharingLink = await this.createSharingLink(fileExists) //if file exists fileExists will contain the FILE ID
             console.log(`onedriveUpload(): File "${fileName}" exists`, sharingLink);
@@ -322,4 +295,4 @@ async function downloadFilesFromOneDrive() {
 
 
 
-export {uploadselect, upload, uploadSingle, uploadAndShareFile, createSharingLink, fileExistsInAppFolder, downloadFilesFromOneDrive}
+export {uploadselect, onedriveUpload, onedriveUploadSingle, uploadAndShareFile, createSharingLink, fileExistsInAppFolder, downloadFilesFromOneDrive}
