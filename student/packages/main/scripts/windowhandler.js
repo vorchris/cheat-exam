@@ -285,51 +285,46 @@ class WindowHandler {
 
 
             this.examwindow.webContents.on('did-frame-finish-load', async (event, isMainFrame, frameProcessId, frameRoutingId) => {
-               
-               
-
-       
-
-
-               
-              });
+                       
+            });
 
 
 
             // Wait until the webContents is fully loaded
             this.examwindow.webContents.on('did-finish-load', async () => {
-                console.log("page finished loading")
                 this.examwindow.webContents.mainFrame.frames.filter((frame) => {
-                   
-                    let executeCode =  `const intervalId = setInterval(() => {
-                                        const buttonApps = document.getElementById("InsertAppsForOffice");
-                                        const buttonFile = document.getElementById("FileMenuLauncherContainer");
-                                        if (buttonFile){
-                                            buttonFile.style.display = "none"
-                                        }
+                    let executeCode =  `
+                            function lock(){
+                                console.log("LOCKDOWN")
+                                let buttonApps = document.getElementById("InsertAppsForOffice");
+                                let buttonFile = document.getElementById("FileMenuLauncherContainer");
+                                let buttonHelp = document.getElementById("Help-wrapper");
+                                let buttonReview = document.getElementById("Review-wrapper");
+                                let header = document.getElementById("Header");
+                                let controls = document.getElementById("FarPeripheralControlsContainer");
+                                let buttonAppsOverflow = document.getElementsByName('Add-Ins')[0];
+    
+                                if (buttonFile){ buttonFile.style.display = "none" }
+                                if (buttonHelp){ buttonHelp.style.display = "none" }
+                                if (buttonReview){ buttonReview.style.display = "none" }
+                                if (header){ header.style.display = "none" }
+                                if (controls){ controls.style.display = "none" }
+                                if (buttonAppsOverflow){ buttonAppsOverflow.style.display = "none" }
+                                if (buttonApps){ buttonApps.style.display = "none" }
+    
+                                if (buttonApps) { // we need to wait for thisone to show
+                                    clearInterval(intervalId);
+                                }
 
-                                        if (buttonApps) { // we need to wait for thisone to show
-                                            buttonApps.disabled = true;
-                                            buttonApps.style.display = "none"
-                                            clearInterval(intervalId);
-                                        }
-                                    }, 1000);`
+                            }
+                            lock()  //for some reason excel delays that call.. doesnt happen on page finish load
+                            const intervalId = setInterval(lock, 400);`
                      
                     if (frame && frame.name === 'WebApplicationFrame') {
                         frame.executeJavaScript(executeCode);
                     }
-                
-                  })
+                })
             });
-
-
-
-
-
-
-
-
-
 
             this.examwindow.webContents.on('did-navigate', (event, url) => {  //create a new div called "nextexamwarning" and "embedbackground"
                 console.log("target reached")
@@ -461,9 +456,16 @@ class WindowHandler {
                 this.examwindow.focus()
                 this.addBlurListener()
             }
-            this.examwindow.focus()
             this.examwindow.show()
+            this.examwindow.focus()
         })
+
+        // this.examwindow.webContents.on('did-finish-load', async () => {
+        //     console.log("Page finished loading")
+        //     this.examwindow.show()
+        //     this.examwindow.focus()
+        // });
+
 
         this.examwindow.on('close', async  (e) => {   // window should not be closed manually.. ever! but if you do make sure to clean examwindow variable and end exam for the client
             if (this.multicastClient.clientinfo.exammode) {

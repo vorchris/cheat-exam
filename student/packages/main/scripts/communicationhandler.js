@@ -246,7 +246,6 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
 
             // this is an microsoft365 thing. check if exam mode is office, check if this is set - otherwise do not enter exammode - it will fail
             if (studentstatus.msofficeshare){
-                console.log("officeshare is set")
                 //set or update sharing link - it will be used in "microsoft365" exam mode
                 this.multicastClient.clientinfo.msofficeshare = studentstatus.msofficeshare
             }
