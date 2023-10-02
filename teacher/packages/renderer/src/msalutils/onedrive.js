@@ -60,19 +60,10 @@ async function uploadselect() {
 async function onedriveUpload(file){
     if (this.studentlist.length == 0){ console.log("no students connected - upload delayed")}
    
-   
-   
     for (let student of this.studentlist){
         //reuse onedriveUploadSingle() here (but check replaceMSOfile)
         this.onedriveUploadSingle(student,file)
     }
-
-
-
-
-    //if the teacher changed the file to another version and checked "replace" 
-    //revert back to standard behaviour and NOT replace after this upload session finished
-    if (this.replaceMSOfile === true){ this.replaceMSOfile = false }
 }
 
 

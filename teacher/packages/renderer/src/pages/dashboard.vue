@@ -359,6 +359,7 @@ export default {
                         
                         // if the chosen exam mode is OFFICE and everything is Setup already check if students already got their share link (re-connect, late-connect)
                         if (this.examtype === "microsoft365" && this.config.accessToken && this.msOfficeFile){
+                           
                             if (!student.status.msofficeshare) {  // this one is late to the party
                                 console.log("this student has no sharing link yet")
                                 this.onedriveUploadSingle(student, this.msOfficeFile)   // trigger upload of this.msOfficeFile, create sharelink and set student.status.msofficeshare to sharelink

@@ -1,5 +1,5 @@
 
-import { app, BrowserWindow, dialog, Menu, MenuItem, screen} from 'electron'
+import { app, BrowserWindow, dialog, Menu, MenuItem, screen, webContents} from 'electron'
 import { join } from 'path'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 
@@ -256,17 +256,90 @@ class WindowHandler {
             })
         }
 
+
+
         // Microsoft Excel
-        if ( serverstatus.examtype === "microsoft365"){  // do not under any circumstances allow navigation away from the editor
+        if ( serverstatus.examtype === "microsoft365"){  // do not under any circumstances allow navigation away from the current exam url
             this.examwindow.officeurl = false
-            this.examwindow.webContents.on('will-navigate', (event, url) => {  // if a resource (pdf) is openend create an embed element and embed the pdf
+            
+            this.examwindow.webContents.on('will-navigate', (event, url) => {
+                console.log(`Student tried to navigate to: ${url}`)
                 if (!this.examwindow.officeurl ) { this.examwindow.officeurl = url }
                 if (url !== this.examwindow.officeurl ) {
-                    console.log("do not navigate away from this test.. it will haunt you forever")
+                    console.log("do not navigate away from this test.. ")
                     event.preventDefault()
                 }  
             })
+
+            // if a new window should open triggered by window.open()
+            this.examwindow.webContents.on('new-window', (event, url) => {
+                event.preventDefault(); // Prevent the new window from opening
+            });
+
+            // if a new window should open triggered by target="_blank"
+            this.examwindow.webContents.setWindowOpenHandler(({ url }) => {
+               return { action: 'deny' }; // Prevent the new window from opening
+            });
+
+
+
+
+            this.examwindow.webContents.on('did-frame-finish-load', async (event, isMainFrame, frameProcessId, frameRoutingId) => {
+               
+               
+
+       
+
+
+               
+              });
+
+
+
+            // Wait until the webContents is fully loaded
+            this.examwindow.webContents.on('did-finish-load', async () => {
+                console.log("page finished loading")
+                this.examwindow.webContents.mainFrame.frames.filter((frame) => {
+                   
+                    let executeCode =  `const intervalId = setInterval(() => {
+                                        const buttonApps = document.getElementById("InsertAppsForOffice");
+                                        const buttonFile = document.getElementById("FileMenuLauncherContainer");
+                                        if (buttonFile){
+                                            buttonFile.style.display = "none"
+                                        }
+
+                                        if (buttonApps) { // we need to wait for thisone to show
+                                            buttonApps.disabled = true;
+                                            buttonApps.style.display = "none"
+                                            clearInterval(intervalId);
+                                        }
+                                    }, 1000);`
+                     
+                    if (frame && frame.name === 'WebApplicationFrame') {
+                        frame.executeJavaScript(executeCode);
+                    }
+                
+                  })
+            });
+
+
+
+
+
+
+
+
+
+
+            this.examwindow.webContents.on('did-navigate', (event, url) => {  //create a new div called "nextexamwarning" and "embedbackground"
+                console.log("target reached")
+                if (!this.examwindow.officeurl ) { this.examwindow.officeurl = url }           
+            })
         }
+
+
+
+
 
         // Google Forms
         if (serverstatus.examtype === "gforms"){
