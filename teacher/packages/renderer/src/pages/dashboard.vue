@@ -110,7 +110,7 @@
         <!-- google forms -->
         <div class="form-check m-1 mb-1" :class="(exammode)? 'disabledexam':''">
             <input v-model="examtype" @click="getFormsID()" value="gforms" class="form-check-input" type="radio" name="examtype" id="examtype5">
-            <label class="form-check-label" for="examtype4"> {{$t('dashboard.gforms')}}  </label>
+            <label class="form-check-label" for="examtype5"> {{$t('dashboard.gforms')}}  </label>
         </div>
 
         <!-- microsoft365 -->
