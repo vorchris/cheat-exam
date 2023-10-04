@@ -195,12 +195,20 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
             if (now - folderStats.mtime.getTime() > fiveMinutes) { warning = true;} 
 
             const latestPDFpath = path.join(latestfolderPath, `${studentname}.pdf`);
+            const latestXlsxPDFpath = path.join(latestfolderPath, `${studentname}.xlsx.pdf`);
+          
             if (fs.existsSync(latestPDFpath)) {
                 let PDF = await concatPages([latestPDFpath])
                 let pdfBuffer = Buffer.from(PDF) 
-                return res.json({warning: warning, pdfBuffer:pdfBuffer });
-            } else {
-                res.status(404).send('PDF nicht gefunden');
+                return res.json({warning: warning, pdfBuffer:pdfBuffer, latestfolderPath:latestfolderPath});
+            }
+            else if (fs.existsSync(latestXlsxPDFpath)){
+                let PDF = await concatPages([latestXlsxPDFpath])
+                let pdfBuffer = Buffer.from(PDF) 
+                return res.json({warning: warning, pdfBuffer:pdfBuffer, latestfolderPath:latestfolderPath});
+            } 
+            else {
+                return res.json({warning: warning, pdfBuffer:false, latestfolderPath:latestfolderPath});
             }
         } else { console.log('Keine Ordner gefunden.'); res.status(404).send('Keine Ordner gefunden.'); }
     });

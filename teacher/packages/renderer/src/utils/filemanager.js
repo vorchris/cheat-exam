@@ -196,7 +196,6 @@ async function getLatestFromStudent(student){
         })
         .then( res => res.json() )
         .then( result => { console.log(result)});
-
         return
     }
 
@@ -212,9 +211,7 @@ async function getLatestFromStudent(student){
         reverseButtons: true
     })
     .then((result) => {
-
         this.printrequest = false // allow new requests
-        
         if (result.isConfirmed) {
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getLatestFromStudent/${this.servername}/${this.servertoken}/${student.clientname}`, { 
                 method: 'POST',
@@ -245,21 +242,25 @@ async function getLatestFromStudent(student){
                         $("#pdfpreview").css("display","none");
                 });
             }).catch(err => { console.warn(err)});
-
-
-
-
-
         }
     });
-
 }
 
 
+function openLatestFolder(student){
+    fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getLatestFromStudent/${this.servername}/${this.servertoken}/${student.clientname}`, { 
+        method: 'POST',
+        headers: {'Content-Type': 'application/json' },
+    })
+    .then( response => response.json() )
+    .then( async(responseObj) => {
+        //console.log(responseObj.latestfolderPath)
+        this.loadFilelist(responseObj.latestfolderPath)
+        this.showWorkfolder();
 
+    }).catch(err => { console.warn(err)});
 
-
-
+}
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -279,6 +280,7 @@ function loadFilelist(directory){
     })
     .then( response => response.json() )
     .then( filelist => {
+        //console.log(filelist)
         filelist.sort()
         filelist.reverse()
         this.localfiles = filelist;
@@ -288,4 +290,4 @@ function loadFilelist(directory){
     }).catch(err => { console.warn(err)});
 }
  
-export {loadFilelist, print, getLatest, getLatestFromStudent, loadImage, loadPDF, dashboardExplorerSendFile, downloadFile, showWorkfolder, fdelete  }
+export {loadFilelist, print, getLatest, getLatestFromStudent, loadImage, loadPDF, dashboardExplorerSendFile, downloadFile, showWorkfolder, fdelete, openLatestFolder  }

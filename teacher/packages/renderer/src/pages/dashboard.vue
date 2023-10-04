@@ -32,6 +32,7 @@
                     <div style="font-size: 0.6em; margin-top: 0px;">{{activestudent.hostname}}</div>
                     <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent.token)" :class="(examtype === 'eduvidual' || examtype === 'gforms' ||examtype === 'microsoft365' )? 'disabledblue':''"  style="width: 100px">{{$t('dashboard.sendfile')}}</div>
                     <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="getFiles(activestudent.token, true)" :class="(examtype === 'eduvidual' || examtype === 'gforms')? 'disabledblue':''" style="width: 100px">{{$t('dashboard.getfile')}}</div>
+                    <div class="col d-inlineblock btn btn-dark m-1 btn-sm "     @click="openLatestFolder(activestudent)"  style="width: 100px;">{{$t('dashboard.showworkfolder')}} </div>
                     <div class="col d-inlineblock btn btn-warning m-1 btn-sm"   @click='kick(activestudent.token,activestudent.clientip);hideStudentview()'  style="width: 100px">{{$t('dashboard.kick')}}</div>
                 </div>
             </div>
@@ -76,8 +77,9 @@
 
     <!-- pdf preview start -->
     <div id="pdfpreview" class="fadeinslow p-4">
-        <div class="btn btn-dark me-2 btn-lg shadow" style="float: right;" @click="print()" :title="$t('dashboard.print')"><img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" > </div>
-        <div class="btn btn-dark me-2 btn-lg shadow" style="float: right;" @click="downloadFile('current')" :title="$t('dashboard.download')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" > </div>
+        <div class="btn btn-danger me-2  shadow" style="float: right;" @click="hidepreview()" :title="$t('dashboard.close')"><img src="/src/assets/img/svg/dialog-cancel.svg" class="" width="22" height="32" > </div>
+        <div class="btn btn-dark me-2 shadow" style="float: right;" @click="print()" :title="$t('dashboard.print')"><img src="/src/assets/img/svg/print.svg" class="" width="22" height="32" > </div>
+        <div class="btn btn-dark me-2 shadow" style="float: right;" @click="downloadFile('current')" :title="$t('dashboard.download')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="32" > </div>
         <iframe src="" id="pdfembed"></iframe>
     </div>
     <!-- pdf preview end -->
@@ -228,7 +230,7 @@ import axios from "axios"
 import { VueDraggableNext } from 'vue-draggable-next'
 import { uploadselect, onedriveUpload, onedriveUploadSingle, uploadAndShareFile, createSharingLink, fileExistsInAppFolder, downloadFilesFromOneDrive} from '../msalutils/onedrive'
 import { handleDragEndItem, handleMoveItem, sortStudentWidgets, initializeStudentwidgets} from '../utils/dragndrop'
-import {loadFilelist, print, getLatest, getLatestFromStudent,  loadImage, loadPDF, dashboardExplorerSendFile, downloadFile, showWorkfolder, fdelete  } from '../utils/filemanager'
+import {loadFilelist, print, getLatest, getLatestFromStudent,  loadImage, loadPDF, dashboardExplorerSendFile, downloadFile, showWorkfolder, fdelete,  openLatestFolder } from '../utils/filemanager'
 import {stopserver, toggleScreenshot, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, toggleAutoabgabe, setAbgabeInterval } from '../utils/exammanagement.js'
 
 export default {
@@ -333,7 +335,7 @@ export default {
         downloadFile:downloadFile, 
         showWorkfolder:showWorkfolder, 
         fdelete:fdelete,  
-
+        openLatestFolder:openLatestFolder,
 
 
         /**
@@ -641,6 +643,10 @@ export default {
             $("#studentinfocontainer").css("display","none");
             this.activestudent = false
         },
+        // hide pdf preview
+        hidepreview() {
+            $("#pdfpreview").css("display","none");
+        },
         //show pincode 
         showinfo(){
             let info = `<span> IP: <strong>${this.serverip}</strong> \nName: ${this.servername}  \nPin: ${this.pin} </span>`
@@ -672,9 +678,8 @@ export default {
             }
         }, 
         truncatedClientName(value, len=16) {
-            return value.length > len ? 
-            value.substr(0, len) + '...' : 
-            value;
+            if (!value) return
+            return value.length > len ? value.substr(0, len) + '...' : value;
         }
     },
     mounted() {  // when ready
