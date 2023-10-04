@@ -27,7 +27,7 @@
             <div style="height:100%">
                 <div id="controlbuttons" style="text-align: center;">
                     <button class="btn btn-close  btn-close-white align-right" @click="hideStudentview()"  style="width: 100px"></button>
-                    <b>{{activestudent.clientname}}</b><br>
+                    <b>{{truncatedClientName(activestudent.clientname,12)}}</b><br>
                     <div style="font-size: 0.6em; margin-bottom: 0px;">{{activestudent.clientip}}</div>
                     <div style="font-size: 0.6em; margin-top: 0px;">{{activestudent.hostname}}</div>
                     <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent.token)" :class="(examtype === 'eduvidual' || examtype === 'gforms' ||examtype === 'microsoft365' )? 'disabledblue':''"  style="width: 100px">{{$t('dashboard.sendfile')}}</div>
@@ -192,7 +192,7 @@
                                 <div style="display:inline;" v-bind:title="(student.files) ? 'Documents: '+student.files : ''"> 
                                     <img v-for="file in student.files" style="width:22px; margin-left:-4px; position: relative; filter: sepia(10%) hue-rotate(306deg) brightness(0.3) saturate(75);" class="" src="/src/assets/img/svg/document.svg"><br>
                                 </div>
-                                {{student.clientname}}  
+                                {{ truncatedClientName(student.clientname) }}  
                                 <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-1 pe-2 float-end" title="kick user"></button> 
                             </span>
                         </div>
@@ -294,7 +294,6 @@ export default {
             printrequest: false
         };
     },
-
 
 
 
@@ -419,10 +418,6 @@ export default {
         lockscreens:lockscreens,                     // temporarily lock screens
         sendFiles:sendFiles,                         //upload files to all students
         stopserver:stopserver,                       //Stop and Exit Exam Server Instance
-        
-
-
-
 
 
         visualfeedback(message, timeout=1000){
@@ -676,6 +671,11 @@ export default {
                 this.status(this.$t("dashboard.freespacewarning")) 
             }
         }, 
+        truncatedClientName(value, len=16) {
+            return value.length > len ? 
+            value.substr(0, len) + '...' : 
+            value;
+        }
     },
     mounted() {  // when ready
         this.$nextTick(function () { // Code that will run only after the entire view has been rendered
@@ -694,6 +694,7 @@ export default {
         clearInterval( this.fetchinterval )
         clearInterval( this.abgabeinterval )
     }
+
 }
 </script>
 
