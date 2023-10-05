@@ -543,6 +543,31 @@ class WindowHandler {
                         .catch(err => console.log(err))
                 }
             })
+
+            // Wait until the webContents is fully loaded
+            this.examwindow.webContents.on('did-finish-load', async () => {
+                let executeCode =  `
+                        function lock(){
+                            console.log("LOCKDOWN")
+                            let buttonApps = document.getElementById("InsertAppsForOffice");
+                            if (buttonApps){ buttonApps.style.display = "none" }
+                            
+                            
+                            if (buttonApps) { // we need to wait for thisone to show
+                                clearInterval(intervalId);
+                            }
+                        }
+                        lock()  //for some reason excel delays that call.. doesnt happen on page finish load
+                        const intervalId = setInterval(lock, 400);`
+                    
+                this.examwindow.webContents.executeJavaScript(executeCode); 
+            })
+            
+
+
+
+
+
         }
 
 
