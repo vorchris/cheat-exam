@@ -1,6 +1,6 @@
 {
     "name": "next-exam-student",
-    "version": "0.9.3",
+    "version": "0.9.4",
     "main": "dist/main/main.cjs",
     "author": {
         "name": "Thomas Michael Weissel",
