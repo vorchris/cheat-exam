@@ -549,7 +549,7 @@ class WindowHandler {
             this.examwindow.webContents.on('did-finish-load', async () => {
                 let executeCode =  `
                         function lock(){
-                            console.log("LOCKDOWN")
+                           
                             let header = document.getElementById("header");
                             if (header){ header.style.display = "none" }
                             
@@ -564,36 +564,46 @@ class WindowHandler {
                             if (branding){ branding.style.display = "none" }
                             
 
-                            // Get all elements by class name "branding"
-                            let elements = document.getElementsByClassName('branding');
                             
-                            // Loop through and hide each element
+                            let elements = document.getElementsByClassName('branding');
                             for (let i = 0; i < elements.length; i++) {
                               elements[i].style.display = 'none';
                             }
                             
-                            // Get all elements by class name "branding"
+                          
                             let drawers = document.getElementsByClassName('drawer-toggler');
-                            // Loop through and hide each element
                             for (let i = 0; i < drawers.length; i++) {
                                 drawers[i].style.display = 'none';
                             }
 
 
 
-                            if (header && branding && index) { // we need to wait for thisone to show
-                                clearInterval(intervalId);
-                            }
+                            // if (header && branding && index) { // we need to wait for thisone to show
+                            //     clearInterval(intervalId);
+                            // }
                         }
                         
-                        const intervalId = setInterval(lock, 400);
+                        const intervalId = setInterval(lock,100);  //page still loads between every question and shows handles - how can we fix that
                         lock()  
                         
                         `
                     
-                this.examwindow.webContents.executeJavaScript(executeCode); 
+                //this.examwindow.webContents.executeJavaScript(executeCode); 
+
+                this.examwindow.webContents.insertCSS('.branding { display: none !important; }');
+
             })
-            
+
+
+
+            this.examwindow.webContents.on('dom-ready', () => {
+                // this.examwindow.webContents.executeJavaScript(`
+                //     let header = document.getElementById("header");
+                //     if (header) {
+                //     header.style.display = "none";
+                //     }
+                // `);
+            });
 
 
 
@@ -619,6 +629,14 @@ class WindowHandler {
                 this.examwindow.focus()
                 this.addBlurListener()
             }
+
+            await this.examwindow.webContents.executeJavaScript(`
+                    let header = document.getElementById("header");
+                    if (header) {
+                        header.style.display = "none";
+                    }
+                `);
+
             this.examwindow.show()
             this.examwindow.focus()
         })

@@ -46,6 +46,17 @@ function domReady(condition: DocumentReadyState[] = ['complete', 'interactive'])
 
 ;(async () => {
   await domReady()
+
+  // window.addEventListener('DOMContentLoaded', () => {
+  //   let header = document.getElementById("header");
+  //   if (header) {
+  //     header.style.display = "none";
+  //   }
+  // });
+
+  // let header = document.getElementById("header");
+  // if (header){ header.style.display = "none" }
+
 })()
 
 
