@@ -524,6 +524,7 @@ class WindowHandler {
                     else if ( url.includes("accounts") && url.includes("google.com") )                          { console.log(" url allowed") }
                     else if ( url.includes("logout") && url.includes(serverstatus.moodleDomain) )               { console.log(" url allowed") }
                     else if ( url.includes("lookup") && url.includes("google") )                                { console.log(" url allowed") }
+                    else if ( url.includes("login") && url.includes("eduvidual") )                              { console.log(" url allowed") }
                     else {
                         console.log("blocked leaving exam mode")
                         event.preventDefault()
@@ -549,16 +550,46 @@ class WindowHandler {
                 let executeCode =  `
                         function lock(){
                             console.log("LOCKDOWN")
-                            let buttonApps = document.getElementById("InsertAppsForOffice");
-                            if (buttonApps){ buttonApps.style.display = "none" }
+                            let header = document.getElementById("header");
+                            if (header){ header.style.display = "none" }
                             
+                            let index = document.getElementById("theme_boost-drawers-courseindex");
+                            if (index){ index.style.display = "none" }
+
+                            let footer = document.getElementById("page-footer");
+                            if (footer){ footer.style.display = "none" }
+
+
+                            let branding = document.getElementById("branding");
+                            if (branding){ branding.style.display = "none" }
                             
-                            if (buttonApps) { // we need to wait for thisone to show
+
+                            // Get all elements by class name "branding"
+                            let elements = document.getElementsByClassName('branding');
+                            
+                            // Loop through and hide each element
+                            for (let i = 0; i < elements.length; i++) {
+                              elements[i].style.display = 'none';
+                            }
+                            
+                            // Get all elements by class name "branding"
+                            let drawers = document.getElementsByClassName('drawer-toggler');
+                            // Loop through and hide each element
+                            for (let i = 0; i < drawers.length; i++) {
+                                drawers[i].style.display = 'none';
+                            }
+
+
+
+                            if (header && branding && index) { // we need to wait for thisone to show
                                 clearInterval(intervalId);
                             }
                         }
-                        lock()  //for some reason excel delays that call.. doesnt happen on page finish load
-                        const intervalId = setInterval(lock, 400);`
+                        
+                        const intervalId = setInterval(lock, 400);
+                        lock()  
+                        
+                        `
                     
                 this.examwindow.webContents.executeJavaScript(executeCode); 
             })
