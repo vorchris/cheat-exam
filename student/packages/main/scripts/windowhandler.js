@@ -389,51 +389,40 @@ class WindowHandler {
             });
 
 
-
-
-            this.examwindow.webContents.on('did-frame-finish-load', async (event, isMainFrame, frameProcessId, frameRoutingId) => {
-                       
-            });
-
-
+            this.examwindow.webContents.on('did-frame-finish-load', async (event, isMainFrame, frameProcessId, frameRoutingId) => { });
 
             // Wait until the webContents is fully loaded
             this.examwindow.webContents.on('did-finish-load', async () => {
+
                 this.examwindow.webContents.mainFrame.frames.filter((frame) => {
                     let executeCode =  `
                             function lock(){
                                 console.log("LOCKDOWN")
-                                let buttonApps = document.getElementById("InsertAppsForOffice");
-                                let buttonFile = document.getElementById("FileMenuLauncherContainer");
-                                let buttonHelp = document.getElementById("Help-wrapper");
-                                let buttonReview = document.getElementById("Review-wrapper");
-                                let header = document.getElementById("Header");
-                                let controls = document.getElementById("FarPeripheralControlsContainer");
-                                let buttonAppsOverflow = document.getElementsByName('Add-Ins')[0];
-    
-                                if (buttonFile){ buttonFile.style.display = "none" }
-                                if (buttonHelp){ buttonHelp.style.display = "none" }
-                                if (buttonReview){ buttonReview.style.display = "none" }
-                                if (header){ header.style.display = "none" }
-                                if (controls){ controls.style.display = "none" }
-                                if (buttonAppsOverflow){ buttonAppsOverflow.style.display = "none" }
-                                if (buttonApps){ buttonApps.style.display = "none" }
-    
-                                if (buttonApps) { // we need to wait for thisone to show
-                                    clearInterval(intervalId);
+                                const hideus = ['WACDialogOuterContainer','WACDialogInnerContainer','WACDialogPanel','InsertAppsForOffice','FileMenuLauncherContainer','Help-wrapper','Review-wrapper','Header','FarPeripheralControlsContainer','BusinessBar','']
+                                for (entry of hideus) {
+                                    let element = document.getElementById(entry)
+                                    if (element) { element.style.display = "none" }
                                 }
-
+                                // this button is redrawn on resize (doesn't happen in exam mode but still there must be a cleaner way - inserting css before it appears is not working)
+                                let buttonAppsOverflow = document.getElementsByName('Add-Ins')[0];
+                                if (buttonAppsOverflow){ buttonAppsOverflow.style.display = "none" }
+                                if (buttonAppsOverflow && buttonAppsOverflow.style.display == "none" ) {   clearInterval(intervalId);   } // we need to wait for this one to show
                             }
+                            
+                            const intervalId = setInterval(lock, 400);
                             lock()  //for some reason excel delays that call.. doesnt happen on page finish load
-                            const intervalId = setInterval(lock, 400);`
-                     
+                            `
                     if (frame && frame.name === 'WebApplicationFrame') {
-                        frame.executeJavaScript(executeCode);
+                        frame.executeJavaScript(executeCode); 
                     }
                 })
             });
 
-            this.examwindow.webContents.on('did-navigate', (event, url) => {  //create a new div called "nextexamwarning" and "embedbackground"
+            // Wait until the complete DOM is computed
+            this.examwindow.webContents.on('dom-ready', () => {});
+
+
+            this.examwindow.webContents.on('did-navigate', (event, url) => {  // after loading the exam excel worksheet for the first time we capture the url to lock-in students
                 console.log("target reached")
                 if (!this.examwindow.officeurl ) { this.examwindow.officeurl = url }           
             })
@@ -499,19 +488,21 @@ class WindowHandler {
         // EDUVIDUAL / Moodle
         if (serverstatus.examtype === "eduvidual"){
          
-            this.examwindow.webContents.on('did-navigate', (event, url) => {  //create a new div called "nextexamwarning" and "embedbackground"
+            this.examwindow.webContents.on('did-navigate', (event, url) => {  //create new div elements called "nextexamwarning" and "embedbackground" and "embed"
                 this.examwindow.webContents.executeJavaScript(` 
                     const warning = document.createElement('div')
                     warning.setAttribute('id', 'nextexamwaring')
                     warning.setAttribute('style', 'display: none');
+
                     const background = document.createElement('div');
                     background.setAttribute('id', 'embedbackground')
                     background.setAttribute('style', 'display: none');
+
                     const embed = document.createElement('embed');` , true)
                     .catch(err => console.log(err))
             })
 
-            this.examwindow.webContents.on('will-navigate', (event, url) => {  // if a resource (pdf) is openend create an embed element and embed the pdf
+            this.examwindow.webContents.on('will-navigate', (event, url) => {
                 //we block everything except pages that contain the following keyword-combinations
                 if (!url.includes(serverstatus.testid)){
                     console.log(url)
@@ -532,6 +523,7 @@ class WindowHandler {
                 }
                 else {console.log("entered valid test environment")  }
 
+                // if a resource (pdf) is openend create an embed element and embed the pdf
                 if (url.includes('resource/view')&& !url.includes('forceview')){  // embed pdfs rather than open a new window/tab
                     event.preventDefault()
                     this.examwindow.webContents.executeJavaScript(` 
@@ -545,70 +537,17 @@ class WindowHandler {
                 }
             })
 
-            // Wait until the webContents is fully loaded
-            this.examwindow.webContents.on('did-finish-load', async () => {
-                let executeCode =  `
-                        function lock(){
-                           
-                            let header = document.getElementById("header");
-                            if (header){ header.style.display = "none" }
-                            
-                            let index = document.getElementById("theme_boost-drawers-courseindex");
-                            if (index){ index.style.display = "none" }
+            // Wait until the webContent is fully loaded
+            this.examwindow.webContents.on('did-finish-load', async () => { })
 
-                            let footer = document.getElementById("page-footer");
-                            if (footer){ footer.style.display = "none" }
-
-
-                            let branding = document.getElementById("branding");
-                            if (branding){ branding.style.display = "none" }
-                            
-
-                            
-                            let elements = document.getElementsByClassName('branding');
-                            for (let i = 0; i < elements.length; i++) {
-                              elements[i].style.display = 'none';
-                            }
-                            
-                          
-                            let drawers = document.getElementsByClassName('drawer-toggler');
-                            for (let i = 0; i < drawers.length; i++) {
-                                drawers[i].style.display = 'none';
-                            }
-
-
-
-                            // if (header && branding && index) { // we need to wait for thisone to show
-                            //     clearInterval(intervalId);
-                            // }
-                        }
-                        
-                        const intervalId = setInterval(lock,100);  //page still loads between every question and shows handles - how can we fix that
-                        lock()  
-                        
-                        `
-                    
-                //this.examwindow.webContents.executeJavaScript(executeCode); 
-
-                this.examwindow.webContents.insertCSS('.branding { display: none !important; }');
-
-            })
-
-
-
+            // Wait until the complete DOM is computed
             this.examwindow.webContents.on('dom-ready', () => {
-                // this.examwindow.webContents.executeJavaScript(`
-                //     let header = document.getElementById("header");
-                //     if (header) {
-                //     header.style.display = "none";
-                //     }
-                // `);
+                this.examwindow.webContents.insertCSS('.branding { display: none !important; }');
+                this.examwindow.webContents.insertCSS('#header { display: none !important; }');
+                this.examwindow.webContents.insertCSS('.drawer-toggler { display: none !important; }');
+                this.examwindow.webContents.insertCSS('#page-footer { display: none !important; }');
+                this.examwindow.webContents.insertCSS('#theme_boost-drawers-courseindex { display: none !important; }');
             });
-
-
-
-
-
         }
 
 
@@ -629,24 +568,9 @@ class WindowHandler {
                 this.examwindow.focus()
                 this.addBlurListener()
             }
-
-            await this.examwindow.webContents.executeJavaScript(`
-                    let header = document.getElementById("header");
-                    if (header) {
-                        header.style.display = "none";
-                    }
-                `);
-
             this.examwindow.show()
             this.examwindow.focus()
         })
-
-        // this.examwindow.webContents.on('did-finish-load', async () => {
-        //     console.log("Page finished loading")
-        //     this.examwindow.show()
-        //     this.examwindow.focus()
-        // });
-
 
         this.examwindow.on('close', async  (e) => {   // window should not be closed manually.. ever! but if you do make sure to clean examwindow variable and end exam for the client
             if (this.multicastClient.clientinfo.exammode) {
@@ -663,28 +587,7 @@ class WindowHandler {
        
     }
 
-    addBlurListener(window = "examwindow"){
-        console.log("adding blur listener")
-        console.log(window)
-        if (window === "examwindow"){ 
-            console.log(`Setting Blur Event for ${window}`)
-            this.examwindow.addListener('blur', () => this.blurevent(this)) 
-        }
-        else if (window === "screenlock") {
-            console.log(`Setting Blur Event for ${window}window`)
-            this.screenlockWindow.addListener('blur', () => this.blureventScreenlock(this))    
-        }
-    }
 
-    removeBlurListener(){
-        console.log("removing blur listener")
-        this.examwindow.removeAllListeners('blur')
-    }
-
-    // implementing a sleep (wait) function
-    sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
 
 
 
@@ -751,6 +654,33 @@ class WindowHandler {
 
 
 
+    /**
+     * Additional Functions
+     */
+
+    //adds blur listener when entering exammode
+    addBlurListener(window = "examwindow"){
+        console.log("adding blur listener")
+        console.log(window)
+        if (window === "examwindow"){ 
+            console.log(`Setting Blur Event for ${window}`)
+            this.examwindow.addListener('blur', () => this.blurevent(this)) 
+        }
+        else if (window === "screenlock") {
+            console.log(`Setting Blur Event for ${window}window`)
+            this.screenlockWindow.addListener('blur', () => this.blureventScreenlock(this))    
+        }
+    }
+    //removes blur listener when leaving exam mode
+    removeBlurListener(){
+        console.log("removing blur listener")
+        this.examwindow.removeAllListeners('blur')
+    }
+    // implementing a sleep (wait) function
+    sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    //student fogus went to another window
     blurevent(winhandler) { 
         console.log("blur-exam")
         if (winhandler.screenlockWindow) { return }// do nothing if screenlockwindow stole focus // do not trigger an infinite loop between exam window and screenlock window (stealing each others focus)
@@ -781,9 +711,7 @@ class WindowHandler {
             .catch(err => console.log(err))
         }
     }
-
-
-
+    //special blur event for temporary low security screenlock
     blureventScreenlock(winhandler) { 
         console.log("blur-screenlock")
         winhandler.screenlockWindow.show();  // we keep focus on the window.. no matter what

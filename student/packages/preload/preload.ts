@@ -24,8 +24,6 @@
 import { contextBridge, ipcRenderer, webFrame } from 'electron'
 import virtualized from './scripts/simplevmdetect.js';  // has to run in frontend (since we create a webgl insance) > inform backend (mulitcastClient.clientinfo)
 
-
-
 if (virtualized){ipcRenderer.send('virtualized')}
 let config = ipcRenderer.sendSync('getconfig')  // we need to fetch the updated version of the systemconfig from express api (server.js)
 
@@ -46,27 +44,13 @@ function domReady(condition: DocumentReadyState[] = ['complete', 'interactive'])
 
 ;(async () => {
   await domReady()
-
-  // window.addEventListener('DOMContentLoaded', () => {
-  //   let header = document.getElementById("header");
-  //   if (header) {
-  //     header.style.display = "none";
-  //   }
-  // });
-
-  // let header = document.getElementById("header");
-  // if (header){ header.style.display = "none" }
-
 })()
-
 
 // --------- Expose some API to the Renderer process. ---------
 contextBridge.exposeInMainWorld('ipcRenderer', withPrototype(ipcRenderer))   // this gives us an option to access the electron mainwindow with an ipc call
 contextBridge.exposeInMainWorld('config', config )  // expose configuration (readonly) to the renderer (frontend)
 
  
-
-
 
 // `exposeInMainWorld` can't detect attributes and methods of `prototype`, manually patching it.
 function withPrototype(obj: Record<string, any>) {
