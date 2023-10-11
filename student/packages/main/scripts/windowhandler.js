@@ -566,7 +566,6 @@ class WindowHandler {
                     this.examwindow.setAlwaysOnTop(true, "pop-up-menu", 1) 
                 }
                
-
                 /**
                  * win.setAlwaysOnTop(flag[, level][, relativeLevel])
                  * - flag boolean
@@ -581,8 +580,6 @@ class WindowHandler {
                  * ATTENTION: it would be easy to set this to 1 above screensaver to block everything but then the colorpicker popup will not show on macos :-(
                  * maybe implement another colorpicker?  currently "pop-up-menu", "0" is the highest that works on macos
                  */
-
-
 
 
                 this.examwindow.moveTop();
