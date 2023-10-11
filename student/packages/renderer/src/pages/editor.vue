@@ -398,13 +398,41 @@ export default {
             this.selectedWordCount = selectedText ? selectedText.split(/\s+/).filter(Boolean).length : 0;
             this.selectedCharCount = selectedText ? selectedText.length : 0;
             return
-        }
+        },
+        
 
+        // replace every occurence of a " (quote) on the beginning of a line or after a whitespace with the german „
+        handleInput(event) {
+            if (event.target.getAttribute('contenteditable') === 'true') {
+                const selection = window.getSelection();
+                const node = selection.anchorNode;
+                const caretPos = selection.anchorOffset;
+
+                if (node.nodeType === 3) { // Text node
+                    const textContent = node.textContent;
+                    const newText = textContent.replace(/(^|\s)"/g, function(match, p1) {
+                        return p1 === ' ' ? ' „' : '„';
+                    });
+                    
+                    if (textContent !== newText) {
+                        node.textContent = newText;
+                        // Reset cursor position
+                        const newRange = document.createRange();
+                        newRange.setStart(node, Math.min(newText.length, caretPos));
+                        newRange.collapse(true);
+                        selection.removeAllRanges();
+                        selection.addRange(newRange);
+                    }
+                }
+            }
+        }
     },
     mounted() {
        
         // count selected words
         document.addEventListener('mouseup', () => { this.getSelectedTextInfo() });
+        // replace every occurence of a " (quote) on the beginning of a line or after a whitespace with the german „
+        document.addEventListener('input', this.handleInput);
 
         switch (this.cmargin.size) {
             case 4:       this.proseMirrorMargin = '90px';   break;
@@ -653,15 +681,26 @@ export default {
 }
 
 .ProseMirror {
-  > * + * {
-    margin-top: 0.75em;
-  }
+    > * + * {
+        margin-top: 0.75em;
+        quotes: "„" "“" "‚" "‘" !important;
+    }
 
-  ul,
-  ol {
-    padding: 0 1rem;
-    line-height: 1;
-  }
+    blockquote p{
+        quotes: "„" "“" "‚" "‘" !important;
+    }
+    blockquote p::before {
+        content: open-quote;
+    }
+    blockquote p::after {
+        content: close-quote;
+    }
+
+    ul,
+    ol {
+        padding: 0 1rem;
+        line-height: 1;
+    }
 
   h1,
   h2,
