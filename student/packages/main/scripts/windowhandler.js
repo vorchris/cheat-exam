@@ -560,7 +560,12 @@ class WindowHandler {
             if (!this.config.development) { 
                 this.examwindow.setKiosk(true)
                 this.examwindow.setMinimizable(false)
-                this.examwindow.setAlwaysOnTop(true, "pop-up-menu", 1) 
+
+                if (process.platform ==='darwin') {  this.examwindow.setAlwaysOnTop(true, "pop-up-menu", 1)  }  // do not display above popup because of colorpicker in editor (fix that!)
+                else {
+                    this.examwindow.setAlwaysOnTop(true, "pop-up-menu", 0) 
+                }
+               
 
                 /**
                  * win.setAlwaysOnTop(flag[, level][, relativeLevel])
@@ -574,7 +579,7 @@ class WindowHandler {
                  * The default is 0. Note that Apple discourages setting levels higher than 1 above screen-saver.
                  * 
                  * ATTENTION: it would be easy to set this to 1 above screensaver to block everything but then the colorpicker popup will not show on macos :-(
-                 * maybe implement another colorpicker?
+                 * maybe implement another colorpicker?  currently "pop-up-menu", "0" is the highest that works on macos
                  */
 
 
