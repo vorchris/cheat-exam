@@ -561,9 +561,9 @@ class WindowHandler {
                 this.examwindow.setKiosk(true)
                 this.examwindow.setMinimizable(false)
 
-                if (process.platform ==='darwin') {  this.examwindow.setAlwaysOnTop(true, "pop-up-menu", 1)  }  // do not display above popup because of colorpicker in editor (fix that!)
+                if (process.platform ==='darwin') {  this.examwindow.setAlwaysOnTop(true, "pop-up-menu", 0)  }  // do not display above popup because of colorpicker in editor (fix that!)
                 else {
-                    this.examwindow.setAlwaysOnTop(true, "pop-up-menu", 0) 
+                    this.examwindow.setAlwaysOnTop(true, "pop-up-menu", 1) 
                 }
                
 
