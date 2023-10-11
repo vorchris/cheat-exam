@@ -14,6 +14,7 @@
     "startserver" : {
         "connected": "connected",
         "start": "Start Exam",
+        "resume": "Resume Exam",
         "examname": "Name",
         "pwd": "Password",
         "emptypw": "Please provide a valid password",

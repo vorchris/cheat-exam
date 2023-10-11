@@ -55,18 +55,18 @@
 
     <!-- maincontent -->
     <div id="content" class="fadeinslow p-3">
-        <div class="col-7">
+        <div class="col8">
             <div class="input-group  mb-1">
-                <span class="input-group-text col-4" style="width:135px;" id="inputGroup-sizing-lg">{{$t("startserver.examname")}}</span>
+                <span class="input-group-text col-2"  id="inputGroup-sizing-lg" style="width:150px;max-width:150px;min-width:150px;">{{$t("startserver.examname")}}</span>
                 <input v-model="servername" maxlength="20" type="text" class="form-control" id="servername" placeholder="Mathe-5a" style="width:200px;max-width:200px;min-width:135px;">
+    
             </div>   
             <div class="input-group  mb-3" :class="(electron) ? 'hidden':''"> <!-- we do not need to display the password in electron standalone version because no other exams are ever listed and you can not leave the exam without ending the server -->
-                <span class="input-group-text col-4" style="width:135px;" id="inputGroup-sizing-lg">{{$t("startserver.pwd")}}</span>
                 <input v-model="password" type="text" class="form-control " id="password" placeholder="password" style="width:135px;max-width:135px;min-width:135px;">
+                <span class="input-group-text col-4" style="width:135px;" id="inputGroup-sizing-lg">{{$t("startserver.pwd")}}</span>
             </div>
-            <div  v-if="hostip" class="col mb-4" >
-                <button @click="startServer()" id="examstart" class="btn btn-success" value="start exam" style="width:135px;">{{$t("startserver.start")}}</button>
-            </div>
+     
+            <button @click="startServer()" id="examstart" class="btn btn-success" value="start exam" style="width:150px;max-width:150px;min-width:120px;">{{$t("startserver.start")}}</button>
         </div>
 
         
@@ -118,7 +118,18 @@ export default {
         setPreviousExam(name){
             document.getElementById('servername').value = name
             this.servername = name
+            this.checkExistingExam()
         },
+
+        checkExistingExam(){
+            if (this.previousExams.includes(this.servername)){
+                document.getElementById('examstart').innerHTML = this.$t("startserver.resume")
+            }
+            else {
+                document.getElementById('examstart').innerHTML = this.$t("startserver.start")
+            }
+        },
+
         delPreviousExam(name){
             // ASK for confirmation!
             this.$swal.fire({
@@ -218,11 +229,16 @@ export default {
         }
 
         // add event listener to exam input field to supress all special chars 
-        document.getElementById("servername").addEventListener("keypress", function(e) {
+        document.getElementById("servername").addEventListener("keypress", (e) => {
             var lettersOnly = /^[a-zA-Z0-9-_]+$/;
             var key = e.key || String.fromCharCode(e.which);
             if (!lettersOnly.test(key)) { e.preventDefault(); }
-        });
+        })
+
+        document.getElementById("servername").addEventListener("keyup", (e) => {
+            this.servername = document.getElementById('servername').value
+            this.checkExistingExam()
+        })
 
     },
     beforeUnmount() {
