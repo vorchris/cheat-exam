@@ -400,33 +400,32 @@ export default {
             return
         },
         
-
         // replace every occurence of a " (quote) on the beginning of a line or after a whitespace with the german „
         handleInput(event) {
             if (event.target.getAttribute('contenteditable') === 'true') {
                 const selection = window.getSelection();
-                const node = selection.anchorNode;
+                const node = selection.anchorNode;  //nur den text dieser einen node ersetzen und nicht den gesamten editor text
                 const caretPos = selection.anchorOffset;
 
                 if (node.nodeType === 3) { // Text node
                     const textContent = node.textContent;
-                    const newText = textContent.replace(/(^|\s)"/g, function(match, p1) {
-                        return p1 === ' ' ? ' „' : '„';
-                    });
+                    const newText = textContent.replace(/(^|\s)"/g, function(match, p1) { return p1 === ' ' ? ' „' : '„'; });
                     
                     if (textContent !== newText) {
                         node.textContent = newText;
                         // Reset cursor position
-                        const newRange = document.createRange();
-                        newRange.setStart(node, Math.min(newText.length, caretPos));
-                        newRange.collapse(true);
-                        selection.removeAllRanges();
-                        selection.addRange(newRange);
+                        const newRange = document.createRange();  // Erstellt ein neues Range-Objekt
+                        newRange.setStart(node, Math.min(newText.length, caretPos));  // Setzt den Startpunkt der Range im Textknoten
+                        newRange.collapse(true);  // Kollabiert die Range auf den Startpunkt, sodass sie keine Zeichen enthält
+                        selection.removeAllRanges();  // Entfernt alle bestehenden Ranges aus der Selection
+                        selection.addRange(newRange);  // Fügt die neu erstellte Range zur Selection hinzu, um die Cursorposition zu setzen
                     }
                 }
             }
         }
     },
+
+
     mounted() {
        
         // count selected words

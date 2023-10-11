@@ -186,7 +186,7 @@ class WindowHandler {
         /**
          * Create a Next-Exam basic floating Menu to inject into every website in exam mode
          * This Menu could contain "allowed webpages" "battery monitor" "reconnect buttons" or other features in the future
-         * use serverstatus.showExamMenu = true in order to make it visible in Editor (just here for now)
+         * use serverstatus.showExamMenu = true in order to make it visible in Editor (just here for now and completely unused atm)
          */
 
         serverstatus.showExamMenu = false
@@ -560,7 +560,26 @@ class WindowHandler {
             if (!this.config.development) { 
                 this.examwindow.setKiosk(true)
                 this.examwindow.setMinimizable(false)
-                this.examwindow.setAlwaysOnTop(true, "popUpMenu", 0) 
+                this.examwindow.setAlwaysOnTop(true, "pop-up-menu", 1) 
+
+                /**
+                 * win.setAlwaysOnTop(flag[, level][, relativeLevel])
+                 * - flag boolean
+                 * - level string (optional) macOS Windows - Values include normal, floating, torn-off-menu, modal-panel, main-menu, status, pop-up-menu, screen-saver, and dock (Deprecated).
+                 * 
+                 * Note that from floating to status included, the window is placed below the Dock on macOS and below the taskbar on Windows. 
+                 * From pop-up-menu to a higher it is shown above the Dock on macOS and above the taskbar on Windows. See the macOS docs for more details.
+                 * 
+                 * - relativeLevel Integer (optional) macOS - The number of layers higher to set this window relative to the given level. 
+                 * The default is 0. Note that Apple discourages setting levels higher than 1 above screen-saver.
+                 * 
+                 * ATTENTION: it would be easy to set this to 1 above screensaver to block everything but then the colorpicker popup will not show on macos :-(
+                 * maybe implement another colorpicker?
+                 */
+
+
+
+
                 this.examwindow.moveTop();
                
                 enableRestrictions(WindowHandler.examwindow)  // enable restriction only when exam window is fully loaded and in focus
