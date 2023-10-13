@@ -624,8 +624,41 @@ router.post('/inform/:servername/:csrfservertoken/:studenttoken', function (req,
     mcServer.serverstatus.cmargin = req.body.cmargin
     mcServer.serverstatus.gformsTestId = req.body.gformsTestId
     
+    console.log("saving server status")
+    // safe examstatus for later use (resume exam)
+    const filePath = path.join(config.workdirectory, mcServer.serverinfo.servername, 'serverstatus.json');
+    fs.writeFileSync(filePath, JSON.stringify(mcServer.serverstatus, null, 2));     // mcServer.serverstatus als JSON-Datei speichern
+
+
     res.json({ sender: "server", message:t("general.ok"), status: "success" })
 })
+
+
+
+router.post('/getserverstatus/:servername/:csrfservertoken', function (req, res, next) {
+    const csrfservertoken = req.params.csrfservertoken
+    const servername = req.params.servername
+    const mcServer = config.examServerList[servername]
+   
+    if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
+    if (csrfservertoken !== mcServer.serverinfo.servertoken) { res.send({sender: "server", message:t("control.tokennotvalid"), status: "error"} )}
+
+
+    // mcServer.serverstatus von der JSON-Datei wieder importieren
+    const filePath = path.join(config.workdirectory, mcServer.serverinfo.servername, 'serverstatus.json');
+    
+    let serverstatus;
+
+    try {
+        serverstatus = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+      } catch (error) {
+        serverstatus = false;
+    }
+
+    return res.json({sender: "server", status: "success", serverstatus: serverstatus}) 
+
+})
+
 
 
 
