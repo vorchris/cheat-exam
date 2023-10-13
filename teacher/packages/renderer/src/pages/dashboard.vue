@@ -95,28 +95,28 @@
         
         <div style="font-size:0.9em">
         <!-- geogebra -->
-        <div class="form-check m-1 mb-1"  :class="(exammode)? 'disabledexam':''">
+        <div class="form-check m-1 mb-1"  :class="(serverstatus.exammode)? 'disabledexam':''">
             <input v-model="examtype" value="math" class="form-check-input" type="radio" name="examtype" id="examtype2" checked>
             <label class="form-check-label" for="examtype2"> {{$t('dashboard.math')}}  </label>
         </div>
         <!-- editor -->
-        <div class="form-check m-1" :class="(exammode)? 'disabledexam':''">
+        <div class="form-check m-1" :class="(serverstatus.exammode)? 'disabledexam':''">
             <input v-model="examtype" @click="activateSpellcheck()" value="editor" class="form-check-input" type="radio" name="examtype" id="examtype1">
             <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}} <span v-if="(spellcheck)">({{spellchecklang}})</span></label>
         </div>
         <!-- eduvidual -->
-        <div class="form-check m-1 mb-1" :class="(exammode)? 'disabledexam':''">
+        <div class="form-check m-1 mb-1" :class="(serverstatus.exammode)? 'disabledexam':''">
             <input v-model="examtype" @click="getTestID()" value="eduvidual" class="form-check-input" type="radio" name="examtype" id="examtype3">
             <label class="form-check-label" for="examtype3"> {{$t('dashboard.eduvidual')}}  </label>
         </div>
         <!-- google forms -->
-        <div class="form-check m-1 mb-1" :class="(exammode)? 'disabledexam':''">
+        <div class="form-check m-1 mb-1" :class="(serverstatus.exammode)? 'disabledexam':''">
             <input v-model="examtype" @click="getFormsID()" value="gforms" class="form-check-input" type="radio" name="examtype" id="examtype5">
             <label class="form-check-label" for="examtype5"> {{$t('dashboard.gforms')}}  </label>
         </div>
 
         <!-- microsoft365 -->
-        <div class="form-check m-1 mb-3" :class="(exammode)? 'disabledexam':''">
+        <div class="form-check m-1 mb-3" :class="(serverstatus.exammode)? 'disabledexam':''">
             <input v-model="examtype" value="microsoft365" class="form-check-input" type="radio" name="examtype" id="examtype4">
             <label class="form-check-label" for="examtype4"> Microsoft365 <span v-if="(config.accessToken)">({{$t('dashboard.connected')}})</span> </label>
             
@@ -139,7 +139,7 @@
 
 
         <!-- other options -->
-        <div class="form-check form-switch m-1 mb-2"  :class="(exammode || examtype === 'eduvidual'|| examtype === 'microsoft365'  || examtype === 'gforms')? 'disabledexam':''">
+        <div class="form-check form-switch m-1 mb-2"  :class="(serverstatus.exammode || examtype === 'eduvidual'|| examtype === 'microsoft365'  || examtype === 'gforms')? 'disabledexam':''">
             <input v-model="delfolder" @click="delfolderquestion()" value="del" class="form-check-input" type="checkbox" name="delfolder" id="delfolder">
             <label class="form-check-label" for="delfolder"> {{$t('dashboard.del')}}  </label>
         </div>
@@ -165,8 +165,8 @@
     <div id="content" class="fadeinslow p-3">
         
         <!-- control buttons start -->        
-        <div v-if="(exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="endExam()" >{{numberOfConnections}} {{$t('dashboard.stopexam')}}</div>
-        <div v-if="(!exammode)" @click="startExam()" :class="(examtype === 'microsoft365' && (!config.accessToken || !msOfficeFile))? 'disabledgreen':''" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px; height:62px;">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
+        <div v-if="(serverstatus.exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="endExam()" >{{numberOfConnections}} {{$t('dashboard.stopexam')}}</div>
+        <div v-if="(!serverstatus.exammode)" @click="startExam()" :class="(examtype === 'microsoft365' && (!config.accessToken || !msOfficeFile))? 'disabledgreen':''" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px; height:62px;">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
      
         <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="sendFiles('all')" :class="(examtype === 'eduvidual' || examtype === 'gforms' ||examtype === 'microsoft365' )? 'disabledblue':''"  style="width:100px; height:62px;">{{$t('dashboard.sendfile')}}</div>
         <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="getFiles('all', true)" :class="(examtype === 'eduvidual' || examtype === 'gforms')? 'disabledblue':''"  style="width:100px; height:62px;" >{{$t('dashboard.getfile')}}</div>

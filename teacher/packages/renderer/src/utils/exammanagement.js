@@ -4,31 +4,34 @@ import FormData from 'form-data'
 // enable exam mode 
 function startExam(){
     this.lockscreens(false, false); // deactivate lockscreen
-    this.exammode = true;
+    this.serverstatus.exammode = true;
     console.log("starting")
     this.visualfeedback(this.$t("dashboard.startexam"))
-    fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/exam/${this.servername}/${this.servertoken}`, { 
-        method: 'POST',
-        headers: {'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            exammode: this.exammode, 
-            examtype: this.examtype, 
-            delfolder: this.delfolder, 
-            delfolderonexit: this.delfolderonexit, 
-            spellcheck: this.spellcheck, 
-            spellchecklang:this.spellchecklang, 
-            suggestions: this.suggestions, 
-            moodleTestId: this.moodleTestId, 
-            moodleTestType: this.moodleTestType,
-            moodleDomain: this.moodleDomain,
-            gformsTestId: this.gformsTestId, 
-            cmargin: this.cmargin,
-            serverstatus: this.serverstatus
-        })
-    })
-    .then( res => res.json())
-    .then( response => { })
-    .catch(err => { console.warn(err) })
+
+    this.setServerStatus()
+
+    // fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/exam/${this.servername}/${this.servertoken}`, { 
+    //     method: 'POST',
+    //     headers: {'Content-Type': 'application/json' },
+    //     body: JSON.stringify({ 
+    //         exammode: this.exammode, 
+    //         examtype: this.examtype, 
+    //         delfolder: this.delfolder, 
+    //         delfolderonexit: this.delfolderonexit, 
+    //         spellcheck: this.spellcheck, 
+    //         spellchecklang:this.spellchecklang, 
+    //         suggestions: this.suggestions, 
+    //         moodleTestId: this.moodleTestId, 
+    //         moodleTestType: this.moodleTestType,
+    //         moodleDomain: this.moodleDomain,
+    //         gformsTestId: this.gformsTestId, 
+    //         cmargin: this.cmargin,
+    //         serverstatus: this.serverstatus
+    //     })
+    // })
+    // .then( res => res.json())
+    // .then( response => { })
+    // .catch(err => { console.warn(err) })
 }
 
 
@@ -53,17 +56,19 @@ function endExam(){
     })
     .then((result) => {
         if (result.isConfirmed) {
-            this.exammode = false;
+            this.serverstatus.exammode = false;
             this.lockscreens(false, false); // deactivate lockscreen
 
-            fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/exam/${this.servername}/${this.servertoken}`, { 
-                method: 'POST',
-                headers: {'Content-Type': 'application/json' },
-                body: JSON.stringify({ exammode: this.exammode, examtype: this.examtype, delfolder: this.delfolder, delfolderonexit: this.delfolderonexit  })
-                })
-            .then( res => res.json())
-            .then( response => { })
-            .catch(err => { console.warn(err) })
+            this.setServerStatus()
+
+            // fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/exam/${this.servername}/${this.servertoken}`, { 
+            //     method: 'POST',
+            //     headers: {'Content-Type': 'application/json' },
+            //     body: JSON.stringify({ exammode: this.exammode, examtype: this.examtype, delfolder: this.delfolder, delfolderonexit: this.delfolderonexit  })
+            //     })
+            // .then( res => res.json())
+            // .then( response => { })
+            // .catch(err => { console.warn(err) })
         } 
     }); 
 }
