@@ -18,11 +18,12 @@ function startExam(){
             spellcheck: this.spellcheck, 
             spellchecklang:this.spellchecklang, 
             suggestions: this.suggestions, 
-            testid: this.moodleTestId, 
+            moodleTestId: this.moodleTestId, 
             moodleTestType: this.moodleTestType,
             moodleDomain: this.moodleDomain,
             gformsTestId: this.gformsTestId, 
-            cmargin: this.cmargin  
+            cmargin: this.cmargin,
+            serverstatus: this.serverstatus
         })
     })
     .then( res => res.json())

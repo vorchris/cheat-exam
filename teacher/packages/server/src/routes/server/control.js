@@ -618,12 +618,15 @@ router.post('/inform/:servername/:csrfservertoken/:studenttoken', function (req,
     mcServer.serverstatus.spellcheck = req.body.spellcheck
     mcServer.serverstatus.spellchecklang = req.body.spellchecklang
     mcServer.serverstatus.suggestions = req.body.suggestions
-    mcServer.serverstatus.testid = req.body.testid
+    mcServer.serverstatus.moodleTestId = req.body.moodleTestId
     mcServer.serverstatus.moodleTestType = req.body.moodleTestType
     mcServer.serverstatus.moodleDomain = req.body.moodleDomain
     mcServer.serverstatus.cmargin = req.body.cmargin
     mcServer.serverstatus.gformsTestId = req.body.gformsTestId
     
+    console.log(mcServer.serverstatus)
+    console.log(req.body.serverstatus)
+
     console.log("saving server status")
     // safe examstatus for later use (resume exam)
     const filePath = path.join(config.workdirectory, mcServer.serverinfo.servername, 'serverstatus.json');
@@ -634,32 +637,48 @@ router.post('/inform/:servername/:csrfservertoken/:studenttoken', function (req,
 })
 
 
+/**
+ * Get and return Serverstatus from FILE (from previous interrupted exam in order to resume)
+ */
 
 router.post('/getserverstatus/:servername/:csrfservertoken', function (req, res, next) {
     const csrfservertoken = req.params.csrfservertoken
     const servername = req.params.servername
     const mcServer = config.examServerList[servername]
-   
     if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
     if (csrfservertoken !== mcServer.serverinfo.servertoken) { res.send({sender: "server", message:t("control.tokennotvalid"), status: "error"} )}
-
-
     // mcServer.serverstatus von der JSON-Datei wieder importieren
     const filePath = path.join(config.workdirectory, mcServer.serverinfo.servername, 'serverstatus.json');
-    
     let serverstatus;
-
-    try {
-        serverstatus = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-      } catch (error) {
-        serverstatus = false;
-    }
-
+    try {  serverstatus = JSON.parse(fs.readFileSync(filePath, 'utf-8'));  } 
+    catch (error) {  serverstatus = false;  }
     return res.json({sender: "server", status: "success", serverstatus: serverstatus}) 
-
 })
 
 
+/**
+ * Set Serverstatus 
+ * Students fetch the serverstatus object every updatecycle and act on it (start exam, lockscreens,etc)
+ * @param servername the name of the server at which the student is registered
+ * @param csrfservertoken servertoken to authenticate before the request is processed
+ * @param req.body.serverstatus contains the whole serverstatus object
+ */
+router.post('/setserverstatus/:servername/:csrfservertoken', function (req, res, next) {
+    const csrfservertoken = req.params.csrfservertoken
+    const servername = req.params.servername
+    const mcServer = config.examServerList[servername]
+    if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
+    if (csrfservertoken !== mcServer.serverinfo.servertoken) { res.send({sender: "server", message:t("control.tokennotvalid"), status: "error"} )}
+    
+    mcServer.serverstatus = req.body.serverstatus
+ 
+    console.log("saving server status to disc")
+    const filePath = path.join(config.workdirectory, mcServer.serverinfo.servername, 'serverstatus.json');
+    try {  fs.writeFileSync(filePath, JSON.stringify(mcServer.serverstatus, null, 2));  }   // mcServer.serverstatus als JSON-Datei speichern
+    catch (error) {  console.log(error) }
+
+    res.json({ sender: "server", message:t("general.ok"), status: "success" })
+})
 
 
 
@@ -685,6 +704,24 @@ router.post('/serverstatus/:servername/:csrfservertoken', function (req, res, ne
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * THE FOLLOWING ROUTES ARE ACCESSED BY STUDENTS ONLY
+ */
 
 
 /**
@@ -728,10 +765,6 @@ router.post('/serverstatus/:servername/:csrfservertoken', function (req, res, ne
 })
 
 
-
-
-
-
 /**
  * UPDATE SCREENSHOT
  * POST Data contains a screenshot of the clients desktop !!
@@ -772,20 +805,6 @@ router.post('/updatescreenshot', function (req, res, next) {
     }
     res.send({sender: "server", message:t("control.studentupdate"), status:"success" })
 })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /**

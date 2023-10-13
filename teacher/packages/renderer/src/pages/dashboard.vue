@@ -293,7 +293,21 @@ export default {
                 side: "right",
                 size: 3
             },
-            printrequest: false
+            printrequest: false,
+            serverstatus:{   //slowly move all serversettings over to this serverstatus object
+                exammode: false,
+                examtype: 'math',
+                delfolder: false,
+                delfolderonexit: false,
+                spellcheck: false,
+                spellchecklang: 'de',
+                suggestions: false,
+                moodleTestId: null,
+                moodleTestType: null,
+                moodleDomain: 'eduvidual.at',
+                cmargin: { side: 'right', size: 3 },
+                gformsTestId: null
+            }
         };
     },
 
@@ -680,11 +694,58 @@ export default {
         truncatedClientName(value, len=16) {
             if (!value) return
             return value.length > len ? value.substr(0, len) + '...' : value;
+        },
+        // we save serverstatus everytime we start an exam - therefore exams can be resumed easily by the teacher if something wicked happens
+        getPreviousServerStatus(){
+            fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/getserverstatus/${this.servername}/${this.servertoken}`, { method: 'POST', headers: {'Content-Type': 'application/json' },})
+            .then( res => res.json())
+            .then( response => {
+                if (response.serverstatus === false) {return}
+              
+                // serverstatus should be a single object in the frontend so we can update it easily - not hundrets of vars
+                this.cmargin = response.serverstatus.cmargin
+                this.delfolder = response.serverstatus.delfolder
+                this.delfolderonexit = response.serverstatus.delfolderonexit
+                this.exammode = response.serverstatus.exammode
+                this.examtype = response.serverstatus.examtype
+                this.gformsTestId = response.serverstatus.gformsTestId
+                this.moodleDomain =  response.serverstatus.moodleDomain
+                this.moodleTestType = response.serverstatus.moodleTestType
+                this.spellcheck = response.serverstatus.spellcheck
+                this.spellchecklang = response.serverstatus.spellchecklang
+                this.suggestions = response.serverstatus.suggestions
+                this.moodleTestId =  response.serverstatus.moodleTestId
+
+                this.serverstatus = response.serverstatus // we slowly move things over to a centra serverstatus object
+                console.log(this.serverstatus)
+                this.setServerStatus()  //  we fetched a backup of serverstatus and now we make sure the backend has the updated settings for the students to fetch
+            })
+            .catch(err => { console.warn(err) })
+        },
+
+        /**
+         * store the current serverstatus object in the backend
+         * this should be the goTo function from now on to update the backend in a single request
+         * functions to replace:  startExam, endExam, screenshotinterval, lockscreen
+         * attention: currently the ui doesn't store changes in this.serverstatus - change it !
+         * 
+        */
+        setServerStatus(){
+            fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/setserverstatus/${this.servername}/${this.servertoken}`, { 
+                method: 'POST',
+                headers: {'Content-Type': 'application/json' },
+                body: JSON.stringify({ serverstatus: this.serverstatus })
+            })
+            .then( res => res.json())
+            .then( response => { console.log(response.message)})
+            .catch(err => { console.warn(err) })
         }
+
     },
     mounted() {  // when ready
         this.$nextTick(function () { // Code that will run only after the entire view has been rendered
             $("#statusdiv").fadeOut("slow")
+            this.getPreviousServerStatus()
             this.fetchInfo()
             this.initializeStudentwidgets()
             this.fetchinterval = setInterval(() => { this.fetchInfo() }, 4000)

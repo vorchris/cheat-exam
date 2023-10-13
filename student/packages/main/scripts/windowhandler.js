@@ -286,11 +286,11 @@ class WindowHandler {
         // Load correct url 
         if (examtype === "eduvidual"){    //external page
             if (serverstatus.moodleDomain === "eduvidual.at"){
-                let url =`https://eduvidual.at/mod/${serverstatus.moodleTestType}/view.php?id=${serverstatus.testid}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287  
+                let url =`https://eduvidual.at/mod/${serverstatus.moodleTestType}/view.php?id=${serverstatus.moodleTestId}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287  
                 this.examwindow.loadURL(url)
             }
             else {
-                let url =`https://${serverstatus.moodleDomain}/mod/${serverstatus.moodleTestType}/view.php?id=${serverstatus.testid}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287  
+                let url =`https://${serverstatus.moodleDomain}/mod/${serverstatus.moodleTestType}/view.php?id=${serverstatus.moodleTestId}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287  
                 this.examwindow.loadURL(url)
             }
         }
@@ -504,7 +504,7 @@ class WindowHandler {
 
             this.examwindow.webContents.on('will-navigate', (event, url) => {
                 //we block everything except pages that contain the following keyword-combinations
-                if (!url.includes(serverstatus.testid)){
+                if (!url.includes(serverstatus.moodleTestId)){
                     console.log(url)
                     //check if this an exception (login, init) - if URL doesn't include either of these combinations - block! EXPLICIT is easier to read ;-)
                     if ( url.includes("startattempt.php") && url.includes(serverstatus.moodleDomain) )          { console.log(" url allowed") }
