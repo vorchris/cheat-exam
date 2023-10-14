@@ -30,8 +30,8 @@
                     <b>{{truncatedClientName(activestudent.clientname,12)}}</b><br>
                     <div style="font-size: 0.6em; margin-bottom: 0px;">{{activestudent.clientip}}</div>
                     <div style="font-size: 0.6em; margin-top: 0px;">{{activestudent.hostname}}</div>
-                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent.token)" :class="(examtype === 'eduvidual' || examtype === 'gforms' ||examtype === 'microsoft365' )? 'disabledblue':''"  style="width: 100px">{{$t('dashboard.sendfile')}}</div>
-                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="getFiles(activestudent.token, true)" :class="(examtype === 'eduvidual' || examtype === 'gforms')? 'disabledblue':''" style="width: 100px">{{$t('dashboard.getfile')}}</div>
+                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent.token)" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms' ||serverstatus.examtype === 'microsoft365' )? 'disabledblue':''"  style="width: 100px">{{$t('dashboard.sendfile')}}</div>
+                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="getFiles(activestudent.token, true)" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledblue':''" style="width: 100px">{{$t('dashboard.getfile')}}</div>
                     <div class="col d-inlineblock btn btn-dark m-1 btn-sm "     @click="openLatestFolder(activestudent)"  style="width: 100px;">{{$t('dashboard.showworkfolder')}} </div>
                     <div class="col d-inlineblock btn btn-warning m-1 btn-sm"   @click='kick(activestudent.token,activestudent.clientip);hideStudentview()'  style="width: 100px">{{$t('dashboard.kick')}}</div>
                 </div>
@@ -46,7 +46,7 @@
             <button id="closefilebrowser" type="button" class=" btn-close pt-2 pe-2 float-end" title="close"></button>
             <h4>{{$t('dashboard.filesfolder')}}: <br> <h6 class="ms-3 mb-3"><strong> {{currentdirectory}}</strong>  </h6></h4>
             <div class="btn btn-dark pe-3 ps-3 me-1 mb-3 btn-sm" @click="loadFilelist(workdirectory) "><img src="/src/assets/img/svg/go-home.svg" class="" width="22" height="22" > </div>
-            <div :class="( examtype === 'eduvidual'|| examtype === 'microsoft365')? 'disabledblue':''" class="btn btn-primary pe-3 ps-3 me-1 mb-3 btn-sm" style="float: right;" :title="$t('dashboard.summarizepdf')" @click="getLatest() "><img src="/src/assets/img/svg/edit-copy.svg" class="" width="22" height="22" >{{$t('dashboard.summarizepdfshort')}}</div>
+            <div :class="( serverstatus.examtype === 'eduvidual'|| serverstatus.examtype === 'microsoft365')? 'disabledblue':''" class="btn btn-primary pe-3 ps-3 me-1 mb-3 btn-sm" style="float: right;" :title="$t('dashboard.summarizepdf')" @click="getLatest() "><img src="/src/assets/img/svg/edit-copy.svg" class="" width="22" height="22" >{{$t('dashboard.summarizepdfshort')}}</div>
             <div  v-if="(currentdirectory !== workdirectory)" class="btn btn-dark pe-3 ps-3 me-1 mb-3 btn-sm" @click="loadFilelist(currentdirectoryparent) "><img src="/src/assets/img/svg/edit-undo.svg" class="" width="22" height="22" >up </div>
             <div style="height: 76vh; overflow-y:auto;">
                 <div v-for="file in localfiles" class="d-inline">
@@ -60,7 +60,7 @@
                     <!-- other files -->
                     <div v-if="(file.type == 'file' && !(file.ext === '.pdf' || file.ext === '.png'|| file.ext === '.jpg'|| file.ext === '.webp'|| file.ext === '.jpeg' )  )" class="btn btn-info pe-3 ps-3 me-3 mb-2 btn-sm"  style=" max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default;"><img src="/src/assets/img/svg/document.svg" class="" width="22" height="22" > {{file.name}} </div>
 
-                    <div v-if="(file.type == 'file')" :class="(studentlist.length == 0 || examtype === 'eduvidual'|| examtype === 'microsoft365')? 'disabledexam':''"    class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="dashboardExplorerSendFile(file)" :title="$t('dashboard.send')"><img src="/src/assets/img/svg/document-send.svg" class="" width="22" height="22" ></div>
+                    <div v-if="(file.type == 'file')" :class="(studentlist.length == 0 || serverstatus.examtype === 'eduvidual'|| serverstatus. === 'microsoft365')? 'disabledexam':''"    class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="dashboardExplorerSendFile(file)" :title="$t('dashboard.send')"><img src="/src/assets/img/svg/document-send.svg" class="" width="22" height="22" ></div>
                     <div v-if="(file.type == 'file')" class="btn btn-dark  me-1 mb-2 btn-sm " style="float: right;" @click="downloadFile(file)" :title="$t('dashboard.download')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="22" ></div>
                     <div v-if="(file.type == 'file' && file.ext === '.pdf')" class="btn btn-dark me-1 mb-2 btn-sm" style="float: right;" @click="loadPDF(file.path, file.name)" :title="$t('dashboard.preview')"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
                     <div v-if="(file.type == 'file' && (file.ext === '.png'|| file.ext === '.jpg'|| file.ext === '.webp'|| file.ext === '.jpeg' ))" class="btn btn-dark me-1 mb-2 btn-sm" style="float: right;" @click="loadImage(file.path)" :title="$t('dashboard.preview')"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" ></div>
@@ -96,54 +96,54 @@
         <div style="font-size:0.9em">
         <!-- geogebra -->
         <div class="form-check m-1 mb-1"  :class="(serverstatus.exammode)? 'disabledexam':''">
-            <input v-model="examtype" value="math" class="form-check-input" type="radio" name="examtype" id="examtype2" checked>
+            <input v-model="serverstatus.examtype" value="math" class="form-check-input" type="radio" name="examtype" id="examtype2" checked>
             <label class="form-check-label" for="examtype2"> {{$t('dashboard.math')}}  </label>
         </div>
         <!-- editor -->
         <div class="form-check m-1" :class="(serverstatus.exammode)? 'disabledexam':''">
-            <input v-model="examtype" @click="activateSpellcheck()" value="editor" class="form-check-input" type="radio" name="examtype" id="examtype1">
-            <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}} <span v-if="(spellcheck)">({{spellchecklang}})</span></label>
+            <input v-model="serverstatus.examtype" @click="activateSpellcheck()" value="editor" class="form-check-input" type="radio" name="examtype" id="examtype1">
+            <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}} <span v-if="(serverstatus.spellcheck)">({{serverstatus.spellchecklang}})</span></label>
         </div>
         <!-- eduvidual -->
         <div class="form-check m-1 mb-1" :class="(serverstatus.exammode)? 'disabledexam':''">
-            <input v-model="examtype" @click="getTestID()" value="eduvidual" class="form-check-input" type="radio" name="examtype" id="examtype3">
+            <input v-model="serverstatus.examtype" @click="getTestID()" value="eduvidual" class="form-check-input" type="radio" name="examtype" id="examtype3">
             <label class="form-check-label" for="examtype3"> {{$t('dashboard.eduvidual')}}  </label>
         </div>
         <!-- google forms -->
         <div class="form-check m-1 mb-1" :class="(serverstatus.exammode)? 'disabledexam':''">
-            <input v-model="examtype" @click="getFormsID()" value="gforms" class="form-check-input" type="radio" name="examtype" id="examtype5">
+            <input v-model="serverstatus.examtype" @click="getFormsID()" value="gforms" class="form-check-input" type="radio" name="examtype" id="examtype5">
             <label class="form-check-label" for="examtype5"> {{$t('dashboard.gforms')}}  </label>
         </div>
 
         <!-- microsoft365 -->
         <div class="form-check m-1 mb-3" :class="(serverstatus.exammode)? 'disabledexam':''">
-            <input v-model="examtype" value="microsoft365" class="form-check-input" type="radio" name="examtype" id="examtype4">
+            <input v-model="serverstatus.examtype" value="microsoft365" class="form-check-input" type="radio" name="examtype" id="examtype4">
             <label class="form-check-label" for="examtype4"> Microsoft365 <span v-if="(config.accessToken)">({{$t('dashboard.connected')}})</span> </label>
             
-            <button v-if="(examtype === 'microsoft365' && !config.accessToken)"  @click="openAuthWindow()" class="btn btn-sm btn-primary mt-1  ">
+            <button v-if="(serverstatus.examtype === 'microsoft365' && !config.accessToken)"  @click="openAuthWindow()" class="btn btn-sm btn-primary mt-1  ">
                 <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
                 <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Verbinden </span>
             </button>
 
-            <button v-if="(examtype === 'microsoft365' && config.accessToken && !msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-info mt-1  ">
+            <button v-if="(serverstatus.examtype === 'microsoft365' && config.accessToken && !serverstatus.msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-info mt-1  ">
                 <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
                 <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Datei wählen </span>
             </button>
 
-            <button v-if="(examtype === 'microsoft365' && config.accessToken && msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-success mt-1  " style=" white-space: nowrap;  width: 170px;overflow: hidden; text-overflow: ellipsis; ">
+            <button v-if="(serverstatus.examtype === 'microsoft365' && config.accessToken && serverstatus.msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-success mt-1  " style=" white-space: nowrap;  width: 170px;overflow: hidden; text-overflow: ellipsis; ">
                 <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
-                <span style="padding: 0 6px 0 4px; vertical-align:middle;">{{msOfficeFile.name}} </span>
+                <span style="padding: 0 6px 0 4px; vertical-align:middle;">{{serverstatus.msOfficeFile.name}} </span>
             </button>
         </div>
 
 
 
         <!-- other options -->
-        <div class="form-check form-switch m-1 mb-2"  :class="(serverstatus.exammode || examtype === 'eduvidual'|| examtype === 'microsoft365'  || examtype === 'gforms')? 'disabledexam':''">
-            <input v-model="delfolder" @click="delfolderquestion()" value="del" class="form-check-input" type="checkbox" name="delfolder" id="delfolder">
+        <div class="form-check form-switch m-1 mb-2"  :class="(serverstatus.exammode || serverstatus.examtype === 'eduvidual'|| serverstatus.examtype === 'microsoft365'  || serverstatus.examtype === 'gforms')? 'disabledexam':''">
+            <input v-model="serverstatus.delfolder" @click="delfolderquestion()" value="del" class="form-check-input" type="checkbox" name="delfolder" id="delfolder">
             <label class="form-check-label" for="delfolder"> {{$t('dashboard.del')}}  </label>
         </div>
-        <div class="form-check form-switch  m-1 mb-2" :class="(examtype === 'eduvidual' || examtype === 'gforms')? 'disabledexam':''">
+        <div class="form-check form-switch  m-1 mb-2" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledexam':''">
             <input @change="toggleAutoabgabe()"  @click="setAbgabeInterval()" v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
             <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
             <span v-if="autoabgabe" > ({{ abgabeintervalPause }}min)</span>
@@ -166,13 +166,13 @@
         
         <!-- control buttons start -->        
         <div v-if="(serverstatus.exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="endExam()" >{{numberOfConnections}} {{$t('dashboard.stopexam')}}</div>
-        <div v-if="(!serverstatus.exammode)" @click="startExam()" :class="(examtype === 'microsoft365' && (!config.accessToken || !msOfficeFile))? 'disabledgreen':''" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px; height:62px;">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
+        <div v-if="(!serverstatus.exammode)" @click="startExam()" :class="(serverstatus.examtype === 'microsoft365' && (!config.accessToken || !serverstatus.msOfficeFile))? 'disabledgreen':''" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px; height:62px;">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
      
-        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="sendFiles('all')" :class="(examtype === 'eduvidual' || examtype === 'gforms' ||examtype === 'microsoft365' )? 'disabledblue':''"  style="width:100px; height:62px;">{{$t('dashboard.sendfile')}}</div>
-        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="getFiles('all', true)" :class="(examtype === 'eduvidual' || examtype === 'gforms')? 'disabledblue':''"  style="width:100px; height:62px;" >{{$t('dashboard.getfile')}}</div>
+        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="sendFiles('all')" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms' ||serverstatus.examtype === 'microsoft365' )? 'disabledblue':''"  style="width:100px; height:62px;">{{$t('dashboard.sendfile')}}</div>
+        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="getFiles('all', true)" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledblue':''"  style="width:100px; height:62px;" >{{$t('dashboard.getfile')}}</div>
         <div class="col d-inlineblock btn btn-dark m-1 mt-0 text-start ms-0 " @click="loadFilelist(workdirectory)"  style="width: 100px;">{{$t('dashboard.showworkfolder')}} </div>
-        <div  v-if="(screenslocked)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(false)"> <img src="/src/assets/img/svg/shield-lock-fill.svg" class="white mt-2" title="unlock" width="32" height="32" >   </div>
-        <div  v-if="(!screenslocked)" class="btn btn-dark m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(true)"> <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" title="lock" width="32" height="32" >  </div>
+        <div  v-if="(serverstatus.screenslocked)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(false)"> <img src="/src/assets/img/svg/shield-lock-fill.svg" class="white mt-2" title="unlock" width="32" height="32" >   </div>
+        <div  v-if="(!serverstatus.screenslocked)" class="btn btn-dark m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(true)"> <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" title="lock" width="32" height="32" >  </div>
         <!-- control buttons end -->
 
 
@@ -239,7 +239,6 @@ export default {
     },
     data() {
         return {
-            examtype: 'math',
             version: this.$route.params.version,
             title: document.title,
             fetchinterval: null,
@@ -265,18 +264,7 @@ export default {
             localfiles: null,
             currentpreview: null,
             currentpreviewname: null,
-            exammode: false,
-            delfolder: false,
-            delfolderonexit: false,
             numberOfConnections: 0,
-            spellcheck: false,
-            spellchecklang: 'de',
-            suggestions: false,
-            moodleTestId: null,
-            moodleTestType: null,
-            moodleDomain: "eduvidual.at",
-            gformsTestId: null,
-            screenslocked: false,
             studentwidgets: [],
             emptyWidget: {
                 clientname: false,
@@ -286,15 +274,10 @@ export default {
             originalIndex: 20,
             futureIndex: 20,
             freeDiscspace: 1000,
-            msOfficeFile: null,
             replaceMSOfile: false,
-            screenshotinterval: 4,
-            cmargin: {
-                side: "right",
-                size: 3
-            },
             printrequest: false,
-            serverstatus:{   //slowly move all serversettings over to this serverstatus object
+
+            serverstatus:{   // this object contains all neccessary information for students about the current exam settings
                 exammode: false,
                 examtype: 'math',
                 delfolder: false,
@@ -306,7 +289,10 @@ export default {
                 moodleTestType: null,
                 moodleDomain: 'eduvidual.at',
                 cmargin: { side: 'right', size: 3 },
-                gformsTestId: null
+                gformsTestId: null,
+                screenshotinterval: 4,
+                msOfficeFile: null,
+                screenslocked: false
             }
         };
     },
@@ -373,11 +359,11 @@ export default {
                         if (!student.imageurl){ student.imageurl = "user-black.svg"  }
                         
                         // if the chosen exam mode is OFFICE and everything is Setup already check if students already got their share link (re-connect, late-connect)
-                        if (this.examtype === "microsoft365" && this.config.accessToken && this.msOfficeFile){
+                        if (this.serverstatus.examtype === "microsoft365" && this.config.accessToken && this.serverstatus.msOfficeFile){
                            
                             if (!student.status.msofficeshare) {  // this one is late to the party
                                 console.log("this student has no sharing link yet")
-                                this.onedriveUploadSingle(student, this.msOfficeFile)   // trigger upload of this.msOfficeFile, create sharelink and set student.status.msofficeshare to sharelink
+                                this.onedriveUploadSingle(student, this.serverstatus.msOfficeFile)   // trigger upload of this.msOfficeFile, create sharelink and set student.status.msofficeshare to sharelink
                             }
                         }
                         if (student.printrequest){  // student sent a printrequest to the teacher
@@ -446,7 +432,7 @@ export default {
         },
         visualfeedbackClosemanually(message){
             const closeWhenFinished = async () => {
-                while (!this.msOfficeFile) {
+                while (!this.serverstatus.msOfficeFile) {
                     await new Promise((resolve) => setTimeout(resolve, 100));
                 }
                 this.$swal.close();
@@ -483,9 +469,9 @@ export default {
                     if (!value) {return 'No ID given!'}
                 }
             }).then((input) => {
-                if (!input.value) {document.getElementById('examtype2').checked = true; this.examtype = "math"}
-                this.gformsTestId = input.value
-                console.log(this.examtype)
+                if (!input.value) {document.getElementById('examtype2').checked = true; this.serverstatus.examtype = "math"}
+                this.serverstatus.gformsTestId = input.value
+                console.log(this.serverstatus.examtype)
             })  
         },
 
@@ -524,13 +510,13 @@ export default {
                     if (!value) {return 'No ID given!'}
                 },
                 preConfirm: () => {
-                    this.moodleTestType =  document.querySelector('input[name="etesttype"]:checked').value;  
+                    this.serverstatus.moodleTestType =  document.querySelector('input[name="etesttype"]:checked').value;  
                 }
             }).then((input) => {
-                if (!input.value) {document.getElementById('examtype2').checked = true; this.examtype = "math"}
-                this.moodleTestId = input.value
-                this.moodleDomain = this.isValidDomainName(  document.getElementById('moodledomain').value ) ? document.getElementById('moodledomain').value : "eduvidual.at"
-                console.log( this.moodleDomain )
+                if (!input.value) {document.getElementById('examtype2').checked = true; this.serverstatus.examtype = "math"}
+                this.serverstatus.moodleTestId = input.value
+                this.serverstatus.moodleDomain = this.isValidDomainName(  document.getElementById('moodledomain').value ) ? document.getElementById('moodledomain').value : "eduvidual.at"
+                console.log( this.serverstatus.moodleDomain )
             })  
         },
 
@@ -571,7 +557,7 @@ export default {
                     <label>
                         ${this.$t("dashboard.cmargin-value")}<br>
                         <input style="width:100px" type="range" id="marginValue" name="margin_value" min="2" max="4" step="0.5" />
-                        <div style="width:32px; display: inline-block"  id="marginValueDisplay">${this.cmargin.size}</div>(cm)
+                        <div style="width:32px; display: inline-block"  id="marginValueDisplay">${this.serverstatus.cmargin.size}</div>(cm)
                     </label>
                     <br>
                     <label>
@@ -608,7 +594,7 @@ export default {
                     }
                 },
                 preConfirm: () => {
-                    this.suggestions = document.getElementById('checkboxsuggestions').checked; 
+                    this.serverstatus.suggestions = document.getElementById('checkboxsuggestions').checked; 
                     const radioButtons = document.querySelectorAll('input[name="correction_margin"]');
                     const marginValue = document.getElementById('marginValue').value;
                     let selectedMargin = '';
@@ -618,7 +604,7 @@ export default {
                         }
                     });
                     if (marginValue && selectedMargin) {
-                        this.cmargin = {
+                        this.serverstatus.cmargin = {
                             side: selectedMargin,
                             size: parseInt(marginValue)
                         }
@@ -627,9 +613,9 @@ export default {
             })
 
             if (language) {
-                this.spellcheck = true
-                this.spellchecklang = language
-                if (language === 'none'){this.spellcheck = false}
+                this.serverstatus.spellcheck = true
+                this.serverstatus.spellchecklang = language
+                if (language === 'none'){this.serverstatus.spellcheck = false}
             }  
         },
 
@@ -640,7 +626,7 @@ export default {
 
         // show warning
         delfolderquestion(){
-            if (!this.delfolder) {
+            if (!this.serverstatus.delfolder) {
                 this.$swal.fire({
                     title: this.$t("dashboard.attention"),
                     text: this.$t("dashboard.delsure"),
@@ -701,21 +687,6 @@ export default {
             .then( res => res.json())
             .then( response => {
                 if (response.serverstatus === false) {return}
-              
-                // serverstatus should be a single object in the frontend so we can update it easily - not hundrets of vars
-                this.cmargin = response.serverstatus.cmargin
-                this.delfolder = response.serverstatus.delfolder
-                this.delfolderonexit = response.serverstatus.delfolderonexit
-                this.exammode = response.serverstatus.exammode
-                this.examtype = response.serverstatus.examtype
-                this.gformsTestId = response.serverstatus.gformsTestId
-                this.moodleDomain =  response.serverstatus.moodleDomain
-                this.moodleTestType = response.serverstatus.moodleTestType
-                this.spellcheck = response.serverstatus.spellcheck
-                this.spellchecklang = response.serverstatus.spellchecklang
-                this.suggestions = response.serverstatus.suggestions
-                this.moodleTestId =  response.serverstatus.moodleTestId
-
                 this.serverstatus = response.serverstatus // we slowly move things over to a centra serverstatus object
                 console.log(this.serverstatus)
                 this.setServerStatus()  //  we fetched a backup of serverstatus and now we make sure the backend has the updated settings for the students to fetch

@@ -189,7 +189,7 @@ async function getLatestFromStudent(student){
 
     if (this.printrequest){ 
         // inform student that request was denied
-        fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/inform/${this.servername}/${this.servertoken}/${student.token}`, { 
+        fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/setstudentstatus/${this.servername}/${this.servertoken}/${student.token}`, { 
             method: 'POST',
             headers: {'Content-Type': 'application/json' },
             body: JSON.stringify({ printdenied : true } )

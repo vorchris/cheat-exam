@@ -486,23 +486,24 @@ router.post('/sharelink/:servername/:csrfservertoken/:studenttoken', function (r
 
 
 
-/**
+/** DEPRECATED
+ * 
  * SET Screenshot Interval
  * @param servename the servers name
  * @param csrfservertoken the servers token to authenticate
  */
-router.post('/screenshotinterval/:servername/:csrfservertoken', function (req, res, next) {
-    const servername = req.params.servername
-    const mcServer = config.examServerList[servername]
+// router.post('/screenshotinterval/:servername/:csrfservertoken', function (req, res, next) {
+//     const servername = req.params.servername
+//     const mcServer = config.examServerList[servername]
 
-    if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {  //first check if csrf token is valid and server is allowed to trigger this api request
-        mcServer.serverstatus.screenshotinterval = req.body.screenshotinterval
-        res.send( {sender: "server", message: t("control.studentupdate"), status: "success"} )
-    }
-    else {
-        res.send( {sender: "server", message: t("control.actiondenied"), status: "error"} )
-    }
-})
+//     if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {  //first check if csrf token is valid and server is allowed to trigger this api request
+//         mcServer.serverstatus.screenshotinterval = req.body.screenshotinterval
+//         res.send( {sender: "server", message: t("control.studentupdate"), status: "success"} )
+//     }
+//     else {
+//         res.send( {sender: "server", message: t("control.actiondenied"), status: "error"} )
+//     }
+// })
 
 
 /** There are some occasions where a simple change in studentstatus is neccessary in order to inform the student
@@ -513,7 +514,7 @@ router.post('/screenshotinterval/:servername/:csrfservertoken', function (req, r
 
 
 /**
- * RESTORE cients focused state 
+ * RESTORE cients focused state  !! USE /inform/ instead (simplify code)
  * @param servename the server 
  * @param csrfservertoken the servers token to authenticate
  * @param studenttoken the students token who's state should be restored
@@ -537,14 +538,12 @@ router.post('/screenshotinterval/:servername/:csrfservertoken', function (req, r
 
 
 /**
- * Inform Client about a denied printrequest (we handle one request at a time) 
- * and possibly other things. write this API route in a way that it can handle multiple status updates 
- * in order to simplify this code
+ * Set STUDENT.STATUS and therefore Inform Client on the next update cycle about a denied printrequest (we handle one request at a time) and other things.
  * @param servename the server 
  * @param csrfservertoken the servers token to authenticate
  * @param studenttoken the students token who should be informed
  */
-router.post('/inform/:servername/:csrfservertoken/:studenttoken', function (req, res, next) {
+router.post('/setstudentstatus/:servername/:csrfservertoken/:studenttoken', function (req, res, next) {
     const servername = req.params.servername
     const studenttoken = req.params.studenttoken
     const mcServer = config.examServerList[servername]
@@ -597,44 +596,50 @@ router.post('/inform/:servername/:csrfservertoken/:studenttoken', function (req,
     }
 })
 
-/**
+
+
+
+
+
+/**  DEPRECATED
+ * 
  * Toggle EXAM  (start/stop kiosk mode for students)
  * req.body should contain the updated serverstatus information
  * @param servername the name of the server at which the student is registered
  * @param csrfservertoken servertoken to authenticate before the request is processed
  */
- router.post('/exam/:servername/:csrfservertoken', function (req, res, next) {
-    const csrfservertoken = req.params.csrfservertoken
-    const servername = req.params.servername
-    const mcServer = config.examServerList[servername]
+//  router.post('/exam/:servername/:csrfservertoken', function (req, res, next) {
+//     const csrfservertoken = req.params.csrfservertoken
+//     const servername = req.params.servername
+//     const mcServer = config.examServerList[servername]
    
-    if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
-    if (csrfservertoken !== mcServer.serverinfo.servertoken) { res.send({sender: "server", message:t("control.tokennotvalid"), status: "error"} )}
+//     if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
+//     if (csrfservertoken !== mcServer.serverinfo.servertoken) { res.send({sender: "server", message:t("control.tokennotvalid"), status: "error"} )}
 
-    mcServer.serverstatus.exammode = req.body.exammode
-    mcServer.serverstatus.examtype = req.body.examtype
-    mcServer.serverstatus.delfolder = req.body.delfolder
-    mcServer.serverstatus.delfolderonexit = req.body.delfolderonexit
-    mcServer.serverstatus.spellcheck = req.body.spellcheck
-    mcServer.serverstatus.spellchecklang = req.body.spellchecklang
-    mcServer.serverstatus.suggestions = req.body.suggestions
-    mcServer.serverstatus.moodleTestId = req.body.moodleTestId
-    mcServer.serverstatus.moodleTestType = req.body.moodleTestType
-    mcServer.serverstatus.moodleDomain = req.body.moodleDomain
-    mcServer.serverstatus.cmargin = req.body.cmargin
-    mcServer.serverstatus.gformsTestId = req.body.gformsTestId
+//     mcServer.serverstatus.exammode = req.body.exammode
+//     mcServer.serverstatus.examtype = req.body.examtype
+//     mcServer.serverstatus.delfolder = req.body.delfolder
+//     mcServer.serverstatus.delfolderonexit = req.body.delfolderonexit
+//     mcServer.serverstatus.spellcheck = req.body.spellcheck
+//     mcServer.serverstatus.spellchecklang = req.body.spellchecklang
+//     mcServer.serverstatus.suggestions = req.body.suggestions
+//     mcServer.serverstatus.moodleTestId = req.body.moodleTestId
+//     mcServer.serverstatus.moodleTestType = req.body.moodleTestType
+//     mcServer.serverstatus.moodleDomain = req.body.moodleDomain
+//     mcServer.serverstatus.cmargin = req.body.cmargin
+//     mcServer.serverstatus.gformsTestId = req.body.gformsTestId
     
-    console.log(mcServer.serverstatus)
-    console.log(req.body.serverstatus)
+//     console.log(mcServer.serverstatus)
+//     console.log(req.body.serverstatus)
 
-    console.log("saving server status")
-    // safe examstatus for later use (resume exam)
-    const filePath = path.join(config.workdirectory, mcServer.serverinfo.servername, 'serverstatus.json');
-    fs.writeFileSync(filePath, JSON.stringify(mcServer.serverstatus, null, 2));     // mcServer.serverstatus als JSON-Datei speichern
+//     console.log("saving server status")
+//     // safe examstatus for later use (resume exam)
+//     const filePath = path.join(config.workdirectory, mcServer.serverinfo.servername, 'serverstatus.json');
+//     fs.writeFileSync(filePath, JSON.stringify(mcServer.serverstatus, null, 2));     // mcServer.serverstatus als JSON-Datei speichern
 
 
-    res.json({ sender: "server", message:t("general.ok"), status: "success" })
-})
+//     res.json({ sender: "server", message:t("general.ok"), status: "success" })
+// })
 
 
 /**

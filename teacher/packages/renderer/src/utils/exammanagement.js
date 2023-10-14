@@ -9,29 +9,6 @@ function startExam(){
     this.visualfeedback(this.$t("dashboard.startexam"))
 
     this.setServerStatus()
-
-    // fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/exam/${this.servername}/${this.servertoken}`, { 
-    //     method: 'POST',
-    //     headers: {'Content-Type': 'application/json' },
-    //     body: JSON.stringify({ 
-    //         exammode: this.exammode, 
-    //         examtype: this.examtype, 
-    //         delfolder: this.delfolder, 
-    //         delfolderonexit: this.delfolderonexit, 
-    //         spellcheck: this.spellcheck, 
-    //         spellchecklang:this.spellchecklang, 
-    //         suggestions: this.suggestions, 
-    //         moodleTestId: this.moodleTestId, 
-    //         moodleTestType: this.moodleTestType,
-    //         moodleDomain: this.moodleDomain,
-    //         gformsTestId: this.gformsTestId, 
-    //         cmargin: this.cmargin,
-    //         serverstatus: this.serverstatus
-    //     })
-    // })
-    // .then( res => res.json())
-    // .then( response => { })
-    // .catch(err => { console.warn(err) })
 }
 
 
@@ -51,7 +28,7 @@ function endExam(){
         cancelButtonText: this.$t("dashboard.cancel"),
         reverseButtons: true,
         preConfirm: () => {
-            this.delfolderonexit = document.getElementById('checkboxdel').checked; 
+            this.serverstatus.delfolderonexit = document.getElementById('checkboxdel').checked; 
         }
     })
     .then((result) => {
@@ -60,15 +37,6 @@ function endExam(){
             this.lockscreens(false, false); // deactivate lockscreen
 
             this.setServerStatus()
-
-            // fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/exam/${this.servername}/${this.servertoken}`, { 
-            //     method: 'POST',
-            //     headers: {'Content-Type': 'application/json' },
-            //     body: JSON.stringify({ exammode: this.exammode, examtype: this.examtype, delfolder: this.delfolder, delfolderonexit: this.delfolderonexit  })
-            //     })
-            // .then( res => res.json())
-            // .then( response => { })
-            // .catch(err => { console.warn(err) })
         } 
     }); 
 }
@@ -167,23 +135,25 @@ function getFiles(who, feedfack=false){
             max: 60,
             step: 4
         },
-        inputValue: this.screenshotinterval
+        inputValue: this.serverstatus.screenshotinterval
     }).then((input) => {
-        this.screenshotinterval= input.value
-        if (this.screenshotinterval == 0) { document.getElementById("screenshotinterval").checked = false }
+        this.serverstatus.screenshotinterval= input.value
+        if (this.serverstatus.screenshotinterval == 0) { document.getElementById("screenshotinterval").checked = false }
         else { document.getElementById("screenshotinterval").checked = true}
-        if (!this.screenshotinterval){this.screenshotinterval = 4}
+        if (!this.serverstatus.screenshotinterval){this.serverstatus.screenshotinterval = 4}
 
-        console.log(this.screenshotinterval)
         // WRITE screenshotinterval serverstatus ojbect so it can be retrieved on the next student update 
-        fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/screenshotinterval/${this.servername}/${this.servertoken}`, { 
-            method: 'POST',
-            headers: {'Content-Type': 'application/json' },
-            body: JSON.stringify({ screenshotinterval: this.screenshotinterval  })
-            })
-        .then( res => res.json())
-        .then( response => {console.log(response.message) })
-        .catch(err => { console.warn(err) })
+        this.setServerStatus()
+
+        // fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/screenshotinterval/${this.servername}/${this.servertoken}`, { 
+        //     method: 'POST',
+        //     headers: {'Content-Type': 'application/json' },
+        //     body: JSON.stringify({ screenshotinterval: this.screenshotinterval  })
+        //     })
+        // .then( res => res.json())
+        // .then( response => {console.log(response.message) })
+        // .catch(err => { console.warn(err) })
+
     })  
 }
 
@@ -192,17 +162,19 @@ function getFiles(who, feedfack=false){
 function lockscreens(state, feedback=true){
     if (this.studentlist.length === 0) { this.status(this.$t("dashboard.noclients")); return;}
 
-    if (state === false) { this.screenslocked = false; if (feedback) { this.visualfeedback(this.$t("dashboard.unlock")); } }   // the feedback interferes with endexam screen
-    else { this.screenslocked = true; this.visualfeedback(this.$t("dashboard.lock"))} 
+    if (state === false) { this.serverstatus.screenslocked = false; if (feedback) { this.visualfeedback(this.$t("dashboard.unlock")); } }   // the feedback interferes with endexam screen
+    else { this.serverstatus.screenslocked = true; this.visualfeedback(this.$t("dashboard.lock"))} 
 
-    fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/serverstatus/${this.servername}/${this.servertoken}`, { 
-        method: 'POST',
-        headers: {'Content-Type': 'application/json' },
-        body: JSON.stringify({ screenlock: this.screenslocked  })
-        })
-    .then( res => res.json())
-    .then( response => { })
-    .catch(err => { console.warn(err) })
+    this.setServerStatus()
+
+    // fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/serverstatus/${this.servername}/${this.servertoken}`, { 
+    //     method: 'POST',
+    //     headers: {'Content-Type': 'application/json' },
+    //     body: JSON.stringify({ screenlock: this.screenslocked  })
+    //     })
+    // .then( res => res.json())
+    // .then( response => { })
+    // .catch(err => { console.warn(err) })
 }
 
 
