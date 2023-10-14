@@ -5,9 +5,8 @@ import FormData from 'form-data'
 function startExam(){
     this.lockscreens(false, false); // deactivate lockscreen
     this.serverstatus.exammode = true;
-    console.log("starting")
+    console.log("starting exammode")
     this.visualfeedback(this.$t("dashboard.startexam"))
-
     this.setServerStatus()
 }
 
@@ -35,7 +34,6 @@ function endExam(){
         if (result.isConfirmed) {
             this.serverstatus.exammode = false;
             this.lockscreens(false, false); // deactivate lockscreen
-
             this.setServerStatus()
         } 
     }); 
@@ -144,16 +142,6 @@ function getFiles(who, feedfack=false){
 
         // WRITE screenshotinterval serverstatus ojbect so it can be retrieved on the next student update 
         this.setServerStatus()
-
-        // fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/screenshotinterval/${this.servername}/${this.servertoken}`, { 
-        //     method: 'POST',
-        //     headers: {'Content-Type': 'application/json' },
-        //     body: JSON.stringify({ screenshotinterval: this.screenshotinterval  })
-        //     })
-        // .then( res => res.json())
-        // .then( response => {console.log(response.message) })
-        // .catch(err => { console.warn(err) })
-
     })  
 }
 
@@ -161,20 +149,9 @@ function getFiles(who, feedfack=false){
 // temporarily lock screens
 function lockscreens(state, feedback=true){
     if (this.studentlist.length === 0) { this.status(this.$t("dashboard.noclients")); return;}
-
     if (state === false) { this.serverstatus.screenslocked = false; if (feedback) { this.visualfeedback(this.$t("dashboard.unlock")); } }   // the feedback interferes with endexam screen
     else { this.serverstatus.screenslocked = true; this.visualfeedback(this.$t("dashboard.lock"))} 
-
     this.setServerStatus()
-
-    // fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/serverstatus/${this.servername}/${this.servertoken}`, { 
-    //     method: 'POST',
-    //     headers: {'Content-Type': 'application/json' },
-    //     body: JSON.stringify({ screenlock: this.screenslocked  })
-    //     })
-    // .then( res => res.json())
-    // .then( response => { })
-    // .catch(err => { console.warn(err) })
 }
 
 

@@ -27,6 +27,7 @@ import FormData from 'form-data/lib/form_data.js';     //we need to import the f
 import { join } from 'path'
 import { screen } from 'electron'
 import WindowHandler from './windowhandler.js'
+import ExamMenu from './examMenu.js'
 
 import { execSync } from 'child_process';
 const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
@@ -253,8 +254,8 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
         }
 
         // global status updates
-        if (serverstatus.screenlock && !this.multicastClient.clientinfo.screenlock) {  this.activateScreenlock() }
-        else if (!serverstatus.screenlock ) { this.killScreenlock() }
+        if (serverstatus.screenslocked && !this.multicastClient.clientinfo.screenlock) {  this.activateScreenlock() }
+        else if (!serverstatus.screenslocked ) { this.killScreenlock() }
 
         //update screenshotinterval
         if (serverstatus.screenshotinterval) { 

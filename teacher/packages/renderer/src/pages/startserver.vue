@@ -93,7 +93,7 @@ export default {
             version: this.$route.params.version,
             title: document.title,
             servername : this.$route.params.config.development ? "Mathe5A":"",
-            password: this.$route.params.config.development ? "password": Math.floor(1000 + Math.random() * 9000), 
+            password: this.$route.params.config.development ? "password": Math.floor(1000 + Math.random() * 9000),   //we could use this password to allow students to manually leave exam mode 
             prod : false,
             serverApiPort: this.$route.params.serverApiPort,
             electron: this.$route.params.electron,
@@ -148,11 +148,6 @@ export default {
                     this.getPreviousExams()
                 } 
             });  
-
-
-        
-           
-
         },
         setWorkdir(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
             let response = ipcRenderer.sendSync('setworkdir')

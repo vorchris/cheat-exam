@@ -129,7 +129,7 @@ router.get('/msauth', async (req, res) => {
             </head>
             <body><br>
                 <h4>${error.response.data.error_description}</h4> <br>
-                Please restart the Application <br>
+                Please close this Window and try again! <br>
                 <button onclick="window.close()" class="custom-btn custom-btn-danger">Close Window</button>
             </body>
         </html>`
@@ -486,32 +486,6 @@ router.post('/sharelink/:servername/:csrfservertoken/:studenttoken', function (r
 
 
 
-/** DEPRECATED
- * 
- * SET Screenshot Interval
- * @param servename the servers name
- * @param csrfservertoken the servers token to authenticate
- */
-// router.post('/screenshotinterval/:servername/:csrfservertoken', function (req, res, next) {
-//     const servername = req.params.servername
-//     const mcServer = config.examServerList[servername]
-
-//     if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {  //first check if csrf token is valid and server is allowed to trigger this api request
-//         mcServer.serverstatus.screenshotinterval = req.body.screenshotinterval
-//         res.send( {sender: "server", message: t("control.studentupdate"), status: "success"} )
-//     }
-//     else {
-//         res.send( {sender: "server", message: t("control.actiondenied"), status: "error"} )
-//     }
-// })
-
-
-/** There are some occasions where a simple change in studentstatus is neccessary in order to inform the student
- * on the next update cycle that it has to do sometihng (unlock, change focusstate, show warning or something similar)
- * for now there is an api route for every single one of them instead of one api route for all of them
- */
-
-
 
 /**
  * RESTORE cients focused state  !! USE /inform/ instead (simplify code)
@@ -601,51 +575,11 @@ router.post('/setstudentstatus/:servername/:csrfservertoken/:studenttoken', func
 
 
 
-/**  DEPRECATED
- * 
- * Toggle EXAM  (start/stop kiosk mode for students)
- * req.body should contain the updated serverstatus information
- * @param servername the name of the server at which the student is registered
+/**
+ * Get Serverstatus and return Serverstatus from FILE (from previous interrupted exam in order to resume)
+ * @param servername the name of the server 
  * @param csrfservertoken servertoken to authenticate before the request is processed
  */
-//  router.post('/exam/:servername/:csrfservertoken', function (req, res, next) {
-//     const csrfservertoken = req.params.csrfservertoken
-//     const servername = req.params.servername
-//     const mcServer = config.examServerList[servername]
-   
-//     if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
-//     if (csrfservertoken !== mcServer.serverinfo.servertoken) { res.send({sender: "server", message:t("control.tokennotvalid"), status: "error"} )}
-
-//     mcServer.serverstatus.exammode = req.body.exammode
-//     mcServer.serverstatus.examtype = req.body.examtype
-//     mcServer.serverstatus.delfolder = req.body.delfolder
-//     mcServer.serverstatus.delfolderonexit = req.body.delfolderonexit
-//     mcServer.serverstatus.spellcheck = req.body.spellcheck
-//     mcServer.serverstatus.spellchecklang = req.body.spellchecklang
-//     mcServer.serverstatus.suggestions = req.body.suggestions
-//     mcServer.serverstatus.moodleTestId = req.body.moodleTestId
-//     mcServer.serverstatus.moodleTestType = req.body.moodleTestType
-//     mcServer.serverstatus.moodleDomain = req.body.moodleDomain
-//     mcServer.serverstatus.cmargin = req.body.cmargin
-//     mcServer.serverstatus.gformsTestId = req.body.gformsTestId
-    
-//     console.log(mcServer.serverstatus)
-//     console.log(req.body.serverstatus)
-
-//     console.log("saving server status")
-//     // safe examstatus for later use (resume exam)
-//     const filePath = path.join(config.workdirectory, mcServer.serverinfo.servername, 'serverstatus.json');
-//     fs.writeFileSync(filePath, JSON.stringify(mcServer.serverstatus, null, 2));     // mcServer.serverstatus als JSON-Datei speichern
-
-
-//     res.json({ sender: "server", message:t("general.ok"), status: "success" })
-// })
-
-
-/**
- * Get and return Serverstatus from FILE (from previous interrupted exam in order to resume)
- */
-
 router.post('/getserverstatus/:servername/:csrfservertoken', function (req, res, next) {
     const csrfservertoken = req.params.csrfservertoken
     const servername = req.params.servername
@@ -664,7 +598,7 @@ router.post('/getserverstatus/:servername/:csrfservertoken', function (req, res,
 /**
  * Set Serverstatus 
  * Students fetch the serverstatus object every updatecycle and act on it (start exam, lockscreens,etc)
- * @param servername the name of the server at which the student is registered
+ * @param servername the name of the server
  * @param csrfservertoken servertoken to authenticate before the request is processed
  * @param req.body.serverstatus contains the whole serverstatus object
  */
@@ -684,29 +618,6 @@ router.post('/setserverstatus/:servername/:csrfservertoken', function (req, res,
 
     res.json({ sender: "server", message:t("general.ok"), status: "success" })
 })
-
-
-
-/**
- * Activate Screenlock 
- * req.body should contain the updated serverstatus information
- * @param servername the name of the server at which the student is registered
- * @param csrfservertoken servertoken to authenticate before the request is processed
- */
-router.post('/serverstatus/:servername/:csrfservertoken', function (req, res, next) {
-    const csrfservertoken = req.params.csrfservertoken
-    const servername = req.params.servername
-    const mcServer = config.examServerList[servername]
-   
-    if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
-    if (csrfservertoken !== mcServer.serverinfo.servertoken) { res.send({sender: "server", message:t("control.tokennotvalid"), status: "error"} )}
-
-    mcServer.serverstatus.screenlock = req.body.screenlock
-    console.log(mcServer.serverstatus)
-    
-    res.json({ sender: "server", message:t("general.ok"), status: "success" })
-})
-
 
 
 

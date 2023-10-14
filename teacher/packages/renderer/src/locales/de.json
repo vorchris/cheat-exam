@@ -120,7 +120,8 @@
         "oldpdfwarningsingle":"Die lokale Version der Datei ist möglicherweise veraltet!",
         "gforms": "Google Forms",
         "accessDenied":"Zugriff verweigert!",
-        "accessDeniedtext":"Bitte kontaktieren sie ihren Systemadministrator um der Applikation Next-Exam Zugriff zu gewähren"
+        "accessDeniedtext":"Bitte kontaktieren sie ihren Systemadministrator um der Applikation Next-Exam Zugriff zu gewähren",
+        "msoWarn": "Bevor die Schüler:innen die Verbindung wieder aufnehmen können, müssen Sie sich zu ihrer Microsoft Cloud verbinden und die MSODatei erneut auswählen!"
     },
     "control": {
         "tokennotvalid": "Das Token ist ungültig",

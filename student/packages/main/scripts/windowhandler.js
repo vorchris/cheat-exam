@@ -4,6 +4,7 @@ import { join } from 'path'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 
 import playSound from 'play-sound';
+import examMenu from './examMenu.js';
 const sound = playSound({});
 
   ////////////////////////////////////////////////////////////
@@ -183,105 +184,11 @@ class WindowHandler {
             },
         });
 
-        /**
-         * Create a Next-Exam basic floating Menu to inject into every website in exam mode
-         * This Menu could contain "allowed webpages" "battery monitor" "reconnect buttons" or other features in the future
-         * use serverstatus.showExamMenu = true in order to make it visible in Editor (just here for now and completely unused atm)
-         */
-
-        serverstatus.showExamMenu = false
-
-        this.menuHTML = `<div id="next-exam-menu">
-            <button class="next-exam-button" id="button1">Button 1</button>
-            <button class="next-exam-button" id="button2">Button 2</button>
-            </div>`
-        this.menuCSS = `
-            #next-exam-menu {
-                position: fixed;
-                z-index: 99999;
-                left: 10px;
-                top: 10px;
-                background: #212529;
-                padding: 5px;
-                cursor: move;
-                border-radius: 5px;
-                box-shadow: 2px 2px 10px #000;
-                padding-right: 30px;
-            }
-            .next-exam-button {
-                background-color: #0d6efd;
-                border: 1px solid #0d6efd;
-                color: white;
-                padding: .375rem .75rem;
-                border-radius: .25rem;
-                font-size: 1rem;
-                line-height: 1;
-                cursor: pointer;
-                transition: background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
-              }
-              .next-exam-button:hover {
-                background-color: #0056b3;
-                border-color: #0056b3;
-              }
-        `
-        this.injectNextExamMenu = `(function() {
-            // Inject CSS
-            const style = document.createElement('style');
-            style.type = 'text/css';
-            style.textContent = \`${this.menuCSS}\`;
-            document.head.appendChild(style);
-      
-            // Inject HTML
-            const menuHtml = \`${this.menuHTML}\`; 
-            document.body.insertAdjacentHTML('afterbegin', menuHtml);
-      
-            // Make menu draggable
-            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-            
-            const menu = document.getElementById("next-exam-menu");
-           
-            menu.onmousedown = function dragMouseDown(e) {
-                e.preventDefault();
-                if (e.target.tagName.toLowerCase() === 'button') {  return;  }
-                pos3 = e.clientX;
-                pos4 = e.clientY;
-                document.onmouseup = closeDragElement;
-                document.onmousemove = elementDrag;
-            };
-      
-            function elementDrag(e) {
-                e.preventDefault();
-                pos1 = pos3 - e.clientX;
-                pos2 = pos4 - e.clientY;
-                pos3 = e.clientX;
-                pos4 = e.clientY;
-                menu.style.top = (menu.offsetTop - pos2) + "px";
-                menu.style.left = (menu.offsetLeft - pos1) + "px";
-            }
-      
-            function closeDragElement() {
-                document.onmouseup = null;
-                document.onmousemove = null;
-            }
-
-            // Button event listeners
-            const button1 = document.getElementById("button1");
-            const button2 = document.getElementById("button2");
+        // we use this for now to activate/deactivate the upcoming examMenu for 3rd party apps
+        serverstatus.showExamMenu = true
 
       
-            button1.addEventListener('click', function() {
-                console.log('hello exam!')
-            });
-
-            button2.addEventListener('click', function() {
-                console.log('hello next-exam!')
-            });
-
-            return null;
-          })();
-        `
-        this.injectExamFunctions = `  `
-        
+   
     
         // Load correct url 
         if (examtype === "eduvidual"){    //external page
@@ -414,9 +321,22 @@ class WindowHandler {
                             `
                     if (frame && frame.name === 'WebApplicationFrame') {
                         frame.executeJavaScript(executeCode); 
+                        // if (serverstatus.showExamMenu){
+                        //     frame.executeJavaScript(  examMenu.injectNextExamMenu  );
+                        //     frame.executeJavaScript(  examMenu.injectExamFunctions );
+                        // }
                     }
                 })
+
+                // if (serverstatus.showExamMenu){
+                //     this.examwindow.webContents.executeJavaScript(  examMenu.injectNextExamMenu  );
+                //     this.examwindow.webContents.executeJavaScript(  examMenu.injectExamFunctions );
+                // }
+
             });
+
+
+
 
             // Wait until the complete DOM is computed
             this.examwindow.webContents.on('dom-ready', () => {});
@@ -424,7 +344,11 @@ class WindowHandler {
 
             this.examwindow.webContents.on('did-navigate', (event, url) => {  // after loading the exam excel worksheet for the first time we capture the url to lock-in students
                 console.log("target reached")
-                if (!this.examwindow.officeurl ) { this.examwindow.officeurl = url }           
+                if (!this.examwindow.officeurl ) { this.examwindow.officeurl = url }   
+                if (serverstatus.showExamMenu){
+                    this.examwindow.webContents.executeJavaScript(  examMenu.injectNextExamMenu  );
+                    this.examwindow.webContents.executeJavaScript(  examMenu.injectExamFunctions );
+                }      
             })
         }
 
@@ -471,6 +395,15 @@ class WindowHandler {
                     this.examwindow.loadURL(url);
                 }
             });
+
+            // Wait until the webContent is fully loaded
+            this.examwindow.webContents.on('did-finish-load', async () => {
+                if (serverstatus.showExamMenu){
+                    this.examwindow.webContents.executeJavaScript(  examMenu.injectNextExamMenu  );
+                    this.examwindow.webContents.executeJavaScript(  examMenu.injectExamFunctions );
+                }
+            })
+
 
             // if a new window should open triggered by target="_blank"
             this.examwindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -538,7 +471,13 @@ class WindowHandler {
             })
 
             // Wait until the webContent is fully loaded
-            this.examwindow.webContents.on('did-finish-load', async () => { })
+            this.examwindow.webContents.on('did-finish-load', async () => {
+                if (serverstatus.showExamMenu){
+                    this.examwindow.webContents.executeJavaScript(  examMenu.injectNextExamMenu  );
+                    this.examwindow.webContents.executeJavaScript(  examMenu.injectExamFunctions );
+                }
+            })
+
 
             // Wait until the complete DOM is computed
             this.examwindow.webContents.on('dom-ready', () => {
@@ -548,6 +487,8 @@ class WindowHandler {
                 this.examwindow.webContents.insertCSS('#page-footer { display: none !important; }');
                 this.examwindow.webContents.insertCSS('#theme_boost-drawers-courseindex { display: none !important; }');
             });
+
+
         }
 
 

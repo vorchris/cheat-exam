@@ -120,10 +120,9 @@
         "oldpdfwarningsingle":"The local version of the file may be outdated!",
         "gforms": "Google Forms",
         "accessDenied":"Access Denied!",
-        "accessDeniedtext":"Contact your organizations Administrator to grant Access to Next-Exam"
-    
+        "accessDeniedtext":"Contact your organizations Administrator to grant Access to Next-Exam",
+        "msoWarn": "You need to reconnect and select an MSOFile before reconnecting all students"
 
-        
     },
     "control": {
         "tokennotvalid": "token is not valid",
