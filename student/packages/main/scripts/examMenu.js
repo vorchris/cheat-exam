@@ -32,11 +32,37 @@ class ExamMenu {
                 <span id="NXTEclientname"></span>@
                 <span id="NXTEservername"></span>| 
                 <span id="NXTEconnectionstatus"></span>
+                <div id="NXTEexit" class="next-exam-button-default next-exam-button-danger"  style="display:none"  onclick="gracefullyexit()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="22" height="22">
+                        <path style="fill:currentColor;fill-opacity:1;stroke:none" d="M16 4A12 12 0 0 0 7.886719 7.179688L7.885 7.178A12 12 0 0 0 7.847656 7.214844 12 12 0 0 0 4 16 12 12 0 0 0 16 28 12 12 0 0 0 24.11328 24.820312L24.12 24.822A12 12 0 0 0 24.15234 24.785156 12 12 0 0 0 28 16 12 12 0 0 0 16 4M16 5A11 11 0 0 1 27 16 11 11 0 0 1 24.11523 23.408203L8.592 7.885A11 11 0 0 1 16 5M7.885 8.592L23.408 24.12A11 11 0 0 1 16 27 11 11 0 0 1 5 16 11 11 0 0 1 7.884766 8.591797" />
+                    </svg>
+                    entsperren 
+                 </div>
+
+
                 <div id="NXTEfiles"></div>
+    
             </div>
+
+
             <div id=NXTEpreview>
                 <iframe src="" id="NXTEpdfembed"></iframe>
             </div>
+
+
+
+            <div id="custom-swal-overlay" class="custom-swal-overlay" style="display:none;">
+                <div class="custom-swal">
+                <p class="custom-swal-text">Verlassen Sie den abgesicherten Modus nie ohne Freigabe einer Lehrperson.</p>
+                <div class="custom-swal-buttons">
+                    <button id="NXTEswalok" class="custom-swal-button NXTEok">OK</button>
+                    <button id="NXTEswalcancel" class="custom-swal-button NXTEcancel">Abbrechen</button>
+                </div>
+                </div>
+            </div>
+          
+
+
             `
 
         this.menuCSS = `
@@ -51,24 +77,46 @@ class ExamMenu {
                 border-radius: 5px;
                 box-shadow: 2px 2px 10px #000;
                 padding-right: 30px;
-
-
                 font-family: "Roboto",-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
                 color: #6d727c;
                 font-size: 14px;
-       
-
             }
-            .next-exam-button {
-                margin: 2px;
+            .next-exam-button-default {
+                display: inline-block;
+                font-weight: 400;
+                line-height: 1.5;
+                color: #212529;
+                text-align: center;
+                text-decoration: none;
+                vertical-align: middle;
+                cursor: pointer;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                user-select: none;
+                background-color: transparent;
+                border: 1px solid transparent;
+                padding: 0 4px 0 4px;
+                margin: 0px 2px 2px 0px;
+             
+                border-radius: .25rem;
+                transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+            }
+            .next-exam-button-danger {
+                color: #fff;
+                background-color: #dc3545;
+                border-color: #dc3545;
+            }
+            .next-exam-button-danger:hover {
+                color: #fff;
+                background-color: #bb2d3b;
+                border-color: #b02a37;
+            }
+            .next-exam-button-blue {
                 background-color: #0d6efd;
                 border: 1px solid #0d6efd;
                 color: white;
-                border-radius: .25rem;
-                cursor: pointer;
-                transition: background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
             }
-            .next-exam-button:hover {
+            .next-exam-button-blue:hover {
                 background-color: #0056b3;
                 border-color: #0056b3;
             }
@@ -116,9 +164,63 @@ class ExamMenu {
                 border-radius: 6px;
             }
             
+
+            .custom-swal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.4);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            }
+            
+            .custom-swal {
+                background-color: #fff;
+                padding: 20px;
+                border-radius: 8px;
+                width: 300px;
+                text-align: center;
+                box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            }
+            
+            .custom-swal-text {
+                margin-bottom: 20px;
+            }
+            
+            .custom-swal-buttons {
+                display: flex;
+                justify-content: space-between;
+            }
+            
+            .custom-swal-button {
+                margin: 2px;
+                min-width: 100px;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            
+            .NXTEok {
+                background-color: #dc3545;
+                border-color: #dc3545;
+                color: white;
+            }
+            
+            .NXTEcancel {
+                background-color: #aaa;
+                color: white;
+            }
+              
             `
         
-        this.injectNextExamMenu = `(function() {
+        this.injectNextExamMenu = `console.log('injecting exammenu...'); 
+
+            (function() {
             // Inject CSS
             const style = document.createElement('style');
             style.type = 'text/css';
@@ -161,7 +263,32 @@ class ExamMenu {
             return null;
         })();  `  
 
-        this.injectExamFunctions = `console.log('running examfunctions here') 
+        this.injectExamFunctions = `console.log('injecting examfunctions...') 
+
+            let NXTEunlocked = false;
+
+            function gracefullyexit(){
+
+                const swalOverlay = document.getElementById('custom-swal-overlay');
+                const okButton = document.getElementById('NXTEswalok');
+                const cancelButton = document.getElementById('NXTEswalcancel');
+             
+                // Show the dialog
+                swalOverlay.style.display = 'flex';
+
+                // Attach event listeners
+                okButton.addEventListener('click', function() {
+                    swalOverlay.style.display = 'none';
+                    document.getElementById("NXTEexit").style.display = "none"
+                    ipcRenderer.send('gracefullyexit');
+                    NXTEunlocked = true;
+                });
+
+                cancelButton.addEventListener('click', function() {
+                    swalOverlay.style.display = 'none';
+                });
+            }
+
             function getClientInfo(){
                 const response = ipcRenderer.sendSync('getinfo');
                 let serverList = response.serverlist;
@@ -177,11 +304,17 @@ class ExamMenu {
                     document.getElementById("NXTEconnectionstatus").innerHTML = "verbunden"
                     document.getElementById("NXTEconnectionstatus").classList.add('NXTEgreen');
                     document.getElementById("NXTEconnectionstatus").classList.remove('NXTEred');
+                    document.getElementById("NXTEexit").style.display = "none"
+                    NXTEunlocked = false;
                 }
-                else {
+                else {  //offline
                     document.getElementById("NXTEconnectionstatus").innerHTML = "Verbindung unterbrochen"
                     document.getElementById("NXTEconnectionstatus").classList.add('NXTEred');
                     document.getElementById("NXTEconnectionstatus").classList.remove('NXTEgreen');
+                    if (!NXTEunlocked){
+                        document.getElementById("NXTEexit").style.display = "block"
+                    }
+                    
                 }
             }
 
@@ -202,7 +335,8 @@ class ExamMenu {
                     NXTEfilelist.forEach((file) => {  // Jeden Eintrag im Array durchgehen und einen Button hinzufügen
                         if(!file.name.endsWith(".pdf") ) {return;}
                         const button = document.createElement('button'); // Neues Button-Element erstellen
-                        button.classList.add('next-exam-button');
+                        button.classList.add('next-exam-button-default');
+                        button.classList.add('next-exam-button-blue');
                         button.innerHTML = file.name;
                         button.addEventListener('click', () => {  loadPDF(file.name)  });
                         filesdiv.appendChild(button); // Button zum Div hinzufügen

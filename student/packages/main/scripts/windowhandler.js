@@ -2,7 +2,7 @@
 import { app, BrowserWindow, dialog, Menu, MenuItem, screen} from 'electron'
 import { join } from 'path'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
-
+import fs from 'fs' 
 import playSound from 'play-sound';
 import examMenu from './examMenu.js';
 const sound = playSound({});
@@ -184,12 +184,7 @@ class WindowHandler {
             },
         });
 
-        // we use this for now to activate/deactivate the upcoming examMenu for 3rd party apps
-        serverstatus.showExamMenu = true
-
-      
-   
-    
+     
         // Load correct url 
         if (examtype === "eduvidual"){    //external page
             if (serverstatus.moodleDomain === "eduvidual.at"){
@@ -261,13 +256,6 @@ class WindowHandler {
             this.examwindow.webContents.on('will-navigate', (event, url) => {   
                 event.preventDefault()
             })
-
-            this.examwindow.webContents.on('did-finish-load', async () => {
-                if (serverstatus.showExamMenu){  // currently showExamMenu is not set but it could be used to inject a menu into 3rd party apps
-                    this.examwindow.webContents.executeJavaScript(  this.injectNextExamMenu  );
-                    this.examwindow.webContents.executeJavaScript(  this.injectExamFunctions );
-                }
-            })
         }
 
 
@@ -296,11 +284,9 @@ class WindowHandler {
             });
 
 
-            this.examwindow.webContents.on('did-frame-finish-load', async (event, isMainFrame, frameProcessId, frameRoutingId) => { });
-
+        
             // Wait until the webContents is fully loaded
             this.examwindow.webContents.on('did-finish-load', async () => {
-
                 this.examwindow.webContents.mainFrame.frames.filter((frame) => {
                     let executeCode =  `
                             function lock(){
@@ -321,18 +307,12 @@ class WindowHandler {
                             `
                     if (frame && frame.name === 'WebApplicationFrame') {
                         frame.executeJavaScript(executeCode); 
-                        // if (serverstatus.showExamMenu){
-                        //     frame.executeJavaScript(  examMenu.injectNextExamMenu  );
-                        //     frame.executeJavaScript(  examMenu.injectExamFunctions );
-                        // }
+                      
                     }
                 })
 
-                // if (serverstatus.showExamMenu){
-                //     this.examwindow.webContents.executeJavaScript(  examMenu.injectNextExamMenu  );
-                //     this.examwindow.webContents.executeJavaScript(  examMenu.injectExamFunctions );
-                // }
-
+                this.examwindow.webContents.executeJavaScript(  examMenu.injectNextExamMenu  );  //we could use the exammenu to block exceltoolbar until it's secured (for some reason we can not inject css in excel while it still loads and hiding elements takes a few seconds)
+                this.examwindow.webContents.executeJavaScript(  examMenu.injectExamFunctions );
             });
 
 
@@ -344,11 +324,7 @@ class WindowHandler {
 
             this.examwindow.webContents.on('did-navigate', (event, url) => {  // after loading the exam excel worksheet for the first time we capture the url to lock-in students
                 console.log("target reached")
-                if (!this.examwindow.officeurl ) { this.examwindow.officeurl = url }   
-                if (serverstatus.showExamMenu){
-                    this.examwindow.webContents.executeJavaScript(  examMenu.injectNextExamMenu  );
-                    this.examwindow.webContents.executeJavaScript(  examMenu.injectExamFunctions );
-                }      
+                if (!this.examwindow.officeurl ) { this.examwindow.officeurl = url }       
             })
         }
 
@@ -398,10 +374,8 @@ class WindowHandler {
 
             // Wait until the webContent is fully loaded
             this.examwindow.webContents.on('did-finish-load', async () => {
-                if (serverstatus.showExamMenu){
-                    this.examwindow.webContents.executeJavaScript(  examMenu.injectNextExamMenu  );
-                    this.examwindow.webContents.executeJavaScript(  examMenu.injectExamFunctions );
-                }
+                this.examwindow.webContents.executeJavaScript(  examMenu.injectNextExamMenu  );
+                this.examwindow.webContents.executeJavaScript(  examMenu.injectExamFunctions );
             })
 
 
@@ -472,10 +446,8 @@ class WindowHandler {
 
             // Wait until the webContent is fully loaded
             this.examwindow.webContents.on('did-finish-load', async () => {
-                if (serverstatus.showExamMenu){
-                    this.examwindow.webContents.executeJavaScript(  examMenu.injectNextExamMenu  );
-                    this.examwindow.webContents.executeJavaScript(  examMenu.injectExamFunctions );
-                }
+                this.examwindow.webContents.executeJavaScript(  examMenu.injectNextExamMenu  );
+                this.examwindow.webContents.executeJavaScript(  examMenu.injectExamFunctions );
             })
 
 
