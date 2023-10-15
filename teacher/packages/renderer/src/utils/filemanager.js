@@ -203,12 +203,12 @@ async function getLatestFromStudent(student){
     this.printrequest = true // this is a new one - we allow it and block others for the time beeing
     console.log("print request accepted")
     
-    //this informs the student that an exam upload is requested. 
+    // this informs the student that an exam upload is requested. 
     // this needs 4sek minimum for the student to react because of the current update interval  
     // so if the teacher is faster than that it could happen that no pdf file is found
     this.getFiles(student.token, false, true)
     console.log("requesting current file from student") 
-    await this.sleep(6000);  // give it some time
+    await this.sleep(4000);  // give it some time
 
 
 
