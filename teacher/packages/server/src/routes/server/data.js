@@ -175,6 +175,10 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
 
     // get latest directory of student 
     let directoryPath =  path.join( config.workdirectory, mcServer.serverinfo.servername, studentname);
+
+    if (!fs.existsSync(directoryPath)){ fs.mkdirSync(directoryPath, { recursive: true });  }
+
+
     fs.readdir(directoryPath, { withFileTypes: true }, async (err, files) => {
         if (err) throw err;
         const directories = files.filter(file => file.isDirectory());  // Nur Ordner filtern
@@ -210,7 +214,10 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
             else {
                 return res.json({warning: warning, pdfBuffer:false, latestfolderPath:latestfolderPath});
             }
-        } else { console.log('Keine Ordner gefunden.'); res.status(404).send('Keine Ordner gefunden.'); }
+        } else {
+            console.log('Keine Ordner gefunden.'); 
+            return res.json({warning: warning, pdfBuffer:false, latestfolderPath:latestfolderPath});
+        }
     });
     
 

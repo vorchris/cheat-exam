@@ -103,7 +103,7 @@ function setAbgabeInterval(){
 
 
 // get finished exams (ABGABE) from students
-function getFiles(who, feedfack=false){
+function getFiles(who, feedfack=false, quiet=false){
     this.checkDiscspace()
     if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); console.log("no clients connected"); return; }
 
@@ -113,7 +113,12 @@ function getFiles(who, feedfack=false){
     }
     else { // fetch files from clients
         axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/fetch/${this.servername}/${this.servertoken}/${who}`)  //who is either all or token
-        .then( async (response) => { if (feedfack){ this.visualfeedback(response.data.message, 2000) }else { this.status(response.data.message); } })  // we do not want intrusive feedback on automated tasks })
+        .then( async (response) => { 
+            if (feedfack){ this.visualfeedback(response.data.message, 2000) } // we do not want intrusive feedback on automated tasks })
+            else { 
+                if (quiet) {return}  //completely quiet
+                this.status(response.data.message); 
+            } })  
         .catch( err => {console.log(err)});
     }
 }
