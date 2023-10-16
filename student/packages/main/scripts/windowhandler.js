@@ -260,7 +260,10 @@ class WindowHandler {
 
 
 
-        // Microsoft Excel
+
+        /***************************
+         *  Microsoft Excel/Word
+         ***************************/
         if ( serverstatus.examtype === "microsoft365"){  // do not under any circumstances allow navigation away from the current exam url
             this.examwindow.officeurl = false
             
@@ -283,25 +286,54 @@ class WindowHandler {
                return { action: 'deny' }; // Prevent the new window from opening
             });
 
-
-        
             // Wait until the webContents is fully loaded
             this.examwindow.webContents.on('did-finish-load', async () => {
                 this.examwindow.webContents.mainFrame.frames.filter((frame) => {
                     let executeCode =  `
                             function lock(){
-                                console.log("LOCKDOWN")
-                                const hideus = ['WACDialogOuterContainer','WACDialogInnerContainer','WACDialogPanel','InsertAppsForOffice','FileMenuLauncherContainer','Help-wrapper','Review-wrapper','Header','FarPeripheralControlsContainer','BusinessBar','']
+                                const hideus = ['InsertAddInFlyout','Designer','Editor','FarPane','Help','WACDialogOuterContainer','WACDialogInnerContainer','WACDialogPanel','InsertAppsForOffice','FileMenuLauncherContainer','Help-wrapper','Review-wrapper','Header','FarPeripheralControlsContainer','BusinessBar','']
                                 for (entry of hideus) {
                                     let element = document.getElementById(entry)
                                     if (element) { element.style.display = "none" }
                                 }
+
                                 // this button is redrawn on resize (doesn't happen in exam mode but still there must be a cleaner way - inserting css before it appears is not working)
                                 let buttonAppsOverflow = document.getElementsByName('Add-Ins')[0];
                                 if (buttonAppsOverflow){ buttonAppsOverflow.style.display = "none" }
-                                if (buttonAppsOverflow && buttonAppsOverflow.style.display == "none" ) {   clearInterval(intervalId);   } // we need to wait for this one to show
+
+                                
+                                let elements = document.querySelectorAll('[aria-label="Suchen"]');
+                                elements.forEach(element => { element.style.display = 'none';});
+
+                                elements = document.querySelectorAll('[aria-label="Übersetzen"]');
+                                elements.forEach(element => { element.style.display = 'none';});
+
+                                elements = document.querySelectorAll('[aria-label="Copilot"]');
+                                elements.forEach(element => { element.style.display = 'none'; });
+
+                                elements = document.querySelectorAll('[aria-label="Add-Ins"]');
+                                elements.forEach(element => { element.style.display = 'none'; });
+
+
+                                elements = document.querySelectorAll('[data-unique-id="ContextMenu-SmartLookupContextMenu"]');
+                                elements.forEach(element => {element.style.display = 'none';});
+
+                                elements = document.querySelectorAll('[data-unique-id="ContextMenu-SmartLookupSynonyms"]');
+                                elements.forEach(element => {element.style.display = 'none'; });
+
+                                elements = document.querySelectorAll('[data-unique-id="Ribbon-ReferencesSmartLookUp"]');
+                                elements.forEach(element => {element.style.display = 'none';});
+
+                                elements = document.querySelectorAll('[data-unique-id="Dictation"]');
+                                elements.forEach(element => { element.style.display = 'none'; });
+                                
+                                elements = document.querySelectorAll('[data-unique-id="GetAddins"]');
+                                elements.forEach(element => { element.style.display = 'none'; });
+
+                               
+                                // context menu buttons are redrawn all the time - thats why we keep up the loop until we find a better option
+                                //if (buttonAppsOverflow && buttonAppsOverflow.style.display == "none" ) {   clearInterval(intervalId);   } // we need to wait for this one to show
                             }
-                            
                             const intervalId = setInterval(lock, 400);
                             lock()  //for some reason excel delays that call.. doesnt happen on page finish load
                             `
@@ -310,17 +342,12 @@ class WindowHandler {
                       
                     }
                 })
-
                 this.examwindow.webContents.executeJavaScript(  examMenu.injectNextExamMenu  );  //we could use the exammenu to block exceltoolbar until it's secured (for some reason we can not inject css in excel while it still loads and hiding elements takes a few seconds)
                 this.examwindow.webContents.executeJavaScript(  examMenu.injectExamFunctions );
             });
 
-
-
-
             // Wait until the complete DOM is computed
             this.examwindow.webContents.on('dom-ready', () => {});
-
 
             this.examwindow.webContents.on('did-navigate', (event, url) => {  // after loading the exam excel worksheet for the first time we capture the url to lock-in students
                 console.log("target reached")
@@ -332,7 +359,10 @@ class WindowHandler {
 
 
 
-        // Google Forms
+        
+        /***************************
+         * Google Forms
+         ***************************/
         if (serverstatus.examtype === "gforms"){
             console.log("gforms mode")
             this.examwindow.webContents.on('did-navigate', (event, url) => {  //create a new div called "nextexamwarning" and "embedbackground" - this is shown onBlur()
@@ -391,24 +421,21 @@ class WindowHandler {
         }
 
 
-
-        // EDUVIDUAL / Moodle
+        /***************************
+         * EDUVIDUAL / Moodle
+         ***************************/
         if (serverstatus.examtype === "eduvidual"){
-         
             this.examwindow.webContents.on('did-navigate', (event, url) => {  //create new div elements called "nextexamwarning" and "embedbackground" and "embed"
                 this.examwindow.webContents.executeJavaScript(` 
                     const warning = document.createElement('div')
                     warning.setAttribute('id', 'nextexamwaring')
                     warning.setAttribute('style', 'display: none');
-
                     const background = document.createElement('div');
                     background.setAttribute('id', 'embedbackground')
                     background.setAttribute('style', 'display: none');
-
                     const embed = document.createElement('embed');` , true)
                     .catch(err => console.log(err))
             })
-
             this.examwindow.webContents.on('will-navigate', (event, url) => {
                 //we block everything except pages that contain the following keyword-combinations
                 if (!url.includes(serverstatus.moodleTestId)){
@@ -429,7 +456,6 @@ class WindowHandler {
                     }
                 }
                 else {console.log("entered valid test environment")  }
-
                 // if a resource (pdf) is openend create an embed element and embed the pdf
                 if (url.includes('resource/view')&& !url.includes('forceview')){  // embed pdfs rather than open a new window/tab
                     event.preventDefault()
@@ -443,14 +469,11 @@ class WindowHandler {
                         .catch(err => console.log(err))
                 }
             })
-
             // Wait until the webContent is fully loaded
             this.examwindow.webContents.on('did-finish-load', async () => {
                 this.examwindow.webContents.executeJavaScript(  examMenu.injectNextExamMenu  );
                 this.examwindow.webContents.executeJavaScript(  examMenu.injectExamFunctions );
             })
-
-
             // Wait until the complete DOM is computed
             this.examwindow.webContents.on('dom-ready', () => {
                 this.examwindow.webContents.insertCSS('.branding { display: none !important; }');
@@ -459,15 +482,17 @@ class WindowHandler {
                 this.examwindow.webContents.insertCSS('#page-footer { display: none !important; }');
                 this.examwindow.webContents.insertCSS('#theme_boost-drawers-courseindex { display: none !important; }');
             });
-
-
         }
 
 
 
 
-        if (this.config.showdevtools) { this.examwindow.webContents.openDevTools()  }
 
+
+
+
+
+        if (this.config.showdevtools) { this.examwindow.webContents.openDevTools()  }
         this.examwindow.once('ready-to-show', async () => {
             this.examwindow.removeMenu() 
             if (!this.config.development) { 

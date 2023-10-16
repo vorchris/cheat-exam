@@ -29,6 +29,8 @@ class ExamMenu {
 
         this.menuHTML = `
             <div id="next-exam-menu">
+                <span id="NXTEHeader">Next-Exam</span> | 
+
                 <span id="NXTEclientname"></span>@
                 <span id="NXTEservername"></span>| 
                 <span id="NXTEconnectionstatus"></span>
@@ -38,22 +40,24 @@ class ExamMenu {
                     </svg>
                     entsperren 
                  </div>
-
-
-                <div id="NXTEfiles"></div>
-    
+                 <br>
+                 <div id="NXTEtools" style="display: inline-block;">
+                    <button id="NXTEprint" class="next-exam-button-default next-exam-button-black" onclick="nxtePrint()">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" height="22" width="22">
+                            <path style="fill:white;fill-opacity:1;"  d="m7 4v8h-3v12h6v4h12v-4h6v-12h-3v-8zm1 1h16v7h-16zm2 2v1h12v-1zm0 3v1h12v-1zm-5 3h22v10h-3v-4h-16v4h-3zm17 2v1h4v-1zm-11 9h10v3h-10z" class="ColorScheme-Text" />
+                        </svg>
+                    </button>
+                </div>
+                <div id="NXTEfiles" style="display: inline-block;"></div>
             </div>
-
 
             <div id=NXTEpreview>
                 <iframe src="" id="NXTEpdfembed"></iframe>
             </div>
 
-
-
             <div id="custom-swal-overlay" class="custom-swal-overlay" style="display:none;">
                 <div class="custom-swal">
-                <p class="custom-swal-text">Verlassen Sie den abgesicherten Modus nie ohne Freigabe einer Lehrperson.</p>
+                <p class="custom-swal-text" id="swal-text">Verlassen Sie den abgesicherten Modus nie ohne Freigabe einer Lehrperson.</p>
                 <div class="custom-swal-buttons">
                     <button id="NXTEswalok" class="custom-swal-button NXTEok">OK</button>
                     <button id="NXTEswalcancel" class="custom-swal-button NXTEcancel">Abbrechen</button>
@@ -66,7 +70,11 @@ class ExamMenu {
             `
 
         this.menuCSS = `
+            #NXTEheader {
+
+            }
             #next-exam-menu {
+                min-width:300px;
                 position: fixed;
                 z-index: 99999;
                 left: 10px;
@@ -82,6 +90,7 @@ class ExamMenu {
                 font-size: 14px;
             }
             .next-exam-button-default {
+                height: 30px;
                 display: inline-block;
                 font-weight: 400;
                 line-height: 1.5;
@@ -96,7 +105,7 @@ class ExamMenu {
                 background-color: transparent;
                 border: 1px solid transparent;
                 padding: 0 4px 0 4px;
-                margin: 0px 2px 2px 0px;
+                margin: 6px 2px 2px 0px;
              
                 border-radius: .25rem;
                 transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
@@ -120,6 +129,17 @@ class ExamMenu {
                 background-color: #0056b3;
                 border-color: #0056b3;
             }
+
+            .next-exam-button-black {
+                background-color: #151616;
+                border: 1px solid #151616;
+                color: white;
+            }
+            .next-exam-button-black:hover {
+                background-color: #1c1f23;
+                border-color: #1c1f23;
+            }
+
             #NXTEservername {
                 color: white;
                 margin: 0 10px 0 10px;
@@ -294,6 +314,11 @@ class ExamMenu {
                 let serverList = response.serverlist;
                 let clientInfo = response.clientinfo;
 
+                
+                if (clientInfo.examtype !== "microsoft365") {  //we cant print eduvidual or googleforms
+                    document.getElementById("NXTEprint").style.display = "none"
+                }
+
                 let clientspan = document.getElementById("NXTEclientname")
                 if (clientspan) { clientspan.innerHTML = clientInfo.name }
 
@@ -368,7 +393,33 @@ class ExamMenu {
                 });
             }
 
+            function nxtePrint(){
 
+                const swalOverlay = document.getElementById('custom-swal-overlay');
+                const okButton = document.getElementById('NXTEswalok');
+                const cancelButton = document.getElementById('NXTEswalcancel');
+             
+                document.getElementById("swal-text").innerHTML = "Druckanfrage senden?"
+
+                // Show the dialog
+                swalOverlay.style.display = 'flex';
+
+                // Attach event listeners
+                okButton.addEventListener('click', function() {
+                    swalOverlay.style.display = 'none';
+                    document.getElementById("NXTEexit").style.display = "none"
+                   
+                    ipcRenderer.send('sendPrintRequest') 
+                 
+                });
+
+                cancelButton.addEventListener('click', function() {
+                    swalOverlay.style.display = 'none';
+                });
+
+
+               
+            }
 
             setInterval(() => {
                 getClientInfo();

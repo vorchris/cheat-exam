@@ -75,7 +75,7 @@ async function onedriveUpload(file){
  */
 async function onedriveUploadSingle(student,file){
     let studenttoken = student.token
-    console.log(file)
+    //console.log(file)
     let fileName = ""
     if (file.name.endsWith('.docx')){
         fileName =  `${student.clientname}.docx`
