@@ -124,7 +124,7 @@
             <editor-content :editor="editor" class='p-0' id="editorcontent" style="background-color: #fff; border-radius:0;" />
         </div>
         <div id="statusbar">
-             <span> {{ $t("editor.chars") }}: {{charcount}}</span> | <span> {{ $t("editor.words") }}: {{wordcount}}</span> | <span> {{ $t("editor.selected") }}: {{selectedWordCount}}/{{selectedCharCount}}</span> 
+             <span> {{ $t("editor.chars") }}: {{charcount}}</span> | <span> {{ $t("editor.words") }}: {{wordcount}}</span> | <span id="editselected"> {{ $t("editor.selected") }}: {{selectedWordCount}}/{{selectedCharCount}}</span> 
              <img @click="zoomin()" src="/src/assets/img/svg/zoom-in.svg" class="zoombutton">  
              <img @click="zoomout()" src="/src/assets/img/svg/zoom-out.svg" class="zoombutton">
         </div>
@@ -441,8 +441,16 @@ export default {
             case 2:       this.proseMirrorMargin = '10px';   break;
             default:      this.proseMirrorMargin = '50px';
         }
-        if (this.cmargin.side === "right"){ this.setCSSVariable('--js-margin', `0 ${this.proseMirrorMargin} 0 0`);    }
-        else { this.setCSSVariable('--js-margin', `0 0 0 ${this.proseMirrorMargin}`);    }
+        if (this.cmargin.side === "right"){ 
+            this.setCSSVariable('--js-margin', `0 ${this.proseMirrorMargin} 0 0`);    
+            this.setCSSVariable('--js-borderright', `1px solid #ccc`);
+            this.setCSSVariable('--js-borderleft', `0px solid #ccc`);
+        }
+        else { 
+            this.setCSSVariable('--js-margin', `0 0 0 ${this.proseMirrorMargin}`); 
+            this.setCSSVariable('--js-borderright', `0px solid #ccc`);
+            this.setCSSVariable('--js-borderleft', `1px solid #ccc`); 
+        }
 
         this.editor = new Editor({
             extensions: [
@@ -529,7 +537,7 @@ export default {
 
 @media print {  //this controls how the editor view is printed (to pdf)
     
-    #editortoolbar, #editorheader {
+    #editortoolbar, #editorheader, #editselected{
         display: none !important;
     }
 
@@ -537,7 +545,7 @@ export default {
         position: relative !important;
         box-shadow: 0px 0px 0px transparent !important;
         background-color: white !important;
-        border-top: 1px solid black !important;
+        border-top: 1px solid #666 !important;
     }
     #editorcontent div {
         line-height: 200%;
@@ -577,6 +585,9 @@ export default {
         outline: 0 !important;
         overflow: hidden !important;
         margin: var(--js-margin);
+        border-right: var(--js-borderright);
+        border-left: var(--js-borderleft);
+        margin-bottom:4px;
     }
 
     ::-webkit-scrollbar {
