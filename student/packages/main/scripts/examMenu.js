@@ -59,8 +59,8 @@ class ExamMenu {
                 <div class="custom-swal">
                 <p class="custom-swal-text" id="swal-text">Verlassen Sie den abgesicherten Modus nie ohne Freigabe einer Lehrperson.</p>
                 <div class="custom-swal-buttons">
-                    <button id="NXTEswalok" class="custom-swal-button NXTEok">OK</button>
-                    <button id="NXTEswalcancel" class="custom-swal-button NXTEcancel">Abbrechen</button>
+                    <button id="NXTEswalok" class="next-exam-button-default next-exam-button-danger">OK</button>
+                    <button id="NXTEswalcancel" class="next-exam-button-default next-exam-button-black">Abbrechen</button>
                 </div>
                 </div>
             </div>
@@ -205,6 +205,9 @@ class ExamMenu {
                 width: 300px;
                 text-align: center;
                 box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+                font-family: "Roboto",-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+                color: #6d727c;
+                font-size: 14px;
             }
             
             .custom-swal-text {
@@ -215,25 +218,8 @@ class ExamMenu {
                 display: flex;
                 justify-content: space-between;
             }
-            
-            .custom-swal-button {
-                margin: 2px;
-                min-width: 100px;
-                padding: 10px 20px;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-            }
-            
-            .NXTEok {
-                background-color: #dc3545;
-                border-color: #dc3545;
-                color: white;
-            }
-            
-            .NXTEcancel {
-                background-color: #aaa;
-                color: white;
+            .custom-swal-buttons .next-exam-button-default{
+                min-width:100px;
             }
               
             `

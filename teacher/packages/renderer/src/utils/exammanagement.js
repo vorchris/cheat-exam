@@ -109,7 +109,11 @@ function getFiles(who, feedfack=false, quiet=false){
 
     if (this.serverstatus.examtype === "microsoft365"){ //fetch files from onedrive
         this.downloadFilesFromOneDrive()
-        if (feedfack){ this.visualfeedback(this.$t("dashboard.examrequest"), 2000) }else { this.status(this.$t("dashboard.examrequest")); }
+        if (feedfack){ this.visualfeedback(this.$t("dashboard.examrequest"), 2000) }
+        else { 
+            if (quiet) {return}  //completely quiet
+            this.status(this.$t("dashboard.examrequest")); 
+        }
     }
     else { // fetch files from clients
         axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/fetch/${this.servername}/${this.servertoken}/${who}`)  //who is either all or token
