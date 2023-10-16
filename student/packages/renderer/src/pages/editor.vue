@@ -106,7 +106,7 @@
     <!-- angabe/pdf preview end -->
 
     <!-- focus warning start -->
-   <div v-if="!focus" id="" class="infodiv p-4 d-block focuswarning" >
+   <div v-if="!focus" id="focuswarning" class="infodiv p-4 d-block focuswarning" >
         <div class="mb-3 row">
             <div class="mb-3 "> {{$t('editor.leftkiosk')}} <br> {{$t('editor.tellsomeone')}} </div>
             <img src="/src/assets/img/svg/eye-slash-fill.svg" class=" me-2" width="32" height="32" >
@@ -537,7 +537,7 @@ export default {
 
 @media print {  //this controls how the editor view is printed (to pdf)
     
-    #editortoolbar, #editorheader, #editselected{
+    #editortoolbar, #editorheader, #editselected, #focuswarning{
         display: none !important;
     }
 
