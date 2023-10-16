@@ -184,7 +184,7 @@ class WindowHandler {
             },
         });
 
-        if (process.platform ==='darwin') {this.examwindow.webPreferences.spellcheck = false;}
+        
 
         // Load correct url 
         if (examtype === "eduvidual"){    //external page
@@ -231,6 +231,9 @@ class WindowHandler {
         /**
          * HANDLE SPELLCHECK 
          */ 
+        
+        if (process.platform ==='darwin') {this.examwindow.webPreferences.spellcheck = false;}
+
         if (serverstatus.spellcheck){  
             console.log(serverstatus.spellchecklang)
             this.examwindow.webContents.session.setSpellCheckerDictionaryDownloadURL(`https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/static/dicts/`)
