@@ -231,7 +231,7 @@ class WindowHandler {
         /**
          * HANDLE SPELLCHECK 
          */ 
-        
+
         if (process.platform ==='darwin') {this.examwindow.webPreferences.spellcheck = false;}
 
         if (serverstatus.spellcheck){  
