@@ -184,7 +184,8 @@ class WindowHandler {
             },
         });
 
-     
+        if (process.platform ==='darwin') {this.examwindow.webPreferences.spellcheck = false;}
+
         // Load correct url 
         if (examtype === "eduvidual"){    //external page
             if (serverstatus.moodleDomain === "eduvidual.at"){
