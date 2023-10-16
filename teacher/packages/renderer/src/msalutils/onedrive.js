@@ -15,7 +15,7 @@ async function uploadselect() {
             name:"files",
             id: "swalFile",
             class:"form-control",
-            accept: ".xlsx",
+            accept: ".xlsx, .docx",
         },
         html: `<div>
             <input class="form-check-input" type="checkbox" id="replace" name="replace">
@@ -34,7 +34,7 @@ async function uploadselect() {
 
         //check for allowed file extension again
         const fileExtension = input.value.name.split('.').pop().toLowerCase();
-        if (fileExtension !== 'xlsx') {
+        if (fileExtension !== 'xlsx' && fileExtension !== 'docx') {
             this.$swal.fire({
             title: this.$t("dashboard.invalid_file"),
             text: this.$t("dashboard.invalid_file_text"),
@@ -75,7 +75,23 @@ async function onedriveUpload(file){
  */
 async function onedriveUploadSingle(student,file){
     let studenttoken = student.token
-    let fileName =  `${student.clientname}.xlsx`
+    console.log(file)
+    let fileName = ""
+    if (file.name.endsWith('.docx')){
+        fileName =  `${student.clientname}.docx`
+    }
+    else if (file.name.endsWith('.xlsx')){
+        fileName =  `${student.clientname}.xlsx`
+    }
+    else {
+        this.$swal.fire({
+            title: this.$t("dashboard.invalid_file"),
+            text: this.$t("dashboard.invalid_file_text"),
+            icon: 'error',
+            });
+        return;
+    }
+    
     await this.fileExistsInAppFolder(fileName).then(async fileExists => {
         let sharingLink = false
 
@@ -120,7 +136,7 @@ async function onedriveUploadSingle(student,file){
 /**
  * UPLOADS the current 'msofficeFile' to OneDrive 
  * Returns a SHARE LINK
- * @param {*} targetfilename the filename is the username .xlsx
+ * @param {*} targetfilename the filename is the username .xlsx or .docx
  */
 async function uploadAndShareFile(targetfilename, file) {
     this.config = ipcRenderer.sendSync('getconfig')  // make sure we have an up2date config
@@ -176,7 +192,7 @@ async function createSharingLink(fileId){
 
 /**
  * checks if a given filename exists on onedrive
- * @param {*} fileName usually the username.xlsx
+ * @param {*} fileName usually the username.xlsx  or username.docx
  */
 async function fileExistsInAppFolder(fileName) {
     this.config = ipcRenderer.sendSync('getconfig')
@@ -268,7 +284,7 @@ async function downloadFilesFromOneDrive() {
         // save file for every student (this is done in the backend therefore we trigger an IPC)
         for (let student of this.studentlist) {
             for (let file of files) { // check if there is a file that equals the student name
-                if (file.name === `${student.clientname}.xlsx`){  
+                if (file.name === `${student.clientname}.xlsx` || file.name === `${student.clientname}.docx` ){  
                     ipcRenderer.send('storeOnedriveFiles', {studentName: student.clientname, fileName: file.name, fileID: file.id, accessToken: this.config.accessToken, servername: this.servername })
                 }
             }

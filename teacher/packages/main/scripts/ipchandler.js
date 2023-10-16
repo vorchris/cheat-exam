@@ -115,7 +115,8 @@ class IpcHandler {
         /**
          * Downloads the files for a specific student to his workdirectory (abgabe)
          */
-        ipcMain.on('storeOnedriveFiles', async (event, args) => {   
+        ipcMain.on('storeOnedriveFiles', async (event, args) => { 
+            console.log("downloading onedrive files...")  
             const studentName = args.studentName
             const accessToken = args.accessToken
             const fileName = args.fileName
@@ -146,9 +147,12 @@ class IpcHandler {
                 const pdfFileBuffer = await pdfFileResponse.arrayBuffer();
                 const pdfFilePath = join(studentarchivedir, `${fileName}.pdf`);
                 fs.writeFileSync(pdfFilePath, Buffer.from(pdfFileBuffer));
+                console.log(`Downloaded ${fileName} and ${fileName}.pdf`);
             }
-
-            console.log(`Downloaded ${fileName} and ${fileName}.pdf`);
+            else {
+                console.log("there was a problem downloading the files as pdf")
+            }
+            
         })
 
 

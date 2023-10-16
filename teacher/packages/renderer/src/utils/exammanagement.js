@@ -107,7 +107,7 @@ function getFiles(who, feedfack=false, quiet=false){
     this.checkDiscspace()
     if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); console.log("no clients connected"); return; }
 
-    if (this.examtype === "microsoft365"){ //fetch files from onedrive
+    if (this.serverstatus.examtype === "microsoft365"){ //fetch files from onedrive
         this.downloadFilesFromOneDrive()
         if (feedfack){ this.visualfeedback(this.$t("dashboard.examrequest"), 2000) }else { this.status(this.$t("dashboard.examrequest")); }
     }
