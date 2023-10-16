@@ -232,7 +232,7 @@ class WindowHandler {
          * HANDLE SPELLCHECK 
          */ 
 
-        if (process.platform ==='darwin') {this.examwindow.webPreferences.spellcheck = false;}
+        if (process.platform ==='darwin') {this.examwindow.webContents.executeJavaScript("document.body.setAttribute('spellcheck', 'false')");}
 
         if (serverstatus.spellcheck){  
             console.log(serverstatus.spellchecklang)
