@@ -1,11 +1,11 @@
-
-import { app, BrowserWindow, dialog, Menu, MenuItem, screen} from 'electron'
+import { app, BrowserWindow, dialog, screen} from 'electron'
 import { join } from 'path'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 import fs from 'fs' 
 import playSound from 'play-sound';
 import examMenu from './examMenu.js';
 const sound = playSound({});
+import Nodehun from 'nodehun'
 
   ////////////////////////////////////////////////////////////
  // Window handling (ipcRenderer Process - Frontend) START
@@ -20,6 +20,7 @@ class WindowHandler {
       this.examwindow = null
       this.config = null
       this.multicastClient = null
+      this.nodehun = null  //needed for manual spellchecker
     }
 
     init (mc, config) {
@@ -180,7 +181,7 @@ class WindowHandler {
             icon: join(__dirname, '../../public/icons/icon.png'),
             webPreferences: {
                 preload: join(__dirname, '../preload/preload.cjs'),
-                spellcheck: true,  
+                spellcheck: false,  
             },
         });
 
@@ -228,27 +229,56 @@ class WindowHandler {
             }
         }
 
+
+
+
+
         /**
          * HANDLE SPELLCHECK 
          */ 
 
-        if (process.platform ==='darwin') {this.examwindow.webContents.executeJavaScript("document.body.setAttribute('spellcheck', 'false')");}
-
+      
         if (serverstatus.spellcheck){  
             console.log(serverstatus.spellchecklang)
-            this.examwindow.webContents.session.setSpellCheckerDictionaryDownloadURL(`https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/static/dicts/`)
-            this.examwindow.webContents.session.setSpellCheckerLanguages([serverstatus.spellchecklang])
-            if (serverstatus.suggestions){
-                this.examwindow.webContents.on('context-menu', (event, params) => {
-                    const menu = new Menu()
-                    for (const suggestion of params.dictionarySuggestions) { // Add each spelling suggestion
-                        menu.append(new MenuItem({ label: suggestion, click: () => this.examwindow.webContents.replaceMisspelling(suggestion) }))
-                    }
-                    menu.popup()
-                })
+
+            const dictionaryPath = join( __dirname,'../../public/dictionaries');
+            
+            let language = serverstatus.spellchecklang
+            let affix = null;
+            let dictionary = null;
+
+            if (language === "en-GB") {
+                affix       = fs.readFileSync(join(dictionaryPath, 'en_US.aff'))
+                dictionary  = fs.readFileSync(join(dictionaryPath, 'en_US.dic'))
             }
+            else if (language === "de"){
+                affix       = fs.readFileSync(join(dictionaryPath, 'de_DE_frami.aff'))
+                dictionary  = fs.readFileSync(join(dictionaryPath, 'de_DE_frami.dic'))
+            }
+            else if (language === "it"){
+                affix       = fs.readFileSync(join(dictionaryPath, 'it_IT.aff'))
+                dictionary  = fs.readFileSync(join(dictionaryPath, 'it_IT.dic'))
+            }
+            else if (language === "fr"){
+                affix       = fs.readFileSync(join(dictionaryPath, 'fr.aff'))
+                dictionary  = fs.readFileSync(join(dictionaryPath, 'fr.dic'))
+            }
+            else if (language === "es"){
+                affix       = fs.readFileSync(join(dictionaryPath, 'es_ES.aff'))
+                dictionary  = fs.readFileSync(join(dictionaryPath, 'es_ES.dic'))
+            }
+
+            this.nodehun  = new Nodehun(affix, dictionary)
+
         }
-        else { this.examwindow.webContents.session.setSpellCheckerLanguages([]) }
+        
+
+
+
+
+
+
+
 
 
         /**

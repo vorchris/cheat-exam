@@ -38,7 +38,11 @@
     </div>
      <!-- HEADER END -->
 
+     <button @click="checkAllWords();">Check Spelling of all Words</button>
+<button @click="checkSelectedWords();">Check Spelling of selected Words</button>
+<div id="suggestion-menu" style="display:none; position:fixed;"></div>
 
+ 
 
     <div class="w-100 p-2 m-0 text-white shadow-sm text-center" style=" top: 66px; z-index: 10001 !important; background-color: white;">
         
@@ -170,6 +174,37 @@ import { lowlight } from "lowlight/lib/common.js";
 import { Color } from '@tiptap/extension-color'
 import TextStyle from '@tiptap/extension-text-style'
 import $ from 'jquery'
+import { Node, mergeAttributes } from '@tiptap/core'
+
+const CustomSpan = Node.create({
+    name: 'customSpan',
+    addOptions: {        HTMLAttributes: {},    },
+    inline: true,
+    group: 'inline',
+    atom: false,
+    content: 'inline*',
+    addAttributes() {
+        return {
+        id: {
+            default: null,
+            parseHTML: element => ( element.getAttribute('id')),
+            renderHTML: attributes => ({  id: attributes.id }),
+        },
+        class: {
+            default: null,
+            parseHTML: element => ( element.getAttribute('class')),
+            renderHTML: attributes => ({ class: attributes.class }),
+        },
+        }
+    },
+    parseHTML() { return [ { tag: 'span', }, ] },
+    renderHTML({ HTMLAttributes }) {
+        return ['span', mergeAttributes(HTMLAttributes), 0]
+    },
+})
+
+
+
 
 export default {
     components: {
@@ -208,13 +243,216 @@ export default {
             proseMirrorMargin: 90,
             cmargin: this.$route.params.cmargin,
             selectedWordCount:0,
-            selectedCharCount:0
+            selectedCharCount:0,
+            currentRange:0,
+            word:"",
+            editorcontentcontainer:null
         }
     },
 
 
 
+
+
+
+
     methods: {
+
+        async checkAllWords(){
+            const text = this.editor.getText()
+            const response = ipcRenderer.sendSync('checktext', text);
+            const misspelledWords = response.misspelledWords;
+            if (!misspelledWords.length) return;
+            this.highlightMisspelledWords(misspelledWords)
+        },
+        async checkSelectedWords() {
+            const selection = window.getSelection();
+            const range = selection.getRangeAt(0);
+            const fragment = range.cloneContents();
+            const div = document.createElement('div');
+            div.appendChild(fragment);
+            const selectedText = div.textContent || div.innerText;
+            // Send to backend if text is selected
+            if (selectedText) {
+                let response = ipcRenderer.sendSync('checktext', selectedText);
+                const misspelledWords = response.misspelledWords;
+                if (!misspelledWords.length) return;
+                this.highlightMisspelledWords(misspelledWords)
+            }
+        },
+        async highlightMisspelledWords(misspelledWords) {
+            // Remove all previous highlights
+            const highlights = document.querySelectorAll('.NXTEhighlight');
+            highlights.forEach(el => { el.outerHTML = el.innerHTML; });
+            
+            // get current editor content
+            let html = this.editor.getHTML()  
+            misspelledWords.forEach(word => {
+                const regex = new RegExp(`(?<=^|\\W)${word}(?=$|\\W)`, 'g');
+                let insideTag = false;
+                html = html.replace(regex, (match, offset, fullString) => {
+                    const prefix = fullString.lastIndexOf('<', offset);
+                    const suffix = fullString.indexOf('>', offset);
+                    // Check if we're inside an HTML tag (some real words are also html tags - we need to capture that edge case)
+                    for(let i = offset; i >= 0; i--){
+                        if (fullString[i] === '<') { insideTag = true;  break;  }
+                        if (fullString[i] === '>') { insideTag = false; break;  }
+                    }
+                    // If inside a tag this is not a word we need to correct or highlight, skip this match
+                    if (insideTag) return match;
+                    //  If within a tag with an id that starts with NXTEhighlight... skip
+                    if (prefix > -1 && suffix > -1 && prefix < suffix) {
+                        const tagContent = fullString.substring(prefix + 1, suffix);
+                        // Check if 'span' and 'id=NXTEhighlight' appear within the same opening tag
+                        if (/^span[^>]*id=['"]NXTEhighlight-/.test(tagContent)) { return match; }   //this is already highlighted - return match only without additional span elements
+                    }
+                    return `<span class='NXTEhighlight' id='NXTEhighlight-${this.uuidv4()}'>${match}</span>`;
+                });
+            });
+            this.editor.commands.clearContent(true)  //clear edtior
+            
+            this.editor.commands.setContent(html)  // set editor content - with our span elements that highlight errors
+        },
+
+        getWord(event) {
+            event.preventDefault(); // Prevent default context menu
+            //const editor = document.getElementById('editor'); // Get div element by ID
+            const tmpRange = document.caretRangeFromPoint(event.clientX, event.clientY);  // Temporary range for getting caret position
+            
+            // Get the text from the editor
+           // const editorText = editor.textContent || editor.innerText;
+            const offset = tmpRange.startOffset;
+            const textNode = tmpRange.startContainer;
+            const nodeText = textNode.textContent || "";
+
+            // Regex to match word characters and adjacent punctuation
+            const wordWithPunctRegex = /[\w]+[\.,;!?]?$/;
+
+            // Extract the word surrounding the caret position with punctuation
+            const leftTextMatch = nodeText.slice(0, offset).match(wordWithPunctRegex);
+            const leftText = leftTextMatch ? leftTextMatch[0] : "";
+            const rightText = nodeText.slice(offset).split(/\s|[\.,;!?]/)[0];
+            this.word = leftText + rightText;
+
+            // Update the currentRange to include adjacent punctuation
+            const startOffset = Math.max(offset - leftText.length, 0);
+            const endOffset = Math.min(offset + rightText.length, nodeText.length);
+
+            this.currentRange = document.createRange();
+            this.currentRange.setStart(textNode, startOffset);
+            this.currentRange.setEnd(textNode, endOffset);
+            
+            if (this.word) {
+                let response = ipcRenderer.sendSync('checkword', this.word);
+                if (response.suggestions === null) {
+                    console.log(`no suggestions for >>${this.word}<<`);
+                    return;
+                }
+                this.showSuggestions(event.clientX, event.clientY, response.suggestions);
+                console.log(response);
+            }
+        },
+        // Function to display suggestions
+        showSuggestions(x, y, suggestions) {
+            const menu = document.getElementById("suggestion-menu");
+            menu.style.display = "block";
+            menu.style.left = x + 'px';
+            menu.style.top = y + 'px';
+
+            // Clear existing menu items
+            menu.innerHTML = '';
+
+            // Populate new suggestions
+            suggestions.forEach(suggestion => {
+                const item = document.createElement("div");
+                item.innerHTML = suggestion;
+                item.onclick = () => { 
+                    // Do something with the clicked suggestion
+                    console.log(`Clicked suggestion: ${suggestion}`);
+                    this.replaceWord(suggestion);
+                    menu.style.display = "none"; // Hide menu after selection
+                };
+                menu.appendChild(item);
+            });
+        },
+        replaceWord(suggestion) {
+            if (this.currentRange) {
+                const { startContainer, startOffset, endOffset } = this.currentRange;
+
+                // Extract word boundaries using regex to consider special characters
+                const regex = /(?<=^|\W)[a-zA-ZäöüÄÖÜ]+(?=\W|$)/g;
+
+                let match;
+                let startWordOffset = 0, endWordOffset = 0;
+
+                while (match = regex.exec(startContainer.textContent)) {
+                    if (startOffset <= match.index + match[0].length && endOffset >= match.index) {
+                        startWordOffset = match.index;
+                        endWordOffset = match.index + match[0].length;
+                        break;
+                    }
+                }
+                // Replace the word
+                const beforeWord = startContainer.textContent.substring(0, startWordOffset);
+                const afterWord = startContainer.textContent.substring(endWordOffset);
+                startContainer.textContent = beforeWord + suggestion + afterWord;
+
+                // Update the range to select the newly inserted word
+                this.currentRange.setStart(startContainer, startWordOffset);
+                this.currentRange.setEnd(startContainer, startWordOffset + suggestion.length);
+
+                // Try to locate the highlight span by its unique ID
+                const wordRange = document.createRange();
+                wordRange.setStart(this.currentRange.startContainer, this.currentRange.startOffset);
+                wordRange.setEnd(this.currentRange.startContainer, this.currentRange.endOffset);
+
+                const spanId = this.getSpanIdFromRange(wordRange);
+                if (spanId) {
+                    this.removeHighlight(spanId);
+                }
+            }
+        },
+        getSpanIdFromRange(range) {
+            let node = range.startContainer;
+            while (node && node.nodeType !== 1) {
+                node = node.parentNode;
+            }
+            if (node && node.id && node.id.startsWith("NXTEhighlight-")) {
+                return node.id;
+            }
+            return null;
+        },
+        removeHighlight(id) {
+            const span = document.getElementById(id);
+            if (span) {
+                const parent = span.parentNode;
+                while (span.firstChild) {
+                parent.insertBefore(span.firstChild, span);
+                }
+                parent.removeChild(span);
+            }
+        },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         clock(){
             this.charcount = this.editor.storage.characterCount.characters()
             this.wordcount = this.editor.storage.characterCount.words()
@@ -452,16 +690,50 @@ export default {
                     }
                 }
             }
+        },
+        // returns a uuid 
+        uuidv4() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0,
+                    v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        },
+        // hides the spellcheck context menu
+        hideSpellcheckMenu(){
+            const menu = document.getElementById("suggestion-menu");
+            menu.style.display = "none";
+        },
+        async checkAllWordsOnSpacebar(event){
+            if (event.data === " " || event.data === "\u00A0") { // if spacebar is hit
+                const selection = window.getSelection();  // Get current selection and range
+                const range = selection.getRangeAt(0);
+               
+                const marker = document.createElement('span'); // Insert marker element at cursor position
+                marker.id = 'NXTEmarker';
+                range.insertNode(marker);
+
+                await new Promise(resolve => setTimeout(resolve, 0)); // wait for next tick
+
+                await this.checkAllWords();  //recheck the whole text  // this funtion removes all spaces.. why?
+
+                const newMarker = document.getElementById('NXTEmarker');
+                const newRange = document.createRange(); // Create a new range object
+     
+                newRange.setStartAfter(newMarker); // Set the start and end positions to the end of the marker span
+                newRange.setEndAfter(newMarker);
+
+                newMarker.remove();// Remove the marker span
+                selection.removeAllRanges(); // Remove all ranges from the selection object
+                selection.addRange(newRange); // Add the new range to the selection object
+            }
         }
+
     },
 
 
     mounted() {
-       
-        // count selected words
-        document.addEventListener('mouseup', () => { this.getSelectedTextInfo() });
-        // replace every occurence of a " (quote) on the beginning of a line or after a whitespace with the german „
-        document.addEventListener('input', this.handleInput);
+        this.editorcontentcontainer = document.getElementById('editorcontent');
 
         switch (this.cmargin.size) {
             case 4:       this.proseMirrorMargin = '90px';   break;
@@ -484,6 +756,7 @@ export default {
 
         this.editor = new Editor({
             extensions: [
+                CustomSpan,
                 Typography,
                 SmilieReplacer,
                 Table.configure({
@@ -527,7 +800,7 @@ export default {
                 })
                 .configure({ lowlight }),
             ],
-            content: ``,         
+            content: `Das ist ein TestText mit Fehhler.`,         
         });
 
        
@@ -553,8 +826,25 @@ export default {
         this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 5000)      //holt client info (exam status, connection, token)
         this.clockinterval = setInterval(() => { this.clock() }, 1000)   // uhrzeit (jede sekunde)
         this.loadFilelist()
+
+        
+        // show spellchecking context menu
+        this.editorcontentcontainer.addEventListener('contextmenu', this.getWord );
+        // count selected words
+        document.addEventListener('mouseup',  this.getSelectedTextInfo );
+        // replace every occurence of a " (quote) on the beginning of a line or after a whitespace with the german „
+        document.addEventListener('input', this.handleInput);
+        // Hide suggestion menu when clicking elsewhere
+        document.addEventListener('click', this.hideSpellcheckMenu);
+
+        document.addEventListener('input', this.checkAllWordsOnSpacebar);
+
     },
     beforeUnmount() {
+        this.editorcontentcontainer.removeEventListener('contextmenu', this.getWord );
+        document.removeEventListener('mouseup',  this.getSelectedTextInfo );
+        document.removeEventListener('input', this.handleInput);
+        document.removeEventListener('click', this.hideSpellcheckMenu);
         this.editor.destroy()
         clearInterval( this.saveinterval )
         clearInterval( this.fetchinfointerval )
@@ -563,14 +853,34 @@ export default {
 }
 </script>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <style lang="scss">
 
 @media print {  //this controls how the editor view is printed (to pdf)
-    
     #editortoolbar, #editorheader, #editselected, #focuswarning{
         display: none !important;
     }
-
     #statusbar {
         position: relative !important;
         box-shadow: 0px 0px 0px transparent !important;
@@ -580,8 +890,6 @@ export default {
     #editorcontent div {
         line-height: 200%;
     }
-
-    
     #editorcontainer {
         width: 100% !important;
         margin: 0px !important;
@@ -636,6 +944,45 @@ export default {
     }
 
 }
+
+
+#suggestion-menu{
+    z-index:100000;
+    padding: 4px;
+    background-color: #f3f8fd;
+    border: 1px solid #d3e5ff;
+    cursor: pointer;
+    border-radius: 4px;
+    box-shadow: 0px 0px 10px #00000047;
+}
+#suggestion-menu div {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    font-size: 0.8em;
+    padding: 2px 6px 2px 6px;
+    transition:0.2s;
+    border-radius:4px;
+    
+}
+#suggestion-menu div:hover {
+    box-shadow: 0px 0px 10px inset #bacbe4;
+}
+
+span.NXTEhighlight {
+    position: relative;
+}
+/* Create the glowing underline */
+span.NXTEhighlight::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 1px;
+    background: lightcoral; /* Light red color */
+    box-shadow: 0 0 5px lightcoral;
+}
+
+
 
 #editorcontainer {
     border-radius:0; 

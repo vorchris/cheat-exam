@@ -267,6 +267,32 @@ class IpcHandler {
         })
 
 
+
+
+        ipcMain.on('checkword', async (event, selectedWord) => {
+            console.log(`Received selected text: ${selectedWord}`);
+            const suggestions = await this.WindowHandler.nodehun.suggest(selectedWord)
+            console.log(suggestions)
+            event.returnValue = {  suggestions : suggestions }   
+        });
+    
+        ipcMain.on('checktext', async (event, selectedText) => {
+            //console.log(`Received selected text: ${selectedText}`);
+            const words = selectedText.split(/[^a-zA-ZäöüÄÖÜ]+/); // Include special characters
+            const misspelledWords = [];
+            for (const word of words) {
+                const correct = await this.WindowHandler.nodehun.spell(word);
+                if (!correct) {
+                    misspelledWords.push(word);
+                    console.log(word)
+                }
+            }
+            event.returnValue = { misspelledWords };
+        });
+
+
+
+
     }
 }
  
