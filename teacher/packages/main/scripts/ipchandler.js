@@ -72,6 +72,30 @@ class IpcHandler {
                     if (!fs.existsSync(testdir)){fs.mkdirSync(testdir)}
                     message = "success"
                     config.workdirectory = testdir
+                    console.log("setworkdir:", config)
+                }
+                catch (e){
+                    message = "error"
+                    console.log(e)
+                }
+                event.returnValue = {workdir: config.workdirectory, message : message}
+            }
+            else {
+                event.returnValue = {workdir: config.workdirectory, message : 'canceled'}
+            }
+        })
+
+
+        ipcMain.on('setPreviousWorkdir', async (event, workdir) => {
+    
+            if (workdir){
+                console.log('previous directory selected', workdir)
+                let message = ""
+                try {
+                  
+                    if (!fs.existsSync(workdir)){fs.mkdirSync(workdir)}
+                    message = "success"
+                    config.workdirectory = workdir
                 }
                 catch (e){
                     message = "error"

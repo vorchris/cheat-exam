@@ -145,7 +145,7 @@ router.get('/msauth', async (req, res) => {
 /**
  * STARTS an exam server instance
  * @param servername the chosen name (for example "mathe")
- * @param pin the pin code used to authenticate
+ * @param password the password to enter the exam (not neccessary on single instance system (app) but will be used to exit secure exam mode in the future)
  * #FIXME !!!  This route needs to be secured (anyone can start a server right now - or 1000 servers)
  */
  router.post('/start/:servername/:passwd', function (req, res, next) {
@@ -158,7 +158,7 @@ router.get('/msauth', async (req, res) => {
     console.log(req.body) // optional: we could store the current workdirectory for every mcserver on mcserver.serverinfo in the future
     
     //generate random pin
-    let pin = String(Math.floor(Math.random()*90000) + 10000)
+    let pin = String(Math.floor(Math.random()*9000) + 1000)  // 4 digits is enough  Math.floor(Math.random() * 9000) + 1000;
     if (config.development){ pin = "1337" }  
 
     // // check if server is already running locally or in LAN
@@ -176,7 +176,7 @@ router.get('/msauth', async (req, res) => {
     let mcs = new multiCastserver();
     mcs.init(servername, pin, req.params.passwd)
     config.examServerList[servername]=mcs
-
+     console.log(config.workdirectory)
     let serverinstancedir = path.join(config.workdirectory, servername)
 
     if (!fs.existsSync(serverinstancedir)){ fs.mkdirSync(serverinstancedir, { recursive: true }); }
@@ -589,7 +589,10 @@ router.post('/getserverstatus/:servername/:csrfservertoken', function (req, res,
     // mcServer.serverstatus von der JSON-Datei wieder importieren
     const filePath = path.join(config.workdirectory, mcServer.serverinfo.servername, 'serverstatus.json');
     let serverstatus;
-    try {  serverstatus = JSON.parse(fs.readFileSync(filePath, 'utf-8'));  } 
+    try {  
+        serverstatus = JSON.parse(fs.readFileSync(filePath, 'utf-8')); 
+        mcServer.serverinfo.pin = serverstatus.pin  //also restore last pin to make it easier for students
+    }    
     catch (error) {  serverstatus = false;  }
     return res.json({sender: "server", status: "success", serverstatus: serverstatus}) 
 })

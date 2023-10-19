@@ -46,7 +46,7 @@
             <button id="closefilebrowser" type="button" class=" btn-close pt-2 pe-2 float-end" title="close"></button>
             <h4>{{$t('dashboard.filesfolder')}}: <br> <h6 class="ms-3 mb-3"><strong> {{currentdirectory}}</strong>  </h6></h4>
             <div class="btn btn-dark pe-3 ps-3 me-1 mb-3 btn-sm" @click="loadFilelist(workdirectory) "><img src="/src/assets/img/svg/go-home.svg" class="" width="22" height="22" > </div>
-            <div :class="( serverstatus.examtype === 'eduvidual'|| serverstatus.examtype === 'microsoft365')? 'disabledblue':''" class="btn btn-primary pe-3 ps-3 me-1 mb-3 btn-sm" style="float: right;" :title="$t('dashboard.summarizepdf')" @click="getLatest() "><img src="/src/assets/img/svg/edit-copy.svg" class="" width="22" height="22" >{{$t('dashboard.summarizepdfshort')}}</div>
+            <div :class="( serverstatus.examtype === 'eduvidual' )? 'disabledblue':''" class="btn btn-primary pe-3 ps-3 me-1 mb-3 btn-sm" style="float: right;" :title="$t('dashboard.summarizepdf')" @click="getLatest() "><img src="/src/assets/img/svg/edit-copy.svg" class="" width="22" height="22" >{{$t('dashboard.summarizepdfshort')}}</div>
             <div  v-if="(currentdirectory !== workdirectory)" class="btn btn-dark pe-3 ps-3 me-1 mb-3 btn-sm" @click="loadFilelist(currentdirectoryparent) "><img src="/src/assets/img/svg/edit-undo.svg" class="" width="22" height="22" >up </div>
             <div style="height: 76vh; overflow-y:auto;">
                 <div v-for="file in localfiles" class="d-inline">
@@ -91,7 +91,7 @@
     <div class="p-3 text-white bg-dark h-100 " style="width: 240px; min-width: 240px;">
         <div class="btn btn-light m-1 mt-0 text-start infobutton" @click="showinfo()">{{$t('dashboard.name')}} <br><b> {{$route.params.servername}}</b> </div><br>
         <div class="btn btn-light m-1 text-start infobutton" @click="showinfo()">{{$t('dashboard.server')}} <br><b>{{serverip}}</b> </div><br>
-        <div class="btn btn-light m-1 mb-3 text-start infobutton" @click="showinfo()">{{$t('dashboard.pin')}}<br><b> {{ $route.params.pin }} </b>  </div><br>
+        <div class="btn btn-light m-1 mb-3 text-start infobutton" @click="showinfo()">{{$t('dashboard.pin')}}<br><b> {{ serverstatus.pin }} </b>  </div><br>
         
         <div style="font-size:0.9em">
         <!-- geogebra -->
@@ -118,19 +118,19 @@
         <!-- microsoft365 -->
         <div class="form-check m-1 mb-3" :class="(serverstatus.exammode)? 'disabledexam':''">
             <input v-model="serverstatus.examtype" value="microsoft365" class="form-check-input" type="radio" name="examtype" id="examtype4">
-            <label class="form-check-label" for="examtype4"> Microsoft365 <span v-if="(config.accessToken)">({{$t('dashboard.connected')}})</span> </label>
+            <label class="form-check-label" for="examtype4"> Microsoft365 <span v-if="(this.config.accessToken)">({{$t('dashboard.connected')}})</span> </label>
             
-            <button v-if="(serverstatus.examtype === 'microsoft365' && !config.accessToken)"  @click="openAuthWindow()" class="btn btn-sm btn-primary mt-1  ">
+            <button v-if="(serverstatus.examtype === 'microsoft365' && !this.config.accessToken)"  @click="openAuthWindow()" class="btn btn-sm btn-primary mt-1  ">
                 <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
                 <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Verbinden </span>
             </button>
 
-            <button v-if="(serverstatus.examtype === 'microsoft365' && config.accessToken && !serverstatus.msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-info mt-1  ">
+            <button v-if="(serverstatus.examtype === 'microsoft365' && this.config.accessToken && !serverstatus.msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-info mt-1  ">
                 <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
                 <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Datei wählen </span>
             </button>
 
-            <button v-if="(serverstatus.examtype === 'microsoft365' && config.accessToken && serverstatus.msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-success mt-1  " style=" white-space: nowrap;  width: 170px;overflow: hidden; text-overflow: ellipsis; ">
+            <button v-if="(serverstatus.examtype === 'microsoft365' && this.config.accessToken && serverstatus.msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-success mt-1  " style=" white-space: nowrap;  width: 170px;overflow: hidden; text-overflow: ellipsis; ">
                 <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
                 <span style="padding: 0 6px 0 4px; vertical-align:middle;">{{serverstatus.msOfficeFile.name}} </span>
             </button>
@@ -166,7 +166,7 @@
         
         <!-- control buttons start -->        
         <div v-if="(serverstatus.exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="endExam()" >{{numberOfConnections}} {{$t('dashboard.stopexam')}}</div>
-        <div v-if="(!serverstatus.exammode)" @click="startExam()" :class="(serverstatus.examtype === 'microsoft365' && (!config.accessToken || !serverstatus.msOfficeFile))? 'disabledgreen':''" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px; height:62px;">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
+        <div v-if="(!serverstatus.exammode)" @click="startExam()" :class="(serverstatus.examtype === 'microsoft365' && (!this.config.accessToken || !serverstatus.msOfficeFile))? 'disabledgreen':''" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px; height:62px;">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
      
         <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="sendFiles('all')"  style="width:100px; height:62px;">{{$t('dashboard.sendfile')}}</div>
         <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="getFiles('all', true)" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledblue':''"  style="width:100px; height:62px;" >{{$t('dashboard.getfile')}}</div>
@@ -255,7 +255,6 @@ export default {
             clientApiPort: this.$route.params.clientApiPort,
             electron: this.$route.params.electron,
             hostname: window.location.hostname,
-            pin : this.$route.params.pin,
             config :this.$route.params.config,
             now : null,
             files: null,
@@ -292,7 +291,9 @@ export default {
                 gformsTestId: null,
                 screenshotinterval: 4,
                 msOfficeFile: null,
-                screenslocked: false
+                screenslocked: false,
+                pin: this.$route.params.pin,
+                basedir: ""
             }
         };
     },
@@ -644,11 +645,11 @@ export default {
         },
         //show pincode 
         showinfo(){
-            let info = `<span> IP: <strong>${this.serverip}</strong> \nName: ${this.servername}  \nPin: ${this.pin} </span>`
+            let info = `<span> IP: <strong>${this.serverip}</strong> \nName: ${this.servername}  \nPin: ${this.serverstatus.pin} </span>`
             this.$swal.fire({ 
                 title: `<span style="font-weight:normal"> IP:</span>  ${this.serverip} </span> 
                         <span style="font-weight:normal"> Name:</span>  ${this.servername}  
-                        <span style="font-weight:normal"> Pin:</span> ${this.pin}`,
+                        <span style="font-weight:normal"> Pin:</span> ${this.serverstatus.pin}`,
                 icon: "info",
                 customClass: {
                     popup: 'custom-swal2-popup',
@@ -683,7 +684,15 @@ export default {
             .then( response => {
                 if (response.serverstatus === false) {return}
                 this.serverstatus = response.serverstatus // we slowly move things over to a centra serverstatus object
-                console.log(this.serverstatus)
+
+                let res = ipcRenderer.sendSync('setPreviousWorkdir', response.serverstatus.basedir )
+                console.log("getPrevious:",res.workdir)
+                this.workdirectory = `${res.workdir }/${this.servername}` // the backend workdirectory doesn't have the exam name
+                
+                if (res.message == "error"){
+                    this.status(this.$t("startserver.directoryerror"))
+                }
+
 
                 if (this.serverstatus.examtype === "microsoft365"){  // unfortunately we can't automagically reconnect the teacher without violating privacy
                     this.serverstatus.exammode = false
@@ -728,6 +737,7 @@ export default {
             this.hostname = "localhost"
             this.currentdirectory = ipcRenderer.sendSync('getCurrentWorkdir') 
             this.workdirectory= `${this.currentdirectory}/${this.servername}`
+            this.serverstatus.basedir = this.currentdirectory
         }
     },
     beforeUnmount() {  //when leaving

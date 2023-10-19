@@ -114,6 +114,8 @@ export default {
         getPreviousExams(){
             this.previousExams = ipcRenderer.sendSync('scanWorkdir')
             //console.log(this.previousExams)
+            this.config = ipcRenderer.sendSync('getconfig') 
+            this.workdir = this.config.workdirectory   // just in case this is already altered in the backend make sure to display current settings
         },
 
         setPreviousExam(name){
@@ -156,6 +158,7 @@ export default {
                 this.status(this.$t("startserver.directoryerror"))
             }
             this.checkDiscspace()
+            this.getPreviousExams()
         },
 
         toggleAdvanced(){
