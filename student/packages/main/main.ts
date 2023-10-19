@@ -20,7 +20,7 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow, powerSaveBlocker, nativeTheme, globalShortcut} from 'electron'
+import { app, BrowserWindow, powerSaveBlocker, nativeTheme, globalShortcut, clipboard} from 'electron'
 import { release } from 'os'
 import { disableRestrictions} from './scripts/platformrestrictions.js';
 import WindowHandler from './scripts/windowhandler.js'
@@ -127,6 +127,10 @@ app.whenReady()
     globalShortcut.register('Alt+F4', () => {console.log("Alt+F4")});
     globalShortcut.register('CommandOrControl+W', () => {});
     globalShortcut.register('CommandOrControl+Q', () => {});
+    if (process.platform === 'darwin') {
+        globalShortcut.register('CommandOrControl+V', () => {console.log('no shared clipboard on macs')});
+        setInterval( ()=> { clipboard.clear()  },1000)
+    }
 })
 
 //capture global keyboard shortcuts like alt+tab and send a signal to the frontend that a key combination has been detected 
