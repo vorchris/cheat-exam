@@ -72,7 +72,10 @@
             <button :title="$t('editor.right')" @click="editor.chain().focus().setTextAlign('right').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'right' }) }" class="btn btn-outline-info p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/format-justify-right.svg" class="white" width="22" height="22" ></button>
             <input :title="$t('editor.textcolor')" type="color" @input="editor.chain().focus().setColor($event.target.value).run()" :value="editor.getAttributes('textStyle').color || '#000000'" class="btn btn-outline-info p-2 me-2 mb-1 btn-sm" style="height: 33.25px; width:32px">
             <button :title="$t('editor.linebreak')"  @click="editor.chain().focus().setHardBreak().run()" class="btn btn-outline-info p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/key-enter.svg" class="white" width="22" height="22" ></button>
+            <button :title="$t('editor.copy')"  @click="copySelection()" class="btn btn-outline-success p-1 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-copy.svg" class="" width="22" height="22" ></button>
+            <button :title="$t('editor.paste')"  @click="pasteSelection()" class="btn btn-outline-success p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-paste-style.svg" class="" width="22" height="22" ></button>
            
+
             <button :title="$t('editor.more')" id="more" @click="showMore()" class="btn btn-outline-info p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/view-more-horizontal-symbolic.svg" class="white" width="22" height="22" ></button>
             <div id="moreoptions" style="display:none;">
                 <button :title="$t('editor.inserttable')" @click="editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()" class="btn btn-outline-info p-1 me-0 mb-1 btn-sm"><img src="/src/assets/img/svg/insert-table.svg" width="22" height="22" ></button>
@@ -394,10 +397,37 @@ export default {
             document.documentElement.style.setProperty(variableName, value);
         },
         getSelectedTextInfo() {
-            const selectedText = window.getSelection().toString();
+            let selectedText = window.getSelection().toString();
             this.selectedWordCount = selectedText ? selectedText.split(/\s+/).filter(Boolean).length : 0;
             this.selectedCharCount = selectedText ? selectedText.length : 0;
             return
+        },
+
+        copySelection(){
+            this.selectedText = window.getSelection().toString();
+        },
+
+        pasteSelection(){
+            console.log("pasted")
+            console.log(this.selectedText)
+            const selection = window.getSelection();
+            const range = selection.getRangeAt(0);
+
+            // Remove the current selection
+            range.deleteContents();
+
+            // Insert the new text at the cursor position
+            const textNode = document.createTextNode(this.selectedText);
+            range.insertNode(textNode);
+
+            // Move the cursor after the inserted text
+            range.setStartAfter(textNode);
+            range.setEndAfter(textNode);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+
+
         },
         
         // replace every occurence of a " (quote) on the beginning of a line or after a whitespace with the german „

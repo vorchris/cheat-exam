@@ -127,8 +127,10 @@ app.whenReady()
     globalShortcut.register('Alt+F4', () => {console.log("Alt+F4")});
     globalShortcut.register('CommandOrControl+W', () => {});
     globalShortcut.register('CommandOrControl+Q', () => {});
+    clipboard.clear() // once for everybody
     if (process.platform === 'darwin') {
         globalShortcut.register('CommandOrControl+V', () => {console.log('no shared clipboard on macs')});
+        globalShortcut.register('CommandOrControl+Shift+V', () => {console.log('no shared clipboard on macs')});
         setInterval( ()=> { clipboard.clear()  },1000)
     }
 })

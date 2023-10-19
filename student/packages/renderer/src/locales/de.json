@@ -91,7 +91,9 @@
         "headerrow":"Titelreihe",
         "selected":"Wörter/Zeichen in Auswahl",
         "requestsent":"Druckanfrage gesendet!",
-        "requestdenied":"Druckanfrage abgelehnt. Bitte warten und erneut senden."
+        "requestdenied":"Druckanfrage abgelehnt. Bitte warten und erneut senden.",
+        "paste":"einfügen",
+        "copy":"kopieren"
     },
     "math": {
         "exit":"Abgesicherten Modus beenden?",
