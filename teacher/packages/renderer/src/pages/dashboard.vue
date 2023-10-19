@@ -293,7 +293,7 @@ export default {
                 msOfficeFile: null,
                 screenslocked: false,
                 pin: this.$route.params.pin,
-                basedir: ""
+              
             }
         };
     },
@@ -684,16 +684,7 @@ export default {
             .then( response => {
                 if (response.serverstatus === false) {return}
                 this.serverstatus = response.serverstatus // we slowly move things over to a centra serverstatus object
-
-                let res = ipcRenderer.sendSync('setPreviousWorkdir', response.serverstatus.basedir )
-                console.log("getPrevious:",res.workdir)
-                this.workdirectory = `${res.workdir }/${this.servername}` // the backend workdirectory doesn't have the exam name
-                
-                if (res.message == "error"){
-                    this.status(this.$t("startserver.directoryerror"))
-                }
-
-
+         
                 if (this.serverstatus.examtype === "microsoft365"){  // unfortunately we can't automagically reconnect the teacher without violating privacy
                     this.serverstatus.exammode = false
                     this.serverstatus.msOfficeFile = false
@@ -737,7 +728,6 @@ export default {
             this.hostname = "localhost"
             this.currentdirectory = ipcRenderer.sendSync('getCurrentWorkdir') 
             this.workdirectory= `${this.currentdirectory}/${this.servername}`
-            this.serverstatus.basedir = this.currentdirectory
         }
     },
     beforeUnmount() {  //when leaving

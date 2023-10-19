@@ -290,7 +290,7 @@ function loadFilelist(directory){
     })
     .then( response => response.json() )
     .then( filelist => {
-        //console.log(filelist)
+        console.log(filelist)
         filelist.sort()
         filelist.reverse()
         this.localfiles = filelist;

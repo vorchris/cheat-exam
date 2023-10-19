@@ -41,14 +41,18 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
     if ( token !== mcServer.serverinfo.servertoken ) { return res.json({ status: t("data.tokennotvalid") }) }
    
     let folders = []
-    folders.push( {currentdirectory: dir, parentdirectory: path.dirname(dir)}) // so this information is always on filelist[0] >> not the most robust idea
+    folders.push( {currentdirectory: dir, parentdirectory: path.dirname(dir)}) // so this information is always on filelist[0] >> not the most robust idea but used in fileexplorer - be careful
+    
+    const omitExtensions = ['.json'];   // these filetypes are not part of the filelist sent to the frontend (used to display the user directories in the fileexplorer part of the dashboard)
+    
     fs.readdirSync(dir).reduce(function (list, file) {
         const filepath = path.join(dir, file);
+        let ext = path.extname(file).toLowerCase()
+
         if (fs.statSync(filepath).isDirectory()) {
             folders.push( { path: filepath, name : file, type : "dir", ext: "", parent: dir })
         }
-        else if(fs.statSync(filepath).isFile() ){
-            let ext = path.extname(file).toLowerCase()
+        else if(fs.statSync(filepath).isFile() && !omitExtensions.includes(ext) ){
             folders.push({  path: filepath, name : file, type : "file", ext: ext, parent: '' })
         }
     }, []);
