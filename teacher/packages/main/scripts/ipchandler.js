@@ -20,7 +20,7 @@
 import fs from 'fs'
 import i18n from '../../renderer/src/locales/locales.js'
 const { t } = i18n.global
-import {  ipcMain } from 'electron'
+import {  ipcMain, dialog } from 'electron'
 import checkDiskSpace from 'check-disk-space'
 import {join} from 'path'
 
@@ -61,7 +61,7 @@ class IpcHandler {
         })
 
         ipcMain.on('setworkdir', async (event, arg) => {
-            const result = await dialog.showOpenDialog( win, {
+            const result = await dialog.showOpenDialog( this.WindowHandler.mainwindow, {
             properties: ['openDirectory']
             })
             if (!result.canceled){
