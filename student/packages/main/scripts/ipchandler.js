@@ -104,9 +104,13 @@ class IpcHandler {
          * Returns all found Servers and the information about this client
          */ 
         ipcMain.on('getinfo', (event) => {   
+            let serverstatus = false
+            if (this.WindowHandler.examwindow) { serverstatus = this.WindowHandler.examwindow.serverstatus }
+
             event.returnValue = {   
                 serverlist: this.multicastClient.examServerList,
-                clientinfo: this.multicastClient.clientinfo
+                clientinfo: this.multicastClient.clientinfo,
+                serverstatus: serverstatus
             }   
         })
 
@@ -278,7 +282,9 @@ class IpcHandler {
     
         ipcMain.on('checktext', async (event, selectedText) => {
             //console.log(`Received selected text: ${selectedText}`);
-            const words = selectedText.split(/[^a-zA-ZäöüÄÖÜ]+/); // Include special characters
+           // const words = selectedText.split(/[^a-zA-ZäöüÄÖÜ]+/); // Include special characters
+            const words = selectedText.split(/[^a-zA-ZäöüÄÖÜéèêëôûüÔÛÜáíóúñÁÍÓÚÑàèéìòùÀÈÉÌÒÙ]+/);
+
             const misspelledWords = [];
             for (const word of words) {
                 const correct = await this.WindowHandler.nodehun.spell(word);

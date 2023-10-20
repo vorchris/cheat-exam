@@ -93,7 +93,8 @@
         "requestsent":"Druckanfrage gesendet!",
         "requestdenied":"Druckanfrage abgelehnt. Bitte warten und erneut senden.",
         "paste":"einfügen",
-        "copy":"kopieren"
+        "copy":"kopieren",
+        "spellcheck": "Rechtschreibprüfung"
     },
     "math": {
         "exit":"Abgesicherten Modus beenden?",

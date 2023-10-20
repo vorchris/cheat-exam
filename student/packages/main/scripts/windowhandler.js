@@ -185,6 +185,7 @@ class WindowHandler {
             },
         });
 
+        this.examwindow.serverstatus = serverstatus //we keep it there to make it accessable via examwindow in ipcHandler
         
 
         // Load correct url 

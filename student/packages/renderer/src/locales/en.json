@@ -93,7 +93,8 @@
         "requestsent":"print request sent",
         "requestdenied":"print request denied",
         "paste":"paste",
-        "copy":"copy"
+        "copy":"copy",
+        "spellcheck": "spellcheck"
     },
     "math": {
         "exit":"Exit safe exam mode",

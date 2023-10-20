@@ -37,12 +37,7 @@
 
     </div>
      <!-- HEADER END -->
-
-     <button @click="checkAllWords();">Check Spelling of all Words</button>
-    <button @click="checkSelectedWords();">Check Spelling of selected Words</button>
     <div id="suggestion-menu" style="display:none; position:fixed;"></div>
-
-    
 
     <div class="w-100 p-2 m-0 text-white shadow-sm text-center" style=" top: 66px; z-index: 10001 !important; background-color: white;">
         
@@ -78,7 +73,7 @@
             <button :title="$t('editor.linebreak')"  @click="editor.chain().focus().setHardBreak().run()" class="btn btn-outline-info p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/key-enter.svg" class="white" width="22" height="22" ></button>
             <button :title="$t('editor.copy')"  @click="copySelection()" class="btn btn-outline-success p-1 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-copy.svg" class="" width="22" height="22" ></button>
             <button :title="$t('editor.paste')"  @click="pasteSelection()" class="btn btn-outline-success p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-paste-style.svg" class="" width="22" height="22" ></button>
-           
+            <button v-if="serverstatus.spellcheck" :title="$t('editor.spellcheck')"  @click="checkAllWords()" class="btn btn-outline-danger p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/autocorrection.svg" class="" width="22" height="22" ></button>
 
             <button :title="$t('editor.more')" id="more" @click="showMore()" class="btn btn-outline-info p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/view-more-horizontal-symbolic.svg" class="white" width="22" height="22" ></button>
             <div id="moreoptions" style="display:none;">
@@ -93,8 +88,6 @@
                 <button :title="$t('editor.headerrow')" @click="editor.chain().focus().toggleHeaderRow().run()" :disabled="!editor.can().toggleHeaderRow()" class="btn btn-outline-info p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/table-header-top.svg" width="22" height="22" ></button>
             </div>
            
-
-
             <br>
            <div v-for="file in localfiles" class="d-inline" style="text-align:left">
                 <div v-if="(file.type == 'bak')" class="btn btn-success p-0  pe-2 ps-1 me-1 mb-0 btn-sm"   @click="selectedFile=file.name; loadHTML(file.name)"><img src="/src/assets/img/svg/games-solve.svg" class="" width="22" height="22" style="vertical-align: top;"> {{file.name}}     ({{ new Date(this.now - file.mod).toISOString().substr(11, 5) }})</div>
@@ -262,6 +255,8 @@ export default {
             const text = this.editor.getText()
             const response = ipcRenderer.sendSync('checktext', text);
             const misspelledWords = response.misspelledWords;
+            console.log(text)
+            console.log(misspelledWords)
             if (!misspelledWords.length) {  // no misspelled words .. make sure to remove all markers
                     this.removeAllHighlightsByClass()
                     return;
@@ -289,16 +284,15 @@ export default {
 
 
         async highlightMisspelledWords(misspelledWords) {
-      
             // get current editor content
             let html = this.editor.getHTML()  
-
             // Remove all previous highlights
             html = this.removeElementsByClassFromString(html, ".NXTEhighlight")
-           
-
             misspelledWords.forEach(word => {
-                const regex = new RegExp(`(?<=^|\\W)${word}(?=$|\\W)`, 'g');
+                console.log(word)
+                //const regex = new RegExp(`(?<=^|\\W)${word}(?=$|\\W)`, 'g');
+                const regex = new RegExp(`(?<=^|[^a-zA-ZäöüÄÖÜéèêëôûüÔÛÜáíóúñÁÍÓÚÑàèéìòùÀÈÉÌÒÙ])${word}(?=$|[^a-zA-ZäöüÄÖÜéèêëôûüÔÛÜáíóúñÁÍÓÚÑàèéìòùÀÈÉÌÒÙ])`, 'g');
+
                 let insideTag = false;
                 html = html.replace(regex, (match, offset, fullString) => {
                     const prefix = fullString.lastIndexOf('<', offset);
@@ -316,11 +310,9 @@ export default {
                         // Check if 'span' and 'id=NXTEhighlight' appear within the same opening tag
                         if (/^span[^>]*id=['"]NXTEhighlight-/.test(tagContent)) { return match; }   //this is already highlighted - return match only without additional span elements
                     }
-                    console.log("newone")
                     return `<span class='NXTEhighlight' id='NXTEhighlight-${this.uuidv4()}'>${match}</span>`;
                 });
             });
-        
             this.editor.commands.clearContent(true)  //clear edtior
             this.editor.commands.insertContent(html)  // set editor content - with our span elements that highlight errors  (we use insertContent instead of setContent because setContent removes spaces)
         },
@@ -329,22 +321,18 @@ export default {
             event.preventDefault(); // Prevent default context menu
             //const editor = document.getElementById('editor'); // Get div element by ID
             const tmpRange = document.caretRangeFromPoint(event.clientX, event.clientY);  // Temporary range for getting caret position
-            
             // Get the text from the editor
            // const editorText = editor.textContent || editor.innerText;
             const offset = tmpRange.startOffset;
             const textNode = tmpRange.startContainer;
             const nodeText = textNode.textContent || "";
-
             // Regex to match word characters and adjacent punctuation
             const wordWithPunctRegex = /[\w]+[\.,;!?]?$/;
-
             // Extract the word surrounding the caret position with punctuation
             const leftTextMatch = nodeText.slice(0, offset).match(wordWithPunctRegex);
             const leftText = leftTextMatch ? leftTextMatch[0] : "";
             const rightText = nodeText.slice(offset).split(/\s|[\.,;!?]/)[0];
             this.word = leftText + rightText;
-
             // Update the currentRange to include adjacent punctuation
             const startOffset = Math.max(offset - leftText.length, 0);
             const endOffset = Math.min(offset + rightText.length, nodeText.length);
@@ -369,10 +357,8 @@ export default {
             menu.style.display = "block";
             menu.style.left = x + 'px';
             menu.style.top = y + 'px';
-
             // Clear existing menu items
             menu.innerHTML = '';
-
             // Populate new suggestions
             suggestions.forEach(suggestion => {
                 const item = document.createElement("div");
@@ -389,10 +375,9 @@ export default {
         replaceWord(suggestion) {
             if (this.currentRange) {
                 const { startContainer, startOffset, endOffset } = this.currentRange;
-
                 // Extract word boundaries using regex to consider special characters
-                const regex = /(?<=^|\W)[a-zA-ZäöüÄÖÜ]+(?=\W|$)/g;
-
+               // const regex = /(?<=^|\W)[a-zA-ZäöüÄÖÜ]+(?=\W|$)/g;
+                const regex = /(?<=^|\W)[a-zA-ZäöüÄÖÜéèêëôûüÔÛÜáíóúñÁÍÓÚÑàèéìòùÀÈÉÌÒÙ]+(?=\W|$)/g;   //for all languages
                 let match;
                 let startWordOffset = 0, endWordOffset = 0;
 
@@ -407,16 +392,13 @@ export default {
                 const beforeWord = startContainer.textContent.substring(0, startWordOffset);
                 const afterWord = startContainer.textContent.substring(endWordOffset);
                 startContainer.textContent = beforeWord + suggestion + afterWord;
-
                 // Update the range to select the newly inserted word
                 this.currentRange.setStart(startContainer, startWordOffset);
                 this.currentRange.setEnd(startContainer, startWordOffset + suggestion.length);
-
                 // Try to locate the highlight span by its unique ID
                 const wordRange = document.createRange();
                 wordRange.setStart(this.currentRange.startContainer, this.currentRange.startOffset);
                 wordRange.setEnd(this.currentRange.startContainer, this.currentRange.endOffset);
-
                 const spanId = this.getSpanIdFromRange(wordRange);
                 if (spanId) {
                     this.removeHighlight(spanId);
@@ -425,21 +407,15 @@ export default {
         },
         getSpanIdFromRange(range) {
             let node = range.startContainer;
-            while (node && node.nodeType !== 1) {
-                node = node.parentNode;
-            }
-            if (node && node.id && node.id.startsWith("NXTEhighlight-")) {
-                return node.id;
-            }
+            while (node && node.nodeType !== 1) { node = node.parentNode; }
+            if (node && node.id && node.id.startsWith("NXTEhighlight-")) { return node.id;  }
             return null;
         },
         removeHighlight(id) {
             const span = document.getElementById(id);
             if (span) {
                 const parent = span.parentNode;
-                while (span.firstChild) {
-                parent.insertBefore(span.firstChild, span);
-                }
+                while (span.firstChild) { parent.insertBefore(span.firstChild, span);  }
                 parent.removeChild(span);
             }
         },
@@ -448,9 +424,7 @@ export default {
             const elements = editor.querySelectorAll('.NXTEhighlight');
             elements.forEach(element => {
                 const parent = element.parentNode;
-                while (element.firstChild) {
-                parent.insertBefore(element.firstChild, element);
-                }
+                while (element.firstChild) { parent.insertBefore(element.firstChild, element); }
                 parent.removeChild(element);
             });
         },
@@ -459,15 +433,11 @@ export default {
             const doc = parser.parseFromString(html, 'text/html');
             const editor = doc.body;
             const elements = editor.querySelectorAll(classname);
-
             elements.forEach(element => {
                 const parent = element.parentNode;
-                while (element.firstChild) {
-                parent.insertBefore(element.firstChild, element);
-                }
+                while (element.firstChild) { parent.insertBefore(element.firstChild, element);  }
                 parent.removeChild(element);
             });
-
             return editor.innerHTML;
         },
         insertSpaceInsteadOfTab(e){
@@ -485,27 +455,6 @@ export default {
                 sel.addRange(range);
             }
         },
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         clock(){
             this.charcount = this.editor.storage.characterCount.characters()
             this.wordcount = this.editor.storage.characterCount.words()
@@ -521,6 +470,9 @@ export default {
             this.exammode = this.clientinfo.exammode
             this.pincode = this.clientinfo.pin
 
+            this.serverstatus =  getinfo.serverstatus
+
+       
             if (!this.focus){  this.entrytime = new Date().getTime()}
             if (this.clientinfo && this.clientinfo.token){  this.online = true  }
             else { this.online = false  }
@@ -716,40 +668,37 @@ export default {
             range.setEndAfter(textNode);
             selection.removeAllRanges();
             selection.addRange(range);
-
-
-
         },
         
         // replace every occurence of a " (quote) on the beginning of a line or after a whitespace with the german „
-        handleInput(event) {
+        replaceQuotes(event) {
             if (event.target.getAttribute('contenteditable') === 'true') {
-                const selection = window.getSelection();
-                const node = selection.anchorNode;  //nur den text dieser einen node ersetzen und nicht den gesamten editor text
-                const caretPos = selection.anchorOffset;
+                try {
+                    const selection = window.getSelection();
+                    const node = selection.anchorNode;  //nur den text dieser einen node ersetzen und nicht den gesamten editor text
+                    const caretPos = selection.anchorOffset;
 
-                if (node.nodeType === 3) { // Text node
-                    const textContent = node.textContent;
-                    const newText = textContent.replace(/(^|\s)"/g, function(match, p1) { return p1 === ' ' ? ' „' : '„'; });
-                    
-                    if (textContent !== newText) {
-                        node.textContent = newText;
-                        // Reset cursor position
-                        const newRange = document.createRange();  // Erstellt ein neues Range-Objekt
-                        newRange.setStart(node, Math.min(newText.length, caretPos));  // Setzt den Startpunkt der Range im Textknoten
-                        newRange.collapse(true);  // Kollabiert die Range auf den Startpunkt, sodass sie keine Zeichen enthält
-                        selection.removeAllRanges();  // Entfernt alle bestehenden Ranges aus der Selection
-                        selection.addRange(newRange);  // Fügt die neu erstellte Range zur Selection hinzu, um die Cursorposition zu setzen
+                    if (node.nodeType === 3) { // Text node
+                        const textContent = node.textContent;
+                        const newText = textContent.replace(/(^|\s)"/g, function(match, p1) { return p1 === ' ' ? ' „' : '„'; });
+                        
+                        if (textContent !== newText) {
+                            node.textContent = newText;
+                            // Reset cursor position
+                            const newRange = document.createRange();  // Erstellt ein neues Range-Objekt
+                            newRange.setStart(node, Math.min(newText.length, caretPos));  // Setzt den Startpunkt der Range im Textknoten
+                            newRange.collapse(true);  // Kollabiert die Range auf den Startpunkt, sodass sie keine Zeichen enthält
+                            selection.removeAllRanges();  // Entfernt alle bestehenden Ranges aus der Selection
+                            selection.addRange(newRange);  // Fügt die neu erstellte Range zur Selection hinzu, um die Cursorposition zu setzen
+                        }
                     }
-                }
+                } catch (e) { console.log(e)}
             }
-            this.checkAllWordsOnSpacebar(event)
         },
         // returns a uuid 
         uuidv4() {
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                var r = Math.random() * 16 | 0,
-                    v = c == 'x' ? r : (r & 0x3 | 0x8);
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
                 return v.toString(16);
             });
         },
@@ -760,32 +709,26 @@ export default {
         },
         async checkAllWordsOnSpacebar(event){
             if (event.data === " " || event.data === "\u00A0") { // if spacebar is hit
-                const selection = window.getSelection();  // Get current selection and range
-                const range = selection.getRangeAt(0);
-               
-                const marker = document.createElement('span'); // Insert marker element at cursor position
-                marker.id = 'NXTEmarker';
-                range.insertNode(marker);
+                try {
+                    const selection = window.getSelection();  // Get current selection and range
+                    const range = selection.getRangeAt(0);
+                    const marker = document.createElement('span'); // Insert marker element at cursor position
+                    marker.id = 'NXTEmarker';
+                    range.insertNode(marker);
+                    await new Promise(resolve => setTimeout(resolve, 0)); // wait for next tick so the node is already inserted when we check html/text for spellingmistakes
+                    await this.checkAllWords();  //recheck the whole text  // this funtion removes all spaces.. why?
+                    const newMarker = document.getElementById('NXTEmarker');
+                    const newRange = document.createRange(); // Create a new range object
+                    newRange.setStartAfter(newMarker); // Set the start and end positions to the end of the marker span
+                    newRange.setEndAfter(newMarker);
+                    newMarker.remove();// Remove the marker span
+                    selection.removeAllRanges(); // Remove all ranges from the selection object
+                    selection.addRange(newRange); // Add the new range to the selection object
+                } catch (e) { console.log(e)}
 
-                await new Promise(resolve => setTimeout(resolve, 0)); // wait for next tick so the node is already inserted when we check html/text for spellingmistakes
-
-               
-
-                await this.checkAllWords();  //recheck the whole text  // this funtion removes all spaces.. why?
-
-                const newMarker = document.getElementById('NXTEmarker');
-                const newRange = document.createRange(); // Create a new range object
-     
-                //const spaceNode = document.createTextNode(" "); // Erstellt einen Textknoten für das Leerzeichen
-                //newMarker.parentNode.insertBefore(spaceNode, newMarker); // Fügt das Leerzeichen direkt nach dem Marker ein
-               
-                newRange.setStartAfter(newMarker); // Set the start and end positions to the end of the marker span
-                newRange.setEndAfter(newMarker);
-                newMarker.remove();// Remove the marker span
-                selection.removeAllRanges(); // Remove all ranges from the selection object
-                selection.addRange(newRange); // Add the new range to the selection object
             }
-        }
+        },
+
 
     },
 
@@ -883,28 +826,43 @@ export default {
         this.clockinterval = setInterval(() => { this.clock() }, 1000)   // uhrzeit (jede sekunde)
         this.loadFilelist()
 
-        
+        this.fetchInfo()
+
+        console.log(this.serverstatus)
+        /**
+        *   INSERT EVENT LISTENERS
+        */
         // show spellchecking context menu
         this.editorcontentcontainer = document.getElementById('editorcontent');
-        this.editorcontentcontainer.addEventListener('contextmenu', this.getWord );
-
-        this.editorcontentcontainer.addEventListener('keydown', this.insertSpaceInsteadOfTab)
+        this.editorcontentcontainer.addEventListener('keydown', this.insertSpaceInsteadOfTab)   //this changes the tab behaviour and allows tabstops
+        if (this.serverstatus.spellcheck) {
+            console.log("spellcheck activated")
+            document.addEventListener('input', this.checkAllWordsOnSpacebar)  // do a spellcheck when the user hits space
+            if (this.serverstatus.suggestions){
+                console.log("suggestions activated")
+                document.addEventListener('click', this.hideSpellcheckMenu); // Hide suggestion menu when clicking elsewhere
+                this.editorcontentcontainer.addEventListener('contextmenu', this.getWord );   // show the context menu
+            } 
+        }
         
-        // count selected words
-        document.addEventListener('mouseup',  this.getSelectedTextInfo );
-        // replace every occurence of a " (quote) on the beginning of a line or after a whitespace with the german „
-        document.addEventListener('input', this.handleInput);
-        // Hide suggestion menu when clicking elsewhere
-        document.addEventListener('click', this.hideSpellcheckMenu);
-
+        this.editorcontentcontainer.addEventListener('mouseup',  this.getSelectedTextInfo );   // show amount of words and characters
+        this.editorcontentcontainer.addEventListener('input', this.replaceQuotes);// replace every occurence of a " (quote) on the beginning of a line or after a whitespace with the german „
     },
     beforeMount(){ },
     beforeUnmount() {
+        /**
+        *   REMOVE EVENT LISTENERS
+        */
+        this.editorcontentcontainer.removeEventListener('keydown', this.insertSpaceInsteadOfTab)
         this.editorcontentcontainer.removeEventListener('contextmenu', this.getWord );
-        document.removeEventListener('mouseup',  this.getSelectedTextInfo );
-        document.removeEventListener('input', this.handleInput);
+        document.removeEventListener('input', this.checkAllWordsOnSpacebar)
+ 
         document.removeEventListener('click', this.hideSpellcheckMenu);
-         this.editor.destroy()
+        this.editorcontentcontainer.removeEventListener('mouseup',  this.getSelectedTextInfo );
+        this.editorcontentcontainer.removeEventListener('input', this.replaceQuotes);
+        
+        this.editor.destroy()
+
         clearInterval( this.saveinterval )
         clearInterval( this.fetchinfointerval )
         clearInterval( this.clockinterval )
