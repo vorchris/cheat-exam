@@ -39,10 +39,10 @@
      <!-- HEADER END -->
 
      <button @click="checkAllWords();">Check Spelling of all Words</button>
-<button @click="checkSelectedWords();">Check Spelling of selected Words</button>
-<div id="suggestion-menu" style="display:none; position:fixed;"></div>
+    <button @click="checkSelectedWords();">Check Spelling of selected Words</button>
+    <div id="suggestion-menu" style="display:none; position:fixed;"></div>
 
- 
+    
 
     <div class="w-100 p-2 m-0 text-white shadow-sm text-center" style=" top: 66px; z-index: 10001 !important; background-color: white;">
         
@@ -262,13 +262,10 @@ export default {
             const text = this.editor.getText()
             const response = ipcRenderer.sendSync('checktext', text);
             const misspelledWords = response.misspelledWords;
-          
             if (!misspelledWords.length) {  // no misspelled words .. make sure to remove all markers
-                    const highlights = document.querySelectorAll('.NXTEhighlight');
-                    highlights.forEach(el => { el.outerHTML = el.innerHTML;});
+                    this.removeAllHighlightsByClass()
                     return;
             }
-           
             this.highlightMisspelledWords(misspelledWords)
         },
         async checkSelectedWords() {
@@ -282,23 +279,24 @@ export default {
             if (selectedText) {
                 let response = ipcRenderer.sendSync('checktext', selectedText);
                 const misspelledWords = response.misspelledWords;
-                if (!misspelledWords.length) {  // no misspelled words .. make sure to remove all markers
-                    const highlights = document.querySelectorAll('.NXTEhighlight');
-                    highlights.forEach(el => { el.outerHTML = el.innerHTML;});
+                if (!misspelledWords.length) {  // no misspelled words .. make sure to remove all markers 
+                    this.removeAllHighlightsByClass()
                     return;
                 }
                 this.highlightMisspelledWords(misspelledWords)
             }
         },
-        async highlightMisspelledWords(misspelledWords) {
-            // Remove all previous highlights
-             const highlights = document.querySelectorAll('.NXTEhighlight');
-             highlights.forEach(el => { el.outerHTML = el.innerHTML;});
-            // await new Promise(resolve => setTimeout(resolve, 0)); // wait for next tick so the node is already inserted when we check html/text for spellingmistakes
 
+
+        async highlightMisspelledWords(misspelledWords) {
+      
             // get current editor content
             let html = this.editor.getHTML()  
-            
+
+            // Remove all previous highlights
+            html = this.removeElementsByClassFromString(html, ".NXTEhighlight")
+           
+
             misspelledWords.forEach(word => {
                 const regex = new RegExp(`(?<=^|\\W)${word}(?=$|\\W)`, 'g');
                 let insideTag = false;
@@ -443,6 +441,48 @@ export default {
                 parent.insertBefore(span.firstChild, span);
                 }
                 parent.removeChild(span);
+            }
+        },
+        removeAllHighlightsByClass() {
+            const editor = document.getElementById("editorcontent");
+            const elements = editor.querySelectorAll('.NXTEhighlight');
+            elements.forEach(element => {
+                const parent = element.parentNode;
+                while (element.firstChild) {
+                parent.insertBefore(element.firstChild, element);
+                }
+                parent.removeChild(element);
+            });
+        },
+        removeElementsByClassFromString(html, classname) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const editor = doc.body;
+            const elements = editor.querySelectorAll(classname);
+
+            elements.forEach(element => {
+                const parent = element.parentNode;
+                while (element.firstChild) {
+                parent.insertBefore(element.firstChild, element);
+                }
+                parent.removeChild(element);
+            });
+
+            return editor.innerHTML;
+        },
+        insertSpaceInsteadOfTab(e){
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const sel = window.getSelection();
+                const range = sel.getRangeAt(0);
+                const tabNode = document.createTextNode("    ");
+                range.insertNode(tabNode);
+
+                // Cursorposition aktualisieren
+                range.setStartAfter(tabNode);
+                range.setEndAfter(tabNode);
+                sel.removeAllRanges();
+                sel.addRange(range);
             }
         },
 
@@ -847,6 +887,9 @@ export default {
         // show spellchecking context menu
         this.editorcontentcontainer = document.getElementById('editorcontent');
         this.editorcontentcontainer.addEventListener('contextmenu', this.getWord );
+
+        this.editorcontentcontainer.addEventListener('keydown', this.insertSpaceInsteadOfTab)
+        
         // count selected words
         document.addEventListener('mouseup',  this.getSelectedTextInfo );
         // replace every occurence of a " (quote) on the beginning of a line or after a whitespace with the german „

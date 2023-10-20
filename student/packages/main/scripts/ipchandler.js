@@ -272,7 +272,7 @@ class IpcHandler {
         ipcMain.on('checkword', async (event, selectedWord) => {
             console.log(`Received selected text: ${selectedWord}`);
             const suggestions = await this.WindowHandler.nodehun.suggest(selectedWord)
-            console.log(suggestions)
+            //console.log(suggestions)
             event.returnValue = {  suggestions : suggestions }   
         });
     
@@ -284,7 +284,7 @@ class IpcHandler {
                 const correct = await this.WindowHandler.nodehun.spell(word);
                 if (!correct) {
                     misspelledWords.push(word);
-                    console.log(word)
+                   // console.log(word)
                 }
             }
             event.returnValue = { misspelledWords };
