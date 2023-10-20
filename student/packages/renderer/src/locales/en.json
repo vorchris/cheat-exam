@@ -94,7 +94,11 @@
         "requestdenied":"print request denied",
         "paste":"paste",
         "copy":"copy",
-        "spellcheck": "spellcheck"
+        "spellcheck": "spellcheck",
+        "spellcheckdeactivate": "deactivate spellcheck",
+        "reload": "Reload",
+        "reloadtext": "Would you like to reinitialize the Editor?",
+        "reloadcontent": "keep content"
     },
     "math": {
         "exit":"Exit safe exam mode",

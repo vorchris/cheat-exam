@@ -4,7 +4,7 @@
     <!-- HEADER START -->
     <div id="editorheader" class="w-100 p-3 text-white bg-dark  text-center" style=" z-index: 10000 !important">
         <div v-if="online" class="text-white m-1">
-            <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style="float: left;" />
+            <img @click="reloadAll()" src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style="float: left;" />
             <span class="fs-4 align-middle me-1" style="float: left;">{{clientname}}</span>
             <span class="fs-4 align-middle me-4 green" style="float: left;" >| {{$t('student.connected')}}</span> 
         </div>
@@ -73,7 +73,11 @@
             <button :title="$t('editor.linebreak')"  @click="editor.chain().focus().setHardBreak().run()" class="btn btn-outline-info p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/key-enter.svg" class="white" width="22" height="22" ></button>
             <button :title="$t('editor.copy')"  @click="copySelection()" class="btn btn-outline-success p-1 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-copy.svg" class="" width="22" height="22" ></button>
             <button :title="$t('editor.paste')"  @click="pasteSelection()" class="btn btn-outline-success p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-paste-style.svg" class="" width="22" height="22" ></button>
-            <button v-if="serverstatus.spellcheck" :title="$t('editor.spellcheck')"  @click="checkAllWords()" class="btn btn-outline-danger p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/autocorrection.svg" class="" width="22" height="22" ></button>
+           
+            <button v-if="serverstatus.spellcheck && spellcheck"  :title="$t('editor.spellcheckdeactivate')"  @click="deactivateSpellcheck()" class="btn btn-outline-danger p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/autocorrection.svg" class="" width="22" height="22" ></button>
+            <button v-if="serverstatus.spellcheck && !spellcheck" :title="$t('editor.spellcheck')"  @click="activateSpellcheck()" class="btn btn-outline-success p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/autocorrection.svg" class="" width="22" height="22" ></button>
+
+
 
             <button :title="$t('editor.more')" id="more" @click="showMore()" class="btn btn-outline-info p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/view-more-horizontal-symbolic.svg" class="white" width="22" height="22" ></button>
             <div id="moreoptions" style="display:none;">
@@ -214,7 +218,8 @@ export default {
             selectedCharCount:0,
             currentRange:0,
             word:"",
-            editorcontentcontainer:null
+            editorcontentcontainer:null,
+            spellcheck: false
         }
     },
 
@@ -482,13 +487,109 @@ export default {
                 return v.toString(16);
             });
         },
+        activateSpellcheck(){
+            if (this.serverstatus.spellcheck) {
+                console.log("spellcheck activated")
+                document.addEventListener('input', this.checkAllWordsOnSpacebar)  // do a spellcheck when the user hits space
+                if (this.serverstatus.suggestions){
+                    console.log("suggestions activated")
+                    document.addEventListener('click', this.hideSpellcheckMenu); // Hide suggestion menu when clicking elsewhere
+                    this.editorcontentcontainer.addEventListener('contextmenu', this.getWord );   // show the context menu
+                } 
+            }
+            this.spellcheck = true
+            this.checkAllWords()
+        },
+        deactivateSpellcheck(){
+            this.editorcontentcontainer.removeEventListener('contextmenu', this.getWord );
+            document.removeEventListener('input', this.checkAllWordsOnSpacebar)
+            this.removeAllHighlightsByClass()
+            this.spellcheck = false
+        },
+        reloadAll(){
+            this.$swal.fire({
+                title: this.$t("editor.reload"),
+                html:  `${this.$t("editor.reloadtext")}
+                    <br> <br>
+                    <input class="form-check-input" type="checkbox" id="keepcontent" checked>
+                    <label class="form-check-label" for="keepcontent"> ${this.$t("editor.reloadcontent")} </label>
+                `,
+                icon: "question",
+                showCancelButton: true,
+                cancelButtonText: this.$t("editor.cancel"),
+                reverseButtons: true
+            })
+            .then((result) => {
+                if (result.isConfirmed) {
+                    let keepcontent = document.getElementById('keepcontent').checked;
+                    console.log("reloading...")
+                    let content = ""
+                    if (keepcontent) {
+                        console.log("keeping content")
+                        content = this.editor.getHTML() //get edtior data and store it  
+                    }
+                    this.editor.destroy();  // Destroy the current instance
+                    this.createEditor();  // Reinitialize
+                    //paste editor data
+                    if (keepcontent) {
+                        this.editor.commands.clearContent(true)  //clear edtior
+                        this.editor.commands.insertContent(content) 
+                    }
+                } 
+            }); 
+
+        },
+        createEditor(){
+            this.editor = new Editor({
+                extensions: [
+                    CustomSpan,
+                    Typography,
+                    SmilieReplacer,
+                    Table.configure({
+                        resizable: true,
+                    }), 
+                    TableRow,
+                    TableCell,
+                    TableHeader,
+                    Blockquote,
+                    BulletList,
+                    Document,
+                    HardBreak,
+                    Heading,
+                    HorizontalRule,
+                    ListItem,
+                    OrderedList,
+                    Paragraph,
+                    Text,
+                    Bold,
+                    Code,
+                    Italic,
+                    Subscript,
+                    Superscript,
+                    Underline,
+                    Dropcursor,
+                    Gapcursor,
+                    History,
+                    CharacterCount.configure({
+                        limit: 60000   //this should be enough for all cases
+                    }),
+                    Color,
+                    TextStyle,
+                    TextAlign.configure({
+                        types: ['heading', 'paragraph'],
+                    }),
+                    CodeBlockLowlight
+                    .extend({
+                        addNodeView() {
+                        return VueNodeViewRenderer(CodeBlockComponent)
+                        },
+                    })
+                    .configure({ lowlight }),
+                ],
+                content: ``,         
+            });
+        }
     },
-
-
-
-
-
-
 
 
 
@@ -512,54 +613,7 @@ export default {
             this.setCSSVariable('--js-borderleft', `1px solid #ccc`); 
         }
 
-        this.editor = new Editor({
-            extensions: [
-                CustomSpan,
-                Typography,
-                SmilieReplacer,
-                Table.configure({
-                    resizable: true,
-                }), 
-                TableRow,
-                TableCell,
-                TableHeader,
-                Blockquote,
-                BulletList,
-                Document,
-                HardBreak,
-                Heading,
-                HorizontalRule,
-                ListItem,
-                OrderedList,
-                Paragraph,
-                Text,
-                Bold,
-                Code,
-                Italic,
-                Subscript,
-                Superscript,
-                Underline,
-                Dropcursor,
-                Gapcursor,
-                History,
-                CharacterCount.configure({
-                     limit: 60000   //this should be enough for all cases
-                }),
-                Color,
-                TextStyle,
-                TextAlign.configure({
-                    types: ['heading', 'paragraph'],
-                }),
-                CodeBlockLowlight
-                .extend({
-                    addNodeView() {
-                    return VueNodeViewRenderer(CodeBlockComponent)
-                    },
-                })
-                .configure({ lowlight }),
-            ],
-            content: `Das ist ein TestText mit Fehhler.`,         
-        });
+        this.createEditor(); // this initializes the editor
 
        
         ipcRenderer.on('save', (event, why) => {  //trigger document save by signal "save" sent from sendExamtoteacher in communication handler
@@ -584,28 +638,19 @@ export default {
         this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 5000)      //holt client info (exam status, connection, token)
         this.clockinterval = setInterval(() => { this.clock() }, 1000)   // uhrzeit (jede sekunde)
         this.loadFilelist()
-
         this.fetchInfo()
 
-        console.log(this.serverstatus)
         /**
         *   INSERT EVENT LISTENERS
         */
         // show spellchecking context menu
-        this.editorcontentcontainer = document.getElementById('editorcontent');
-        this.editorcontentcontainer.addEventListener('keydown', this.insertSpaceInsteadOfTab)   //this changes the tab behaviour and allows tabstops
-        if (this.serverstatus.spellcheck) {
-            console.log("spellcheck activated")
-            document.addEventListener('input', this.checkAllWordsOnSpacebar)  // do a spellcheck when the user hits space
-            if (this.serverstatus.suggestions){
-                console.log("suggestions activated")
-                document.addEventListener('click', this.hideSpellcheckMenu); // Hide suggestion menu when clicking elsewhere
-                this.editorcontentcontainer.addEventListener('contextmenu', this.getWord );   // show the context menu
-            } 
-        }
-        
+        this.editorcontentcontainer = document.getElementById('editorcontent');        
         this.editorcontentcontainer.addEventListener('mouseup',  this.getSelectedTextInfo );   // show amount of words and characters
-        this.editorcontentcontainer.addEventListener('input', this.replaceQuotes);// replace every occurence of a " (quote) on the beginning of a line or after a whitespace with the german „
+        this.editorcontentcontainer.addEventListener('input', this.replaceQuotes); // replace every occurence of a " (quote) on the beginning of a line or after a whitespace with the german „
+        this.editorcontentcontainer.addEventListener('keydown', this.insertSpaceInsteadOfTab)   //this changes the tab behaviour and allows tabstops
+
+        // this.activateSpellcheck()  // set all eventlisteners for spellchecking
+    
     },
     beforeMount(){ },
     beforeUnmount() {

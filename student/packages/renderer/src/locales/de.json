@@ -94,7 +94,11 @@
         "requestdenied":"Druckanfrage abgelehnt. Bitte warten und erneut senden.",
         "paste":"einfügen",
         "copy":"kopieren",
-        "spellcheck": "Rechtschreibprüfung"
+        "spellcheck": "Rechtschreibprüfung aktivieren",
+        "spellcheckdeactivate": "Rechtschreibprüfung deaktieren",
+        "reload": "Neu laden",
+        "reloadtext": "Wollen sie den Texteditor neu initialisieren?",
+        "reloadcontent": "Inhalt beibehalten"
     },
     "math": {
         "exit":"Abgesicherten Modus beenden?",

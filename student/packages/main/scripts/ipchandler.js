@@ -281,10 +281,8 @@ class IpcHandler {
         });
     
         ipcMain.on('checktext', async (event, selectedText) => {
-            //console.log(`Received selected text: ${selectedText}`);
-           // const words = selectedText.split(/[^a-zA-ZäöüÄÖÜ]+/); // Include special characters
-            const words = selectedText.split(/[^a-zA-ZäöüÄÖÜéèêëôûüÔÛÜáíóúñÁÍÓÚÑàèéìòùÀÈÉÌÒÙ]+/);
-
+        
+            const words = selectedText.split(/[^a-zA-ZäöüÄÖÜßéèêëôûüÔÛÜáíóúñÁÍÓÚÑàèéìòùÀÈÉÌÒÙçÇ]+/);
             const misspelledWords = [];
             for (const word of words) {
                 const correct = await this.WindowHandler.nodehun.spell(word);

@@ -37,9 +37,7 @@ async function highlightMisspelledWords(misspelledWords) {
     // Remove all previous highlights
     html = this.removeElementsByClassFromString(html, ".NXTEhighlight")
     misspelledWords.forEach(word => {
-        console.log(word)
-        //const regex = new RegExp(`(?<=^|\\W)${word}(?=$|\\W)`, 'g');
-        const regex = new RegExp(`(?<=^|[^a-zA-ZäöüÄÖÜéèêëôûüÔÛÜáíóúñÁÍÓÚÑàèéìòùÀÈÉÌÒÙ])${word}(?=$|[^a-zA-ZäöüÄÖÜéèêëôûüÔÛÜáíóúñÁÍÓÚÑàèéìòùÀÈÉÌÒÙ])`, 'g');
+        const regex = new RegExp(`(?<=^|[^a-zA-ZäöüÄÖÜßéèêëôûüÔÛÜáíóúñÁÍÓÚÑàèéìòùÀÈÉÌÒÙçÇ])${word}(?=$|[^a-zA-ZäöüÄÖÜßéèêëôûüÔÛÜáíóúñÁÍÓÚÑàèéìòùÀÈÉÌÒÙçÇ])`, 'g');
 
         let insideTag = false;
         html = html.replace(regex, (match, offset, fullString) => {
@@ -159,8 +157,8 @@ function replaceWord(suggestion) {
     if (this.currentRange) {
         const { startContainer, startOffset, endOffset } = this.currentRange;
         // Extract word boundaries using regex to consider special characters
-       // const regex = /(?<=^|\W)[a-zA-ZäöüÄÖÜ]+(?=\W|$)/g;
-        const regex = /(?<=^|\W)[a-zA-ZäöüÄÖÜéèêëôûüÔÛÜáíóúñÁÍÓÚÑàèéìòùÀÈÉÌÒÙ]+(?=\W|$)/g;   //for all languages
+        const regex = /(?<=^|\W)[a-zA-ZäöüÄÖÜßéèêëôûüÔÛÜáíóúñÁÍÓÚÑàèéìòùÀÈÉÌÒÙçÇ]+(?=\W|$)/g;
+
         let match;
         let startWordOffset = 0, endWordOffset = 0;
 
