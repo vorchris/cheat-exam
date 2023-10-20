@@ -262,7 +262,13 @@ export default {
             const text = this.editor.getText()
             const response = ipcRenderer.sendSync('checktext', text);
             const misspelledWords = response.misspelledWords;
-            if (!misspelledWords.length) return;
+          
+            if (!misspelledWords.length) {  // no misspelled words .. make sure to remove all markers
+                    const highlights = document.querySelectorAll('.NXTEhighlight');
+                    highlights.forEach(el => { el.outerHTML = el.innerHTML;});
+                    return;
+            }
+           
             this.highlightMisspelledWords(misspelledWords)
         },
         async checkSelectedWords() {
@@ -276,17 +282,23 @@ export default {
             if (selectedText) {
                 let response = ipcRenderer.sendSync('checktext', selectedText);
                 const misspelledWords = response.misspelledWords;
-                if (!misspelledWords.length) return;
+                if (!misspelledWords.length) {  // no misspelled words .. make sure to remove all markers
+                    const highlights = document.querySelectorAll('.NXTEhighlight');
+                    highlights.forEach(el => { el.outerHTML = el.innerHTML;});
+                    return;
+                }
                 this.highlightMisspelledWords(misspelledWords)
             }
         },
         async highlightMisspelledWords(misspelledWords) {
             // Remove all previous highlights
-            const highlights = document.querySelectorAll('.NXTEhighlight');
-            highlights.forEach(el => { el.outerHTML = el.innerHTML; });
-            
+             const highlights = document.querySelectorAll('.NXTEhighlight');
+             highlights.forEach(el => { el.outerHTML = el.innerHTML;});
+            // await new Promise(resolve => setTimeout(resolve, 0)); // wait for next tick so the node is already inserted when we check html/text for spellingmistakes
+
             // get current editor content
             let html = this.editor.getHTML()  
+            
             misspelledWords.forEach(word => {
                 const regex = new RegExp(`(?<=^|\\W)${word}(?=$|\\W)`, 'g');
                 let insideTag = false;
@@ -306,12 +318,13 @@ export default {
                         // Check if 'span' and 'id=NXTEhighlight' appear within the same opening tag
                         if (/^span[^>]*id=['"]NXTEhighlight-/.test(tagContent)) { return match; }   //this is already highlighted - return match only without additional span elements
                     }
+                    console.log("newone")
                     return `<span class='NXTEhighlight' id='NXTEhighlight-${this.uuidv4()}'>${match}</span>`;
                 });
             });
+        
             this.editor.commands.clearContent(true)  //clear edtior
-            
-            this.editor.commands.setContent(html)  // set editor content - with our span elements that highlight errors
+            this.editor.commands.insertContent(html)  // set editor content - with our span elements that highlight errors  (we use insertContent instead of setContent because setContent removes spaces)
         },
 
         getWord(event) {
@@ -690,6 +703,7 @@ export default {
                     }
                 }
             }
+            this.checkAllWordsOnSpacebar(event)
         },
         // returns a uuid 
         uuidv4() {
@@ -713,16 +727,20 @@ export default {
                 marker.id = 'NXTEmarker';
                 range.insertNode(marker);
 
-                await new Promise(resolve => setTimeout(resolve, 0)); // wait for next tick
+                await new Promise(resolve => setTimeout(resolve, 0)); // wait for next tick so the node is already inserted when we check html/text for spellingmistakes
+
+               
 
                 await this.checkAllWords();  //recheck the whole text  // this funtion removes all spaces.. why?
 
                 const newMarker = document.getElementById('NXTEmarker');
                 const newRange = document.createRange(); // Create a new range object
      
+                //const spaceNode = document.createTextNode(" "); // Erstellt einen Textknoten für das Leerzeichen
+                //newMarker.parentNode.insertBefore(spaceNode, newMarker); // Fügt das Leerzeichen direkt nach dem Marker ein
+               
                 newRange.setStartAfter(newMarker); // Set the start and end positions to the end of the marker span
                 newRange.setEndAfter(newMarker);
-
                 newMarker.remove();// Remove the marker span
                 selection.removeAllRanges(); // Remove all ranges from the selection object
                 selection.addRange(newRange); // Add the new range to the selection object
@@ -733,8 +751,6 @@ export default {
 
 
     mounted() {
-        this.editorcontentcontainer = document.getElementById('editorcontent');
-
         switch (this.cmargin.size) {
             case 4:       this.proseMirrorMargin = '90px';   break;
             case 3.5:     this.proseMirrorMargin = '70px';   break;
@@ -829,6 +845,7 @@ export default {
 
         
         // show spellchecking context menu
+        this.editorcontentcontainer = document.getElementById('editorcontent');
         this.editorcontentcontainer.addEventListener('contextmenu', this.getWord );
         // count selected words
         document.addEventListener('mouseup',  this.getSelectedTextInfo );
@@ -837,15 +854,14 @@ export default {
         // Hide suggestion menu when clicking elsewhere
         document.addEventListener('click', this.hideSpellcheckMenu);
 
-        document.addEventListener('input', this.checkAllWordsOnSpacebar);
-
     },
+    beforeMount(){ },
     beforeUnmount() {
         this.editorcontentcontainer.removeEventListener('contextmenu', this.getWord );
         document.removeEventListener('mouseup',  this.getSelectedTextInfo );
         document.removeEventListener('input', this.handleInput);
         document.removeEventListener('click', this.hideSpellcheckMenu);
-        this.editor.destroy()
+         this.editor.destroy()
         clearInterval( this.saveinterval )
         clearInterval( this.fetchinfointerval )
         clearInterval( this.clockinterval )
