@@ -1,3 +1,63 @@
+/**
+ * @license GPL LICENSE
+ * Copyright (c) 2021 Thomas Michael Weissel
+ * 
+ * This program is free software: you can redistribute it and/or modify it 
+ * under the terms of the GNU General Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * You should have received a copy of the GNU General Public License along with this program.
+ * If not, see <http://www.gnu.org/licenses/>
+ */
+
+// /**
+// NodeHun Custom Spellchecker Styles 
+// */
+// #suggestion-menu{
+//     z-index:100000;
+//     padding: 4px;
+//     background-color: #f3f8fd;
+//     border: 1px solid #d3e5ff;
+//     cursor: pointer;
+//     border-radius: 4px;
+//     box-shadow: 0px 0px 10px #00000047;
+// }
+// #suggestion-menu div {
+//     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+//     font-size: 0.8em;
+//     padding: 2px 6px 2px 6px;
+//     transition:0.2s;
+//     border-radius:4px;
+    
+// }
+// #suggestion-menu div:hover {
+//     box-shadow: 0px 0px 10px inset #bacbe4;
+// }
+
+// span.NXTEhighlight {
+//     position: relative;
+// }
+// /* Create the glowing underline */
+// span.NXTEhighlight::after {
+//     content: "";
+//     position: absolute;
+//     left: 0;
+//     bottom: 0;
+//     width: 100%;
+//     height: 1px;
+//     background: lightcoral; /* Light red color */
+//     box-shadow: 0 0 5px lightcoral;
+// }
+// .menu-separator {
+//     border-top: 1px solid #ccc;
+//     margin: 5px 0;
+// }
+
 
 
 class SpellChecker {
@@ -88,9 +148,6 @@ class SpellChecker {
         const rightText = nodeText.slice(offset).split(/\s|[\.,;!?]/)[0];
         this.word = leftText + rightText;
 
-        console.log(this.word)
-
-
         // Update the currentRange to include adjacent punctuation
         const startOffset = Math.max(offset - leftText.length, 0);
         const endOffset = Math.min(offset + rightText.length, nodeText.length);
@@ -133,15 +190,20 @@ class SpellChecker {
             };
             menu.appendChild(item);
         });
+        // Create separator
+        const separator = document.createElement("div");
+        separator.className = "menu-separator";
+        menu.appendChild(separator);
+        // Create AddWord 
         const addItem = document.createElement("div");
-        addItem.innerHTML = "Add word to dictionary";
+        addItem.innerHTML = "Wort hinzufügen";
         addItem.onclick = () => {
             console.log("adding word to dictionary:", targetWord)
-           // ipcRenderer.send('add-word-to-dictionary', targetWord); // Sending word to the main process
+            ipcRenderer.send('add-word-to-dictionary', targetWord); // Sending word to the main process
             menu.style.display = "none"; // Hide menu
+            this.checkAllWords()
         };
         menu.appendChild(addItem);
-
     }
     
     

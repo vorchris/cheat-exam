@@ -793,7 +793,9 @@ export default {
 
 }
 
-
+/**
+NodeHun Custom Spellchecker Styles 
+*/
 #suggestion-menu{
     z-index:100000;
     padding: 4px;
@@ -829,8 +831,16 @@ span.NXTEhighlight::after {
     background: lightcoral; /* Light red color */
     box-shadow: 0 0 5px lightcoral;
 }
+.menu-separator {
+    border-top: 1px solid #ccc;
+    margin: 5px 0;
+}
 
 
+
+/**
+Other Styles
+*/
 
 #editorcontainer {
     border-radius:0; 
