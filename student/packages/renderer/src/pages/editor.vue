@@ -4,7 +4,7 @@
     <!-- HEADER START -->
     <div id="editorheader" class="w-100 p-3 text-white bg-dark  text-center" style=" z-index: 10000 !important">
         <div v-if="online" class="text-white m-1">
-            <img @click="reloadAll()" src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style="float: left;" />
+            <img @click="reloadAll()" src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style="float: left; cursor:pointer;" />
             <span class="fs-4 align-middle me-1" style="float: left;">{{clientname}}</span>
             <span class="fs-4 align-middle me-4 green" style="float: left;" >| {{$t('student.connected')}}</span> 
         </div>
@@ -69,7 +69,7 @@
             <button :title="$t('editor.left')" @click="editor.chain().focus().setTextAlign('left').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'left' }) }" class="btn btn-outline-info  p-1 me-0 mb-1 btn-sm"><img src="/src/assets/img/svg/format-justify-left.svg" class="white" width="22" height="22" ></button> 
             <button :title="$t('editor.center')" @click="editor.chain().focus().setTextAlign('center').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'center' }) }" class="btn btn-outline-info p-1 me-0 mb-1 btn-sm "><img src="/src/assets/img/svg/format-justify-center.svg" class="white" width="22" height="22" ></button>
             <button :title="$t('editor.right')" @click="editor.chain().focus().setTextAlign('right').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'right' }) }" class="btn btn-outline-info p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/format-justify-right.svg" class="white" width="22" height="22" ></button>
-            <input :title="$t('editor.textcolor')" type="color" @input="editor.chain().focus().setColor($event.target.value).run()" :value="editor.getAttributes('textStyle').color || '#000000'" class="btn btn-outline-info p-2 me-2 mb-1 btn-sm" style="height: 33.25px; width:32px">
+            <input :title="$t('editor.textcolor')" type="color" @input="editor.chain().focus().setColor($event.target.value).run()" :value="getHexColor || '#000000'" class="btn btn-outline-info p-2 me-2 mb-1 btn-sm" style="height: 33.25px; width:32px">
             <button :title="$t('editor.linebreak')"  @click="editor.chain().focus().setHardBreak().run()" class="btn btn-outline-info p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/key-enter.svg" class="white" width="22" height="22" ></button>
             <button :title="$t('editor.copy')"  @click="copySelection()" class="btn btn-outline-success p-1 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-copy.svg" class="" width="22" height="22" ></button>
             <button :title="$t('editor.paste')"  @click="pasteSelection()" class="btn btn-outline-success p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-paste-style.svg" class="" width="22" height="22" ></button>
@@ -123,7 +123,7 @@
 
 
     <!-- EDITOR START -->
-    <div d="editormaincontainer" style="position: relative; height: 100%; overflow:hidden; overflow-y: scroll; background-color: #eeeefa;">
+    <div id="editormaincontainer" style="position: relative; height: 100%; overflow:hidden; overflow-y: scroll; background-color: #eeeefa;">
         <div id="editorcontainer" class="shadow" style="">
             <editor-content :editor="editor" class='p-0' id="editorcontent" style="background-color: #fff; border-radius:0;" />
         </div>
@@ -246,6 +246,14 @@ export default {
             spellcheck: false
         }
     },
+    computed: {
+        getHexColor() {
+            const rgbColor = this.editor?.getAttributes('textStyle')?.color || '';
+            return rgbColor.startsWith('rgb') ? this.rgbToHex(rgbColor) : rgbColor;
+        },
+
+
+    },
 
 
     methods: {
@@ -277,6 +285,12 @@ export default {
                 sel.addRange(range);
             }
         },
+        rgbToHex(rgb) {
+            const [r, g, b] = rgb.match(/\d+/g).map(Number);
+            return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+        },
+
+
         clock(){
             this.charcount = this.editor.storage.characterCount.characters()
             this.wordcount = this.editor.storage.characterCount.words()
@@ -490,8 +504,7 @@ export default {
                     if (node.nodeType === 3) { // Text node
                         const textContent = node.textContent;
                         
-                        console.log(textContent)  // hier checken ob textcontent eh nicht irgendwas krasses ist.. ob die node hier auch wirklich nur eine simple text node ist
-
+                        // sicherheits check weil das irgendwann mal vorkam - würde bedeuten dass wir keine editor node bearbeiten denn hier ist kein css ausser wir schreiben ihn selbst.. dann is auch egal                        if (this.containsCSSCode(textContent)){ console.log("invalid characters");return;}
                         const newText = textContent.replace(/(^|\s)"/g, function(match, p1) { return p1 === ' ' ? ' „' : '„'; });
                         
                         if (textContent !== newText) {
@@ -507,6 +520,12 @@ export default {
                 } catch (e) { console.log(e)}
             }
         },
+        containsCSSCode(str) {   // just another safty measure
+            // Regex für grundlegende CSS-Eigenschaften und Werte
+            const cssRegex = /([a-zA-Z-]+)\s*:\s*([^;]+);/;
+            return cssRegex.test(str);
+        },
+
         // returns a uuid 
         uuidv4() {
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -549,10 +568,10 @@ export default {
             .then((result) => {
                 if (result.isConfirmed) {
                     let keepcontent = document.getElementById('keepcontent').checked;
-                    console.log("reloading...")
+                    console.log("Reinitializing Editor Component")
                     let content = ""
                     if (keepcontent) {
-                        console.log("keeping content")
+                        console.log("-> keeping content")
                         content = this.editor.getHTML() //get edtior data and store it  
                     }
                     this.editor.destroy();  // Destroy the current instance

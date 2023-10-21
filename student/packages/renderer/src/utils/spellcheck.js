@@ -66,12 +66,35 @@ class SpellChecker {
       this.word = ""
     }
 
-    checkAllWords(){
-        const text = this.editor.getText()
+    async checkAllWords(){
+        const numberOfWords = this.editor.storage.characterCount.words()
+        let text = ""
+        if (numberOfWords > 3000) {  // 
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                let currentNode = range.startContainer;
+
+                // Traverse up the DOM tree to find the surrounding <p> element
+                while (currentNode && currentNode.nodeName !== 'P') {
+                    currentNode = currentNode.parentNode;
+                }
+                if (currentNode && currentNode.nodeName === 'P') {
+                    text = currentNode.textContent;
+                   // console.log(`Surrounding <p> text: ${text}`);
+                } 
+                else {
+                    text = this.editor.getText();  // Fall back to fetching all text
+                }
+            }
+        }
+        else {
+            text = this.editor.getText()
+        }
+       
         const response = ipcRenderer.sendSync('checktext', text);
         const misspelledWords = response.misspelledWords;
-        console.log(text)
-        console.log(misspelledWords)
+  
         if (!misspelledWords.length) {  // no misspelled words .. make sure to remove all markers
                 this.removeAllHighlightsByClass()
                 return;
@@ -127,8 +150,11 @@ class SpellChecker {
                 return `<span class='NXTEhighlight' id='NXTEhighlight-${this.uuidv4()}'>${match}</span>`;
             });
         });
+        const editorMainContainer = document.getElementById("editormaincontainer");
+        const scrollTop = editorMainContainer.scrollTop;
         this.editor.commands.clearContent(true)  //clear edtior
         this.editor.commands.insertContent(html)  // set editor content - with our span elements that highlight errors  (we use insertContent instead of setContent because setContent removes spaces)
+        editorMainContainer.scrollTop = scrollTop;
     }
     
     getWord(event) {
@@ -292,7 +318,13 @@ class SpellChecker {
         if (event.data === " " || event.data === "\u00A0") { // if spacebar is hit
             try {
                 const selection = window.getSelection();  // Get current selection and range
+                if (selection.rangeCount == 0) { return; } 
                 const range = selection.getRangeAt(0);
+                const startNode = range.startContainer; // Start-Knoten des Ranges ermitteln
+                // Überprüfen, ob der Start-Knoten oder ein Vorfahre ein <code>-Element ist // do not check inside of a code element
+                if (startNode.closest && startNode.closest('code')) { return; } 
+                else if (startNode.parentNode.closest('code')) { return; }
+
                 const marker = document.createElement('span'); // Insert marker element at cursor position
                 marker.id = 'NXTEmarker';
                 range.insertNode(marker);
