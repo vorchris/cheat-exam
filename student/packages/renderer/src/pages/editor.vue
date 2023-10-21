@@ -477,8 +477,9 @@ export default {
             this.selectedText = window.getSelection().toString();
         },
         pasteSelection(){
-            console.log("pasted")
-            console.log(this.selectedText)
+            if (!this.selectedText || this.selectedText == "") {return}
+            console.log("pasted:",this.selectedText)
+ 
             const selection = window.getSelection();
             const range = selection.getRangeAt(0);
             // Remove the current selection

@@ -27,7 +27,7 @@ import editor from '/src/pages/editor.vue'
 import geogebra from '/src/pages/geogebra.vue'
 import lock from '/src/pages/lock.vue'
 
-console.log(config)  // config is exposed to the renderer (frontend) in preload.js (it's readonly here!)
+//console.log(config)  // config is exposed to the renderer (frontend) in preload.js (it's readonly here!)
 
 // check if we run this app in electron (host is always "localhost" then)
 let electron = false
