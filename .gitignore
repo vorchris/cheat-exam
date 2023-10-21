@@ -6,6 +6,7 @@ dist
 dist-ssr
 *.local
 
+.directory
 .vscode/
 
 csrf*.jpg
