@@ -10,7 +10,7 @@
         </div>
         
         <div v-if="!online" class="text-white m-1">
-            <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style=" float: left;" />
+            <img @click="reloadAll()" src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style=" float: left; cursor:pointer;" />
             <span class="fs-4 align-middle me-1" style=" float: left;"> {{clientname}} </span>
             <span class="fs-4 align-middle me-4 red" style="float: left;"> | {{ $t("student.disconnected") }} </span>  
         </div>
