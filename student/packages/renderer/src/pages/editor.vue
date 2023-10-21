@@ -171,10 +171,34 @@ import { lowlight } from "lowlight/lib/common.js";
 import { Color } from '@tiptap/extension-color'
 import TextStyle from '@tiptap/extension-text-style'
 import $ from 'jquery'
+import { Node, mergeAttributes } from '@tiptap/core'   //we need this for our custom editor extension that allows to insert span elements
+import SpellChecker from '../utils/spellcheck'
 
-import {checkAllWordsOnSpacebar, hideSpellcheckMenu, removeElementsByClassFromString, removeAllHighlightsByClass, removeHighlight, getSpanIdFromRange,replaceWord, showSuggestions, CustomSpan,getWord, highlightMisspelledWords,checkAllWords, checkSelectedWords} from '../utils/spellcheck'
-
-
+// in order to insert <span> elemnts (used for highlighting misspelled words) we need our own tiptap extenison
+const CustomSpan = Node.create({
+    name: 'customSpan',
+    addOptions: { HTMLAttributes: {},    },
+    inline: true,
+    group: 'inline',
+    atom: false,
+    content: 'inline*',
+    addAttributes() {
+        return {
+        id: {
+            default: null,
+            parseHTML: element => ( element.getAttribute('id')),
+            renderHTML: attributes => ({  id: attributes.id }),
+        },
+        class: {
+            default: null,
+            parseHTML: element => ( element.getAttribute('class')),
+            renderHTML: attributes => ({ class: attributes.class }),
+        },
+        }
+    },
+    parseHTML() { return [ { tag: 'span', }, ] },
+    renderHTML({ HTMLAttributes }) { return ['span', mergeAttributes(HTMLAttributes), 0] },
+})
 
 
 
@@ -225,18 +249,18 @@ export default {
 
 
     methods: {
-        checkAllWords:checkAllWords,
-        checkSelectedWords:checkSelectedWords,  //just checks the selection for mistakes
-        highlightMisspelledWords:highlightMisspelledWords,
-        getWord:getWord,  // get rightklicked word and show suggestions
-        showSuggestions:showSuggestions,     // Function to display suggestions
-        replaceWord:replaceWord,  //replace misspelled word with suggestion - remove highlight
-        getSpanIdFromRange:getSpanIdFromRange,
-        removeHighlight:removeHighlight,
-        removeAllHighlightsByClass:removeAllHighlightsByClass, //searches fer the highlight class and removes every object
-        removeElementsByClassFromString:removeElementsByClassFromString,  // this removes html elements from a string that contains html elements
-        hideSpellcheckMenu:hideSpellcheckMenu, // hides the spellcheck context menu
-        checkAllWordsOnSpacebar:checkAllWordsOnSpacebar,  //does a complete spellcheck after hitting spacebar while writing
+        checkAllWords:SpellChecker.checkAllWords,
+        checkSelectedWords:SpellChecker.checkSelectedWords,  //just checks the selection for mistakes
+        highlightMisspelledWords:SpellChecker.highlightMisspelledWords,
+        getWord:SpellChecker.getWord,  // get rightklicked word and show suggestions
+        showSuggestions:SpellChecker.showSuggestions,     // Function to display suggestions
+        replaceWord:SpellChecker.replaceWord,  //replace misspelled word with suggestion - remove highlight
+        getSpanIdFromRange:SpellChecker.getSpanIdFromRange,
+        removeHighlight:SpellChecker.removeHighlight,
+        removeAllHighlightsByClass:SpellChecker.removeAllHighlightsByClass, //searches fer the highlight class and removes every object
+        removeElementsByClassFromString:SpellChecker.removeElementsByClassFromString,  // this removes html elements from a string that contains html elements
+        hideSpellcheckMenu:SpellChecker.hideSpellcheckMenu, // hides the spellcheck context menu
+        checkAllWordsOnSpacebar:SpellChecker.checkAllWordsOnSpacebar,  //does a complete spellcheck after hitting spacebar while writing
 
 
         insertSpaceInsteadOfTab(e){
@@ -465,6 +489,9 @@ export default {
 
                     if (node.nodeType === 3) { // Text node
                         const textContent = node.textContent;
+                        
+                        console.log(textContent)  // hier checken ob textcontent eh nicht irgendwas krasses ist.. ob die node hier auch wirklich nur eine simple text node ist
+
                         const newText = textContent.replace(/(^|\s)"/g, function(match, p1) { return p1 === ' ' ? ' „' : '„'; });
                         
                         if (textContent !== newText) {

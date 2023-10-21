@@ -281,7 +281,6 @@ class IpcHandler {
         });
     
         ipcMain.on('checktext', async (event, selectedText) => {
-        
             const words = selectedText.split(/[^a-zA-ZäöüÄÖÜßéèêëôûüÔÛÜáíóúñÁÍÓÚÑàèéìòùÀÈÉÌÒÙçÇ]+/);
             const misspelledWords = [];
             for (const word of words) {
@@ -294,7 +293,12 @@ class IpcHandler {
             event.returnValue = { misspelledWords };
         });
 
-
+        ipcMain.on('add-word-to-dictionary', (event, word) => {
+            this.WindowHandler.nodehun.add(word, err => {
+                if(err) console.log(`Failed to add word: ${err}`);
+                else console.log(`Successfully added ${word} to the dictionary.`);
+            });
+        });
 
 
     }
