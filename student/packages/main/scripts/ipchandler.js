@@ -261,6 +261,7 @@ class IpcHandler {
                 event.returnValue = data
             }
             else {  // return file list of exam directory
+                if (!fs.existsSync(workdir)){ fs.mkdirSync(workdir, { recursive: true });  } //do not crash if the directory is deleted after the app is started ^^
                 let filelist =  fs.readdirSync(workdir, { withFileTypes: true })
                     .filter(dirent => dirent.isFile())
                     .map(dirent => dirent.name)

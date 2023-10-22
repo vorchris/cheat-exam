@@ -27,7 +27,7 @@ import config from '../config.js';  // node not vue (relative path needed)
 class MulticastClient {
     constructor () {
         this.PORT = config.multicastClientPort
-        this.MULTICAST_ADDR = '239.255.255.250'
+        this.MULTICAST_ADDR = config.multicastServerAdrr
         this.client = null
        
         this.refreshExamsIntervall = null

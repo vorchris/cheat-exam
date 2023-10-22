@@ -2,22 +2,21 @@ import pjson from "../../package.json"
 
 
 const config = {
-    development: false,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
-    showdevtools: false,
+    development: true,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
+    showdevtools: true,
 
-    version: pjson.version,
     workdirectory : "",   // (desktop path + examdir)
     tempdirectory : "",   // (desktop path + 'tmp')
     homedirectory : "",   // set in main.ts
-   
     examdirectory: "EXAM-STUDENT",
-    serverApiPort:22422,
-    clientApiPort:11411,
-    clientVitePort:3001,
-    serverVitePort:3002,
-    multicastClientPort: 6024,
+
+    serverApiPort:22422,  // this is needed to be reachable on the teachers pc for basic functionality
+    multicastClientPort: 6024,  // only needed for exam autodiscovery
+
+    multicastServerAdrr: '239.255.255.250',
     hostip: "",       // server.js
     electron: false,
-    virtualized: false
+    virtualized: false,
+    version: pjson.version,
 }
 export default config

@@ -1,24 +1,22 @@
 import pjson from "../../package.json"
 
 const config = {
-    development: false,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
-    showdevtools: false,
-    buildforWEB: false,
-
-    version: pjson.version,
+    development: true,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
+    showdevtools: true,
+   
     workdirectory : "",   // set by server.js (desktop path + examdir)
     tempdirectory : "",   // set by server.js (desktop path + 'tmp')
-
     examdirectory: "EXAM-TEACHER",
-    serverApiPort:22422,
-    clientApiPort:11411,  // according to wikipedia and IANA no other service uses this port.. so this is ours ;)
-    clientVitePort:3001,
-    serverVitePort:3002,
-    multicastClientPort: 6024,
-    multicastServerClientPort: 6025,
+
+    serverApiPort:22422,  //this must be reachable at the teachers machine otherwise nothing is going to work
+    multicastClientPort: 6024,  //needed for exam autodiscovery by the student
+    multicastServerClientPort: 6025,   // needed to find other exams in the network with the same name and prevent using the same exam name twice (confusion alert)
+
     multicastServerAdrr: '239.255.255.250',
     hostip: "0.0.0.0",
     examServerList: {},
-    accessToken: false
+    accessToken: false,
+    version: pjson.version,
+    buildforWEB: false
 }
 export default config
