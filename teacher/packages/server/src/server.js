@@ -111,7 +111,6 @@ const server = https.createServer(options, api);
 if (config.buildforWEB){  // the api is started by the electron main process - for web we do it here
     server.listen(config.serverApiPort, () => {  
         console.log(`Express listening on https://${config.hostip}:${config.serverApiPort}`)
-        console.log(`Vite-vue listening on http://${config.hostip}:${config.serverVitePort}`)
     })
     if (config.hostip) {
         multicastClient.init()

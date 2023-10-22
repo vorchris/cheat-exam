@@ -70,7 +70,6 @@ app.whenReady().then(()=>{
     nativeTheme.themeSource = 'light'  // make sure it does't apply dark system themes (we have dark icons in editor)
     server.listen(config.serverApiPort, () => {  // start express API
         console.log(`Express listening on https://${config.hostip}:${config.serverApiPort}`)
-        console.log(`Vite-vue listening on http://${config.hostip}:${config.serverVitePort}`)
     }) 
 })
 .then(()=>{

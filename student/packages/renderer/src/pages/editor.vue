@@ -474,24 +474,23 @@ export default {
         },
         // manual copy and paste because we disabled clipboard
         copySelection(){
-            this.selectedText = window.getSelection().toString();
+            //this.selectedText = window.getSelection().toString();
+
+            const selection = window.getSelection();
+            const range = selection.getRangeAt(0);
+            const div = document.createElement('div');
+
+            // Fügt den ausgewählten Bereich zum Div-Element hinzu
+            div.appendChild(range.cloneContents());
+
+            // Speichert den HTML-Inhalt
+            this.selectedText = div.innerHTML;
         },
         pasteSelection(){
             if (!this.selectedText || this.selectedText == "") {return}
             console.log("pasted:",this.selectedText)
- 
-            const selection = window.getSelection();
-            const range = selection.getRangeAt(0);
-            // Remove the current selection
-            range.deleteContents();
-            // Insert the new text at the cursor position
-            const textNode = document.createTextNode(this.selectedText);
-            range.insertNode(textNode);
-            // Move the cursor after the inserted text
-            range.setStartAfter(textNode);
-            range.setEndAfter(textNode);
-            selection.removeAllRanges();
-            selection.addRange(range);
+            //paste previously selected html code
+            this.editor.commands.insertContent(this.selectedText)         
         },
         
         // replace every occurence of a " (quote) on the beginning of a line or after a whitespace with the german „

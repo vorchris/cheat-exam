@@ -2,6 +2,7 @@
 * Bootstrap CSS Framework
 * JQuery
 * Vue.js
+* Swal2
 
 
 
@@ -11,12 +12,11 @@
 ## server api (serverroutes)
 meldet sich ein client mit PIN an muss dieser überprüft werden und bei korrektem pin in eine lokale ClientList gelegt werden..
 
-teacherinstanz erstellt ein crfs token für den client und sendet dieses bei korrektem PIN dem client zurück. das token ist vorraussetzung für die verarbeitung an der #client api (sonst kann ja jeder xbeliebige call von irgendeinem webbrowser im netz den client in den exam mode schicken zb. oder sperren)
-
-bei der server api sollten wir aufpassen dass sie nicht missbraucht werden kann.. (siehe crfs token bei der client api)  - zu diesem zeitpunkt aber denke ich, dass zb. die route /start/ durchaus von überall her offen sein sollte.. dies ermöglicht es das ganze node programm am schulserver laufen zu lassen und jeder lehrer connected einfach von irgendeinem webbrowser aus (dadurch würde das teacher programm plattformübergreifend funktionieren)
+teacherinstanz erstellt ein crfs token für den client und sendet dieses bei korrektem PIN dem client zurück. das token ist vorraussetzung für den zugriff auf die api routen
 
 ## multicastserver (broadcasting)
-broadcastet exam object {name, timestamp} an alle (multicast ist nicht in jedem netz verfügbar daher zeigt das teacher dashboard die IP an und das studend UI erlaubt die eingabe von IP oder domain und holt automatisch verfügbare prüfungen)
+broadcastet exam object {name, timestamp} an alle (
+multicast ist nicht in jedem netz verfügbar daher zeigt das teacher dashboard die IP an und das studend UI erlaubt die eingabe von IP oder domain und holt automatisch verfügbare prüfungen)
 
 
 ## teacher frontend
@@ -34,12 +34,9 @@ formular um exam name zu wählen... startet über #teacher api den #multicastser
 
 
 # student
-## client api (clientroutes)
-sollte eigentlich wegfallen. sämtilche kommunikation mit dem teacher wurde auf pull nachrichten umgestellt.
-der client (main.ts) macht alle 4 sek ein update an die /server/control/update route und holt sich aktuelle tasks und informationen
 
-api wird derzeit nur für kommunikation zwischen client ui und client backend genutzt, was auf ipcMain und ipcRenderer calls umgestellt werden sollte
-damit ist die client api obsolete
+der client macht alle 4 sek ein update an die /server/control/update route und holt sich aktuelle tasks und informationen
+
 
 pull von files:
 teacher uploaded files (dateien werden im prüfungsordner/UPLOADS abgelegt und für die students ein vermerk zum abholen hinterlegt (filepath))
@@ -47,23 +44,20 @@ student erhält beim nachsten update diesen vermerk und macht einen api call an 
 student erhält die dateien und der server streicht den vermerk
 
 
-die #client api darf keinen api call annehmen bevor der client sich nicht am server registriert hat und sein crfs token erhalten und gespeichert hat.. die #client api muss bei jedem request zuerst das übermittelte crfs token überprüfen 
-
 ## multicastclient (listening)
 startet automatisch... jede exam instanz ist automatsch auch "listening" für andere broadcasts...
-
 hört auf die broadcasts der multicastserver und trägt empfangene infos von exam instanzen in seine    examServerList[]   ein..
 
 ## student frontend
-fragt über die #client api ab ob der #multicastclient schon eine exam instanz gefunden hat und zeigt sie als button an
+fragt über RPC ab ob der #multicastclient schon eine exam instanz gefunden hat und zeigt sie als button an
 
 auf klick wird ein PIN abgefragt und dieser pin mit client name und client ID an die gewählte exam instanz #teacherapi gesandt
 
 
 über die #teacherapi kann dann beim teacher der pin geprüft und der client bei korrektem pin in eine clientList aufgenommen werden... (ip, id, port)
-es wird ein einzigartiges token für den client generiert und dieses an den client zurück gesandt (auth für die client api)
+es wird ein einzigartiges token für den client generiert und dieses an den client zurück gesandt (auth für die teacher api)
 
-dadurch kann man dann über die client ip die ensprechende #clientapi sicher ansprechen
+dadurch können dann die anderen teacher api routes vom client genutzt werden.
 
 
 für den exam mode werden am client externe programme, skripte getriggert werden um das system noch weiter abzusperren 

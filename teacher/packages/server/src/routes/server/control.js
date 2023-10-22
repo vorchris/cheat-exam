@@ -149,7 +149,7 @@ router.get('/msauth', async (req, res) => {
  * #FIXME !!!  This route needs to be secured (anyone can start a server right now - or 1000 servers)
  */
  router.post('/start/:servername/:passwd', function (req, res, next) {
-
+    // this route may be used by localhost only
     if (!requestSourceAllowed(req, res)) return   // for the webversion we need to check user permissions here (future stuff)
 
     const servername = req.params.servername 
