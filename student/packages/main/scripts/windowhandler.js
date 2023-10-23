@@ -24,11 +24,15 @@ import fs from 'fs'
 import playSound from 'play-sound';
 import examMenu from './examMenu.js';
 const sound = playSound({});
+import { spawn, exec } from 'child_process';
 import Nodehun from 'nodehun'
 
   ////////////////////////////////////////////////////////////
  // Window handling (ipcRenderer Process - Frontend) START
 ////////////////////////////////////////////////////////////
+
+
+
 
 
 class WindowHandler {
@@ -45,6 +49,7 @@ class WindowHandler {
     init (mc, config) {
         this.multicastClient = mc
         this.config = config
+        setVolumeLinux();
     }
 
     // return electron window in focus or an other electron window depending on the hierachy
@@ -702,6 +707,12 @@ class WindowHandler {
         winhandler.examwindow.show();  // we keep focus on the window.. no matter what
         winhandler.examwindow.moveTop();
         winhandler.examwindow.focus();
+
+        //turn volume up ^^
+        if (process.platform === 'win32') { spawn('powershell', ['Set-VolumeLevel -Level 100']); }
+        if (process.platform ==='darwin') { exec('osascript -e "set volume output volume 100"'); }  
+        if (process.platform === 'linux') { exec('amixer set Master 100%'); }
+       
 
         // Play sound
         let soundfile = null
