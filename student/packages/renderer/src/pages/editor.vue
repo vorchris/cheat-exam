@@ -77,8 +77,6 @@
             <button v-if="serverstatus.spellcheck && spellcheck"  :title="$t('editor.spellcheckdeactivate')"  @click="deactivateSpellcheck()" class="btn btn-outline-danger p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/autocorrection.svg" class="" width="22" height="22" ></button>
             <button v-if="serverstatus.spellcheck && !spellcheck" :title="$t('editor.spellcheck')"  @click="activateSpellcheck()" class="btn btn-outline-success p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/autocorrection.svg" class="" width="22" height="22" ></button>
 
-
-
             <button :title="$t('editor.more')" id="more" @click="showMore()" class="btn btn-outline-info p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/view-more-horizontal-symbolic.svg" class="white" width="22" height="22" ></button>
             <div id="moreoptions" style="display:none;">
                 <button :title="$t('editor.inserttable')" @click="editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()" class="btn btn-outline-info p-1 me-0 mb-1 btn-sm"><img src="/src/assets/img/svg/insert-table.svg" width="22" height="22" ></button>
@@ -497,18 +495,26 @@ export default {
         replaceQuotes(event) {
             if (event.target.getAttribute('contenteditable') === 'true') {
                 try {
-                    const selection = window.getSelection();
-                    const node = selection.anchorNode;  //nur den text dieser einen node ersetzen und nicht den gesamten editor text
-                    const caretPos = selection.anchorOffset;
+                    const selection = window.getSelection();  // hol dir die position des cursors
+                    const node = selection.anchorNode;  // hol dir die node die ihn umgibt
+                    const caretPos = selection.anchorOffset;  //merk dir wo sich der cursor befindet
+                    
+                    // Check if within <code> tags - do not change quotes here
+                    let nodecheck = selection.anchorNode;
+                    while (nodecheck !== null && nodecheck !== document.body) {
+                        if (nodecheck.tagName === 'CODE') {
+                            console.log("Cursor is inside <code> element.");
+                            return;
+                        }
+                        nodecheck = nodecheck.parentNode;
+                    }
 
-                    if (node.nodeType === 3) { // Text node
-                        const textContent = node.textContent;
+                    if (node.nodeType === 3) { // Text node - auf keinen fall in anderen nodetypes arbeiten
+                        const textContent = node.textContent;  //hole den plaintext der node - wir verändern keinen html code
+                        const newText = textContent.replace(/(^|\s)"/g, function(match, p1) { return p1 === ' ' ? ' „' : '„'; });  //tausche engl gegen deu wenn am anfang oder alleinstehend
                         
-                        // sicherheits check weil das irgendwann mal vorkam - würde bedeuten dass wir keine editor node bearbeiten denn hier ist kein css ausser wir schreiben ihn selbst.. dann is auch egal                        if (this.containsCSSCode(textContent)){ console.log("invalid characters");return;}
-                        const newText = textContent.replace(/(^|\s)"/g, function(match, p1) { return p1 === ' ' ? ' „' : '„'; });
-                        
-                        if (textContent !== newText) {
-                            node.textContent = newText;
+                        if (textContent !== newText) {  // sollten wir was verändert haben (komma-tausch) ersetze den text
+                            node.textContent = newText; // füge den neuen text mit deutschen hochkomma ,, wieder in die node ein
                             // Reset cursor position
                             const newRange = document.createRange();  // Erstellt ein neues Range-Objekt
                             newRange.setStart(node, Math.min(newText.length, caretPos));  // Setzt den Startpunkt der Range im Textknoten
@@ -520,7 +526,7 @@ export default {
                 } catch (e) { console.log(e)}
             }
         },
-        containsCSSCode(str) {   // just another safty measure
+        containsCSSCode(str) {   // just another safty measure (unused right now)
             // Regex für grundlegende CSS-Eigenschaften und Werte
             const cssRegex = /([a-zA-Z-]+)\s*:\s*([^;]+);/;
             return cssRegex.test(str);

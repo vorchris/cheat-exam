@@ -90,6 +90,7 @@ function enableRestrictions(win){
         //childProcess.execFile('qdbus', ['org.kde.plasmashell','/PlasmaShell','refreshCurrentShell'])    // i really dont like that but this is the fastest way i found to disable the windows/meta key
         childProcess.execFile('kwriteconfig5', ['--file',`${config.homedirectory}/.config/kwinrc`,'--group','ModifierOnlyShortcuts','--key','Meta','""']) 
         childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
+        childProcess.execFile('kquitapp5', ['kglobalaccel'])
 
 
         // Temporarily deactivate ALL global keyboardshortcuts 
@@ -220,6 +221,7 @@ function disableRestrictions(){
         childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'false'])
         // activate ALL 3d Effects (present window, change desktop, etc.) 
         childProcess.execFile('qdbus', ['org.kde.KWin' ,'/Compositor', 'org.kde.kwin.Compositing.resume'])
+        childProcess.execFile('kstart5', ['kglobalaccel5'])
         
         //enable META Key for Launchermenu
         //childProcess.execFile('sed', ['-i', '-e', 's/global=.*/global=Alt+F1/g', `${config.homedirectory}/.config/plasma-org.kde.plasma.desktop-appletsrc` ])
