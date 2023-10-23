@@ -49,7 +49,6 @@ class WindowHandler {
     init (mc, config) {
         this.multicastClient = mc
         this.config = config
-        setVolumeLinux();
     }
 
     // return electron window in focus or an other electron window depending on the hierachy
@@ -554,6 +553,7 @@ class WindowHandler {
         if (this.config.showdevtools) { this.examwindow.webContents.openDevTools()  }
         this.examwindow.once('ready-to-show', async () => {
             this.examwindow.removeMenu() 
+          
             if (!this.config.development) { 
                 this.examwindow.setKiosk(true)
                 this.examwindow.setMinimizable(false)
@@ -709,11 +709,14 @@ class WindowHandler {
         winhandler.examwindow.focus();
 
         //turn volume up ^^
-        if (process.platform === 'win32') { spawn('powershell', ['Set-VolumeLevel -Level 100']); }
-        if (process.platform ==='darwin') { exec('osascript -e "set volume output volume 100"'); }  
-        if (process.platform === 'linux') { exec('amixer set Master 100%'); }
-       
-
+        if (process.platform === 'win32') { spawn('powershell', ['Set-VolumeLevel -Level 100; Set-VolumeMute -Mute $false']); }
+        if (process.platform ==='darwin') { exec('osascript -e "set volume output volume 100" -e "set volume output muted false"'); }  
+        if (process.platform === 'linux') { 
+            exec('amixer set Master 100% ');
+            exec('pactl set-sink-mute `pactl get-default-sink` 0');
+        }
+            
+           
         // Play sound
         let soundfile = null
         if (app.isPackaged) {

@@ -509,11 +509,14 @@ export default {
                         nodecheck = nodecheck.parentNode;
                     }
 
+                    
                     if (node.nodeType === 3) { // Text node - auf keinen fall in anderen nodetypes arbeiten
+                        
                         const textContent = node.textContent;  //hole den plaintext der node - wir verändern keinen html code
                         const newText = textContent.replace(/(^|\s)"/g, function(match, p1) { return p1 === ' ' ? ' „' : '„'; });  //tausche engl gegen deu wenn am anfang oder alleinstehend
                         
                         if (textContent !== newText) {  // sollten wir was verändert haben (komma-tausch) ersetze den text
+                            event.stopImmediatePropagation()  //erlaube keine anderen eventhandler für dieses event mehr, weder am selben noch auf irgendeinem parent element
                             node.textContent = newText; // füge den neuen text mit deutschen hochkomma ,, wieder in die node ein
                             // Reset cursor position
                             const newRange = document.createRange();  // Erstellt ein neues Range-Objekt
