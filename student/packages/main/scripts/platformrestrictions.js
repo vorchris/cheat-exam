@@ -36,7 +36,7 @@
 
 import { join } from 'path'
 import childProcess from 'child_process'   //needed to run bash commands on linux 
-import { TouchBar } from 'electron'
+import { TouchBar, clipboard } from 'electron'
 import config from '../config.js';
 
 // unfortunately there is no convenient way for gnome-shell to un-set ALL shortcuts at once
@@ -74,6 +74,16 @@ const gnomeDashToDockKeybindings = ['app-ctrl-hotkey-1','app-ctrl-hotkey-10','ap
 function enableRestrictions(win){
     if (config.development) {return}
 
+    clipboard.clear()  //this should clean the clipboard for the electron app
+    win.clearclipboard =  setInterval( ()=> { clipboard.clear()  },1000)
+   
+
+    // list of apps we do not want to run in background
+    const appsToClose = [ 'zoom.us', 'Google Chrome', 'Microsoft Edge', 'Microsoft Teams','firefox', 'discord', 'zoom', 'chrome', 'msedge', 'teams', 'teamviewer', 'google-chrome','skypeforlinux','skype','brave','opera','anydesk','safari'];
+
+
+
+   
     /**
      * L I N U X
      */
@@ -84,6 +94,20 @@ function enableRestrictions(win){
         //////////////
 
         console.log("enabling platform restrictions")
+
+
+        appsToClose.forEach(app => {
+            // pgrep zum Finden der PID, dann kill zum Beenden des Prozesses
+            childProcess.exec(`pgrep ${app} | xargs kill -9`, (error) => {
+                if (error) {
+                    console.error(`Fehler beim Beenden von ${app}: ${error}`);
+                } else {
+                    console.log(`${app} wurde erfolgreich beendet`);
+                }
+            });
+        });
+
+
         
         //disable META Key for Launchermenu
         //childProcess.execFile('sed', ['-i', '-e', 's/global=Alt+F1/global=/g', `${config.homedirectory}/.config/plasma-org.kde.plasma.desktop-appletsrc` ])   // alt+f1 or f2 is translated by "kickoff" to meta/win/cmd shortcut (wtf)
@@ -169,7 +193,21 @@ function enableRestrictions(win){
             }
             console.log(`stdout: ${stdout}`);
             console.error(`stderr: ${stderr}`);
-          });
+        });
+
+        appsToClose.forEach(app => {
+            // taskkill-Befehl für Windows
+            childProcess.exec(`taskkill /F /IM ${app}.exe /T`, (error) => {
+                if (error) {
+                    console.error(`Fehler beim Beenden von ${app}: ${error}`);
+                } else {
+                    console.log(`${app} wurde erfolgreich beendet`);
+                }
+            });
+        });
+
+
+
 
 
     }
@@ -195,15 +233,29 @@ function enableRestrictions(win){
 
         // clear clipboard
         childProcess.exec('pbcopy < /dev/null')
+
+        appsToClose.forEach(app => {
+            // pkill-Befehl für macOS
+            childProcess.exec(`pkill -9 -f "${app}"`, (error) => {
+              if (error) {
+                console.error(`Fehler beim Beenden von ${app}: ${error}`);
+              } else {
+                console.log(`${app} wurde erfolgreich beendet`);
+              }
+            });
+          });
+
     }
 }
 
 
 
 
-function disableRestrictions(){
+function disableRestrictions(win){
 
     if (config.development) {return}
+
+    clearInterval( win.clearclipboard )
 
     // disable global keyboardshortcuts on PLASMA/KDE
     if (process.platform === 'linux') {

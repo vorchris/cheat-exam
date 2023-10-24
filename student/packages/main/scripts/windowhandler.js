@@ -234,7 +234,7 @@ class WindowHandler {
                 console.log(this.multicastClient.clientinfo)
                 this.examwindow.destroy(); 
                 this.examwindow = null;
-                disableRestrictions()
+                disableRestrictions(this.examwindow)
                 this.multicastClient.clientinfo.exammode = false
                 this.multicastClient.clientinfo.focus = true
                 return
@@ -597,7 +597,7 @@ class WindowHandler {
             else {
                 this.examwindow.destroy(); 
                 this.examwindow = null;
-                disableRestrictions()
+                disableRestrictions(this.examwindow)
                 this.multicastClient.clientinfo.exammode = false
                 this.multicastClient.clientinfo.focus = true
             }  

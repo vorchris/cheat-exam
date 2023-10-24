@@ -121,18 +121,22 @@ app.whenReady()
         })
     }
     WindowHandler.createMainWindow()
+
+    //these are some shortcuts we try to capture
     globalShortcut.register('CommandOrControl+R', () => {});
-    globalShortcut.register('F5', () => {});
+    globalShortcut.register('F5', () => {});  //reload page
     globalShortcut.register('CommandOrControl+Shift+R', () => {});
-    globalShortcut.register('Alt+F4', () => {console.log("Alt+F4")});
+    globalShortcut.register('Alt+F4', () => {console.log("Alt+F4")});  //exit app
     globalShortcut.register('CommandOrControl+W', () => {});
-    globalShortcut.register('CommandOrControl+Q', () => {});
-    clipboard.clear() // once for everybody
-    if (process.platform === 'darwin') {
-        globalShortcut.register('CommandOrControl+V', () => {console.log('no shared clipboard on macs')});
-        globalShortcut.register('CommandOrControl+Shift+V', () => {console.log('no shared clipboard on macs')});
-        setInterval( ()=> { clipboard.clear()  },1000)
-    }
+    globalShortcut.register('CommandOrControl+Q', () => {});  //quit
+    globalShortcut.register('CommandOrControl+D', () => {});  //show desktop
+    globalShortcut.register('CommandOrControl+L', () => {});  //lockscreen
+    globalShortcut.register('CommandOrControl+P', () => {});  //change screen layout
+ 
+    //if (process.platform === 'darwin') {
+    globalShortcut.register('CommandOrControl+V', () => {console.log('no shared clipboard on macs')});
+    globalShortcut.register('CommandOrControl+Shift+V', () => {console.log('no shared clipboard on macs')});
+   // }
 })
 
 //capture global keyboard shortcuts like alt+tab and send a signal to the frontend that a key combination has been detected 
