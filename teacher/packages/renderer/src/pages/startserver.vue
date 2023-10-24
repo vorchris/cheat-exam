@@ -50,7 +50,11 @@
             <br><div id="statusdiv" class="btn btn-warning m-2 hidden">{{$t("startserver.connected")}}</div>
         </div>
         <br>
-        <span style="position: absolute; bottom:2px; left: 4px; font-size:0.8em">{{version}}</span>
+       
+        <span @click="showCopyleft()" style="position: absolute; bottom:2px; left: 6px; font-size:0.8em;cursor: pointer;">
+            <span style=" display:inline-block; transform: scaleX(-1);font-size:1.2em; ">&copy; </span> 
+            <span style="vertical-align: text-bottom;">&nbsp;{{version}}</span>
+        </span>
     </div>
 
     <!-- maincontent -->
@@ -91,6 +95,7 @@ export default {
     data() {
         return {
             version: this.$route.params.version,
+            info: config.info,
             title: document.title,
             servername : this.$route.params.config.development ? "Mathe5A":"",
             password: this.$route.params.config.development ? "password": Math.floor(1000 + Math.random() * 9000),   //we could use this password to allow students to manually leave exam mode 
@@ -199,7 +204,19 @@ export default {
                 .catch(err => { this.status(err); console.warn(err) })
             } 
         },
-
+        showCopyleft(){
+            this.$swal.fire({
+                title: "<span style='display:inline-block; transform: scaleX(-1); vertical-align: middle; cursor: pointer;'>&copy;</span>",
+                icon: 'info',
+                html: `
+                Thomas Michael Weissel <br>
+                <span style="font-size:0.8em">
+                  <a href="https://next-exam.at/#kontakt" target="_blank">next-exam.at</a>
+                </span><br><br>
+                <span style="font-size:0.8em">Version: ${this.version} ${this.info}</span>
+                `,
+            })
+        },
         //show status message
         async status(text){  
             $("#statusdiv").text(text)

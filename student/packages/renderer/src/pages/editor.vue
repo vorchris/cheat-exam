@@ -121,16 +121,17 @@
 
 
     <!-- EDITOR START -->
-    <div id="editormaincontainer" style="position: relative; height: 100%; overflow:hidden; overflow-y: scroll; background-color: #eeeefa;">
+    <div id="editormaincontainer" style="position: relative; height: 100%; overflow-x:auto; overflow-y: scroll; background-color: #eeeefa;">
         <div id="editorcontainer" class="shadow" style="">
             <editor-content :editor="editor" class='p-0' id="editorcontent" style="background-color: #fff; border-radius:0;" />
         </div>
-        <div id="statusbar">
+
+    </div>
+    <div id="statusbar">
              <span> {{ $t("editor.chars") }}: {{charcount}}</span> | <span> {{ $t("editor.words") }}: {{wordcount}}</span> | <span id="editselected"> {{ $t("editor.selected") }}: {{selectedWordCount}}/{{selectedCharCount}}</span> 
              <img @click="zoomin()" src="/src/assets/img/svg/zoom-in.svg" class="zoombutton">  
              <img @click="zoomout()" src="/src/assets/img/svg/zoom-out.svg" class="zoombutton">
         </div>
-    </div>
     <!-- EDITOR END -->
 </template>
 
@@ -772,6 +773,7 @@ export default {
         border-radius:0px !important;
         background-color: white !important;
         overflow: hidden !important;
+        zoom: 1 !important;
     }
 
     #editormaincontainer {
@@ -876,6 +878,7 @@ Other Styles
     width: 90vw; 
     margin-left:5vw;
     margin-bottom:50px;
+    zoom:1;
 }
 
 #editorcontent div {

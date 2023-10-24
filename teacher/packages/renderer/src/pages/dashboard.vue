@@ -157,9 +157,8 @@
 
         <div id="statusdiv" class="btn btn-warning m-1"> {{$t('dashboard.connected')}}  </div>
         <span @click="showCopyleft()" style="position: absolute; bottom:2px; left: 6px; font-size:0.8em;cursor: pointer;">
-           
-            <span style=" display:inline-block; transform: scaleX(-1);font-size:1.2em; ">&copy;</span> 
-            <span style="vertical-align: text-bottom;">{{version}}</span>
+            <span style=" display:inline-block; transform: scaleX(-1);font-size:1.2em; ">&copy; </span> 
+            <span style="vertical-align: text-bottom;">&nbsp;{{version}}</span>
         </span>
        
     </div>
@@ -245,6 +244,7 @@ export default {
     data() {
         return {
             version: this.$route.params.version,
+            info: config.info,
             title: document.title,
             fetchinterval: null,
             abgabeinterval: null,
@@ -712,12 +712,10 @@ export default {
                 Thomas Michael Weissel <br>
                 <span style="font-size:0.8em">
                   <a href="https://next-exam.at/#kontakt" target="_blank">next-exam.at</a>
-                </span>`,
-           
-            }).then((input) => {
-              
-            })  
-
+                </span><br><br>
+                <span style="font-size:0.8em">Version: ${this.version} ${this.info}</span>
+                `,
+            })
         },
         /**
          * store the current serverstatus object in the backend
