@@ -75,7 +75,7 @@ function enableRestrictions(win){
     if (config.development) {return}
 
     clipboard.clear()  //this should clean the clipboard for the electron app
-    win.clearclipboard =  setInterval( ()=> { clipboard.clear()  },1000)
+    setInterval( ()=> { clipboard.clear()  },1000)
    
 
     // list of apps we do not want to run in background
@@ -99,11 +99,7 @@ function enableRestrictions(win){
         appsToClose.forEach(app => {
             // pgrep zum Finden der PID, dann kill zum Beenden des Prozesses
             childProcess.exec(`pgrep ${app} | xargs kill -9`, (error) => {
-                if (error) {
-                    console.error(`Fehler beim Beenden von ${app}: ${error}`);
-                } else {
-                    console.log(`${app} wurde erfolgreich beendet`);
-                }
+              
             });
         });
 
@@ -173,8 +169,8 @@ function enableRestrictions(win){
         //block important keyboard shortcuts (disable-shortcuts.exe is a selfmade C application - shortcuts are hardcoded there - need to rebuild if adding shortcuts)
         let executable1 = join(__dirname, '../../public/disable-shortcuts.exe')
         childProcess.execFile(executable1, [], { detached: true, shell: false, windowsHide: true}, (error, stdout, stderr) => {
-            if (stderr) {  console.log(stderr)  }
-            if (error)  {  console.log(error)   }
+           // if (stderr) {  console.log(stderr)  }
+          //  if (error)  {  console.log(error)   }
         })
         console.log("shortcuts disabled")
 
@@ -198,12 +194,8 @@ function enableRestrictions(win){
 
         appsToClose.forEach(app => {
             // taskkill-Befehl für Windows
-            childProcess.exec(`taskkill /F /IM "${app}.exe" /T`, (error) => {
-                if (error) {
-                    console.error(`Fehler beim Beenden von ${app}: ${error}`);
-                } else {
-                    console.log(`${app} wurde erfolgreich beendet`);
-                }
+            childProcess.exec(`taskkill /F /IM "${app}.exe" /T`, (error, stderr, stdout) => {
+          
             });
         });
 
@@ -237,12 +229,8 @@ function enableRestrictions(win){
 
         appsToClose.forEach(app => {
             // pkill-Befehl für macOS
-            childProcess.exec(`pkill -9 -f "${app}"`, (error) => {
-              if (error) {
-                console.error(`Fehler beim Beenden von ${app}: ${error}`);
-              } else {
-                console.log(`${app} wurde erfolgreich beendet`);
-              }
+            childProcess.exec(`pkill -9 -f "${app}"`, (error, stderr, stdout) => {
+   
             });
           });
 
@@ -263,8 +251,6 @@ function enableRestrictions(win){
 function disableRestrictions(win){
 
     if (config.development) {return}
-
-    clearInterval( win.clearclipboard )
 
     // disable global keyboardshortcuts on PLASMA/KDE
     if (process.platform === 'linux') {
@@ -313,14 +299,14 @@ function disableRestrictions(win){
      */
     if (process.platform === 'win32') {
         //unblock important keyboard shortcuts (disable-shortcuts.exe)
- 
+        console.log("deactivating shortcuts...")
         childProcess.exec('taskkill /f /im disable-shortcuts.exe', (error, stdout, stderr) => {
             if (error) {
                 console.error(`exec error: ${error}`);
                 return;
             }
-            console.log(`stdout: ${stdout}`);
-            console.error(`stderr: ${stderr}`);
+           // console.log(`stdout: ${stdout}`);
+           // console.error(`stderr: ${stderr}`);
           });
 
 

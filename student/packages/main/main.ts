@@ -95,6 +95,7 @@ app.on('window-all-closed', () => {  // if window is closed
     WindowHandler.mainwindow = null
     // if (process.platform !== 'darwin'){ app.quit() }
     app.quit()
+    
 })
 
 app.on('second-instance', () => {

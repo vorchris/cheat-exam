@@ -21,9 +21,7 @@ import { app, BrowserWindow, dialog, screen} from 'electron'
 import { join } from 'path'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 import fs from 'fs' 
-import playSound from 'play-sound';
 import examMenu from './examMenu.js';
-const sound = playSound({});
 import { spawn, exec } from 'child_process';
 import Nodehun from 'nodehun'
 
@@ -205,8 +203,7 @@ class WindowHandler {
             webPreferences: {
                 preload: join(__dirname, '../preload/preload.cjs'),
                 spellcheck: false,  
-            },
-            clearclipboard: null
+            }
         });
 
         this.examwindow.serverstatus = serverstatus //we keep it there to make it accessable via examwindow in ipcHandler
@@ -716,17 +713,9 @@ class WindowHandler {
             exec('amixer set Master 100% ');
             exec('pactl set-sink-mute `pactl get-default-sink` 0');
         }
-            
+        
+        //we could play a sound file here.. tbd.
            
-        // Play sound
-        let soundfile = null
-        if (app.isPackaged) {
-            soundfile = join(process.resourcesPath, 'app.asar.unpacked', 'public', 'attention.wav');
-        } else {
-            soundfile = join(__dirname, '../../public/attention.wav');
-        }
-        sound.play(soundfile);
-
         if (this.multicastClient.clientinfo.examtype === "eduvidual" || this.multicastClient.clientinfo.examtype === "gforms" ){
             // this only works in "eduvidual" mode because otherwise there is no element "warning" to append (clicking on an external link is considered a blur event)
             winhandler.examwindow.webContents.executeJavaScript(` 
