@@ -206,6 +206,7 @@ class WindowHandler {
                 preload: join(__dirname, '../preload/preload.cjs'),
                 spellcheck: false,  
             },
+            clearclipboard: null
         });
 
         this.examwindow.serverstatus = serverstatus //we keep it there to make it accessable via examwindow in ipcHandler
@@ -581,7 +582,7 @@ class WindowHandler {
 
                 this.examwindow.moveTop();
                
-                enableRestrictions(WindowHandler.examwindow)  // enable restriction only when exam window is fully loaded and in focus
+                enableRestrictions(this.examwindow)  // enable restriction only when exam window is fully loaded and in focus
                 await this.sleep(2000) // wait an additional 2 sec for windows restrictions to kick in (they steal focus)
                 this.examwindow.focus()
                 this.addBlurListener()
