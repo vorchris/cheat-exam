@@ -30,6 +30,7 @@ const options = {
 const router = createRouter()
 const vApp = createApp(App)
 
+
 vApp.use(router)
 vApp.use(i18n)
 vApp.use(VueSweetalert2, options)

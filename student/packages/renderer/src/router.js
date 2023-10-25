@@ -25,6 +25,7 @@ import notfound from '/src/pages/notfound.vue'
 import student from '/src/pages/student.vue'
 import editor from '/src/pages/editor.vue'
 import geogebra from '/src/pages/geogebra.vue'
+import gforms from '/src/pages/forms.vue'
 import lock from '/src/pages/lock.vue'
 
 //console.log(config)  // config is exposed to the renderer (frontend) in preload.js (it's readonly here!)
@@ -41,6 +42,7 @@ const routes = [
     { path: '/student',         name:"student",     component: student,     beforeEnter: [addParams]             },
     { path: '/editor/:token',   name:"editor",      component: editor,      beforeEnter: [addParams, fetchInfo] },  
     { path: '/math/:token',     name:"math",        component: geogebra,    beforeEnter: [addParams, fetchInfo] },
+    { path: '/gforms/:token',    name:"gforms",     component: gforms,      beforeEnter: [addParams, fetchInfo] },
     { path: '/lock',            name:"lock",        component: lock },
     { path: '/:pathMatch(.*)*', name:"404",         component: notfound },   // to load a specific view just replace the error view and load an unknown component at path: /
 ]

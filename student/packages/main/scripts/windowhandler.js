@@ -203,6 +203,9 @@ class WindowHandler {
             webPreferences: {
                 preload: join(__dirname, '../preload/preload.cjs'),
                 spellcheck: false,  
+                contextIsolation: true,
+                enableRemoteModule: false,
+                webviewTag: true,  // Enable webview tag
             }
         });
 
@@ -221,8 +224,19 @@ class WindowHandler {
             }
         }
         else if (examtype === "gforms"){    //external page
-            let url =`https://docs.google.com/forms/d/e/${serverstatus.gformsTestId}/viewform`  //https://docs.google.com/forms/d/e/1FAIpQLScuTG7yldD0VRhFgOC_2fhbVdgXn95Kf_w2rUbJm79S1kJBnA/viewform
-            this.examwindow.loadURL(url)
+           // let url =`https://docs.google.com/forms/d/e/${serverstatus.gformsTestId}/viewform`  //https://docs.google.com/forms/d/e/1FAIpQLScuTG7yldD0VRhFgOC_2fhbVdgXn95Kf_w2rUbJm79S1kJBnA/viewform
+           // this.examwindow.loadURL(url)
+           let url = examtype   // editor || math || tbd.
+           if (app.isPackaged) {
+               let path = join(__dirname, `../renderer/index.html`)
+               this.examwindow.loadFile(path, {hash: `#/${url}/${token}`})
+           } 
+           else {
+               url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}/#/${url}/${token}/`
+               this.examwindow.loadURL(url)
+           }
+
+
         }
         else if (examtype === "microsoft365"  ) { //external page
             console.log("starting microsoft365 exam...")
@@ -459,10 +473,7 @@ class WindowHandler {
             });
 
             // Wait until the webContent is fully loaded
-            this.examwindow.webContents.on('did-finish-load', async () => {
-                this.examwindow.webContents.executeJavaScript(  examMenu.injectNextExamMenu  );
-                this.examwindow.webContents.executeJavaScript(  examMenu.injectExamFunctions );
-            })
+            this.examwindow.webContents.on('did-finish-load', async () => {     })
 
 
             // if a new window should open triggered by target="_blank"
