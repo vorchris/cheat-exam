@@ -176,6 +176,7 @@ function enableRestrictions(win){
             if (stderr) {  console.log(stderr)  }
             if (error)  {  console.log(error)   }
         })
+        console.log("shortcuts disabled")
 
         //clear clipboard - stop copy before and paste after examstart
         let executable0 = join(__dirname, '../../public/clear-clipboard.bat')
@@ -197,7 +198,7 @@ function enableRestrictions(win){
 
         appsToClose.forEach(app => {
             // taskkill-Befehl für Windows
-            childProcess.exec(`taskkill /F /IM ${app}.exe /T`, (error) => {
+            childProcess.exec(`taskkill /F /IM "${app}.exe" /T`, (error) => {
                 if (error) {
                     console.error(`Fehler beim Beenden von ${app}: ${error}`);
                 } else {
