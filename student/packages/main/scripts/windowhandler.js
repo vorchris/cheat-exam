@@ -558,7 +558,7 @@ class WindowHandler {
 
                 if (process.platform ==='darwin') {  this.examwindow.setAlwaysOnTop(true, "pop-up-menu", 0)  }  // do not display above popup because of colorpicker in editor (fix that!)
                 else {
-                    this.examwindow.setAlwaysOnTop(true, "pop-up-menu", 1) 
+                    this.examwindow.setAlwaysOnTop(true, "screen-saver", 1) 
                 }
                
                 /**
