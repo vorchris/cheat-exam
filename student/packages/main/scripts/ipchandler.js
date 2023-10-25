@@ -21,8 +21,8 @@ import fs from 'fs'
 import ip from 'ip'
 import axios from 'axios'
 import i18n from '../../renderer/src/locales/locales.js'
-const { t } = i18n.global
-import {  ipcMain } from 'electron'
+const {t} = i18n.global
+import{ipcMain} from 'electron'
 import defaultGateway from'default-gateway';
 import os from 'os'
 
@@ -41,7 +41,7 @@ class IpcHandler {
         this.config = config
         this.WindowHandler = wh  
         this.CommunicationHandler = ch
-
+        
         /**
          * Registers virtualized status
          */ 
@@ -149,7 +149,7 @@ class IpcHandler {
             if (this.multicastClient.clientinfo.token){ //#FIXME das sollte eigentlich vom server kommen 
                 event.returnValue = { sender: "client", message: t("control.alreadyregistered"), status:"error" }
             }
-        
+
             axios({ method:'get', 
                     url:`https://${serverip}:${this.config.serverApiPort}/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}/${hostname}/${version}`,
                     timeout: 8000})
@@ -319,6 +319,9 @@ class IpcHandler {
 
 
     }
+    
+
+
 }
  
 export default new IpcHandler()

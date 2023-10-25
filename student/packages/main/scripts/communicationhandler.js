@@ -363,8 +363,9 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
             }
             catch (e) { //examwindow variable is still set but the window is not managable anymore (manually closed in dev mode?)
                 console.error("communicationhandler @ startExam: no functional examwindow found.. resetting")
+                
+                disableRestrictions(WindowHandler.examwindow)
                 WindowHandler.examwindow = null;
-                disableRestrictions()
                 this.multicastClient.clientinfo.exammode = false
                 this.multicastClient.clientinfo.focus = true
                 return  // in that case.. we are finished here !
@@ -400,6 +401,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
             } catch (error) { console.error(error); }
         }
 
+        disableRestrictions(WindowHandler.examwindow)
 
         if (WindowHandler.examwindow){ // in some edge cases in development this is set but still unusable - use try/catch
             
@@ -421,7 +423,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
             }
             WindowHandler.blockwindows = []
         }
-        disableRestrictions()
+        
         this.multicastClient.clientinfo.exammode = false
         this.multicastClient.clientinfo.focus = true
     }
@@ -437,7 +439,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
                 WindowHandler.examwindow.alwaysOnTop = false
                   // remove listener
                 WindowHandler.removeBlurListener();
-                disableRestrictions()
+                disableRestrictions(WindowHandler.examwindow)
             } catch (e) { 
                 WindowHandler.examwindow = null
                 console.error("communicationhandler: no functional examwindow to handle")

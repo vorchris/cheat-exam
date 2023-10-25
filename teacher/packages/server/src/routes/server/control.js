@@ -325,6 +325,7 @@ for (let i = 0; i<16; i++ ){
     const mcServer = config.examServerList[servername] // get the multicastserver object
     const hostname = req.params.hostname
 
+    console.log(version)
     // this needs to change once we reached v1.0 (featurefreeze for stable version)
     let vteacher = config.version.split('.').slice(0, 2),
     versionteacher = vteacher.join('.'); 
@@ -333,7 +334,7 @@ for (let i = 0; i<16; i++ ){
 
   
     if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
-    if (versionteacher !== versionstudent ) {  return res.send({sender: "server", message:t("control.versionmismatch"), status: "error"} )  }  
+    if (`${versionteacher}` !== versionstudent ) {  return res.send({sender: "server", message:t("control.versionmismatch"), status: "error"} )  }  
     if (pin === mcServer.serverinfo.pin) {
         let registeredClient = mcServer.studentList.find(element => element.clientname === clientname)
 
