@@ -889,7 +889,7 @@ Other Styles
 
 
 #statusbar {
-    position: fixed;
+    position: relative;
     bottom:0px; 
     width:100%; 
     height: 28px; 
