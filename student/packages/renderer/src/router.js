@@ -27,6 +27,8 @@ import editor from '/src/pages/editor.vue'
 import geogebra from '/src/pages/geogebra.vue'
 import gforms from '/src/pages/forms.vue'
 import lock from '/src/pages/lock.vue'
+import eduvidual from '/src/pages/eduvidual.vue'
+
 
 //console.log(config)  // config is exposed to the renderer (frontend) in preload.js (it's readonly here!)
 
@@ -38,11 +40,12 @@ if (userAgent.indexOf(' electron/') > -1) {
 }
 
 const routes = [
-    { path: '/',                name:"index",       component: student,     beforeEnter: [addParams]             },
-    { path: '/student',         name:"student",     component: student,     beforeEnter: [addParams]             },
+    { path: '/',                name:"index",       component: student,     beforeEnter: [addParams]            },
+    { path: '/student',         name:"student",     component: student,     beforeEnter: [addParams]            },
     { path: '/editor/:token',   name:"editor",      component: editor,      beforeEnter: [addParams, fetchInfo] },  
     { path: '/math/:token',     name:"math",        component: geogebra,    beforeEnter: [addParams, fetchInfo] },
-    { path: '/gforms/:token',    name:"gforms",     component: gforms,      beforeEnter: [addParams, fetchInfo] },
+    { path: '/gforms/:token',   name:"gforms",      component: gforms,      beforeEnter: [addParams, fetchInfo] },
+    { path: '/eduvidual/:token',name:"eduvidual",   component: eduvidual,   beforeEnter: [addParams, fetchInfo] },
     { path: '/lock',            name:"lock",        component: lock },
     { path: '/:pathMatch(.*)*', name:"404",         component: notfound },   // to load a specific view just replace the error view and load an unknown component at path: /
 ]
@@ -58,13 +61,15 @@ function addParams(to){
 
 
 /**
- * der exammode benötigt für die focusCheck funktion 
- * um rechtmässig am server den studentstatus updaten zu dürfen das student token
+ * push a lot of infos to the view
  */
 async function fetchInfo(to, from){
     let response = ipcRenderer.sendSync('getinfo')
     let clientinfo = response.clientinfo
-    
+    let serverstatus = response.serverstatus
+
+    to.params.serverstatus = serverstatus
+    to.params.gformsTestId = serverstatus.gformsTestId
     to.params.serverip = clientinfo.serverip
     to.params.servername = clientinfo.servername 
     to.params.servertoken = clientinfo.servertoken

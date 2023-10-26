@@ -11,7 +11,7 @@
  
  
  <template> 
-    <div id="apphead" class="w-100 pt-2 ps-2 pe-2 text-white bg-dark shadow text-center">
+    <div id="apphead" class="w-100 pt-2 ps-2 pe-2 text-white bg-dark text-center">
 
         <div v-if="online" class="text-white m-1">
             <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style="float: left;" />
@@ -145,6 +145,8 @@ export default {
                 text:  this.$t("editor.info"),
                 icon: 'info',
                 input: 'number',
+                inputLabel: "PIN",
+                inputValue: this.pincode,
                 inputValidator: (value) => {
                     if (!value) {return this.$t("student.nopin")}
                 }

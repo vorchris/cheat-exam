@@ -135,8 +135,10 @@ app.whenReady()
     globalShortcut.register('CommandOrControl+P', () => {});  //change screen layout
  
     //if (process.platform === 'darwin') {
-    globalShortcut.register('CommandOrControl+V', () => {console.log('no shared clipboard on macs')});
-    globalShortcut.register('CommandOrControl+Shift+V', () => {console.log('no shared clipboard on macs')});
+    if (!config.development){
+        globalShortcut.register('CommandOrControl+V', () => {console.log('no clipboard')});
+        globalShortcut.register('CommandOrControl+Shift+V', () => {console.log('no clipboard')});
+    }
    // }
 })
 

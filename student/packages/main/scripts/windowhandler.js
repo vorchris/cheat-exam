@@ -22,7 +22,6 @@ import { join } from 'path'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 import fs from 'fs' 
 import examMenu from './examMenu.js';
-import { spawn, exec } from 'child_process';
 import Nodehun from 'nodehun'
 
   ////////////////////////////////////////////////////////////
@@ -213,32 +212,18 @@ class WindowHandler {
         
 
         // Load correct url 
-        if (examtype === "eduvidual"){    //external page
-            if (serverstatus.moodleDomain === "eduvidual.at"){
-                let url =`https://eduvidual.at/mod/${serverstatus.moodleTestType}/view.php?id=${serverstatus.moodleTestId}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287  
-                this.examwindow.loadURL(url)
-            }
-            else {
-                let url =`https://${serverstatus.moodleDomain}/mod/${serverstatus.moodleTestType}/view.php?id=${serverstatus.moodleTestId}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287  
-                this.examwindow.loadURL(url)
-            }
-        }
-        else if (examtype === "gforms"){    //external page
-           // let url =`https://docs.google.com/forms/d/e/${serverstatus.gformsTestId}/viewform`  //https://docs.google.com/forms/d/e/1FAIpQLScuTG7yldD0VRhFgOC_2fhbVdgXn95Kf_w2rUbJm79S1kJBnA/viewform
-           // this.examwindow.loadURL(url)
-           let url = examtype   // editor || math || tbd.
-           if (app.isPackaged) {
-               let path = join(__dirname, `../renderer/index.html`)
-               this.examwindow.loadFile(path, {hash: `#/${url}/${token}`})
-           } 
-           else {
-               url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}/#/${url}/${token}/`
-               this.examwindow.loadURL(url)
-           }
-
-
-        }
-        else if (examtype === "microsoft365"  ) { //external page
+        // if (examtype === "eduviduhhhal"){    //external page
+        //     if (serverstatus.moodleDomain === "eduvidual.at"){
+        //         let url =`https://eduvidual.at/mod/${serverstatus.moodleTestType}/view.php?id=${serverstatus.moodleTestId}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287  
+        //         this.examwindow.loadURL(url)
+        //     }
+        //     else {
+        //         let url =`https://${serverstatus.moodleDomain}/mod/${serverstatus.moodleTestType}/view.php?id=${serverstatus.moodleTestId}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287  
+        //         this.examwindow.loadURL(url)
+        //     }
+        // }
+        
+        if (examtype === "microsoft365"  ) { //external page
             console.log("starting microsoft365 exam...")
             let url = this.multicastClient.clientinfo.msofficeshare   
             if (!url) {// we wait for the next update tick - msofficeshare needs to be set !
@@ -433,123 +418,25 @@ class WindowHandler {
         /***************************
          * Google Forms
          ***************************/
-        if (serverstatus.examtype === "gforms"){
-            console.log("gforms mode")
-            this.examwindow.webContents.on('did-navigate', (event, url) => {  //create a new div called "nextexamwarning" and "embedbackground" - this is shown onBlur()
-                //console.log(url)
-                this.examwindow.webContents.executeJavaScript(` 
-                    const warning = document.createElement('div')
-                    warning.setAttribute('id', 'nextexamwaring')
-                    warning.setAttribute('style', 'display: none');
-                    const background = document.createElement('div');
-                    background.setAttribute('id', 'embedbackground')
-                    background.setAttribute('style', 'display: none');
-                    const embed = document.createElement('embed');` , true)
-                    .catch(err => console.log(err))
-            })
-            this.examwindow.webContents.on('will-navigate', (event, url) => {  // if a resource (pdf) is openend create an embed element and embed the pdf
-                //console.log(url)
-                //we block everything except pages that contain the following keyword-combinations
-                if (!url.includes(serverstatus.gformsTestId)){
-                    console.log(url)
-                    //check if this an exception (login, init) - if URL doesn't include either of these combinations - block! EXPLICIT is easier to read ;-)
-                    if ( url.includes("docs.google.com") && url.includes("formResponse") )           { console.log(" url allowed") }
-                    else if ( url.includes("docs.google.com") && url.includes("viewscore") )         { console.log(" url allowed") }
-                    else {
-                        console.log("blocked leaving exam mode")
-                        event.preventDefault()
-                    }
-                }
-                else {console.log("entered valid test environment")  }
-            })
-
-            // if a new window should open triggered by window.open()
-            this.examwindow.webContents.on('new-window', (event, url) => {
-                event.preventDefault(); // Prevent the new window from opening
-                // Optionally, navigate to the URL in the same window
-                if ( url.includes("docs.google.com") && url.includes("viewscore") )         {
-                    this.examwindow.loadURL(url);
-                }
-            });
-
-            // Wait until the webContent is fully loaded
-            this.examwindow.webContents.on('did-finish-load', async () => {     })
-
-
-            // if a new window should open triggered by target="_blank"
-            this.examwindow.webContents.setWindowOpenHandler(({ url }) => {
-                // Optionally, navigate to the URL in the same window
-                if ( url.includes("docs.google.com") && url.includes("viewscore") ) {     
-                    this.examwindow.loadURL(url);
-                }
-                // Prevent the new window from opening
-               return { action: 'deny' };
-              });
-        }
+        // if (serverstatus.examtype === "gforms"){
+        //     console.log("gforms mode")
+        //     this.examwindow.webContents.on('did-navigate', (event, url) => {})
+        //     this.examwindow.webContents.on('will-navigate', (event, url) => {})
+        //     this.examwindow.webContents.on('new-window', (event, url) => {});
+        //     this.examwindow.webContents.on('did-finish-load', async () => {})
+        //     this.examwindow.webContents.setWindowOpenHandler(({ url }) => {   return { action: 'deny' };       });// Prevent the new window from opening / if a new window should open triggered by target="_blank"
+        // }
 
 
         /***************************
          * EDUVIDUAL / Moodle
          ***************************/
-        if (serverstatus.examtype === "eduvidual"){
-            this.examwindow.webContents.on('did-navigate', (event, url) => {  //create new div elements called "nextexamwarning" and "embedbackground" and "embed"
-                this.examwindow.webContents.executeJavaScript(` 
-                    const warning = document.createElement('div')
-                    warning.setAttribute('id', 'nextexamwaring')
-                    warning.setAttribute('style', 'display: none');
-                    const background = document.createElement('div');
-                    background.setAttribute('id', 'embedbackground')
-                    background.setAttribute('style', 'display: none');
-                    const embed = document.createElement('embed');` , true)
-                    .catch(err => console.log(err))
-            })
-            this.examwindow.webContents.on('will-navigate', (event, url) => {
-                //we block everything except pages that contain the following keyword-combinations
-                if (!url.includes(serverstatus.moodleTestId)){
-                    console.log(url)
-                    //check if this an exception (login, init) - if URL doesn't include either of these combinations - block! EXPLICIT is easier to read ;-)
-                    if ( url.includes("startattempt.php") && url.includes(serverstatus.moodleDomain) )          { console.log(" url allowed") }
-                    else if ( url.includes("processattempt.php") && url.includes(serverstatus.moodleDomain) )   { console.log(" url allowed") }
-                    else if ( url.includes("login") && url.includes("Microsoft") )                              { console.log(" url allowed") }
-                    else if ( url.includes("login") && url.includes("Google") )                                 { console.log(" url allowed") }
-                    else if ( url.includes("login") && url.includes("microsoftonline") )                        { console.log(" url allowed") }
-                    else if ( url.includes("accounts") && url.includes("google.com") )                          { console.log(" url allowed") }
-                    else if ( url.includes("logout") && url.includes(serverstatus.moodleDomain) )               { console.log(" url allowed") }
-                    else if ( url.includes("lookup") && url.includes("google") )                                { console.log(" url allowed") }
-                    else if ( url.includes("login") && url.includes("eduvidual") )                              { console.log(" url allowed") }
-                    else {
-                        console.log("blocked leaving exam mode")
-                        event.preventDefault()
-                    }
-                }
-                else {console.log("entered valid test environment")  }
-                // if a resource (pdf) is openend create an embed element and embed the pdf
-                if (url.includes('resource/view')&& !url.includes('forceview')){  // embed pdfs rather than open a new window/tab
-                    event.preventDefault()
-                    this.examwindow.webContents.executeJavaScript(` 
-                        background.onclick = function() {  document.getElementById('embedbackground').style = "display: none;" };
-                        background.setAttribute('style', 'display: block; position: fixed; top:0; left: 0; width:100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.4); z-index:100000;');
-                        document.body.appendChild(background); 
-                        embed.setAttribute('src', '${url}');
-                        embed.setAttribute('style', 'position: absolute; top: 50%; left: 50%; margin-left: -30vw; margin-top: -45vh; width:60vw; height: 90vh; padding: 10px; background-color: rgba(255, 255, 255, 1);  box-shadow: 0 0 15px rgba(22, 9, 9, 0.589); padding: 10px; border-radius: 6px;');
-                        background.appendChild(embed); ` , true)
-                        .catch(err => console.log(err))
-                }
-            })
-            // Wait until the webContent is fully loaded
-            this.examwindow.webContents.on('did-finish-load', async () => {
-                this.examwindow.webContents.executeJavaScript(  examMenu.injectNextExamMenu  );
-                this.examwindow.webContents.executeJavaScript(  examMenu.injectExamFunctions );
-            })
-            // Wait until the complete DOM is computed
-            this.examwindow.webContents.on('dom-ready', () => {
-                this.examwindow.webContents.insertCSS('.branding { display: none !important; }');
-                this.examwindow.webContents.insertCSS('#header { display: none !important; }');
-                this.examwindow.webContents.insertCSS('.drawer-toggler { display: none !important; }');
-                this.examwindow.webContents.insertCSS('#page-footer { display: none !important; }');
-                this.examwindow.webContents.insertCSS('#theme_boost-drawers-courseindex { display: none !important; }');
-            });
-        }
+        // if (serverstatus.examtype === "eduvidual"){
+        //     this.examwindow.webContents.on('will-navigate', (event, url) => {})   
+        //     this.examwindow.webContents.on('did-finish-load', async () => {})
+        //     this.examwindow.webContents.on('dom-ready', () => {});
+        //     this.examwindow.webContents.on('did-navigate', (event, url) => {})
+        // }
 
 
 
@@ -718,26 +605,26 @@ class WindowHandler {
         winhandler.examwindow.focus();
 
         //turn volume up ^^
-        if (process.platform === 'win32') { spawn('powershell', ['Set-VolumeLevel -Level 100; Set-VolumeMute -Mute $false']); }
-        if (process.platform ==='darwin') { exec('osascript -e "set volume output volume 100" -e "set volume output muted false"'); }  
-        if (process.platform === 'linux') { 
-            exec('amixer set Master 100% ');
-            exec('pactl set-sink-mute `pactl get-default-sink` 0');
-        }
+        // if (process.platform === 'win32') { spawn('powershell', ['Set-VolumeLevel -Level 100; Set-VolumeMute -Mute $false']); }
+        // if (process.platform ==='darwin') { exec('osascript -e "set volume output volume 100" -e "set volume output muted false"'); }  
+        // if (process.platform === 'linux') { 
+        //     exec('amixer set Master 100% ');
+        //     exec('pactl set-sink-mute `pactl get-default-sink` 0');
+        // }
         
         //we could play a sound file here.. tbd.
-           
-        if (this.multicastClient.clientinfo.examtype === "eduvidual" || this.multicastClient.clientinfo.examtype === "gforms" ){
-            // this only works in "eduvidual" mode because otherwise there is no element "warning" to append (clicking on an external link is considered a blur event)
-            winhandler.examwindow.webContents.executeJavaScript(` 
-                        if (typeof warning !== 'undefined'){
-                            document.body.appendChild(warning); 
-                            document.getElementById('nextexamwaring').innerHTML = "Leaving exam mode is not allowed";
-                            warning.setAttribute('style', 'text-align: center; padding: 20px;display: block; background-color:#ffc107; border-radius:5px;  z-index:100000; position: absolute; top: 50%; left: 50%; margin-left: -10vw; margin-top: -5vh;width:20vw; height: 10vh; box-shadow: 0 0 10px rgba(0,0,0,0.4); ');
-                            setTimeout( ()=>{ document.getElementById('nextexamwaring').style.display = 'none'  } , 5000); 
-                        }` , true)
-            .catch(err => console.log(err))
-        }
+        
+        // if (this.multicastClient.clientinfo.examtype === "eduvidual" || this.multicastClient.clientinfo.examtype === "gforms" ){
+        //     // this only works in "eduvidual" mode because otherwise there is no element "warning" to append (clicking on an external link is considered a blur event)
+        //     winhandler.examwindow.webContents.executeJavaScript(` 
+        //                 if (typeof warning !== 'undefined'){
+        //                     document.body.appendChild(warning); 
+        //                     document.getElementById('nextexamwaring').innerHTML = "Leaving exam mode is not allowed";
+        //                     warning.setAttribute('style', 'text-align: center; padding: 20px;display: block; background-color:#ffc107; border-radius:5px;  z-index:100000; position: absolute; top: 50%; left: 50%; margin-left: -10vw; margin-top: -5vh;width:20vw; height: 10vh; box-shadow: 0 0 10px rgba(0,0,0,0.4); ');
+        //                     setTimeout( ()=>{ document.getElementById('nextexamwaring').style.display = 'none'  } , 5000); 
+        //                 }` , true)
+        //     .catch(err => console.log(err))
+        // }
     }
     //special blur event for temporary low security screenlock
     blureventScreenlock(winhandler) { 
