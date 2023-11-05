@@ -22,7 +22,13 @@
         </div><br>
         <div v-if="!advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("student.advanced") }}</div>
         <div v-if="advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("student.simple") }}</div>
-        <span style="position: absolute; bottom:2px; left: 4px; font-size:0.8em">{{version}}</span>
+        
+
+        <span @click="showCopyleft()" style="position: absolute; bottom:2px; left: 6px; font-size:0.8em;cursor: pointer;">
+            <span style=" display:inline-block; transform: scaleX(-1);font-size:1.2em; ">&copy; </span> 
+            <span style="vertical-align: text-bottom;">&nbsp;{{version}}</span>
+        </span>
+
     </div>
 
     <!-- CONTENT -->
@@ -75,6 +81,7 @@ export default {
     data() {
         return {
             version: this.$route.params.version,
+            info: config.info,
             token: "",
             username: config.development ? "Thomas":"",
             pincode: config.development ? "1337":"",
@@ -159,6 +166,19 @@ export default {
                     })
                 }
             }
+        },
+        showCopyleft(){
+            this.$swal.fire({
+                title: "<span style='display:inline-block; transform: scaleX(-1); vertical-align: middle; cursor: pointer;'>&copy;</span>",
+                icon: 'info',
+                html: `
+                Thomas Michael Weissel <br>
+                <span style="font-size:0.8em">
+                  <a href="https://next-exam.at/#kontakt" target="_blank">next-exam.at</a>
+                </span><br><br>
+                <span style="font-size:0.8em">Version: ${this.version} ${this.info}</span>
+                `,
+            })
         },
     },
     mounted() {  
