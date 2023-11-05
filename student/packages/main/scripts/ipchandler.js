@@ -95,8 +95,8 @@ class IpcHandler {
                     printSelectionOnly: false,
                     landscape: args.landscape,
                     displayHeaderFooter:true,
-                    footerTemplate: "<div style='height:12px; font-size:8px; text-align: right; width:100%; margin-right: 20px;'><span class=pageNumber></span>|<span class=totalPages></span></div>",
-                    headerTemplate: `<div style='height:12px; font-size:8px; text-align: right; width:100%; margin-right: 20px;'><span class=date></span>|<span>${args.clientname}</span></div>`,
+                    footerTemplate: "<div style='height:12px; font-size:10px; text-align: right; width:100%; margin-right: 20px;'><span class=pageNumber></span>|<span class=totalPages></span></div>",
+                    headerTemplate: `<div style='display: inline-block; height:12px; font-size:10px; text-align: right; width:100%; margin-right: 20px;margin-left: 20px;'><span style="float:left;">${args.servername}</span><span style="float:left;">&nbsp;|&nbsp; </span><span class=date style="float:left;"></span><span style="float:right;">${args.clientname}</span></div>`,
                     preferCSSPageSize: false
                 }
 
@@ -131,6 +131,33 @@ class IpcHandler {
                 serverstatus: serverstatus
             }   
         })
+
+
+
+        /**
+         * because of microsoft 365 we need to work with "BrowserView" 
+         * in order to be able to dislay fullscreen information from the Exam header we temporarily collapse the BrowserView for Office
+         * and restore it afterwards - not perfect but looks ok
+         */ 
+        ipcMain.on('collapse-browserview', (event) => {
+            const mainWindow = this.WindowHandler.examwindow
+            const contentView = mainWindow.getBrowserView(0); // assuming it's the 1st added view
+            contentView.setBounds({ x: 0, y: 0, width: 0, height: 0 });
+        });
+        ipcMain.on('restore-browserview', (event) => {
+            const mainWindow = this.WindowHandler.examwindow
+            const menuHeight = this.WindowHandler.examwindow.menuHeight;
+            const newBounds = mainWindow.getBounds(); // Get the current bounds of the mainWindow
+            const contentView = mainWindow.getBrowserView(0); // assuming it's the 1st added view
+            // Set the new bounds of the contentView
+            contentView.setBounds({
+                x: 0,
+                y: menuHeight,
+                width: newBounds.width, // full width of the mainWindow
+                height: newBounds.height - menuHeight // remaining height after the menu
+            });
+        });
+
 
 
         /**
@@ -216,9 +243,7 @@ class IpcHandler {
          * @param args contains an object { filename:`${this.clientname}.ggb` }
          */
         ipcMain.on('loadGGB', (event, filename) => {   
-           
             const ggbFilePath = path.join(this.config.workdirectory, filename);
-
             try {
                 // Read the file and convert it to base64
                 const fileData = fs.readFileSync(ggbFilePath);
@@ -290,15 +315,15 @@ class IpcHandler {
         })
 
 
-
-
+        /**
+         * this is our manually implemented spellchecker for the editor
+         */
         ipcMain.on('checkword', async (event, selectedWord) => {
             console.log(`Received selected text: ${selectedWord}`);
             const suggestions = await this.WindowHandler.nodehun.suggest(selectedWord)
             //console.log(suggestions)
             event.returnValue = {  suggestions : suggestions }   
         });
-    
         ipcMain.on('checktext', async (event, selectedText) => {
             const words = selectedText.split(/[^a-zA-ZäöüÄÖÜßéèêëôûüÔÛÜáíóúñÁÍÓÚÑàèéìòùÀÈÉÌÒÙçÇ]+/);
             const misspelledWords = [];
@@ -311,17 +336,11 @@ class IpcHandler {
             }
             event.returnValue = { misspelledWords };
         });
-
         ipcMain.on('add-word-to-dictionary', (event, word) => {
             console.log("adding word to dictionary")
             this.WindowHandler.nodehun.add(word)
         });
-
-
     }
-    
-
-
 }
  
 export default new IpcHandler()

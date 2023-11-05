@@ -103,7 +103,7 @@
     <!-- angabe/pdf preview start -->
     <div id=preview class="fadeinslow p-4">
         <div class="btn btn-dark me-2 btn-lg shadow" style="float: right;" @click="print()"><img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" > </div>
-        <iframe src="" id="pdfembed"></iframe>
+        <embed src="" id="pdfembed">
     </div>
     <!-- angabe/pdf preview end -->
 
@@ -128,7 +128,7 @@
 
     </div>
     <div id="statusbar">
-             <span> {{ $t("editor.chars") }}: {{charcount}}</span> | <span> {{ $t("editor.words") }}: {{wordcount}}</span> | <span id="editselected"> {{ $t("editor.selected") }}: {{selectedWordCount}}/{{selectedCharCount}}</span> 
+             <span> {{ $t("editor.chars") }}: {{charcount}}</span> | <span> {{ $t("editor.words") }}: {{wordcount}}</span>  <span id="editselected">| {{ $t("editor.selected") }}: {{selectedWordCount}}/{{selectedCharCount}}</span> 
              <img @click="zoomin()" src="/src/assets/img/svg/zoom-in.svg" class="zoombutton">  
              <img @click="zoomout()" src="/src/assets/img/svg/zoom-out.svg" class="zoombutton">
         </div>
@@ -408,7 +408,7 @@ export default {
         async saveContent(backup, why) {     
             // inform mainprocess to save webcontent as pdf (see @media css query for adjustments for pdf)
             let filename = this.currentFile.replace(/\.[^/.]+$/, "")  // we dont need the extension
-            ipcRenderer.send('printpdf', {clientname:this.clientname, filename: `${filename}.pdf` })
+            ipcRenderer.send('printpdf', {clientname:this.clientname, filename: `${filename}.pdf`, servername: this.servername })
             if (why === "exitexam") { 
                 this.$swal.fire({
                     title: this.$t("editor.leaving"),

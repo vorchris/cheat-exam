@@ -17,7 +17,7 @@
 
 
 
-import { app, BrowserWindow, dialog, screen} from 'electron'
+import { app, BrowserWindow, BrowserView, dialog, screen} from 'electron'
 import { join } from 'path'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 import fs from 'fs' 
@@ -203,30 +203,27 @@ class WindowHandler {
                 preload: join(__dirname, '../preload/preload.cjs'),
                 spellcheck: false,  
                 contextIsolation: true,
-                enableRemoteModule: false,
-                webviewTag: true,  // Enable webview tag
+                webviewTag: true
             }
         });
 
         this.examwindow.serverstatus = serverstatus //we keep it there to make it accessable via examwindow in ipcHandler
+        this.examwindow.menuHeight = 94   // start position for the content view
         
 
-        // Load correct url 
-        // if (examtype === "eduviduhhhal"){    //external page
-        //     if (serverstatus.moodleDomain === "eduvidual.at"){
-        //         let url =`https://eduvidual.at/mod/${serverstatus.moodleTestType}/view.php?id=${serverstatus.moodleTestId}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287  
-        //         this.examwindow.loadURL(url)
-        //     }
-        //     else {
-        //         let url =`https://${serverstatus.moodleDomain}/mod/${serverstatus.moodleTestType}/view.php?id=${serverstatus.moodleTestId}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287  
-        //         this.examwindow.loadURL(url)
-        //     }
-        // }
-        
+        /**
+         * Microsoft 365 emebeds its editor in an iframe with active Content Security Policy (CSP)
+         * The only way to be able to inject code is to load it directly in the main window <embed> <iframe> or even <webview> offers no workaround
+         * therefore we use "BrowserView" in order to display two pages in one window: on top > exam header, on bottom > office
+         */
+
         if (examtype === "microsoft365"  ) { //external page
             console.log("starting microsoft365 exam...")
-            let url = this.multicastClient.clientinfo.msofficeshare   
-            if (!url) {// we wait for the next update tick - msofficeshare needs to be set !
+           
+            let urlview = this.multicastClient.clientinfo.msofficeshare   
+           
+
+            if (!urlview) {// we wait for the next update tick - msofficeshare needs to be set ! (could happen when a student connects later then exam mode is set but his share url needs some time)
                 console.log("no url for microsoft365 was set")
                 console.log(this.multicastClient.clientinfo)
                 this.examwindow.destroy(); 
@@ -236,7 +233,49 @@ class WindowHandler {
                 this.multicastClient.clientinfo.focus = true
                 return
             }
-            this.examwindow.loadURL(url)
+
+
+            // load top menu in MainPage
+            let url = examtype   // editor || math || eduvidual || tbd.
+            if (app.isPackaged) {
+                let path = join(__dirname, `../renderer/index.html`)
+                this.examwindow.loadFile(path, {hash: `#/${url}/${token}`})
+            } 
+            else {
+                let backgroundurl = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}/#/${url}/${token}/`
+                this.examwindow.loadURL(backgroundurl);
+            }
+
+
+            // Define the MainContentPage view
+            let contentView = new BrowserView({
+                webPreferences: {
+                  spellcheck: false,  
+                  contextIsolation: true,
+                }
+            });
+            this.examwindow.addBrowserView(contentView);
+           
+            contentView.setBounds({
+                x: 0,
+                y: this.examwindow.menuHeight,
+                width: this.examwindow.getBounds().width,
+                height: this.examwindow.getBounds().height - this.examwindow.menuHeight
+            });
+            contentView.setAutoResize({ width: true, height: true, horizontal: true, vertical: true });
+            contentView.webContents.loadURL(urlview);
+
+            if (this.config.showdevtools) {       contentView.webContents.openDevTools() }
+
+            this.examwindow.on('resize', () => {
+                let newBounds = this.examwindow.getBounds();
+                contentView.setBounds({
+                  x: 0,
+                  y: this.examwindow.menuHeight,
+                  width: newBounds.width,
+                  height: newBounds.height - this.examwindow.menuHeight
+                });
+            });
         }
         else { 
             let url = examtype   // editor || math || tbd.
@@ -257,13 +296,9 @@ class WindowHandler {
         /**
          * HANDLE SPELLCHECK 
          */ 
-
       
         if (serverstatus.spellcheck){  
-            console.log(serverstatus.spellchecklang)
-
             const dictionaryPath = join( __dirname,'../../public/dictionaries');
-            
             let language = serverstatus.spellchecklang
             let affix = null;
             let dictionary = null;
@@ -288,17 +323,9 @@ class WindowHandler {
                 affix       = fs.readFileSync(join(dictionaryPath, 'es_ES.aff'))
                 dictionary  = fs.readFileSync(join(dictionaryPath, 'es_ES.dic'))
             }
-
             this.nodehun  = new Nodehun(affix, dictionary)
-
         }
         
-
-
-
-
-
-
 
 
 
@@ -306,182 +333,103 @@ class WindowHandler {
          * Handle special NAVIGATION situations
          */
 
-        // Texteditor
+        /***************************
+         *  Texteditor
+         ***************************/
         if (serverstatus.examtype === "editor" ){  // do not under any circumstances allow navigation away from the editor
-            this.examwindow.webContents.on('will-navigate', (event, url) => {   
+            this.examwindow.webContents.on('will-navigate', (event, url) => {    // a pdf could contain a link ^^
                 event.preventDefault()
             })
         }
-
-
-
 
         /***************************
          *  Microsoft Excel/Word
          ***************************/
         if ( serverstatus.examtype === "microsoft365"){  // do not under any circumstances allow navigation away from the current exam url
-            this.examwindow.officeurl = false
-            
-            this.examwindow.webContents.on('will-navigate', (event, url) => {
-                console.log(`Student tried to navigate to: ${url}`)
-                if (!this.examwindow.officeurl ) { this.examwindow.officeurl = url }
-                if (url !== this.examwindow.officeurl ) {
+            const browserView = this.examwindow.getBrowserView(0);
+
+            // if the user wants to navigate away from this page
+            browserView.webContents.on('will-navigate', (event, url) => {
+                if (url !== this.multicastClient.clientinfo.msofficeshare ) {
                     console.log("do not navigate away from this test.. ")
                     event.preventDefault()
                 }  
             })
 
             // if a new window should open triggered by window.open()
-            this.examwindow.webContents.on('new-window', (event, url) => {
-                event.preventDefault(); // Prevent the new window from opening
-            });
-
+            browserView.webContents.on('new-window', (event, url) => { event.preventDefault();   }); // Prevent the new window from opening
+     
             // if a new window should open triggered by target="_blank"
-            this.examwindow.webContents.setWindowOpenHandler(({ url }) => {
-               return { action: 'deny' }; // Prevent the new window from opening
-            });
-
+            browserView.webContents.setWindowOpenHandler(({ url }) => { return { action: 'deny' };   }); // Prevent the new window from opening
+                 
             // Wait until the webContents is fully loaded
-            this.examwindow.webContents.on('did-finish-load', async () => {
-                this.examwindow.webContents.mainFrame.frames.filter((frame) => {
+            browserView.webContents.on('did-finish-load', async () => {
+                browserView.webContents.mainFrame.frames.filter((frame) => {
                     let executeCode =  `
                             function lock(){
-                                const hideus = ['InsertAddInFlyout','Designer','Editor','FarPane','Help','WACDialogOuterContainer','WACDialogInnerContainer','WACDialogPanel','InsertAppsForOffice','FileMenuLauncherContainer','Help-wrapper','Review-wrapper','Header','FarPeripheralControlsContainer','BusinessBar','']
-                                for (entry of hideus) {
+
+                                // 'WACDialogOuterContainer','WACDialogInnerContainer','WACDialogPanel',
+                                const hideusByID = ['InsertAddInFlyout','Designer','Editor','FarPane','Help','InsertAppsForOffice','FileMenuLauncherContainer','Help-wrapper','Review-wrapper','Header','FarPeripheralControlsContainer','BusinessBar']
+                                for (entry of hideusByID) {
                                     let element = document.getElementById(entry)
                                     if (element) { element.style.display = "none" }
                                 }
 
-                                // this button is redrawn on resize (doesn't happen in exam mode but still there must be a cleaner way - inserting css before it appears is not working)
-                                let buttonAppsOverflow = document.getElementsByName('Add-Ins')[0];
+                                let buttonAppsOverflow = document.getElementsByName('Add-Ins')[0];  // this button is redrawn on resize (doesn't happen in exam mode but still there must be a cleaner way - inserting css before it appears is not working)
                                 if (buttonAppsOverflow){ buttonAppsOverflow.style.display = "none" }
 
-                                
                                 let elements = document.querySelectorAll('[aria-label="Suchen"]');
                                 elements.forEach(element => { element.style.display = 'none';});
-
                                 elements = document.querySelectorAll('[aria-label="Übersetzen"]');
                                 elements.forEach(element => { element.style.display = 'none';});
-
                                 elements = document.querySelectorAll('[aria-label="Copilot"]');
                                 elements.forEach(element => { element.style.display = 'none'; });
-
                                 elements = document.querySelectorAll('[aria-label="Add-Ins"]');
                                 elements.forEach(element => { element.style.display = 'none'; });
-
-
                                 elements = document.querySelectorAll('[data-unique-id="ContextMenu-SmartLookupContextMenu"]');
                                 elements.forEach(element => {element.style.display = 'none';});
-
                                 elements = document.querySelectorAll('[data-unique-id="ContextMenu-SmartLookupSynonyms"]');
                                 elements.forEach(element => {element.style.display = 'none'; });
-
                                 elements = document.querySelectorAll('[data-unique-id="Ribbon-ReferencesSmartLookUp"]');
                                 elements.forEach(element => {element.style.display = 'none';});
-
                                 elements = document.querySelectorAll('[data-unique-id="Dictation"]');
                                 elements.forEach(element => { element.style.display = 'none'; });
-                                
                                 elements = document.querySelectorAll('[data-unique-id="GetAddins"]');
                                 elements.forEach(element => { element.style.display = 'none'; });
-
-                               
-                                // context menu buttons are redrawn all the time - thats why we keep up the loop until we find a better option
-                                //if (buttonAppsOverflow && buttonAppsOverflow.style.display == "none" ) {   clearInterval(intervalId);   } // we need to wait for this one to show
                             }
                             const intervalId = setInterval(lock, 400);
                             lock()  //for some reason excel delays that call.. doesnt happen on page finish load
                             `
                     if (frame && frame.name === 'WebApplicationFrame') {
                         frame.executeJavaScript(executeCode); 
-                      
                     }
                 })
-                this.examwindow.webContents.executeJavaScript(  examMenu.injectNextExamMenu  );  //we could use the exammenu to block exceltoolbar until it's secured (for some reason we can not inject css in excel while it still loads and hiding elements takes a few seconds)
-                this.examwindow.webContents.executeJavaScript(  examMenu.injectExamFunctions );
             });
-
-            // Wait until the complete DOM is computed
-            this.examwindow.webContents.on('dom-ready', () => {});
-
-            this.examwindow.webContents.on('did-navigate', (event, url) => {  // after loading the exam excel worksheet for the first time we capture the url to lock-in students
-                console.log("target reached")
-                if (!this.examwindow.officeurl ) { this.examwindow.officeurl = url }       
-            })
         }
 
-
-
-
-
-        
-        /***************************
-         * Google Forms
-         ***************************/
-        // if (serverstatus.examtype === "gforms"){
-        //     console.log("gforms mode")
-        //     this.examwindow.webContents.on('did-navigate', (event, url) => {})
-        //     this.examwindow.webContents.on('will-navigate', (event, url) => {})
-        //     this.examwindow.webContents.on('new-window', (event, url) => {});
-        //     this.examwindow.webContents.on('did-finish-load', async () => {})
-        //     this.examwindow.webContents.setWindowOpenHandler(({ url }) => {   return { action: 'deny' };       });// Prevent the new window from opening / if a new window should open triggered by target="_blank"
-        // }
-
-
-        /***************************
-         * EDUVIDUAL / Moodle
-         ***************************/
-        // if (serverstatus.examtype === "eduvidual"){
-        //     this.examwindow.webContents.on('will-navigate', (event, url) => {})   
-        //     this.examwindow.webContents.on('did-finish-load', async () => {})
-        //     this.examwindow.webContents.on('dom-ready', () => {});
-        //     this.examwindow.webContents.on('did-navigate', (event, url) => {})
-        // }
+       
 
 
 
 
 
 
-
-
-
-        if (this.config.showdevtools) { this.examwindow.webContents.openDevTools()  }
         this.examwindow.once('ready-to-show', async () => {
-            this.examwindow.removeMenu() 
-          
             if (!this.config.development) { 
                 this.examwindow.setKiosk(true)
                 this.examwindow.setMinimizable(false)
 
                 if (process.platform ==='darwin') {  this.examwindow.setAlwaysOnTop(true, "pop-up-menu", 0)  }  // do not display above popup because of colorpicker in editor (fix that!)
-                else {
-                    this.examwindow.setAlwaysOnTop(true, "screen-saver", 1) 
-                }
-               
-                /**
-                 * win.setAlwaysOnTop(flag[, level][, relativeLevel])
-                 * - flag boolean
-                 * - level string (optional) macOS Windows - Values include normal, floating, torn-off-menu, modal-panel, main-menu, status, pop-up-menu, screen-saver, and dock (Deprecated).
-                 * 
-                 * Note that from floating to status included, the window is placed below the Dock on macOS and below the taskbar on Windows. 
-                 * From pop-up-menu to a higher it is shown above the Dock on macOS and above the taskbar on Windows. See the macOS docs for more details.
-                 * 
-                 * - relativeLevel Integer (optional) macOS - The number of layers higher to set this window relative to the given level. 
-                 * The default is 0. Note that Apple discourages setting levels higher than 1 above screen-saver.
-                 * 
-                 * ATTENTION: it would be easy to set this to 1 above screensaver to block everything but then the colorpicker popup will not show on macos :-(
-                 * maybe implement another colorpicker?  currently "pop-up-menu", "0" is the highest that works on macos
-                 */
-
+                else { this.examwindow.setAlwaysOnTop(true, "screen-saver", 1)   }
 
                 this.examwindow.moveTop();
-               
                 enableRestrictions(this.examwindow)  // enable restriction only when exam window is fully loaded and in focus
                 await this.sleep(2000) // wait an additional 2 sec for windows restrictions to kick in (they steal focus)
                 this.examwindow.focus()
                 this.addBlurListener()
             }
+            this.examwindow.removeMenu() 
+            if (this.config.showdevtools) { this.examwindow.webContents.openDevTools()  }
             this.examwindow.show()
             this.examwindow.focus()
         })
@@ -498,8 +446,14 @@ class WindowHandler {
                 this.multicastClient.clientinfo.focus = true
             }  
         });
-       
     }
+
+
+
+
+
+
+
 
 
 
