@@ -154,8 +154,12 @@ export default {
                             title: "OK",
                             text: this.$t("student.registeredinfo"),
                             icon: 'success',
+                            timer: 3000,
                             showCancelButton: false,
+                            didOpen: () => { this.$swal.showLoading(); },
                         })
+
+               
                     }
                 if (IPCresponse.status === "error") {
                     this.$swal.fire({
