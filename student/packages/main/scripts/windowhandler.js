@@ -192,6 +192,7 @@ class WindowHandler {
             // parent: win,  //this doesnt work together with kiosk on ubuntu gnome ?? wtf
             // modal: true,  // this blocks the main window on windows while the exam window is open
             skipTaskbar:true,
+            autoHideMenuBar: true,
             title: 'Exam',
             width: 800,
             height: 600,
