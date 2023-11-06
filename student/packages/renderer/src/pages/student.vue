@@ -2,14 +2,11 @@
 
 
 <div  id="apphead" class="w-100 p-3 text-white bg-dark shadow text-right ">
-    <router-link to="/" class="text-white m-1">
-        <img src='/src/assets/img/svg/speedometer.svg' class="white me-2  " width="32" height="32" >
-        <span class="fs-4 align-middle me-4 ">Next-Exam</span>
-    </router-link>
+    <img src='/src/assets/img/svg/speedometer.svg' class="white me-2  " width="32" height="32" >
+    <span class="fs-4 align-middle me-4 ">Next-Exam</span>
     <span class="fs-4 align-middle  ms-3" style="float: right">Student</span>
     <div v-if="token" id="adv" class="btn btn-success btn-sm m-0  mt-1 " style="cursor: unset; float: right">{{ $t("student.connected") }}</div>
     <div v-if="!hostip" id="adv" class="btn btn-danger btn-sm m-0  mt-1 " style="cursor: unset; float: right">{{ $t("student.offline") }}</div>
-
 </div>
  
 
