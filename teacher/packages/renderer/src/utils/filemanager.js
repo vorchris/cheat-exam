@@ -264,8 +264,13 @@ function openLatestFolder(student){
     })
     .then( response => response.json() )
     .then( async(responseObj) => {
-        //console.log(responseObj.latestfolderPath)
-        this.loadFilelist(responseObj.latestfolderPath)
+        console.log(responseObj.latestfolderPath)
+        if (responseObj.latestfolderPath === ""){ 
+            this.loadFilelist(this.workdirectory)
+        }
+        else {
+            this.loadFilelist(responseObj.latestfolderPath)
+        }
         this.showWorkfolder();
 
     }).catch(err => { console.warn(err)});
