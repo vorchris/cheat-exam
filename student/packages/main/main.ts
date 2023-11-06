@@ -140,6 +140,14 @@ app.whenReady()
         globalShortcut.register('CommandOrControl+Shift+V', () => {console.log('no clipboard')});
     }
    // }
+
+    globalShortcut.register('CommandOrControl+Shift+D', () => {
+        const win = BrowserWindow.getFocusedWindow()
+        if (win) {
+            win.webContents.toggleDevTools()
+        }
+    })
+
 })
 
 //capture global keyboard shortcuts like alt+tab and send a signal to the frontend that a key combination has been detected 

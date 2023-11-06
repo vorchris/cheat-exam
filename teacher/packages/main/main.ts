@@ -19,7 +19,7 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow, powerSaveBlocker, nativeTheme  } from 'electron'
+import { app, BrowserWindow, powerSaveBlocker, nativeTheme, globalShortcut  } from 'electron'
 import { release } from 'os'
 import config from './config.js';
 import server from "../server/src/server.js"
@@ -84,4 +84,11 @@ app.whenReady().then(()=>{
     }
 
     WindowHandler.createWindow()
+
+    globalShortcut.register('CommandOrControl+Shift+D', () => {
+        const win = BrowserWindow.getFocusedWindow()
+        if (win) {
+            win.webContents.toggleDevTools()
+        }
+    })
 })
