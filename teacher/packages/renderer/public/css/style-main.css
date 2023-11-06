@@ -30,7 +30,7 @@ body {
 
 a {
   color: #2ccaa8;
-  text-decoration: none;
+  text-decoration: none !important;
   transition: .3s;
 }
 
