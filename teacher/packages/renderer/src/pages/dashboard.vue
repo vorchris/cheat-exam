@@ -183,7 +183,7 @@
 
 
         <!-- studentlist start -->
-        <div id="studentslist" class="placeholder pt-1">        
+        <div id="studentslist" class="pt-1">        
             <draggable v-model="studentwidgets" :move="handleMoveItem" @end="handleDragEndItem" ghost-class="ghost">
     
                 <div v-for="student in studentwidgets" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':''" class="studentwidget btn rounded-3 btn-block ">

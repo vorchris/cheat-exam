@@ -75,7 +75,7 @@
         </div>
 
         
-        <div v-if="advanced" id="list" class="placeholder">
+        <div v-if="advanced" id="list" class="">
             <div class="input-group input-group-sm" style="max-width: fit-content">  
                 <button @click="setWorkdir()" id="examstart" class="btn btn-sm btn-info" value="start exam" style="width:195px;">{{$t("startserver.select")}}</button>
                 <span class="form-control " style="font-family: monospace; white-space: pre; font-size:0.8em; padding-top: 5px;">{{ workdir }}</span>
@@ -286,7 +286,7 @@ export default {
     font-size: 0.8em;
     color: #fff;
     background-color:  #dc3545c7;
-;
-
 }
+
+
 </style>

@@ -2,22 +2,17 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-   
 }
+
 body {
     overflow-x: hidden;
     overflow-y: hidden;
 }
 
 #app {
-    /* height: 100vh; */
-     display: flex;
+    display: flex;
     flex-flow: column;
     height: 100vh;
-}
-
-#apphead {
-
 }
 
 #wrapper {
@@ -28,16 +23,10 @@ body {
     flex-grow : 1;
 }
 
-#geogebraframe {
-    height: 100%;
-    width:100%;
-
-}
 
 #list {
     width: 100%;
 }
-
 
 a {
   color: #2ccaa8;
@@ -49,6 +38,15 @@ a:hover {
     color:#2ccaa8a6;
 }
 
+/* Override Bootstrap Radius*/
+:root {
+    --bs-border-radius-lg: 0.3rem !important; 
+    --bs-border-radius: 0.25rem !important; 
+    --bs-border-radius-sm: 0.2rem !important; 
+}
+
+
+
 .white {
     filter: invert(100%) ;
 }
@@ -57,18 +55,13 @@ a:hover {
     filter: brightness(200%);
 }
 
-
-
-
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 input:focus::placeholder {
     color: transparent;
 }
-
-
 
 #uploaddiv {
     display: none;
@@ -85,11 +78,10 @@ input:focus::placeholder {
     border-radius: 12px;
     z-index:9999;
 }
+
 #status {
     padding : 8px;
 }
-
-
 
 .padding-lr-2 {
     padding-left: 2rem !important;
@@ -100,9 +92,11 @@ input:focus::placeholder {
 .arrow {
     transition: .2s;
 }
+
 #studentbutton:hover .arrow {
     fill:#157347!important;
 }
+
 #teacherbutton:hover .arrow {
     fill:#157347!important;
 }
@@ -117,16 +111,12 @@ input:focus::placeholder {
     width: 90vw;
     margin: auto auto;
 }
+
 #editorcontainer{
     position: relative;
     top: 14px;
     width: 90vw;
     margin: auto auto;
-}
-
-.focuswarn {
-    /* box-shadow: 0 0 18px inset #86121d !important; */
-    /* background-color: rgba(255,141,141,0.6); */
 }
 
 .fadeinslow {
@@ -136,6 +126,7 @@ input:focus::placeholder {
          -o-animation: fadein 1s; /* Opera < 12.1 */
             animation: fadein 1s;
 }
+
 .fadeinfast {
     -webkit-animation: fadein .2s; /* Safari, Chrome and Opera > 12.1 */
        -moz-animation: fadein .2s; /* Firefox < 16 */

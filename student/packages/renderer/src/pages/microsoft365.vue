@@ -65,6 +65,14 @@
         <!-- focus warning end -->
     </div>
 
+    <!-- 
+    Microsoft 365 embeds it's editors into an iframe and activates strict content security. therfore it is not possible to inject 
+    Javascript into the frame inside a frame like <iframe></iframe> <embed> or chromium <webview></webview>
+    The only way to inject JS code is via the backend but only if we open the Microsoft365 page directly in the electron window (no sub-frames whatsoever)
+    That's why we use electrons "BrowserView" feature to load 2 pages in 1 window. we present this page as "topmenu" and load the ms editors as "content" below. 
+    This is actually the safest way to do this because of "ContextIsolation" no scripts from the loaded pages can interfere with the rest of the app
+    -->
+
 
 </template>
 
@@ -130,7 +138,8 @@ export default {
                 inputValue: this.pincode,
                 inputValidator: (value) => {
                     if (!value) {return this.$t("student.nopin")}
-                }
+                },
+                didClose: () => { ipcRenderer.send('restore-browserview') }
             }).then((input) => {
                 this.pincode = input.value
                 if (!input.value) {return}
@@ -153,7 +162,7 @@ export default {
                         text: IPCresponse.message,
                         icon: 'error',
                         showCancelButton: false,
-                        
+                        didClose: () => { ipcRenderer.send('restore-browserview') }
                     })
                 }
             })

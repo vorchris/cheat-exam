@@ -17,10 +17,6 @@ body {
     height: 100vh;
 }
 
-#apphead {
-
-}
-
 #wrapper {
      flex-grow : 1;
 }
@@ -32,13 +28,11 @@ body {
 #geogebraframe {
     height: 100%;
     width:100%;
-
 }
 
 #list {
     width: 100%;
 }
-
 
 a {
   color: #2ccaa8;
@@ -50,29 +44,34 @@ a:hover {
     color:#2ccaa8a6;
 }
 
-.white {
-    filter: invert(100%) ;
+
+/* Override Bootstrap Radius*/
+:root {
+    --bs-border-radius-lg: 0.3rem !important; 
+    --bs-border-radius: 0.25rem !important; 
+    --bs-border-radius-sm: 0.2rem !important; 
 }
 
 
-
+.white {
+    filter: invert(100%) ;
+}
 
 .examlist {
     overflow-y: hidden;
 }
 
-.fixed {display: fixed;}
-
-
+.fixed {
+    display: fixed;
+}
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 input:focus::placeholder {
     color: transparent;
 }
-
 
 .infodiv {
     display: none;
@@ -90,7 +89,6 @@ input:focus::placeholder {
     z-index:9999;
 }
 
-
 .green {
     filter: invert(48%) sepia(22%) saturate(800%) hue-rotate(86deg) brightness(100%) contrast(140%);
 }
@@ -98,6 +96,7 @@ input:focus::placeholder {
 .red {
     filter: invert(52%) sepia(23%) saturate(800%) hue-rotate(-412deg) brightness(79%) contrast(205%);
 }
+
 .focuswarning {
    background-color: #ffc107 !important;
    text-align: center !important;
@@ -106,7 +105,6 @@ input:focus::placeholder {
    font-size: 1.1em;
     border: 1px solid rgb(255, 153, 0) !important;
 }
-
 
 #uploaddiv {
     display: none;
@@ -123,10 +121,10 @@ input:focus::placeholder {
     border-radius: 12px;
     z-index:19999;
 }
+
 #status {
     padding : 8px;
 }
-
 
 #studentslist{
     border-radius: 5px;
@@ -163,7 +161,6 @@ input:focus::placeholder {
     position: absolute;
     bottom: 0;
     right: 0;
-
 }
 
 .studentwidget #image {
@@ -177,27 +174,20 @@ input:focus::placeholder {
 
 }
 
-
 .arrow {
     transition: .2s;
 }
+
 #studentbutton:hover .arrow {
     fill:#157347!important;
 }
+
 #teacherbutton:hover .arrow {
     fill:#157347!important;
 }
 
 .disabled {
     filter: grayscale(100%) blur(1px) contrast(0.3) brightness(1.5) ;
-}
-
-
-
-
-.focuswarn {
-    /* box-shadow: 0 0 18px inset #86121d !important; */
-    /* background-color: rgba(255,141,141,0.6); */
 }
 
 .fadeinslow {
@@ -207,6 +197,7 @@ input:focus::placeholder {
          -o-animation: fadein 1s; /* Opera < 12.1 */
             animation: fadein 1s;
 }
+
 .fadeinfast {
     -webkit-animation: fadein .2s; /* Safari, Chrome and Opera > 12.1 */
        -moz-animation: fadein .2s; /* Firefox < 16 */
