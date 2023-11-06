@@ -255,7 +255,7 @@ class WindowHandler {
                   contextIsolation: true,
                 }
             });
-            this.examwindow.addBrowserView(contentView);
+            
            
             contentView.setBounds({
                 x: 0,
@@ -265,8 +265,22 @@ class WindowHandler {
             });
             contentView.setAutoResize({ width: true, height: true, horizontal: true, vertical: true });
             contentView.webContents.loadURL(urlview);
-
             if (this.config.showdevtools) {       contentView.webContents.openDevTools() }
+
+            this.examwindow.addBrowserView(contentView);
+
+            this.examwindow.on('enter-full-screen', () => {
+                this.examwindow.setBrowserView(contentView);
+
+                let newBounds = this.examwindow.getBounds();
+                contentView.setBounds({
+                  x: 0,
+                  y: this.examwindow.menuHeight,
+                  width: newBounds.width,
+                  height: newBounds.height - this.examwindow.menuHeight
+                });
+            });
+
 
             this.examwindow.on('resize', () => {
                 let newBounds = this.examwindow.getBounds();
