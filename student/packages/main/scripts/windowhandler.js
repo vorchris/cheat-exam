@@ -38,6 +38,7 @@ class WindowHandler {
       this.screenlockWindow = null
       this.mainwindow = null
       this.examwindow = null
+      this.splashwin = null
       this.config = null
       this.multicastClient = null
       this.nodehun = null  //needed for manual spellchecker
@@ -60,6 +61,45 @@ class WindowHandler {
             else { return false }
         }
     }
+
+
+    createSplashWin() {
+
+        this.splashwin = new BrowserWindow({
+            title: 'Next-Exam',
+            icon: join(__dirname, '../../public/icons/icon.png'),
+            center:true,
+            width: 600,
+            height:200,
+            alwaysOnTop: true,
+            skipTaskbar:true,
+            autoHideMenuBar: true,
+            closable: false,
+            minimizable: false,
+            movable: false,
+            frame: false,
+            show: false,
+            transparent: true
+        })
+     
+        this.splashwin.loadFile(join(__dirname, `../../public/splash.html`))
+
+        this.splashwin.once('ready-to-show', () => {
+            this.splashwin.show()
+            this.createMainWindow()
+        });
+    }
+
+
+
+
+
+
+
+
+
+
+
 
 
     /**
@@ -527,6 +567,7 @@ class WindowHandler {
         });
 
         this.mainwindow.once('ready-to-show', () => {
+            this.splashwin.close()
             this.mainwindow.show()
             this.mainwindow.moveTop();
             this.mainwindow.focus();

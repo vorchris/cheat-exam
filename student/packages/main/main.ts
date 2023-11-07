@@ -21,6 +21,12 @@
  */
 
 import { app, BrowserWindow, powerSaveBlocker, nativeTheme, globalShortcut} from 'electron'
+
+if (!app.requestSingleInstanceLock()) {  // allow only one instance of the app per client
+    app.quit()
+    process.exit(0)
+ }
+
 import { release } from 'os'
 import { disableRestrictions} from './scripts/platformrestrictions.js';
 import WindowHandler from './scripts/windowhandler.js'
@@ -35,10 +41,7 @@ import fsExtra from "fs-extra"
 import os from 'os'
 import ip from 'ip'
 
-if (!app.requestSingleInstanceLock()) {  // allow only one instance of the app per client
-    app.quit()
-    process.exit(0)
- }
+
 
 config.electron = true
 config.homedirectory = os.homedir()
@@ -121,7 +124,9 @@ app.whenReady()
             preventSleep.enable();
         })
     }
-    WindowHandler.createMainWindow()
+   
+    WindowHandler.createSplashWin()
+    
 
     //these are some shortcuts we try to capture
     globalShortcut.register('CommandOrControl+R', () => {});
