@@ -29,6 +29,7 @@
         "directories": {
             "output": "../release/${version}"
         },
+        "compression":"maximum",
         "files": [
             "dist",
             "public"
@@ -58,7 +59,7 @@
             "sign": "true"
         },
         "portable": {
-            "useZip": false,
+            "useZip": true,
             "unpackDirName": "next-exam-student",
             "splashImage": "public/splash.bmp"
         },
