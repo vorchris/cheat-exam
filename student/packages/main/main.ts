@@ -125,8 +125,8 @@ app.whenReady()
         })
     }
    
-    WindowHandler.createSplashWin()
-    
+    //WindowHandler.createSplashWin()
+    WindowHandler.createMainWindow()
 
     //these are some shortcuts we try to capture
     globalShortcut.register('CommandOrControl+R', () => {});

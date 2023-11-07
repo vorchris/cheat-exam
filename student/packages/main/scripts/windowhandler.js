@@ -74,7 +74,7 @@ class WindowHandler {
             alwaysOnTop: true,
             skipTaskbar:true,
             autoHideMenuBar: true,
-            closable: false,
+            resizable: false,
             minimizable: false,
             movable: false,
             frame: false,
@@ -567,7 +567,7 @@ class WindowHandler {
         });
 
         this.mainwindow.once('ready-to-show', () => {
-            this.splashwin.close()
+           // this.splashwin.close()
             this.mainwindow.show()
             this.mainwindow.moveTop();
             this.mainwindow.focus();

@@ -58,8 +58,9 @@
             "sign": "true"
         },
         "portable": {
+            "useZip": true,
             "unpackDirName": "next-exam-student",
-            "splashImage": "public/icons/256x256.bmp"
+            "splashImage": "public\\splash.bmp"
         },
         "win": {
             "icon": "public/icons/icon.ico",
