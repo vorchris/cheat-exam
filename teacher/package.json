@@ -31,6 +31,7 @@
         "directories": {
             "output": "../release/${version}"
         },
+        "compression":"maximum",
         "files": [
             "dist",
             "public"
@@ -60,7 +61,9 @@
             "sign": "true"
         },
         "portable": {
-            "unpackDirName": "next-exam-teacher"
+            "useZip": true,
+            "unpackDirName": "next-exam-teacher",
+            "splashImage": "public/splash.bmp"
         },
         "win": {
             "icon": "public/icons/icon.ico",
