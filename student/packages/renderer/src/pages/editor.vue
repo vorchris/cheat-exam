@@ -880,7 +880,7 @@ export default {
 
 
 .invisible-button {
-    border-color: transparent;
+    border-color: transparent !important;
 }
 
 
