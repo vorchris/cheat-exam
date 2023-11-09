@@ -20,6 +20,10 @@
         <div v-if="!advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("student.advanced") }}</div>
         <div v-if="advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("student.simple") }}</div>
         
+        <div class="m-2">
+            <br><div id="statusdiv" class="btn btn-warning m-1"></div>
+        </div>
+        <br>
 
         <span @click="showCopyleft()" style="position: absolute; bottom:2px; left: 6px; font-size:0.8em;cursor: pointer;">
             <span style=" display:inline-block; transform: scaleX(-1);font-size:1.2em; ">&copy; </span> 
@@ -72,7 +76,7 @@
 <script>
 import axios from "axios";
 import validator from 'validator'
-
+import $ from 'jquery'
 
 export default {
     data() {
@@ -106,6 +110,9 @@ export default {
             if (getinfo.serverlist.length  === 0) {
                 if (validator.isIP(this.serverip) || validator.isFQDN(this.serverip)){
                         console.log("fetching exams from server")
+                        //give some userfeedback here
+                        this.status("Suche Prüfungen...")
+
                         axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/serverlist`)
                         .then( response => { if (response.data && response.data.status == "success") {  this.serverlist = response.data.serverlist} }) 
                         .catch(err => { console.log(err.message)}) 
@@ -129,6 +136,19 @@ export default {
             this.serverip = ""
         },
         
+        //show status message
+        async status(text){  
+            $("#statusdiv").text(text)
+            $("#statusdiv").fadeIn("slow")
+            await this.sleep(2000);
+            $("#statusdiv").fadeOut("slow")
+        },
+         // implementing a sleep (wait) function
+         sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        },
+
+
         /** register client on the server **/
         registerClient(serverip, servername){
            if (this.username === "" || this.pincode ===""){
@@ -140,6 +160,9 @@ export default {
                 })
             }
             else {
+                //check username - remove leading and trailing spaces
+                this.username = this.username.replace(/^\s+|\s+$/g, '');
+
                 let IPCresponse = ipcRenderer.sendSync('register', {clientname:this.username, servername:servername, serverip, serverip, pin:this.pincode })
                 console.log(IPCresponse)
                 if (IPCresponse && IPCresponse.token){
@@ -183,6 +206,7 @@ export default {
         },
     },
     mounted() {  
+        $("#statusdiv").hide()
         this.fetchInfo();
         this.fetchinterval = setInterval(() => { this.fetchInfo() }, 4000)
 
@@ -207,8 +231,8 @@ export default {
 }
 
 .infobutton{
-    width: 240px;
-    min-width: 240px;
+    width: 224px;
+    min-width: 224px;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     background-color: whitesmoke;
