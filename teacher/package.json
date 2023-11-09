@@ -31,7 +31,7 @@
         "directories": {
             "output": "../release/${version}"
         },
-        "compression":"maximum",
+        "compression":"normal",
         "files": [
             "dist",
             "public"
