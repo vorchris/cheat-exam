@@ -128,6 +128,8 @@ export default {
                     .drawer-toggler { display: none !important; }
                     #page-footer { display: none !important; }
                     #theme_boost-drawers-courseindex { display: none !important; }
+                    #page.drawers {margin-top:0px !important;}
+                    #page-wrapper {padding-top:0px !important;}
                 `;
                 webview.executeJavaScript(`
                     (() => {  // Anonyme Funktion für eigenen Scope sonst wird beim reload der page (absenden der form ) die variable erneut deklariert und failed

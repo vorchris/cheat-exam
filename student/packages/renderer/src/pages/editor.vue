@@ -74,7 +74,7 @@
             <button :title="$t('editor.copy')"  @click="copySelection()" class="btn btn-outline-success p-1 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-copy.svg" class="" width="22" height="22" ></button>
             <button :title="$t('editor.paste')"  @click="pasteSelection()" class="btn btn-outline-success p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-paste-style.svg" class="" width="22" height="22" ></button>
            
-            <button :title="$t('editor.specialchar')"  @click="showInsertSpecial()" class="btn btn-outline-success p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/bboxnext.svg" class="" width="22" height="22" ></button>
+            <button :title="$t('editor.specialchar')"  @click="showInsertSpecial()" class="btn btn-outline-warning p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/sign.svg" class="" width="22" height="22" ></button>
 
 
             <button v-if="serverstatus.spellcheck && spellcheck"  :title="$t('editor.spellcheckdeactivate')"  @click="deactivateSpellcheck()" class="btn btn-outline-danger p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/autocorrection.svg" class="" width="22" height="22" ></button>
@@ -120,8 +120,13 @@
     <!-- focuswarning end  -->
 
     <div id="specialcharsdiv">
-        <div class="btn btn-outline-info btn-sm m-1" @click="insertSpecialchar('¿')">¿</div>
-        <div class="btn btn-outline-info btn-sm m-1" @click="insertSpecialchar('ñ')">ñ</div>
+        <div class="btn btn-outline-secondary btn-sm m-1" @click="insertSpecialchar('¿')">¿</div>
+        <div class="btn btn-outline-secondary btn-sm m-1" @click="insertSpecialchar('ñ')">ñ</div>
+        <div class="btn btn-outline-secondary btn-sm m-1" @click="insertSpecialchar('ç')">ç</div>
+        <div class="btn btn-outline-secondary btn-sm m-1" @click="insertSpecialchar('©')">©</div>
+        <div class="btn btn-outline-secondary btn-sm m-1" @click="insertSpecialchar('™')">™</div>
+        <div class="btn btn-outline-secondary btn-sm m-1" @click="insertSpecialchar('¡')">¡</div>
+        <div class="btn btn-outline-secondary btn-sm m-1" @click="insertSpecialchar('µ')">µ</div>
     </div>
 
 
@@ -276,7 +281,9 @@ export default {
         checkAllWordsOnSpacebar:SpellChecker.checkAllWordsOnSpacebar,  //does a complete spellcheck after hitting spacebar while writing
 
         showInsertSpecial(){
-            $("#specialcharsdiv").fadeIn("slow")
+            let display =  $("#specialcharsdiv").css('display')
+            if (display == "none"){    $("#specialcharsdiv").fadeIn("slow")  }
+            else { $("#specialcharsdiv").hide()}
         },
   
         insertSpecialchar(character) {
@@ -788,7 +795,7 @@ export default {
 <style lang="scss">
 
 @media print {  //this controls how the editor view is printed (to pdf)
-    #editortoolbar, #editorheader, #editselected, #focuswarning{
+    #editortoolbar, #editorheader, #editselected, #focuswarning, #specialcharsdiv {
         display: none !important;
     }
     #statusbar {
@@ -858,11 +865,11 @@ export default {
 
 #specialcharsdiv {
   position: absolute;
-  top: 50%;
+  top: 18%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 200px; /* Adjust width as desired */
-  height: 100px; /* Adjust height as desired */
+  width: 182px; /* Adjust width as desired */
+  height: 84px; /* Adjust height as desired */
   background-color: rgb(255, 255, 255);
   border-radius: 8px; /* Slight rounded corners */
   /* Additional styling if needed */
