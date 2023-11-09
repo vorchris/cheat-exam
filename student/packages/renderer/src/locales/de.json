@@ -98,7 +98,8 @@
         "spellcheckdeactivate": "Rechtschreibprüfung deaktieren",
         "reload": "Neu laden",
         "reloadtext": "Wollen sie den Texteditor neu initialisieren?",
-        "reloadcontent": "Inhalt beibehalten"
+        "reloadcontent": "Inhalt beibehalten",
+        "specialchar":"Sonderzeichen einfügen"
     },
     "math": {
         "exit":"Abgesicherten Modus beenden?",

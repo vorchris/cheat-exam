@@ -74,6 +74,9 @@
             <button :title="$t('editor.copy')"  @click="copySelection()" class="btn btn-outline-success p-1 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-copy.svg" class="" width="22" height="22" ></button>
             <button :title="$t('editor.paste')"  @click="pasteSelection()" class="btn btn-outline-success p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-paste-style.svg" class="" width="22" height="22" ></button>
            
+            <button :title="$t('editor.specialchar')"  @click="showInsertSpecial()" class="btn btn-outline-success p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/bboxnext.svg" class="" width="22" height="22" ></button>
+
+
             <button v-if="serverstatus.spellcheck && spellcheck"  :title="$t('editor.spellcheckdeactivate')"  @click="deactivateSpellcheck()" class="btn btn-outline-danger p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/autocorrection.svg" class="" width="22" height="22" ></button>
             <button v-if="serverstatus.spellcheck && !spellcheck" :title="$t('editor.spellcheck')"  @click="activateSpellcheck()" class="btn btn-outline-success p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/autocorrection.svg" class="" width="22" height="22" ></button>
 
@@ -116,7 +119,10 @@
     </div>
     <!-- focuswarning end  -->
 
-
+    <div id="specialcharsdiv">
+        <div class="btn btn-outline-info btn-sm m-1" @click="insertSpecialchar('¿')">¿</div>
+        <div class="btn btn-outline-info btn-sm m-1" @click="insertSpecialchar('ñ')">ñ</div>
+    </div>
 
 
 
@@ -268,6 +274,31 @@ export default {
         removeElementsByClassFromString:SpellChecker.removeElementsByClassFromString,  // this removes html elements from a string that contains html elements
         hideSpellcheckMenu:SpellChecker.hideSpellcheckMenu, // hides the spellcheck context menu
         checkAllWordsOnSpacebar:SpellChecker.checkAllWordsOnSpacebar,  //does a complete spellcheck after hitting spacebar while writing
+
+        showInsertSpecial(){
+            $("#specialcharsdiv").fadeIn("slow")
+        },
+  
+        insertSpecialchar(character) {
+            const sel = window.getSelection();
+            // Check if the selection is within a contenteditable element
+            const contentEditableParent = sel.anchorNode && sel.anchorNode.parentElement.closest('[contenteditable="true"]');
+            if (sel.rangeCount && contentEditableParent) {
+                const range = sel.getRangeAt(0);
+                range.deleteContents();
+                const textNode = document.createTextNode(character);
+                range.insertNode(textNode);
+
+                // Move the caret after the inserted character
+                range.setStartAfter(textNode);
+                range.setEndAfter(textNode);
+                sel.removeAllRanges(); // Remove all ranges to clear the previous selection
+                sel.addRange(range); // Add the new range to set the caret position
+            }
+            $("#specialcharsdiv").hide()
+         },
+
+
 
 
         insertSpaceInsteadOfTab(e){
@@ -650,6 +681,8 @@ export default {
 
 
     mounted() {
+        $("#specialcharsdiv").hide()
+
         switch (this.cmargin.size) {
             case 4:       this.proseMirrorMargin = '90px';   break;
             case 3.5:     this.proseMirrorMargin = '70px';   break;
@@ -822,6 +855,25 @@ export default {
     }
 
 }
+
+#specialcharsdiv {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px; /* Adjust width as desired */
+  height: 100px; /* Adjust height as desired */
+  background-color: rgb(255, 255, 255);
+  border-radius: 8px; /* Slight rounded corners */
+  /* Additional styling if needed */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+  z-index:1000000;
+  padding: 4px;
+}
+
+
+
+
 
 /**
 NodeHun Custom Spellchecker Styles 

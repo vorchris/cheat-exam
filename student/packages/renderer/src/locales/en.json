@@ -98,7 +98,8 @@
         "spellcheckdeactivate": "deactivate spellcheck",
         "reload": "Reload",
         "reloadtext": "Would you like to reinitialize the Editor?",
-        "reloadcontent": "keep content"
+        "reloadcontent": "keep content",
+        "specialchar":"Insert specialcharacter"
     },
     "math": {
         "exit":"Exit safe exam mode",
