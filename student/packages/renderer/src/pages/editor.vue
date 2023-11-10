@@ -105,7 +105,7 @@
 
     <!-- angabe/pdf preview start -->
     <div id=preview class="fadeinslow p-4">
-        <div class="btn btn-dark me-2 btn-lg shadow" style="float: right;" @click="print()"><img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" > </div>
+        <div class="btn btn-warning me-2 btn-lg shadow" style="position: absolute; top:50%; margin-top:-45vh; left:50%; margin-left:35vw;" @click="print()"><img src="/src/assets/img/svg/print.svg" class="white" width="32" height="32" > </div>
         <embed src="" id="pdfembed">
     </div>
     <!-- angabe/pdf preview end -->
