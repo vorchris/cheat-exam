@@ -108,7 +108,17 @@ class IpcHandler {
                             if (err.message.includes("permission denied")){
                                 console.log("writing under different name")
                                 let alternatepath = `${pdffilepath}-${this.multicastClient.clientinfo.token}.pdf`
-                                fs.writeFile(alternatepath, data, function (err) { if (err) { console.log(err.message); console.log("giving up"); }  } ); 
+                                fs.writeFile(alternatepath, data, function (err) { 
+                                    if (err) {
+                                        console.log(err.message);
+                                        console.log("giving up"); 
+                                        
+                                        event.reply("fileerror", { sender: "client", message:err , status:"error" } )
+                                    }
+                                    else {
+                                        event.returnValue = { sender: "client", message:t("data.filestored") , status:"success" }
+                                    }
+                                }); 
                             }
                         
                         }  
@@ -214,8 +224,15 @@ class IpcHandler {
 
             if (htmlContent) { 
                 console.log("saving students work to disk...")
-                fs.writeFile(htmlfile, htmlContent, (err) => {if (err) console.log(err); }); 
-                event.returnValue = { sender: "client", message:t("data.filestored") , status:"success" }
+                fs.writeFile(htmlfile, htmlContent, (err) => {
+                    if (err) {
+                        console.log(err);
+                        event.returnValue = { sender: "client", message:err , status:"error" }
+                    }
+                    else {
+                        event.returnValue = { sender: "client", message:t("data.filestored") , status:"success" }
+                    }
+                }); 
             }
         })
 

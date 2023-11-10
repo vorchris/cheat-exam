@@ -53,7 +53,7 @@
         "exit": "Abgesicherten Modus beenden?",
         "exitkiosk": "Verlassen Sie den abgesicherten Modus nie ohne Freigabe einer Lehrperson.",
         "info": "Sollte der Vorgang fehlschlagen beenden Sie bitte den abgesicherten Modus und versuchen Sie es erneut!",
-        "saved": "Die aktuelle Arbeit wurde gesichert!",
+        "saved": "Die aktuelle Arbeit wird gesichert!",
         "leaving": "Abgesicherter Modus beendet",
         "backup": "sichern",
         "undo":"rückgängig",

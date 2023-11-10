@@ -43,7 +43,7 @@
         
         <!-- toolbar start -->
         <div v-if="editor" class="m-2" id="editortoolbar" style="text-align:left;"> 
-            <button :title="$t('editor.backup')" @click="saveContent(true); backup();" class="invisible-button btn btn-outline-success p-1 me-1 mb-1 btn-sm"><img src="/src/assets/img/svg/document-save.svg" class="white" width="22" height="22" ></button>
+            <button :title="$t('editor.backup')" @click="saveContent(true, 'manual');" class="invisible-button btn btn-outline-success p-1 me-1 mb-1 btn-sm"><img src="/src/assets/img/svg/document-save.svg" class="white" width="22" height="22" ></button>
             <button :title="$t('editor.undo')" @click="editor.chain().focus().undo().run()" class="invisible-button btn btn-outline-warning p-1 me-0 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-undo.svg" class="white" width="22" height="22" ></button>
             <button :title="$t('editor.redo')" @click="editor.chain().focus().redo().run()" class="invisible-button btn btn-outline-warning p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-redo.svg" class="white" width="22" height="22" > </button>
             <button :title="$t('editor.clear')" @click="editor.chain().focus().clearNodes().run();editor.chain().focus().unsetColor().run()" class="invisible-button btn btn-outline-warning p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/draw-eraser.svg" class="white" width="22" height="22" ></button>
@@ -447,11 +447,24 @@ export default {
             // inform mainprocess to save webcontent as pdf (see @media css query for adjustments for pdf)
             let filename = this.currentFile.replace(/\.[^/.]+$/, "")  // we dont need the extension
             ipcRenderer.send('printpdf', {clientname:this.clientname, filename: `${filename}.pdf`, servername: this.servername })
+
+            if (why === "manual"){
+                this.$swal.fire({
+                    title: this.$t("editor.saved"),
+                    icon: "info",
+                    timer: 1000,
+                    showCancelButton: false,
+                    didOpen: () => { this.$swal.showLoading(); },
+                })
+            }
             if (why === "exitexam") { 
                 this.$swal.fire({
                     title: this.$t("editor.leaving"),
                     text: this.$t("editor.saved"),
-                    icon: "info"
+                    icon: "info",
+                    timer: 3000,
+                    showCancelButton: false,
+                    didOpen: () => { this.$swal.showLoading(); },
                 })
             }
             if (backup){
@@ -482,13 +495,6 @@ export default {
                 timer: 2000,
                 timerProgressBar: true,
                 didOpen: () => { this.$swal.showLoading() }
-            })
-        },
-        // show confirmation
-        backup(){
-            this.$swal.fire({
-                title: this.$t("editor.saved"),
-                icon: "info"
             })
         },
         zoomin(){
@@ -726,7 +732,18 @@ export default {
         ipcRenderer.on('loadfilelist', () => {  
             console.log("Reload Files event received ")
             this.loadFilelist() 
-        }); 
+        });
+        ipcRenderer.on('fileerror', (event, msg) => {
+            console.log('writing file error received');
+            this.$swal.fire({
+                    title: "Error",
+                    text: msg.message,
+                    icon: "error",
+                    timer: 3000,
+                    showCancelButton: false,
+                    didOpen: () => { this.$swal.showLoading(); },
+            })
+        });
 
         this.currentFile = this.clientname
         this.entrytime = new Date().getTime()
