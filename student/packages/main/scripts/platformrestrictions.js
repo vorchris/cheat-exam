@@ -110,18 +110,18 @@ function enableRestrictions(win){
         //childProcess.execFile('sed', ['-i', '-e', 's/global=Alt+F1/global=/g', `${config.homedirectory}/.config/plasma-org.kde.plasma.desktop-appletsrc` ])   // alt+f1 or f2 is translated by "kickoff" to meta/win/cmd shortcut (wtf)
         //childProcess.execFile('qdbus', ['org.kde.plasmashell','/PlasmaShell','refreshCurrentShell'])    // i really dont like that but this is the fastest way i found to disable the windows/meta key
         childProcess.execFile('kwriteconfig5', ['--file',`${config.homedirectory}/.config/kwinrc`,'--group','ModifierOnlyShortcuts','--key','Meta','""']) 
-        childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
+        childProcess.execFile('kwriteconfig5', ['--file',`kwinrc`,'--group','Desktops','--key','Number','1'])  //remove virtual desktops
+        childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','setCurrentDesktop','1'])
+        //childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
+        childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','replace'])
         childProcess.execFile('kquitapp5', ['kglobalaccel'])
 
 
-        // Temporarily deactivate ALL global keyboardshortcuts 
-        childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'true'])
-        // Temporarily deactivate ALL 3d Effects (present window, change desktop, etc.) 
-        childProcess.execFile('qdbus', ['org.kde.KWin' ,'/Compositor', 'org.kde.kwin.Compositing.suspend'])
-        // Clear Clipboard history 
-        childProcess.execFile('qdbus', ['org.kde.klipper' ,'/klipper', 'org.kde.klipper.klipper.clearClipboardHistory'])
-        // wayland
-        childProcess.execFile('wl-copy', ['-c'])
+        
+        childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'true']) // Temporarily deactivate ALL global keyboardshortcuts 
+        childProcess.execFile('qdbus', ['org.kde.KWin' ,'/Compositor', 'org.kde.kwin.Compositing.suspend'])   // Temporarily deactivate ALL 3d Effects (present window, change desktop, etc.) 
+        childProcess.execFile('qdbus', ['org.kde.klipper' ,'/klipper', 'org.kde.klipper.klipper.clearClipboardHistory']) // Clear Clipboard history 
+        childProcess.execFile('wl-copy', ['-c'])   // wayland
 
     
 
@@ -152,6 +152,10 @@ function enableRestrictions(win){
         }
 
         childProcess.execFile('gsettings', ['set' ,'org.gnome.mutter', `overlay-key`, `''`])
+        
+        // deactivate multiple desktops
+        childProcess.exec('gsettings set org.gnome.mutter dynamic-workspaces false')
+        childProcess.exec('gsettings set org.gnome.desktop.wm.preferences num-workspaces 1')
 
 
         // clear clipboard gnome and x11  (this will fail unless xclip or xsell are installed)

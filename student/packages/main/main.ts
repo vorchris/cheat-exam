@@ -28,7 +28,7 @@ if (!app.requestSingleInstanceLock()) {  // allow only one instance of the app p
  }
 
 import { release } from 'os'
-import { disableRestrictions} from './scripts/platformrestrictions.js';
+// import { disableRestrictions} from './scripts/platformrestrictions.js';
 import WindowHandler from './scripts/windowhandler.js'
 import CommHandler from './scripts/communicationhandler.js'
 import IpcHandler from './scripts/ipchandler.js'
@@ -94,7 +94,7 @@ app.on('certificate-error', (event, webContents, url, error, certificate, callba
 
 app.on('window-all-closed', () => {  // if window is closed
     clearInterval( CommHandler.updateStudentIntervall )
-    disableRestrictions()
+    //disableRestrictions()
     WindowHandler.mainwindow = null
     // if (process.platform !== 'darwin'){ app.quit() }
     app.quit()
