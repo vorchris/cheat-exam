@@ -94,66 +94,62 @@
         <div class="btn btn-light m-1 mb-3 text-start infobutton" @click="showinfo()">{{$t('dashboard.pin')}}<br><b> {{ serverstatus.pin }} </b>  </div><br>
         
         <div style="font-size:0.9em">
-        <!-- geogebra -->
-        <div class="form-check m-1 mb-1"  :class="(serverstatus.exammode)? 'disabledexam':''">
-            <input v-model="serverstatus.examtype" value="math" class="form-check-input" type="radio" name="examtype" id="examtype2" checked>
-            <label class="form-check-label" for="examtype2"> {{$t('dashboard.math')}}  </label>
-        </div>
-        <!-- editor -->
-        <div class="form-check m-1" :class="(serverstatus.exammode)? 'disabledexam':''">
-            <input v-model="serverstatus.examtype" @click="activateSpellcheck()" value="editor" class="form-check-input" type="radio" name="examtype" id="examtype1">
-            <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}} <span v-if="(serverstatus.spellcheck)">({{serverstatus.spellchecklang}})</span></label>
-        </div>
-        <!-- eduvidual -->
-        <div class="form-check m-1 mb-1" :class="(serverstatus.exammode)? 'disabledexam':''">
-            <input v-model="serverstatus.examtype" @click="getTestID()" value="eduvidual" class="form-check-input" type="radio" name="examtype" id="examtype3">
-            <label class="form-check-label" for="examtype3"> {{$t('dashboard.eduvidual')}}  </label>
-        </div>
-        <!-- google forms -->
-        <div class="form-check m-1 mb-1" :class="(serverstatus.exammode)? 'disabledexam':''">
-            <input v-model="serverstatus.examtype" @click="getFormsID()" value="gforms" class="form-check-input" type="radio" name="examtype" id="examtype5">
-            <label class="form-check-label" for="examtype5"> {{$t('dashboard.gforms')}}  </label>
-        </div>
+            <!-- geogebra -->
+            <div class="form-check m-1 mb-1"  :class="(serverstatus.exammode)? 'disabledexam':''">
+                <input v-model="serverstatus.examtype" value="math" class="form-check-input" type="radio" name="examtype" id="examtype2" checked>
+                <label class="form-check-label" for="examtype2"> {{$t('dashboard.math')}}  </label>
+            </div>
+            <!-- editor -->
+            <div class="form-check m-1" :class="(serverstatus.exammode)? 'disabledexam':''">
+                <input v-model="serverstatus.examtype" @click="activateSpellcheck()" value="editor" class="form-check-input" type="radio" name="examtype" id="examtype1">
+                <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}} <span v-if="(serverstatus.spellcheck)">({{serverstatus.spellchecklang}})</span></label>
+            </div>
+            <!-- eduvidual -->
+            <div class="form-check m-1 mb-1" :class="(serverstatus.exammode)? 'disabledexam':''">
+                <input v-model="serverstatus.examtype" @click="getTestID()" value="eduvidual" class="form-check-input" type="radio" name="examtype" id="examtype3">
+                <label class="form-check-label" for="examtype3"> {{$t('dashboard.eduvidual')}}  </label>
+            </div>
+            <!-- google forms -->
+            <div class="form-check m-1 mb-1" :class="(serverstatus.exammode)? 'disabledexam':''">
+                <input v-model="serverstatus.examtype" @click="getFormsID()" value="gforms" class="form-check-input" type="radio" name="examtype" id="examtype5">
+                <label class="form-check-label" for="examtype5"> {{$t('dashboard.gforms')}}  </label>
+            </div>
 
-        <!-- microsoft365 -->
-        <div class="form-check m-1 mb-3" :class="(serverstatus.exammode)? 'disabledexam':''">
-            <input v-model="serverstatus.examtype" value="microsoft365" class="form-check-input" type="radio" name="examtype" id="examtype4">
-            <label class="form-check-label" for="examtype4"> Microsoft365 <span v-if="(this.config.accessToken)">({{$t('dashboard.connected')}})</span> </label>
-            
-            <button v-if="(serverstatus.examtype === 'microsoft365' && !this.config.accessToken)"  @click="openAuthWindow()" class="btn btn-sm btn-primary mt-1  ">
-                <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
-                <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Verbinden </span>
-            </button>
+            <!-- microsoft365 -->
+            <div class="form-check m-1 mb-3" :class="(serverstatus.exammode)? 'disabledexam':''">
+                <input v-model="serverstatus.examtype" value="microsoft365" class="form-check-input" type="radio" name="examtype" id="examtype4">
+                <label class="form-check-label" for="examtype4"> Microsoft365 <span v-if="(this.config.accessToken)">({{$t('dashboard.connected')}})</span> </label>
+                
+                <button v-if="(serverstatus.examtype === 'microsoft365' && !this.config.accessToken)"  @click="openAuthWindow()" class="btn btn-sm btn-primary mt-1  ">
+                    <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
+                    <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Verbinden </span>
+                </button>
 
-            <button v-if="(serverstatus.examtype === 'microsoft365' && this.config.accessToken && !serverstatus.msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-info mt-1  ">
-                <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
-                <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Datei wählen </span>
-            </button>
+                <button v-if="(serverstatus.examtype === 'microsoft365' && this.config.accessToken && !serverstatus.msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-info mt-1  ">
+                    <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
+                    <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Datei wählen </span>
+                </button>
 
-            <button v-if="(serverstatus.examtype === 'microsoft365' && this.config.accessToken && serverstatus.msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-success mt-1  " style=" white-space: nowrap;  width: 170px;overflow: hidden; text-overflow: ellipsis; ">
-                <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
-                <span style="padding: 0 6px 0 4px; vertical-align:middle;">{{serverstatus.msOfficeFile.name}} </span>
-            </button>
+                <button v-if="(serverstatus.examtype === 'microsoft365' && this.config.accessToken && serverstatus.msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-success mt-1  " style=" white-space: nowrap;  width: 170px;overflow: hidden; text-overflow: ellipsis; ">
+                    <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
+                    <span style="padding: 0 6px 0 4px; vertical-align:middle;">{{serverstatus.msOfficeFile.name}} </span>
+                </button>
+            </div>
+
+
+
+            <!-- other options -->
+            <div class="form-check form-switch  m-1 mb-2" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledexam':''">
+                <input @change="toggleAutoabgabe()"  @click="setAbgabeInterval()" v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
+                <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
+                <span v-if="autoabgabe" > ({{ abgabeintervalPause }}min)</span>
+            </div>
+            <div class="form-check form-switch  m-1 mb-2">
+                <input  @change="toggleScreenshot()" @click="setScreenshotInterval()" checked class="form-check-input" type="checkbox" id="screenshotinterval">
+                <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.screenshot')}}</label>
+                <span v-if="serverstatus.screenshotinterval > 0" > ({{ serverstatus.screenshotinterval }}s)</span>
+            </div>
         </div>
-
-
-
-        <!-- other options -->
-        <div class="form-check form-switch m-1 mb-2"  :class="(serverstatus.exammode || serverstatus.examtype === 'eduvidual'|| serverstatus.examtype === 'microsoft365'  || serverstatus.examtype === 'gforms')? 'disabledexam':''">
-            <input v-model="serverstatus.delfolder" @click="delfolderquestion()" value="del" class="form-check-input" type="checkbox" name="delfolder" id="delfolder">
-            <label class="form-check-label" for="delfolder"> {{$t('dashboard.del')}}  </label>
-        </div>
-        <div class="form-check form-switch  m-1 mb-2" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledexam':''">
-            <input @change="toggleAutoabgabe()"  @click="setAbgabeInterval()" v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
-            <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
-            <span v-if="autoabgabe" > ({{ abgabeintervalPause }}min)</span>
-        </div>
-        <div class="form-check form-switch  m-1 mb-2">
-            <input  @change="toggleScreenshot()" @click="setScreenshotInterval()" checked class="form-check-input" type="checkbox" id="screenshotinterval">
-            <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.screenshot')}}</label>
-            <span v-if="serverstatus.screenshotinterval > 0" > ({{ serverstatus.screenshotinterval }}s)</span>
-        </div>
-    </div>
 
         <div id="statusdiv" class="btn btn-warning m-1"> {{$t('dashboard.connected')}}  </div>
         <span @click="showCopyleft()" style="position: absolute; bottom:2px; left: 6px; font-size:0.8em;cursor: pointer;">
@@ -169,14 +165,16 @@
     <div id="content" class="fadeinslow p-3">
         
         <!-- control buttons start -->        
-        <div v-if="(serverstatus.exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="endExam()" >{{numberOfConnections}} {{$t('dashboard.stopexam')}}</div>
-        <div v-if="(!serverstatus.exammode)" @click="startExam()" :class="(serverstatus.examtype === 'microsoft365' && (!this.config.accessToken || !serverstatus.msOfficeFile))? 'disabledgreen':''" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px; height:62px;">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
+        <div v-if="(serverstatus.exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:140px; height:62px;" @click="endExam()" >                                                                                                                                         <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" :title="$t('dashboard.lock')" width="32" height="32" style="vertical-align: top;"> <div style="display:inline-block; margin-left:4px; width:70px;"> {{numberOfConnections}} {{$t('dashboard.stopexam')}} </div></div>
+        <div v-if="(!serverstatus.exammode)" @click="startExam()" :class="(serverstatus.examtype === 'microsoft365' && (!this.config.accessToken || !serverstatus.msOfficeFile))? 'disabledgreen':''" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:140px; height:62px;">   <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" :title="$t('dashboard.lock')" width="32" height="32" style="vertical-align: top;"> <div style="display:inline-block; margin-left:4px; width:70px;"> {{numberOfConnections}} {{$t('dashboard.startexam')}}</div></div>
      
-        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="sendFiles('all')"  style="width:100px; height:62px;">{{$t('dashboard.sendfile')}}</div>
-        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="getFiles('all', true)" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledblue':''"  style="width:100px; height:62px;" >{{$t('dashboard.getfile')}}</div>
-        <div class="col d-inlineblock btn btn-dark m-1 mt-0 text-start ms-0 " @click="loadFilelist(workdirectory)"  style="width: 100px;">{{$t('dashboard.showworkfolder')}} </div>
-        <div  v-if="(serverstatus.screenslocked)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(false)"> <img src="/src/assets/img/svg/shield-lock-fill.svg" class="white mt-2" title="unlock" width="32" height="32" >   </div>
-        <div  v-if="(!serverstatus.screenslocked)" class="btn btn-dark m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(true)"> <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" title="lock" width="32" height="32" >  </div>
+        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="sendFiles('all')"  style="width:62px; height:62px;"><img src="/src/assets/img/svg/document-send.svg" class="mt-2" :title="$t('dashboard.sendfile')" width="32" height="32"></div>
+        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="getFiles('all', true)" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledblue':''"  style="width:62px; height:62px;" ><img src="/src/assets/img/svg/edit-download.svg" class="mt-2" :title="$t('dashboard.getfile')" width="32" height="32"></div>
+        <div class="col d-inlineblock btn btn-info m-1 mt-0 text-start ms-0 " @click="loadFilelist(workdirectory)"  style="width: 62px; height:62px;"><img src="/src/assets/img/svg/folder-open.svg" class="mt-2" :title="$t('dashboard.showworkfolder')" width="32" height="32" ></div>
+        <div  v-if="(serverstatus.screenslocked)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(false)"> <img src="/src/assets/img/svg/eye-fill.svg" class="white mt-2" title="unlock" width="32" height="32" >   </div>
+        <div  v-if="(!serverstatus.screenslocked)" class="btn btn-dark m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(true)"> <img src="/src/assets/img/svg/eye-slash-fill.svg" class="white mt-2" :title="$t('dashboard.lock')" width="32" height="32" >  </div>
+        <div  id="delfolder" class="btn btn-dark m-1 mt-0 ms-0 text-start" style="width:62px; height:62px;" @click="delfolderquestion()" :class="(serverstatus.exammode || serverstatus.examtype === 'eduvidual'|| serverstatus.examtype === 'microsoft365'  || serverstatus.examtype === 'gforms')? 'disabledexam':''"> <img src="/src/assets/img/svg/edit-delete.svg" class="mt-2" :title="$t('dashboard.del')" width="32" height="32" ></div>
+        
         <!-- control buttons end -->
 
 
@@ -627,13 +625,13 @@ export default {
 
         // show warning
         delfolderquestion(){
-            if (!this.serverstatus.delfolder) {
+            
                 this.$swal.fire({
                     title: this.$t("dashboard.attention"),
                     text: this.$t("dashboard.delsure"),
                     icon: "info"
                 })
-            }
+            
         },
         //display student specific actions
         showStudentview(student) {

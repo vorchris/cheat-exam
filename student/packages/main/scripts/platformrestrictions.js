@@ -131,6 +131,7 @@ function enableRestrictions(win){
         ///////////
 
         //we probably should do it the "windows - way" and just kill gnomeshell for as long as the exam-mode is active
+        //but it seems there is no convenient way to kill gnome-shell without all applications started on top of it 
         
 
         // for gnome3 we need to set every key individually => reset will obviously set defaults (so we may mess up customized shortcuts here)
