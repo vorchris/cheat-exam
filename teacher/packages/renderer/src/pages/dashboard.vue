@@ -164,17 +164,18 @@
    
     <div id="content" class="fadeinslow p-3">
         
+        <div id="description" v-if="showDesc">{{ currentDescription }}</div>
+
         <!-- control buttons start -->        
-        <div v-if="(serverstatus.exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:128px; height:62px;" @click="endExam()" >                                                                                                                                         <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" :title="$t('dashboard.lock')" width="28" height="28" style="vertical-align: top;"> <div style="display:inline-block; margin-top:2px; margin-left:4px; width:60px; font-size:0.9em;"> {{numberOfConnections}} {{$t('dashboard.stopexam')}} </div></div>
-        <div v-if="(!serverstatus.exammode)" @click="startExam()" :class="(serverstatus.examtype === 'microsoft365' && (!this.config.accessToken || !serverstatus.msOfficeFile))? 'disabledgreen':''" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:128px; height:62px;">   <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" :title="$t('dashboard.lock')" width="28" height="28" style="vertical-align: top;"> <div style="display:inline-block; margin-top:2px; margin-left:4px; width:60px; font-size:0.9em;"> {{numberOfConnections}} {{$t('dashboard.startexam')}}</div></div>
+        <div v-if="(serverstatus.exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:128px; height:62px;" @click="endExam()"  @mouseover="showDescription($t('dashboard.exitkiosk'))" @mouseout="hideDescription"  >                                                                                                                                         <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" :title="$t('dashboard.lock')" width="28" height="28" style="vertical-align: top;"> <div style="display:inline-block; margin-top:2px; margin-left:4px; width:60px; font-size:0.9em;"> {{numberOfConnections}} {{$t('dashboard.stopexam')}} </div></div>
+        <div v-if="(!serverstatus.exammode)" @click="startExam()"  @mouseover="showDescription($t('dashboard.startexamdesc'))" @mouseout="hideDescription" :class="(serverstatus.examtype === 'microsoft365' && (!this.config.accessToken || !serverstatus.msOfficeFile))? 'disabledgreen':''" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:128px; height:62px;">   <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" width="28" height="28" style="vertical-align: top;"> <div style="display:inline-block; margin-top:2px; margin-left:4px; width:60px; font-size:0.9em;"> {{numberOfConnections}} {{$t('dashboard.startexam')}}</div></div>
      
-        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="sendFiles('all')"  style="width:62px; height:62px;"><img src="/src/assets/img/svg/document-send.svg" class="mt-2" :title="$t('dashboard.sendfile')" width="32" height="32"></div>
-        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="getFiles('all', true)" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledblue':''"  style="width:62px; height:62px;" ><img src="/src/assets/img/svg/edit-download.svg" class="mt-2" :title="$t('dashboard.getfile')" width="32" height="32"></div>
-        <div class="col d-inlineblock btn btn-info m-1 mt-0 text-start ms-0 " @click="loadFilelist(workdirectory)"  style="width: 62px; height:62px;"><img src="/src/assets/img/svg/folder-open.svg" class="mt-2" :title="$t('dashboard.showworkfolder')" width="32" height="32" ></div>
+        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="sendFiles('all')"   @mouseover="showDescription($t('dashboard.sendfile'))" @mouseout="hideDescription"  style="width:62px; height:62px;"><img src="/src/assets/img/svg/document-send.svg" class="mt-2" width="32" height="32"></div>
+        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="getFiles('all', true)"  @mouseover="showDescription($t('dashboard.getfile'))" @mouseout="hideDescription"  :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledblue':''"  style="width:62px; height:62px;" ><img src="/src/assets/img/svg/edit-download.svg" class="mt-2" width="32" height="32"></div>
+        <div class="col d-inlineblock btn btn-info m-1 mt-0 text-start ms-0 " @click="loadFilelist(workdirectory)"  @mouseover="showDescription($t('dashboard.showworkfolder'))" @mouseout="hideDescription"  style="width: 62px; height:62px;"><img src="/src/assets/img/svg/folder-open.svg" class="mt-2" width="32" height="32" ></div>
         <div  v-if="(serverstatus.screenslocked)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(false)"> <img src="/src/assets/img/svg/eye-fill.svg" class="white mt-2" title="unlock" width="32" height="32" >   </div>
-        <div  v-if="(!serverstatus.screenslocked)" class="btn btn-dark m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(true)"> <img src="/src/assets/img/svg/eye-slash-fill.svg" class="white mt-2" :title="$t('dashboard.lock')" width="32" height="32" >  </div>
-        <div  id="delfolder" class="btn btn-dark m-1 mt-0 ms-0 text-start" style="width:62px; height:62px;" @click="delfolderquestion()" :class="(serverstatus.exammode || serverstatus.examtype === 'eduvidual'|| serverstatus.examtype === 'microsoft365'  || serverstatus.examtype === 'gforms')? 'disabledexam':''"> <img src="/src/assets/img/svg/edit-delete.svg" class="mt-2" :title="$t('dashboard.del')" width="32" height="32" ></div>
-        
+        <div  v-if="(!serverstatus.screenslocked)" class="btn btn-dark m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(true)"  @mouseover="showDescription($t('dashboard.lock'))" @mouseout="hideDescription" > <img src="/src/assets/img/svg/eye-slash-fill.svg" class="white mt-2" width="32" height="32" >  </div>
+        <div  id="delfolder" class="btn btn-dark m-1 mt-0 ms-0 text-start" @mouseover="showDescription($t('dashboard.del'))" @mouseout="hideDescription" style="width:62px; height:62px;" @click="delfolderquestion()" :class="(serverstatus.exammode || serverstatus.examtype === 'eduvidual'|| serverstatus.examtype === 'microsoft365'  || serverstatus.examtype === 'gforms')? 'disabledexam':''"> <img src="/src/assets/img/svg/edit-delete.svg" class="mt-2" width="32" height="32" ></div>
         <!-- control buttons end -->
 
 
@@ -216,8 +217,8 @@
     </div>
  
     <div style="position: fixed; bottom:20px; right: 20px; filter:opacity(50%)" class="col d-inlineblock btn " @click="sortStudentWidgets()">
-     <img src="/src/assets/img/svg/view-sort-ascending-name.svg" class="white" title="sort" width="24" height="24" >  
- </div>
+        <img src="/src/assets/img/svg/view-sort-ascending-name.svg" class="white" title="sort" width="24" height="24" >  
+    </div>
 
 
 </div>
@@ -278,11 +279,11 @@ export default {
             freeDiscspace: 1000,
             replaceMSOfile: false,
             printrequest: false,
-
+            showDesc: false,
+            currentDescription: '',
             serverstatus:{   // this object contains all neccessary information for students about the current exam settings
                 exammode: false,
                 examtype: 'math',
-                delfolder: false,
                 delfolderonexit: false,
                 spellcheck: false,
                 spellchecklang: 'de',
@@ -425,6 +426,15 @@ export default {
         sendFiles:sendFiles,                         //upload files to all students
         stopserver:stopserver,                       //Stop and Exit Exam Server Instance
 
+
+   
+        showDescription(description) {
+            this.currentDescription = description;
+            this.showDesc = true;
+        },
+        hideDescription() {
+            this.showDesc = false;
+        },
 
         visualfeedback(message, timeout=1000){
              this.$swal.fire({
@@ -625,12 +635,29 @@ export default {
 
         // show warning
         delfolderquestion(){
-            
-                this.$swal.fire({
-                    title: this.$t("dashboard.attention"),
-                    text: this.$t("dashboard.delsure"),
-                    icon: "info"
-                })
+            this.$swal.fire({
+                title: this.$t("dashboard.attention"),
+                text:  this.$t("dashboard.delsure"),
+                icon: "question",
+                showCancelButton: true,
+                cancelButtonText: this.$t("dashboard.cancel"),
+                reverseButtons: true,
+             
+            })
+            .then((result) => {
+                if (result.isConfirmed) {
+                
+                     // inform student that folder needs to be deleted
+                    fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/setstudentstatus/${this.servername}/${this.servertoken}/all`, { 
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json' },
+                        body: JSON.stringify({ delfolder : true } )
+                    })
+                    .then( res => res.json() )
+                    .then( result => { console.log(result)});
+                } 
+            }); 
+
             
         },
         //display student specific actions
@@ -933,7 +960,17 @@ export default {
 
 
 
-
+#description {
+    background-color: white;
+    border: 1px solid black;
+    box-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+    padding: 5px;
+    position: absolute; /* Positioniert den Div relativ zum nächsten positionierten Vorfahren */
+    top:150px;
+    z-index: 10000;
+    font-size: 0.8em;
+    border-radius:3px;
+}
 
 
 

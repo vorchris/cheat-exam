@@ -489,7 +489,7 @@ router.post('/sharelink/:servername/:csrfservertoken/:studenttoken', function (r
 
 
 /**
- * RESTORE cients focused state  !! USE /inform/ instead (simplify code)
+ * RESTORE cients focused state  !! USE /setstudentstatus/ instead (simplify code)
  * @param servename the server 
  * @param csrfservertoken the servers token to authenticate
  * @param studenttoken the students token who's state should be restored
@@ -512,32 +512,14 @@ router.post('/sharelink/:servername/:csrfservertoken/:studenttoken', function (r
 })
 
 
-/**
- * Set STUDENT.STATUS and therefore Inform Client on the next update cycle about a denied printrequest (we handle one request at a time) and other things.
- * @param servename the server 
- * @param csrfservertoken the servers token to authenticate
- * @param studenttoken the students token who should be informed
- */
-router.post('/setstudentstatus/:servername/:csrfservertoken/:studenttoken', function (req, res, next) {
-    const servername = req.params.servername
-    const studenttoken = req.params.studenttoken
-    const mcServer = config.examServerList[servername]
-    const printdenied = req.body.printdenied
 
-    if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {  //first check if csrf token is valid and server is allowed to trigger this api request
-        let student = mcServer.studentList.find(element => element.token === studenttoken)
-        if (student) {  
 
-            // here we could handle different forms of information that needs to be set on studentstatus
-            if (printdenied){ student.status.printdenied = true } // set student.status so that the student can act on it on the next update
 
-         }
-        res.send( {sender: "server", message: t("control.studentupdate"), status: "success"} )
-    }
-    else {
-        res.send( {sender: "server", message: t("control.actiondenied"), status: "error"} )
-    }
-})
+
+
+
+
+
 
 
 
@@ -638,6 +620,43 @@ router.post('/setserverstatus/:servername/:csrfservertoken', function (req, res,
 
 
 
+/**
+ * Set STUDENT.STATUS and therefore Inform Client on the next update cycle about a denied printrequest (we handle one request at a time) and other things.
+ * @param servename the server 
+ * @param csrfservertoken the servers token to authenticate
+ * @param studenttoken the students token who should be informed
+ */
+router.post('/setstudentstatus/:servername/:csrfservertoken/:studenttoken', function (req, res, next) {
+    const servername = req.params.servername
+    const studenttoken = req.params.studenttoken
+    const mcServer = config.examServerList[servername]
+    const printdenied = req.body.printdenied
+    const delfolder = req.body.delfolder
+
+    if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {  //first check if csrf token is valid and server is allowed to trigger this api request
+        
+        if (studenttoken === "all"){
+            for (let student of mcServer.studentList){ 
+                if (delfolder)  { student.status.delfolder = true   } // on the next update cycle the student gets informed to delete workfolder
+            }
+        }
+        else {
+            let student = mcServer.studentList.find(element => element.token === studenttoken)
+            if (student) {  
+                // here we handle different forms of information that needs to be set on studentstatus (dont forget to reset those values in /update/route)
+                if (printdenied){ student.status.printdenied = true } // set student.status so that the student can act on it on the next update
+                if (delfolder)  { student.status.delfolder = true   } // on the next update cycle the student gets informed to delete workfolder
+            }
+        }
+        res.send( {sender: "server", message: t("control.studentupdate"), status: "success"} )
+    }
+    else {
+        res.send( {sender: "server", message: t("control.actiondenied"), status: "error"} )
+    }
+})
+
+
+
 
 
 /**
@@ -679,6 +698,7 @@ router.post('/setserverstatus/:servername/:csrfservertoken', function (req, res,
    
     // reset some status values that are only used to transport something once
     student.status.printdenied = false 
+    student.status.delfolder = false 
 
     // return current serverinformation to process on clientside
     res.charset = 'utf-8';

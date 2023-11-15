@@ -232,6 +232,18 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
                 WindowHandler.examwindow.webContents.send('denied','toomany')   //trigger, why
             }
 
+
+            if (studentstatus.delfolder === true){
+                console.log("cleaning exam workfolder")
+                try {
+                    if (fs.existsSync(this.config.workdirectory)){   // set by server.js (desktop path + examdir)
+                        fs.rmSync(this.config.workdirectory, { recursive: true });
+                        fs.mkdirSync(this.config.workdirectory);
+                    }
+                } catch (error) { console.error(error); }
+            }
+
+
             if (studentstatus.restorefocusstate === true){
                 this.multicastClient.clientinfo.focus = true
             }
@@ -327,16 +339,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
      * @param serverstatus contains information about exammode, examtype, and other settings from the teacher instance
      */
     async startExam(serverstatus){
-        if (serverstatus.delfolder === true){
-            console.log("cleaning exam workfolder")
-            try {
-                if (fs.existsSync(this.config.workdirectory)){   // set by server.js (desktop path + examdir)
-                    fs.rmSync(this.config.workdirectory, { recursive: true });
-                    fs.mkdirSync(this.config.workdirectory);
-                }
-            } catch (error) { console.error(error); }
-        }
-
+  
         let displays = screen.getAllDisplays()
         let primary = screen.getPrimaryDisplay()
         if (!primary || primary === "" || !primary.id){ primary = displays[0] }       

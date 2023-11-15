@@ -48,6 +48,7 @@
         "eduvidual": "Eduvidual",
         "autoget": "auto fetch",
         "startexam": "Secure devices",
+        "startexamdesc": "This starts the Exam Mode for all students",
         "sendfile": "Send Files",
         "getfile": "Fetch Work",
         "stopexam": "Release devices",
