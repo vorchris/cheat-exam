@@ -26,14 +26,14 @@
 
             <div style="height:100%">
                 <div id="controlbuttons" style="text-align: center;">
-                    <button class="btn btn-close  btn-close-white align-right" @click="hideStudentview()"  style="width: 100px"></button>
+                    <button class="btn btn-close  btn-close-white align-right" @click="hideStudentview()"  style="width: 110px"></button>
                     <b>{{truncatedClientName(activestudent.clientname,12)}}</b><br>
                     <div style="font-size: 0.6em; margin-bottom: 0px;">{{activestudent.clientip}}</div>
                     <div style="font-size: 0.6em; margin-top: 0px;">{{activestudent.hostname}}</div>
-                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent.token)" style="width: 100px">{{$t('dashboard.sendfile')}}</div>
-                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="getFiles(activestudent.token, true)" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledblue':''" style="width: 100px">{{$t('dashboard.getfile')}}</div>
-                    <div class="col d-inlineblock btn btn-dark m-1 btn-sm "     @click="openLatestFolder(activestudent)"  style="width: 100px;">{{$t('dashboard.showworkfolder')}} </div>
-                    <div class="col d-inlineblock btn btn-warning m-1 btn-sm"   @click='kick(activestudent.token,activestudent.clientip);hideStudentview()'  style="width: 100px">{{$t('dashboard.kick')}}</div>
+                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent.token)" style="width: 110px">{{$t('dashboard.sendfileSingle')}}</div>
+                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="getFiles(activestudent.token, true)" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledblue':''" style="width: 110px">{{$t('dashboard.getfileSingle')}}</div>
+                    <div class="col d-inlineblock btn btn-dark m-1 btn-sm "     @click="openLatestFolder(activestudent)"  style="width: 110px;">{{$t('dashboard.shownewestfolder')}} </div>
+                    <div class="col d-inlineblock btn btn-warning m-1 btn-sm"   @click='kick(activestudent.token,activestudent.clientip);hideStudentview()'  style="width: 110px">{{$t('dashboard.kick')}}</div>
                 </div>
             </div>
         </div>
@@ -167,15 +167,15 @@
         <div id="description" v-if="showDesc">{{ currentDescription }}</div>
 
         <!-- control buttons start -->        
-        <div v-if="(serverstatus.exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:128px; height:62px;" @click="endExam()"  @mouseover="showDescription($t('dashboard.exitkiosk'))" @mouseout="hideDescription"  >                                                                                                                                         <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" :title="$t('dashboard.lock')" width="28" height="28" style="vertical-align: top;"> <div style="display:inline-block; margin-top:2px; margin-left:4px; width:60px; font-size:0.9em;"> {{numberOfConnections}} {{$t('dashboard.stopexam')}} </div></div>
-        <div v-if="(!serverstatus.exammode)" @click="startExam()"  @mouseover="showDescription($t('dashboard.startexamdesc'))" @mouseout="hideDescription" :class="(serverstatus.examtype === 'microsoft365' && (!this.config.accessToken || !serverstatus.msOfficeFile))? 'disabledgreen':''" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:128px; height:62px;">   <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" width="28" height="28" style="vertical-align: top;"> <div style="display:inline-block; margin-top:2px; margin-left:4px; width:60px; font-size:0.9em;"> {{numberOfConnections}} {{$t('dashboard.startexam')}}</div></div>
+        <div v-if="(serverstatus.exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:128px; height:62px;" @click="endExam()"  @mouseover="showDescription($t('dashboard.exitkiosk'))" @mouseout="hideDescription"  >                                                                                                                                         <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" width="28" height="28" style="vertical-align: top;"> <div style="display:inline-block; margin-top:2px; margin-left:4px; width:60px; font-size:0.9em;"> {{numberOfConnections}} {{$t('dashboard.stopexam')}} </div></div>
+        <div v-if="(!serverstatus.exammode)" class="btn btn-teal m-1 mt-0 text-start ms-0"  @click="startExam()"  @mouseover="showDescription($t('dashboard.startexamdesc'))" @mouseout="hideDescription" :class="(serverstatus.examtype === 'microsoft365' && (!this.config.accessToken || !serverstatus.msOfficeFile))? 'disabledgreen':''" style="width:128px; height:62px;">  <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" width="28" height="28" style="vertical-align: top;"> <div style="display:inline-block; margin-top:2px; margin-left:4px; width:60px; font-size:0.9em;"> {{numberOfConnections}} {{$t('dashboard.startexam')}}</div></div>
      
-        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="sendFiles('all')"   @mouseover="showDescription($t('dashboard.sendfile'))" @mouseout="hideDescription"  style="width:62px; height:62px;"><img src="/src/assets/img/svg/document-send.svg" class="mt-2" width="32" height="32"></div>
-        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="getFiles('all', true)"  @mouseover="showDescription($t('dashboard.getfile'))" @mouseout="hideDescription"  :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledblue':''"  style="width:62px; height:62px;" ><img src="/src/assets/img/svg/edit-download.svg" class="mt-2" width="32" height="32"></div>
-        <div class="col d-inlineblock btn btn-info m-1 mt-0 text-start ms-0 " @click="loadFilelist(workdirectory)"  @mouseover="showDescription($t('dashboard.showworkfolder'))" @mouseout="hideDescription"  style="width: 62px; height:62px;"><img src="/src/assets/img/svg/folder-open.svg" class="mt-2" width="32" height="32" ></div>
-        <div  v-if="(serverstatus.screenslocked)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(false)"> <img src="/src/assets/img/svg/eye-fill.svg" class="white mt-2" title="unlock" width="32" height="32" >   </div>
-        <div  v-if="(!serverstatus.screenslocked)" class="btn btn-dark m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(true)"  @mouseover="showDescription($t('dashboard.lock'))" @mouseout="hideDescription" > <img src="/src/assets/img/svg/eye-slash-fill.svg" class="white mt-2" width="32" height="32" >  </div>
-        <div  id="delfolder" class="btn btn-dark m-1 mt-0 ms-0 text-start" @mouseover="showDescription($t('dashboard.del'))" @mouseout="hideDescription" style="width:62px; height:62px;" @click="delfolderquestion()" :class="(serverstatus.exammode || serverstatus.examtype === 'eduvidual'|| serverstatus.examtype === 'microsoft365'  || serverstatus.examtype === 'gforms')? 'disabledexam':''"> <img src="/src/assets/img/svg/edit-delete.svg" class="mt-2" width="32" height="32" ></div>
+        <div class="btn btn-cyan m-1 mt-0 text-start ms-0" @click="sendFiles('all')"   @mouseover="showDescription($t('dashboard.sendfile'))" @mouseout="hideDescription"  style="width:62px; height:62px;"><img src="/src/assets/img/svg/document-send.svg" class="mt-2" width="32" height="32"></div>
+        <div class="btn btn-cyan m-1 mt-0 text-start ms-0" @click="getFiles('all', true)"  @mouseover="showDescription($t('dashboard.getfile'))" @mouseout="hideDescription"  :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledblue':''"  style="width:62px; height:62px;" ><img src="/src/assets/img/svg/edit-download.svg" class="mt-2" width="32" height="32"></div>
+        <div class="btn btn-cyan m-1 mt-0 text-start ms-0" @click="loadFilelist(workdirectory)"  @mouseover="showDescription($t('dashboard.showworkfolder'))" @mouseout="hideDescription"  style="width: 62px; height:62px;"><img src="/src/assets/img/svg/folder-open.svg" class="mt-2" width="32" height="32" ></div>
+        <div v-if="(serverstatus.screenslocked)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(false)"> <img src="/src/assets/img/svg/eye-fill.svg" class="white mt-2" width="32" height="32" >   </div>
+        <div v-if="(!serverstatus.screenslocked)" class="btn btn-dark m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(true)"  @mouseover="showDescription($t('dashboard.lock'))" @mouseout="hideDescription" > <img src="/src/assets/img/svg/eye-slash-fill.svg" class="white mt-2" width="32" height="32" >  </div>
+        <div class="btn btn-dark m-1 mt-0 ms-0 text-start" @mouseover="showDescription($t('dashboard.del'))" @mouseout="hideDescription" style="width:62px; height:62px;" @click="delfolderquestion()"> <img src="/src/assets/img/svg/edit-delete.svg" class="mt-2" width="32" height="32" ></div>
         <!-- control buttons end -->
 
 
@@ -234,7 +234,7 @@ import { VueDraggableNext } from 'vue-draggable-next'
 import { uploadselect, onedriveUpload, onedriveUploadSingle, uploadAndShareFile, createSharingLink, fileExistsInAppFolder, downloadFilesFromOneDrive} from '../msalutils/onedrive'
 import { handleDragEndItem, handleMoveItem, sortStudentWidgets, initializeStudentwidgets} from '../utils/dragndrop'
 import {loadFilelist, print, getLatest, getLatestFromStudent,  loadImage, loadPDF, dashboardExplorerSendFile, downloadFile, showWorkfolder, fdelete,  openLatestFolder } from '../utils/filemanager'
-import {stopserver, toggleScreenshot, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, toggleAutoabgabe, setAbgabeInterval } from '../utils/exammanagement.js'
+import {delfolderquestion, stopserver, toggleScreenshot, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, toggleAutoabgabe, setAbgabeInterval } from '../utils/exammanagement.js'
 
 export default {
     components: {
@@ -344,6 +344,27 @@ export default {
 
 
         /**
+         * Exam Managment functions
+         */
+        startExam:startExam,                         // enable exam mode 
+        endExam:endExam,                             // disable exammode 
+        kick: kick,                                  //remove student from exam
+        restore: restore,                            //restore focus state for specific student -- we tell the client that his status is restored which will then (on the next update) update it's focus state on the server 
+        toggleAutoabgabe:toggleAutoabgabe,
+        setAbgabeInterval:setAbgabeInterval,         // set abgabe interval
+        getFiles:getFiles,                           // get finished exams (ABGABE) from students
+        toggleScreenshot:toggleScreenshot,           //this just keeps the state of the toggle
+        setScreenshotInterval:setScreenshotInterval, //sets a new screenshot update interval - the value is sent to the students and then used to update the screenshots
+        lockscreens:lockscreens,                     // temporarily lock screens
+        sendFiles:sendFiles,                         //upload files to all students
+        stopserver:stopserver,                       //Stop and Exit Exam Server Instance
+        delfolderquestion: delfolderquestion,         // delete contents of studentfolder on student pc
+
+   
+
+
+
+        /**
          * Runs every 4 seconds and fetches the current stundentlist from the backend
          * Handles Student-Widgets (create, delete, update)
          * Checks Screenshots and MSO Share Links
@@ -410,24 +431,7 @@ export default {
             }).catch( err => {console.log(err)});
         }, 
 
-        /**
-         * Exam Managment functions
-         */
-        startExam:startExam,                         // enable exam mode 
-        endExam:endExam,                             // disable exammode 
-        kick: kick,                                  //remove student from exam
-        restore: restore,                            //restore focus state for specific student -- we tell the client that his status is restored which will then (on the next update) update it's focus state on the server 
-        toggleAutoabgabe:toggleAutoabgabe,
-        setAbgabeInterval:setAbgabeInterval,         // set abgabe interval
-        getFiles:getFiles,                           // get finished exams (ABGABE) from students
-        toggleScreenshot:toggleScreenshot,           //this just keeps the state of the toggle
-        setScreenshotInterval:setScreenshotInterval, //sets a new screenshot update interval - the value is sent to the students and then used to update the screenshots
-        lockscreens:lockscreens,                     // temporarily lock screens
-        sendFiles:sendFiles,                         //upload files to all students
-        stopserver:stopserver,                       //Stop and Exit Exam Server Instance
 
-
-   
         showDescription(description) {
             this.currentDescription = description;
             this.showDesc = true;
@@ -435,7 +439,6 @@ export default {
         hideDescription() {
             this.showDesc = false;
         },
-
         visualfeedback(message, timeout=1000){
              this.$swal.fire({
                 text: message,
@@ -633,33 +636,7 @@ export default {
         },
 
 
-        // show warning
-        delfolderquestion(){
-            this.$swal.fire({
-                title: this.$t("dashboard.attention"),
-                text:  this.$t("dashboard.delsure"),
-                icon: "question",
-                showCancelButton: true,
-                cancelButtonText: this.$t("dashboard.cancel"),
-                reverseButtons: true,
-             
-            })
-            .then((result) => {
-                if (result.isConfirmed) {
-                
-                     // inform student that folder needs to be deleted
-                    fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/setstudentstatus/${this.servername}/${this.servertoken}/all`, { 
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json' },
-                        body: JSON.stringify({ delfolder : true } )
-                    })
-                    .then( res => res.json() )
-                    .then( result => { console.log(result)});
-                } 
-            }); 
 
-            
-        },
         //display student specific actions
         showStudentview(student) {
             $("#studentinfocontainer").css("display","block");
@@ -961,12 +938,9 @@ export default {
 
 
 #description {
-    background-color: white;
-    border: 1px solid black;
-    box-shadow: 2px 2px 10px rgba(0,0,0,0.5);
     padding: 5px;
     position: absolute; /* Positioniert den Div relativ zum nächsten positionierten Vorfahren */
-    top:150px;
+    top:154px;
     z-index: 10000;
     font-size: 0.8em;
     border-radius:3px;
@@ -1025,13 +999,13 @@ export default {
     backdrop-filter: blur(3px);
     position: absolute;
     right: 0px;
-    width: 128px; 
+    width: 132px; 
     height: 100%; 
     top: 0px;  
     background:  rgba(97, 97, 97, 0.693);
     color: white; 
     font-size: 1.4em; 
-    padding: 10px;
+    padding: 2px;
 }
 
 

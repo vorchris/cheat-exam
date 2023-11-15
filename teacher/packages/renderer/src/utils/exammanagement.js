@@ -246,7 +246,32 @@ function stopserver(){
 }
 
 
+        // show warning
+function delfolderquestion(){
+    if (this.studentlist.length === 0) { this.status(this.$t("dashboard.noclients")); return;}
+    this.$swal.fire({
+        title: this.$t("dashboard.attention"),
+        text:  this.$t("dashboard.delsure"),
+        icon: "question",
+        showCancelButton: true,
+        cancelButtonText: this.$t("dashboard.cancel"),
+        reverseButtons: true,
+        
+    })
+    .then((result) => {
+        if (result.isConfirmed) {
+        
+                // inform student that folder needs to be deleted
+            fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/setstudentstatus/${this.servername}/${this.servertoken}/all`, { 
+                method: 'POST',
+                headers: {'Content-Type': 'application/json' },
+                body: JSON.stringify({ delfolder : true } )
+            })
+            .then( res => res.json() )
+            .then( result => { console.log(result)});
+        } 
+    });  
+}
 
 
-
-export {stopserver, toggleScreenshot, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, toggleAutoabgabe, setAbgabeInterval  }
+export {delfolderquestion, stopserver, toggleScreenshot, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, toggleAutoabgabe, setAbgabeInterval  }
