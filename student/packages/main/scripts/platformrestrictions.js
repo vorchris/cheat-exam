@@ -280,6 +280,7 @@ function disableRestrictions(win){
         //childProcess.execFile('sed', ['-i', '-e', 's/global=.*/global=Alt+F1/g', `${config.homedirectory}/.config/plasma-org.kde.plasma.desktop-appletsrc` ])
         childProcess.execFile('kwriteconfig5', ['--file',`${config.homedirectory}/.config/kwinrc`,'--group','ModifierOnlyShortcuts','--key','Meta','--delete']) 
         childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
+        childProcess.exec('kwin --replace &')
 
 
         // reset specific shortcuts GNOME
