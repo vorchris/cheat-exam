@@ -111,8 +111,10 @@ export default {
                 if (validator.isIP(this.serverip) || validator.isFQDN(this.serverip)){
                         console.log("fetching exams from server")
                         //give some userfeedback here
-                        this.status("Suche Prüfungen...")
-
+                        if (this.serverlist.length == 0){
+                            this.status("Suche Prüfungen...")
+                        }
+                    
                         axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/serverlist`)
                         .then( response => { if (response.data && response.data.status == "success") {  this.serverlist = response.data.serverlist} }) 
                         .catch(err => { console.log(err.message)}) 
