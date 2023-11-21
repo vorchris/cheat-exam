@@ -25,7 +25,8 @@ function fdelete(file){
                 this.loadFilelist(this.currentdirectory)
             }).catch(err => { console.warn(err)});
         }
-    });
+    })
+    .catch(err => { console.warn(err)});;
 }
 
 
@@ -93,7 +94,8 @@ function dashboardExplorerSendFile(file){
                 body: JSON.stringify({ files:[ {name:file.name, path:file.path } ] })
             })
             .then( res => res.json() )
-            .then( result => { console.log(result)});
+            .then( result => { console.log(result)})
+            .catch(err => { console.warn(err)});
         }
     }).catch(err => { console.warn(err)});
 }
@@ -193,7 +195,8 @@ async function getLatestFromStudent(student){
             body: JSON.stringify({ printdenied : true } )
         })
         .then( res => res.json() )
-        .then( result => { console.log(result)}).catch(err => { console.warn(err)});
+        .then( result => { console.log(result)})
+        .catch(err => { console.warn(err)});
         return
     }
 
@@ -251,7 +254,7 @@ async function getLatestFromStudent(student){
                 });
             }).catch(err => { console.warn(err)});
         }
-    });
+    }).catch(err => { console.warn(err)});
 }
 
 

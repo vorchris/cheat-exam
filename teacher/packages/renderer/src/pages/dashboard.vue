@@ -2,7 +2,7 @@
 
 <div id="description" v-if="showDesc">{{ currentDescription }}</div>
 
-
+<!-- Header  -->
 <div class="w-100 p-3 text-white bg-dark shadow text-right">
     <router-link v-if="!electron" to="/" class="text-white m-1">
         <img src="/src/assets/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
@@ -16,12 +16,13 @@
     <span class="fs-4 align-middle ms-3" style="float: right">Dashboard</span>
      <div class="btn btn-sm btn-danger m-0 mt-1" @click="stopserver()" style="float: right">{{$t('dashboard.stopserver')}}</div>
 </div>
- 
+ <!-- Header END -->
 
 
 
 <div id="wrapper" class="w-100 h-100 d-flex" >
     
+    <!-- single student view  -->
     <div id="studentinfocontainer" class="fadeinslow p-4">
         <div v-if="activestudent!= null" id="studentinfodiv">
             <div v-cloak><img style="position: absolute; height: 100%" :src="(activestudent.imageurl && now - 20000 < activestudent.timestamp)? `${activestudent.imageurl}`:'user-red.svg'"></div>
@@ -40,6 +41,7 @@
             </div>
         </div>
     </div>
+    <!-- single student view END -->
 
 
     <!-- dashboard EXPLORER start -->
@@ -144,7 +146,7 @@
 
             <!-- other options -->
             <div class="form-check form-switch  m-1 mb-2" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledexam':''">
-                <input @change="toggleAutoabgabe()"  @click="setAbgabeInterval()" v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
+                <input  @click="setAbgabeInterval()" v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
                 <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
                 <span v-if="autoabgabe" > ({{ abgabeintervalPause }}min)</span>
             </div>
@@ -235,8 +237,8 @@ import axios from "axios"
 import { VueDraggableNext } from 'vue-draggable-next'
 import { uploadselect, onedriveUpload, onedriveUploadSingle, uploadAndShareFile, createSharingLink, fileExistsInAppFolder, downloadFilesFromOneDrive} from '../msalutils/onedrive'
 import { handleDragEndItem, handleMoveItem, sortStudentWidgets, initializeStudentwidgets} from '../utils/dragndrop'
-import {loadFilelist, print, getLatest, getLatestFromStudent,  loadImage, loadPDF, dashboardExplorerSendFile, downloadFile, showWorkfolder, fdelete,  openLatestFolder } from '../utils/filemanager'
-import {delfolderquestion, stopserver, toggleScreenshot, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, toggleAutoabgabe, setAbgabeInterval } from '../utils/exammanagement.js'
+import { loadFilelist, print, getLatest, getLatestFromStudent,  loadImage, loadPDF, dashboardExplorerSendFile, downloadFile, showWorkfolder, fdelete,  openLatestFolder } from '../utils/filemanager'
+import { delfolderquestion, stopserver, toggleScreenshot, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, setAbgabeInterval } from '../utils/exammanagement.js'
 
 export default {
     components: {
@@ -352,7 +354,6 @@ export default {
         endExam:endExam,                             // disable exammode 
         kick: kick,                                  //remove student from exam
         restore: restore,                            //restore focus state for specific student -- we tell the client that his status is restored which will then (on the next update) update it's focus state on the server 
-        toggleAutoabgabe:toggleAutoabgabe,
         setAbgabeInterval:setAbgabeInterval,         // set abgabe interval
         getFiles:getFiles,                           // get finished exams (ABGABE) from students
         toggleScreenshot:toggleScreenshot,           //this just keeps the state of the toggle
@@ -680,7 +681,7 @@ export default {
         },
         async checkDiscspace(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
             this.freeDiscspace = await ipcRenderer.invoke('checkDiscspace')
-            console.log(this.freeDiscspace)
+            //console.log(this.freeDiscspace)
             if (this.freeDiscspace < 0.5) {
                 this.status(this.$t("dashboard.freespacewarning")) 
             }

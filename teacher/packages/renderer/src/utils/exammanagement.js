@@ -76,10 +76,6 @@ function restore(studenttoken){
 }
 
 
-function toggleAutoabgabe(){
-    if (this.autoabgabe) { this.abgabeinterval = setInterval(() => { this.getFiles('all') }, 60000 * this.abgabeintervalPause) }   //trigger getFiles('all') every other minute
-    else { clearInterval( this.abgabeinterval )} 
-}
 
 function setAbgabeInterval(){
     if (!this.autoabgabe) {
@@ -94,10 +90,21 @@ function setAbgabeInterval(){
                 step: 1
             },
             inputValue: this.abgabeintervalPause
-        }).then((input) => {
-            this.abgabeintervalPause= input.value
-            if (!this.abgabeintervalPause){this.abgabeintervalPause = 5}   // make sure it is set otherwise we well fetch the exams X times per second
+        }).then((result) => {
+            const inputInteger = parseInt(result.value, 10); // Convert to integer
+            this.abgabeintervalPause = inputInteger
+            if (!this.abgabeintervalPause || !Number.isInteger(this.abgabeintervalPause) ){  // make sure it is set otherwise we well fetch the exams X times per second
+                console.log("something wrong with interval frequency - setting to default")
+                this.abgabeintervalPause = 5
+            }   
+            console.log("starting submission intervall", this.abgabeintervalPause)
+            this.abgabeinterval = setInterval(() => { this.getFiles('all') }, 60000 * this.abgabeintervalPause) //trigger getFiles('all') every other minute
         })
+    }
+    else {
+        console.log(this.abgabeinterval)
+        console.log("stopping submission interval")
+        clearInterval( this.abgabeinterval); 
     }
 }
 
@@ -274,4 +281,4 @@ function delfolderquestion(){
 }
 
 
-export {delfolderquestion, stopserver, toggleScreenshot, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, toggleAutoabgabe, setAbgabeInterval  }
+export {delfolderquestion, stopserver, toggleScreenshot, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, setAbgabeInterval  }
