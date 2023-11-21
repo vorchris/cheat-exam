@@ -1,6 +1,8 @@
 <template>
 
- 
+<div id="description" v-if="showDesc">{{ currentDescription }}</div>
+
+
 <div class="w-100 p-3 text-white bg-dark shadow text-right">
     <router-link v-if="!electron" to="/" class="text-white m-1">
         <img src="/src/assets/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
@@ -93,6 +95,8 @@
         <div class="btn btn-light m-1 text-start infobutton" @click="showinfo()">{{$t('dashboard.server')}} <br><b>{{serverip}}</b> </div><br>
         <div class="btn btn-light m-1 mb-3 text-start infobutton" @click="showinfo()">{{$t('dashboard.pin')}}<br><b> {{ serverstatus.pin }} </b>  </div><br>
         
+      
+
         <div style="font-size:0.9em">
             <!-- geogebra -->
             <div class="form-check m-1 mb-1"  :class="(serverstatus.exammode)? 'disabledexam':''">
@@ -163,8 +167,6 @@
 
    
     <div id="content" class="fadeinslow p-3">
-        
-        <div id="description" v-if="showDesc">{{ currentDescription }}</div>
 
         <!-- control buttons start -->        
         <div v-if="(serverstatus.exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:128px; height:62px;" @click="endExam();hideDescription();"  @mouseover="showDescription($t('dashboard.exitkiosk'))" @mouseout="hideDescription"  >                                                                                                                                         <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" width="28" height="28" style="vertical-align: top;"> <div style="display:inline-block; margin-top:2px; margin-left:4px; width:60px; font-size:0.9em;"> {{numberOfConnections}} {{$t('dashboard.stopexam')}} </div></div>
@@ -872,8 +874,8 @@ export default {
 }
 
 .infobutton{
-    width: 240px;
-    min-width: 240px;
+    width: 220px;
+    min-width: 220px;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     background-color: whitesmoke;
@@ -942,14 +944,17 @@ export default {
 
 
 #description {
-    padding: 5px;
+    padding: 6px;
+    padding-left:12px;
     position: absolute; /* Positioniert den Div relativ zum nächsten positionierten Vorfahren */
-    top:153px;
-  
-    z-index: 10000;
+    top:0px;
+    left:256px;
+    z-index: 100;
     font-size: 0.8em;
-    border-radius:3px;
-    box-shadow: 0 0 14px rgba(0,0,0,0.5);
+    border-bottom-left-radius:5px;
+    border-bottom-right-radius:5px;
+    width: 458px !important;
+    height:52px;
 }
 
 

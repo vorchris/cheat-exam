@@ -460,7 +460,7 @@ export default {
             if (why === "exitexam") { 
                 this.$swal.fire({
                     title: this.$t("editor.leaving"),
-                    text: this.$t("editor.saved"),
+                    text: this.$t("editor.savedclip"),
                     icon: "info",
                     timer: 3000,
                     showCancelButton: false,
