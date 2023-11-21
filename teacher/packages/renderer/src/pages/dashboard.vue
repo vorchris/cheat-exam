@@ -370,7 +370,9 @@ export default {
          * Checks Screenshots and MSO Share Links
          */
         fetchInfo() {
-            this.config = ipcRenderer.sendSync('getconfig')  // this is only needed in order to get the accesstoken from the backend for MSAuthentication - but it doesn't hurt
+            if (!this.config.accessToken){
+                this.config = ipcRenderer.sendSync('getconfig')  // this is only needed in order to get the accesstoken from the backend for MSAuthentication - but it doesn't hurt
+            }
             this.now = new Date().getTime()
             axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/studentlist/${this.servername}/${this.servertoken}`)
             .then( response => {
@@ -674,13 +676,14 @@ export default {
         sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         },
-        checkDiscspace(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
-            this.freeDiscspace = ipcRenderer.sendSync('checkDiscspace')
+        async checkDiscspace(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
+            this.freeDiscspace = await ipcRenderer.invoke('checkDiscspace')
+            console.log(this.freeDiscspace)
             if (this.freeDiscspace < 0.5) {
                 this.status(this.$t("dashboard.freespacewarning")) 
             }
         }, 
-        truncatedClientName(value, len=16) {
+        truncatedClientName(value, len=18) {
             if (!value) return
             return value.length > len ? value.substr(0, len) + '...' : value;
         },
@@ -780,7 +783,7 @@ export default {
 <style scoped>
 
 .studentwidget {
-    width: 204px;
+    width: 194px;
     height: 172px;
     white-space: nowrap;
     text-overflow:    ellipsis; 
@@ -809,6 +812,7 @@ export default {
     position: absolute;
     bottom: 0;
     right: 0;
+    font-size:0.9em;
 }
 
 .studentimage {
@@ -940,10 +944,12 @@ export default {
 #description {
     padding: 5px;
     position: absolute; /* Positioniert den Div relativ zum nächsten positionierten Vorfahren */
-    top:154px;
+    top:153px;
+  
     z-index: 10000;
     font-size: 0.8em;
     border-radius:3px;
+    box-shadow: 0 0 14px rgba(0,0,0,0.5);
 }
 
 

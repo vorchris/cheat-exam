@@ -1,6 +1,4 @@
-
 import $ from 'jquery'
-
 
 // DASHBOARD EXPLORER
 
@@ -25,7 +23,7 @@ function fdelete(file){
             .then( result => { 
                 console.log(result)
                 this.loadFilelist(this.currentdirectory)
-            });
+            }).catch(err => { console.warn(err)});
         }
     });
 }
@@ -97,7 +95,7 @@ function dashboardExplorerSendFile(file){
             .then( res => res.json() )
             .then( result => { console.log(result)});
         }
-    });
+    }).catch(err => { console.warn(err)});
 }
 
 
@@ -195,7 +193,7 @@ async function getLatestFromStudent(student){
             body: JSON.stringify({ printdenied : true } )
         })
         .then( res => res.json() )
-        .then( result => { console.log(result)});
+        .then( result => { console.log(result)}).catch(err => { console.warn(err)});
         return
     }
 
@@ -281,10 +279,17 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+
+//print pdf in focus - depends on system print dialog
 function print(){
-    var iframe = $('#pdfembed')[0]; 
-    iframe.contentWindow.focus();
-    iframe.contentWindow.print(); 
+    try {
+        var iframe = $('#pdfembed')[0]; 
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print(); 
+    }
+    catch (e){
+        console.log(e)
+    }
 }
 
 function loadFilelist(directory){
@@ -295,7 +300,7 @@ function loadFilelist(directory){
     })
     .then( response => response.json() )
     .then( filelist => {
-        console.log(filelist)
+        //console.log(filelist)
         filelist.sort()
         filelist.reverse()
         this.localfiles = filelist;

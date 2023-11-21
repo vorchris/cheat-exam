@@ -42,6 +42,19 @@ class IpcHandler {
         this.WindowHandler = wh  
         this.CommunicationHandler = ch
         
+
+        /**
+         *  Start BIP Login Sequence
+         */
+
+        ipcMain.on('loginBiP', (event) => {
+            console.log("opening bip window")
+            this.WindowHandler.createBiPLoginWin()
+            event.returnValue = "hello from bip logon"
+        })
+
+
+
         /**
          * Registers virtualized status
          */ 

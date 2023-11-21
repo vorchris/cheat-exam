@@ -51,14 +51,15 @@ class IpcHandler {
 
         ipcMain.on('getCurrentWorkdir', (event) => {   event.returnValue = config.workdirectory  })
 
-        ipcMain.on('checkDiscspace', async (event) => {   
-            let freespace = await checkDiskSpace(config.workdirectory).then((diskSpace) => {
-                let free = Math.round(diskSpace.free/1024/1024/1024 * 1000)/1000
-                return free
 
-            })
-            event.returnValue = freespace
-        })
+
+        ipcMain.handle('checkDiscspace', async () => {
+            let diskSpace = await checkDiskSpace(config.workdirectory);
+            let free = Math.round(diskSpace.free / 1024 / 1024 / 1024 * 1000) / 1000;
+            return free;
+        });
+
+
 
         ipcMain.on('setworkdir', async (event, arg) => {
             const result = await dialog.showOpenDialog( this.WindowHandler.mainwindow, {

@@ -699,6 +699,7 @@ router.post('/setstudentstatus/:servername/:csrfservertoken/:studenttoken', func
     // reset some status values that are only used to transport something once
     student.status.printdenied = false 
     student.status.delfolder = false 
+    student.status.sendexam = false // request only once
 
     // return current serverinformation to process on clientside
     res.charset = 'utf-8';

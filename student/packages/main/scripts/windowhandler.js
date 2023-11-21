@@ -17,7 +17,7 @@
 
 
 
-import { app, BrowserWindow, BrowserView, dialog, screen} from 'electron'
+import { app, BrowserWindow, BrowserView, dialog, screen, ipcMain} from 'electron'
 import { join } from 'path'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 import fs from 'fs' 
@@ -39,6 +39,7 @@ class WindowHandler {
       this.mainwindow = null
       this.examwindow = null
       this.splashwin = null
+      this.bipwindow = null
       this.config = null
       this.multicastClient = null
       this.nodehun = null  //needed for manual spellchecker
@@ -63,8 +64,87 @@ class WindowHandler {
     }
 
 
-    createSplashWin() {
+    createBiPLoginWin() {
+        this.bipwindow = new BrowserWindow({
+            title: 'Next-Exam',
+            icon: join(__dirname, '../../public/icons/icon.png'),
+            center:true,
+            width: 1000,
+            height:800,
+            alwaysOnTop: true,
+            skipTaskbar:true,
+            autoHideMenuBar: true,
+           // resizable: false,
+            minimizable: false,
+           // movable: false,
+           // frame: false,
+            show: false,
+           // transparent: true
+        })
+     
+        this.bipwindow.loadURL(`https://www.bildung.gv.at/admin/tool/mobile/launch.php?service=moodle_mobile_app&passport=next-exam`)
 
+        this.bipwindow.once('ready-to-show', () => {
+            this.bipwindow.show()
+        });
+
+        this.bipwindow.webContents.on('did-navigate', (event, url) => {    // a pdf could contain a link ^^
+            console.log("did-navigate")
+            console.log(url)
+        })
+        this.bipwindow.webContents.on('will-navigate', (event, url) => {    // a pdf could contain a link ^^
+            console.log("will-navigate")
+            console.log(url)
+        })
+
+         this.bipwindow.webContents.on('new-window', (event, url) => {  // if a new window should open triggered by window.open()
+            console.log("new-window")
+            console.log(url)
+            event.preventDefault();    // Prevent the new window from opening
+        }); 
+     
+         
+         this.bipwindow.webContents.setWindowOpenHandler(({ url }) => { // if a new window should open triggered by target="_blank"
+            console.log("target: _blank")
+            console.log(url)
+            return { action: 'deny' };   // Prevent the new window from opening
+        }); 
+
+        this.bipwindow.webContents.on('will-redirect', (event, url) => {
+            console.log('Redirecting to:', url);
+            // Prüfen, ob die URL das gewünschte Format hat
+            if (url.startsWith('moodlemobile://')) {
+                event.preventDefault(); // Verhindert den Standard-Redirect
+                const prefix = 'moodlemobile://token=';
+
+                const token = url.substring(prefix.length);
+                
+    
+                console.log('Captured Token:');
+                console.log(token);
+                this.mainwindow.webContents.send('bipToken', token);
+                this.bipwindow.close();
+            }
+          });
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * this is the windows splashscreen
+     */
+    createSplashWin() {
         this.splashwin = new BrowserWindow({
             title: 'Next-Exam',
             icon: join(__dirname, '../../public/icons/icon.png'),

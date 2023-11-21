@@ -112,8 +112,8 @@ export default {
     },
     components: {},
     methods: {
-        checkDiscspace(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
-           this.freeDiscspace = ipcRenderer.sendSync('checkDiscspace')
+        async checkDiscspace(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
+           this.freeDiscspace = await ipcRenderer.invoke('checkDiscspace')
         },
 
         getPreviousExams(){

@@ -417,7 +417,6 @@ async function concatPages(pdfsToMerge) {
                         if (err) { errors++; console.log( t("data.couldnotstore") ) }
                         else {
                             extract(absoluteFilepath, { dir: studentarchivedir }).then( () => {
-                                if (student) {  student.status['sendexam']= false  } //we received the exam - remove exam request from student status
                                 fs.unlink(absoluteFilepath, (err) => { if (err) console.log(err); }); // remove zip file after extracting
                             }).catch( err => console.log(err))
                         }                     

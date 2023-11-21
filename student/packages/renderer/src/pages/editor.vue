@@ -953,18 +953,17 @@ Other Styles
 #editorcontainer {
     border-radius:0; 
     margin-top:20px; 
-    width: 90vw; 
-    margin-left:5vw;
+    width: 70vw; 
+    margin-left: auto;
+    margin-right: auto;
     margin-bottom:50px;
     zoom:1;
 }
 
 #editorcontent div {
-        overflow-x: auto;
-        overflow-y: hidden;
-    }
-
-
+    overflow-x: auto;
+    overflow-y: hidden;
+}
 
 #statusbar {
     position: relative;
@@ -1024,7 +1023,7 @@ Other Styles
 /* Basic editor styles */
 
 .ProseMirror {
-    min-height: 40vh;
+    min-height: 60vh;
     padding: 14px;
     outline: 1px solid rgb(197, 197, 197);
     border-radius: 5px;

@@ -16,6 +16,7 @@
         "registeredinfo": "Successfully registered on server",
         "started": "search started",
         "nopw": "wrong username or pin",
+        "nouser":"no username given",
         "noip": "Serveraddresse oder Examname missing",
         "offline": "No Network Connection",
         "nopin": "no pincode given",
