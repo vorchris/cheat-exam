@@ -466,6 +466,15 @@ export default {
                     showCancelButton: false,
                     didOpen: () => { this.$swal.showLoading(); },
                 })
+
+                let text = this.editor.getText(); 
+                navigator.clipboard.writeText(text).then(function() {
+                    console.log('Text erfolgreich kopiert');
+                }).catch(function(err) {
+                    console.log('Fehler beim Kopieren des Textes: ', err);
+                });
+                
+
             }
             if (backup){
                 //also save editorcontent as *html file - used to re-populate the editor window in case something went completely wrong
