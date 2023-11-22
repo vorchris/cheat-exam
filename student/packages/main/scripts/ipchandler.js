@@ -125,18 +125,17 @@ class IpcHandler {
                                     if (err) {
                                         console.log(err.message);
                                         console.log("giving up"); 
-                                        
                                         event.reply("fileerror", { sender: "client", message:err , status:"error" } )
                                     }
-                                    else {
-                                        event.returnValue = { sender: "client", message:t("data.filestored") , status:"success" }
-                                    }
+                                    else { event.returnValue = { sender: "client", message:t("data.filestored") , status:"success" }  }
                                 }); 
                             }
-                        
                         }  
                     } ); 
-                }).catch(error => { console.log(error)});
+                }).catch(error => { 
+                    console.log(error)
+                    event.reply("fileerror", { sender: "client", message:error , status:"error" } )
+                });
             }
         })
 
@@ -242,10 +241,7 @@ class IpcHandler {
                     fs.writeFile(htmlfile, htmlContent, (err) => {
                         if (err) {
                             console.log(err);
-                            event.returnValue = { sender: "client", message:err , status:"error" }
-                        }
-                        else {
-                            event.returnValue = { sender: "client", message:t("data.filestored") , status:"success" }
+                            event.reply("fileerror", { sender: "client", message:err , status:"error" } )
                         }
                     }); 
                 }

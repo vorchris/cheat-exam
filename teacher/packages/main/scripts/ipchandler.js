@@ -56,20 +56,14 @@ class IpcHandler {
 
         ipcMain.on('getCurrentWorkdir', (event) => {   event.returnValue = config.workdirectory  })
 
-
-
         ipcMain.handle('checkDiscspace', async () => {
             let diskSpace = await checkDiskSpace(config.workdirectory);
             let free = Math.round(diskSpace.free / 1024 / 1024 / 1024 * 1000) / 1000;
             return free;
         });
 
-
-
         ipcMain.handle('setworkdir', async (event, arg) => {
-            const result = await dialog.showOpenDialog( this.WindowHandler.mainwindow, {
-            properties: ['openDirectory']
-            })
+            const result = await dialog.showOpenDialog( this.WindowHandler.mainwindow, { properties: ['openDirectory']  })
             if (!result.canceled){
                 console.log('directories selected', result.filePaths)
                 let message = ""
@@ -93,12 +87,10 @@ class IpcHandler {
 
 
         ipcMain.on('setPreviousWorkdir', async (event, workdir) => {
-    
             if (workdir){
                 console.log('previous directory selected', workdir)
                 let message = ""
                 try {
-                  
                     if (!fs.existsSync(workdir)){fs.mkdirSync(workdir)}
                     message = "success"
                     config.workdirectory = workdir
@@ -109,9 +101,7 @@ class IpcHandler {
                 }
                 event.returnValue = {workdir: config.workdirectory, message : message}
             }
-            else {
-                event.returnValue = {workdir: config.workdirectory, message : 'canceled'}
-            }
+            else {  event.returnValue = {workdir: config.workdirectory, message : 'canceled'} }
         })
 
 
@@ -157,31 +147,38 @@ class IpcHandler {
             const fileID = args.fileID
             const servername = args.servername
 
-            // create user abgabe directory
+            // create user abgabe directory  // create archive directory
             let studentdirectory =  join(config.workdirectory, servername ,studentName)
-            if (!fs.existsSync(studentdirectory)){ fs.mkdirSync(studentdirectory, { recursive: true });  }
-
-            // create archive directory
             let time = new Date(new Date().getTime()).toLocaleTimeString();  //convert to locale string otherwise the foldernames will be created in UTC
             let tstring = String(time).replace(/:/g, "_");
             let studentarchivedir = join(studentdirectory, tstring)
-            if (!fs.existsSync(studentarchivedir)){ fs.mkdirSync(studentarchivedir, { recursive: true }); }
+            
+            try {
+                if (!fs.existsSync(studentdirectory)) { fs.mkdirSync(studentdirectory, { recursive: true });  }
+                if (!fs.existsSync(studentarchivedir)){ fs.mkdirSync(studentarchivedir, { recursive: true }); }
+            } catch (e) {console.log(e)}
+         
 
             const fileResponse = await fetch(`https://graph.microsoft.com/v1.0/me/drive/items/${fileID}/content`, {
                 headers: {'Authorization': `Bearer ${accessToken}`,  },
-            });
-            const fileBuffer = await fileResponse.arrayBuffer();
-            fs.writeFileSync(join(studentarchivedir, fileName), Buffer.from(fileBuffer));
+            }).catch( err => {console.log(err)});
+
+            try {
+                const fileBuffer = await fileResponse.arrayBuffer();
+                fs.writeFileSync(join(studentarchivedir, fileName), Buffer.from(fileBuffer));
+            } catch (e) {console.log(e)}
 
             const pdfFileResponse = await fetch(`https://graph.microsoft.com/v1.0/me/drive/items/${fileID}/content?format=pdf`, {
                 headers: {'Authorization': `Bearer ${accessToken}`,  },
-            });
+            }).catch( err => {console.log(err)});
 
             if (pdfFileResponse.ok) {
                 const pdfFileBuffer = await pdfFileResponse.arrayBuffer();
                 const pdfFilePath = join(studentarchivedir, `${fileName}.pdf`);
-                fs.writeFileSync(pdfFilePath, Buffer.from(pdfFileBuffer));
-                console.log(`Downloaded ${fileName} and ${fileName}.pdf`);
+                try {
+                    fs.writeFileSync(pdfFilePath, Buffer.from(pdfFileBuffer));
+                    console.log(`Downloaded ${fileName} and ${fileName}.pdf`);
+                } catch (e) {console.log(e)}  
             }
             else {
                 console.log("there was a problem downloading the files as pdf")
