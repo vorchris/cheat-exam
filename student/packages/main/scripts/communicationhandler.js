@@ -27,7 +27,7 @@ import FormData from 'form-data/lib/form_data.js';     //we need to import the f
 import { join } from 'path'
 import { screen } from 'electron'
 import WindowHandler from './windowhandler.js'
-
+import sharp from 'sharp'
 import { execSync } from 'child_process';
 const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
 
@@ -93,14 +93,8 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
         if (this.multicastClient.beaconsLost >= 5 ){ // no serversignal for 20 seconds
             console.log("Connection to Teacher lost! Removing registration.") //remove server registration locally (same as 'kick')
             this.multicastClient.beaconsLost = 0
-            this.resetConnection()
-            this.killScreenlock()
-            if (this.multicastClient.clientinfo.exammode === true) {
-                // lets try to allow students to gracefully exit exam on connection loss manually 
-                // this should lead to less irritation when the teacher connection is lost
-                // buttons will be automatically shows to "reconnect" or to "exit" the lockdownmode
-                console.log("Keeping Examwindow Lockdown")
-            }
+            this.resetConnection()   // this also resets serverip therefore no api calls are made afterwards
+            this.killScreenlock()       // just in case screens are blocked.. let students work
         }
 
         // ACTIVE SERVER CONNECTION - SEND HEARTBEAT
@@ -179,11 +173,27 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
             }
 
             if (Buffer.isBuffer(img)){
-                let screenshotfilename = this.multicastClient.clientinfo.token +".jpg"
-                formData.append(screenshotfilename, img, screenshotfilename );
-                let hash = crypto.createHash('md5').update(img).digest("hex");
-                formData.append('screenshothash', hash);
-                formData.append('screenshotfilename', screenshotfilename);
+
+                let resized = null
+                try {
+                    resized = await sharp(img)
+                        .resize(1440) // Setzen Sie die gewünschte Breite; die Höhe wird proportional skaliert
+                        .toFormat('jpeg')
+                        .jpeg({ quality: 65, mozjpeg: true }) // Setzen Sie die gewünschte JPEG-Qualität
+                        .toBuffer();
+                } catch (error) {
+                    console.error('Fehler beim Reduzieren des Bildes:', error);
+                    throw error; // Weitergabe des Fehlers für weitere Fehlerbehandlung
+                }
+
+
+                    let screenshotfilename = this.multicastClient.clientinfo.token +".jpg"
+                    formData.append(screenshotfilename, resized, screenshotfilename );
+                    let hash = crypto.createHash('md5').update(resized).digest("hex");
+                    formData.append('screenshothash', hash);
+                    formData.append('screenshotfilename', screenshotfilename);
+              
+              
             }
             else { console.log("Image is no buffer:", img) }
 

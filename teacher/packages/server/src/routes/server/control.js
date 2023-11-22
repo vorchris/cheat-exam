@@ -735,8 +735,11 @@ router.post('/updatescreenshot', function (req, res, next) {
                 let time = new Date(new Date().getTime()).toISOString().substr(11, 8);
                 let filepath =path.join(config.workdirectory, mcServer.serverinfo.servername, student.clientname, "focuslost");
                 let absoluteFilename = path.join(filepath,`${time}-${file.name}`)
-                if (!fs.existsSync(filepath)){ fs.mkdirSync(filepath, { recursive: true } ); }
-                file.mv(absoluteFilename, (err) => {  if (err) {  console.log(err)  } });
+                try {
+                    if (!fs.existsSync(filepath)){ fs.mkdirSync(filepath, { recursive: true } ); }
+                    file.mv(absoluteFilename, (err) => {  if (err) {  console.log(err)  } });
+                }
+                catch (err) {console.log(err)}
             }
         }
         else { console.log("md5hash missmatch - do not update file")}

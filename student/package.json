@@ -29,7 +29,7 @@
         "directories": {
             "output": "../release/${version}"
         },
-        "compression":"normal",
+        "compression": "normal",
         "files": [
             "dist",
             "public"
@@ -159,6 +159,7 @@
         "play-sound": "^1.1.5",
         "sass": "^1.49.9",
         "screenshot-desktop": "^1.12.7",
+        "sharp": "^0.32.6",
         "validator": "^13.7.0",
         "vue-i18n": "^9.1.9",
         "vue-router": "^4.0.13",

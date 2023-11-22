@@ -150,11 +150,12 @@ function getFiles(who, feedfack=false, quiet=false){
             step: 4
         },
         inputValue: this.serverstatus.screenshotinterval
-    }).then((input) => {
-        this.serverstatus.screenshotinterval= input.value
+    }).then((result) => {
+        const inputInteger = parseInt(result.value, 10); // Convert to integer
+        this.serverstatus.screenshotinterval= inputInteger
         if (this.serverstatus.screenshotinterval == 0) { document.getElementById("screenshotinterval").checked = false }
         else { document.getElementById("screenshotinterval").checked = true}
-        if (!this.serverstatus.screenshotinterval){this.serverstatus.screenshotinterval = 4}
+        if (!this.serverstatus.screenshotinterval || !Number.isInteger(this.serverstatus.screenshotinterval)){this.serverstatus.screenshotinterval = 4}
 
         // WRITE screenshotinterval serverstatus ojbect so it can be retrieved on the next student update 
         this.setServerStatus()
