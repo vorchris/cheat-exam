@@ -228,8 +228,8 @@ export default {
                     ipcRenderer.send('restore-browserview')
             }); 
         },
-        loadFilelist(){
-            let filelist = ipcRenderer.sendSync('getfiles', null)
+        async loadFilelist(){
+            let filelist = await ipcRenderer.invoke('getfilesasync', null)
             this.localfiles = filelist;
         },
         clock(){
@@ -237,7 +237,7 @@ export default {
             this.timesinceentry =  new Date(this.now - this.entrytime).toISOString().substr(11, 8)
         },  
         async fetchInfo() {
-            let getinfo = ipcRenderer.sendSync('getinfo')  // we need to fetch the updated version of the systemconfig from express api (server.js)
+            let getinfo = await ipcRenderer.invoke('getinfoasync')   // we need to fetch the updated version of the systemconfig from express api (server.js)
             
             this.clientinfo = getinfo.clientinfo;
             this.token = this.clientinfo.token

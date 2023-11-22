@@ -20,7 +20,7 @@
         <div v-if="!advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("student.advanced") }}</div>
         <div v-if="advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("student.simple") }}</div>
         
-        <div @click="clearUser()" class="form-check form-switch  m-1 mb-2 mt-4" style="font-size:0.9em">
+        <div v-if="config.bipIntegration" @click="clearUser()" class="form-check form-switch  m-1 mb-2 mt-4" style="font-size:0.9em">
             <!-- Checkbox mit dem Label "BiP Login" -->
             <input class="form-check-input" type="checkbox" id="bipLogin" v-model="biplogin"> 
             <label class="form-check-label" for="bipLogin"> BiP Login</label>
@@ -28,7 +28,7 @@
 
 
         
-        <div id="biploginbutton" v-if="biplogin" @click="loginBiP" class="btn btn-info mb-1 me-0" style="padding:0;">
+        <div  id="biploginbutton" v-if="biplogin" @click="loginBiP" class="btn btn-info mb-1 me-0" style="padding:0;">
             <img v-if="biplogin" style="width:100%; border-top-left-radius:3px;border-top-right-radius:3px; margin:0; " src="/src/assets/img/login_students.jpg">
              <span id="biploginbuttonlabel">Bildungsportal - Login</span>
         </div> 
@@ -116,6 +116,7 @@ export default {
             serverApiPort: this.$route.params.serverApiPort,
             clientApiPort: this.$route.params.clientApiPort,
             electron: this.$route.params.electron,
+            config: this.$route.params.config,
             startExamEvent: null,
             advanced: false,
             serverip: "",
@@ -159,22 +160,8 @@ export default {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        fetchInfo() {
-            let getinfo = ipcRenderer.sendSync('getinfo')  // gets serverlist and clientinfo from multicastclient
+        async fetchInfo() {
+            let getinfo = await ipcRenderer.invoke('getinfoasync')  // gets serverlist and clientinfo from multicastclient
             
             this.clientinfo = getinfo.clientinfo;
             this.token = this.clientinfo.token;

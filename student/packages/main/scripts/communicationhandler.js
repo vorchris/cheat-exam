@@ -27,7 +27,6 @@ import FormData from 'form-data/lib/form_data.js';     //we need to import the f
 import { join } from 'path'
 import { screen } from 'electron'
 import WindowHandler from './windowhandler.js'
-import ExamMenu from './examMenu.js'
 
 import { execSync } from 'child_process';
 const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
@@ -522,8 +521,11 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
         // give it some time
         await this.sleep(1000)  // wait one second before zipping workdirectory (give save some time - unfortunately we have no way to wait for save - we could check the filetime in a "while loop" though)
      
-        //zip config.work directory
-        if (!fs.existsSync(this.config.tempdirectory)){ fs.mkdirSync(this.config.tempdirectory); }
+        try {
+            //zip config.work directory
+            if (!fs.existsSync(this.config.tempdirectory)){ fs.mkdirSync(this.config.tempdirectory); }
+        }catch (e){ console.log(e)}
+
         //fsExtra.emptyDirSync(this.config.tempdirectory)
         let zipfilename = this.multicastClient.clientinfo.name.concat('.zip')
         let servername = this.multicastClient.clientinfo.servername
@@ -531,8 +533,14 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
         let token = this.multicastClient.clientinfo.token
         let zipfilepath = join(this.config.tempdirectory, zipfilename);
      
-        await this.zipDirectory(this.config.workdirectory, zipfilepath)
-        let file = fs.readFileSync(zipfilepath);
+        let file = null
+        try {
+            await this.zipDirectory(this.config.workdirectory, zipfilepath)
+            file = fs.readFileSync(zipfilepath);
+        }catch (e){ 
+            console.log(e)
+        }
+
         const form = new FormData()
         form.append(zipfilename, file, {contentType: 'application/zip', filename: zipfilename });   
      
@@ -565,7 +573,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
         ;
         stream.on('close', () => resolve());
         archive.finalize();
-        });
+        }).catch( error => { console.log(error)});
     }
 
 

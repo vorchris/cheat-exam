@@ -39,7 +39,7 @@
      <!-- HEADER END -->
     <div id="suggestion-menu" style="display:none; position:fixed;"></div>
 
-    <div class="w-100 p-2 m-0 text-white shadow-sm text-center" style=" top: 66px; z-index: 10001 !important; background-color: white;">
+    <div class="w-100 p-0 m-0 text-white shadow-sm text-center" style=" top: 66px; z-index: 10001 !important; background-color: white;">
         
         <!-- toolbar start -->
         <div v-if="editor" class="m-2" id="editortoolbar" style="text-align:left;"> 
@@ -253,7 +253,10 @@ export default {
             currentRange:0,
             word:"",
             editorcontentcontainer:null,
-            spellcheck: false
+            spellcheck: false,
+            serverstatus: {
+                spellcheck:false,
+            }
         }
     },
     computed: {
@@ -335,7 +338,7 @@ export default {
             this.timesinceentry =  new Date(this.now - this.entrytime).toISOString().substr(11, 8)
         },
         async fetchInfo() {
-            let getinfo = ipcRenderer.sendSync('getinfo')  // we need to fetch the updated version of the systemconfig from express api (server.js)
+            let getinfo = await ipcRenderer.invoke('getinfoasync')  // we need to fetch the updated version of the systemconfig from express api (server.js)
             this.clientinfo = getinfo.clientinfo;
             this.token = this.clientinfo.token
             this.focus = this.clientinfo.focus
@@ -401,12 +404,12 @@ export default {
             }); 
         },
         //get all files in user directory
-        loadFilelist(){
-            let filelist = ipcRenderer.sendSync('getfiles', null)
+        async loadFilelist(){
+            let filelist = await ipcRenderer.invoke('getfilesasync', null)
             this.localfiles = filelist;
         },
         // get file from local workdirectory and replace editor content with it
-        loadHTML(file){
+        async loadHTML(file){
             this.$swal.fire({
                 title: this.$t("editor.replace"),
                 html:  `${this.$t("editor.replacecontent1")} <b>${file}</b> ${this.$t("editor.replacecontent2")}`,
@@ -415,9 +418,9 @@ export default {
                 cancelButtonText: this.$t("editor.cancel"),
                 reverseButtons: true
             })
-            .then((result) => {
+            .then(async (result) => {
                 if (result.isConfirmed) {
-                    let data = ipcRenderer.sendSync('getfiles', file )
+                    let data = await ipcRenderer.invoke('getfilesasync', file )
                     this.editor.commands.clearContent(true)
                     this.editor.commands.insertContent(data)  
                 } 

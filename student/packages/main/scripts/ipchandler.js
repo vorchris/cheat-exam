@@ -141,20 +141,21 @@ class IpcHandler {
         })
 
 
+    
+
         /**
          * Returns all found Servers and the information about this client
          */ 
-        ipcMain.on('getinfo', (event) => {   
+        ipcMain.handle('getinfoasync', (event) => {   
             let serverstatus = false
             if (this.WindowHandler.examwindow) { serverstatus = this.WindowHandler.examwindow.serverstatus }
 
-            event.returnValue = {   
+            return {   
                 serverlist: this.multicastClient.examServerList,
                 clientinfo: this.multicastClient.clientinfo,
                 serverstatus: serverstatus
             }   
         })
-
 
 
         /**
@@ -237,15 +238,21 @@ class IpcHandler {
 
             if (htmlContent) { 
                 console.log("saving students work to disk...")
-                fs.writeFile(htmlfile, htmlContent, (err) => {
-                    if (err) {
-                        console.log(err);
-                        event.returnValue = { sender: "client", message:err , status:"error" }
-                    }
-                    else {
-                        event.returnValue = { sender: "client", message:t("data.filestored") , status:"success" }
-                    }
-                }); 
+                try {
+                    fs.writeFile(htmlfile, htmlContent, (err) => {
+                        if (err) {
+                            console.log(err);
+                            event.returnValue = { sender: "client", message:err , status:"error" }
+                        }
+                        else {
+                            event.returnValue = { sender: "client", message:t("data.filestored") , status:"success" }
+                        }
+                    }); 
+                }
+                catch(e){
+                    console.log(e)
+                    event.returnValue = { sender: "client", message:err , status:"error" }
+                }
             }
         })
 
@@ -261,8 +268,15 @@ class IpcHandler {
             if (content) { 
                 console.log("saving students work to disk...")
                 const fileData = Buffer.from(content, 'base64');
-                fs.writeFileSync(ggbFilePath, fileData);
-                event.returnValue = { sender: "client", message:t("data.filestored") , status:"success" }
+
+                try {
+                    fs.writeFileSync(ggbFilePath, fileData);
+                    event.returnValue = { sender: "client", message:t("data.filestored") , status:"success" }
+                }
+                catch(e){
+                    console.log(e)
+                    event.returnValue = { sender: "client", message:err , status:"error" }
+                }
             }
         })
 
@@ -297,8 +311,13 @@ class IpcHandler {
             const workdir = path.join(config.workdirectory,"/")
             if (filename) { //return content of specific file
                 let filepath = path.join(workdir,filename)
-                let data = fs.readFileSync(filepath)
-                event.returnValue = data
+                try {
+                    let data = fs.readFileSync(filepath)
+                    event.returnValue = data
+                } 
+                catch (error) {
+                    event.returnValue = { sender: "client", content: false , status:"error" }
+                }    
             }
         })
 
@@ -335,6 +354,58 @@ class IpcHandler {
                 event.returnValue = files
             }
         })
+
+
+        /**
+         * ASYNC GET FILE-LIST from workdirectory
+         * @param filename if set the content of the file is returned
+         */ 
+        ipcMain.handle('getfilesasync', (event, filename) => {   
+            const workdir = path.join(config.workdirectory,"/")
+
+            if (filename) { //return content of specific file as string (html) to replace in editor)
+                let filepath = path.join(workdir,filename)
+                try {
+                    let data = fs.readFileSync(filepath, 'utf8')
+                    return data
+                }
+                catch (e) {console.log(e); return false}
+            }
+            else {  // return file list of exam directory
+                try {
+                    if (!fs.existsSync(workdir)){ fs.mkdirSync(workdir, { recursive: true });  } //do not crash if the directory is deleted after the app is started ^^
+                    let filelist =  fs.readdirSync(workdir, { withFileTypes: true })
+                        .filter(dirent => dirent.isFile())
+                        .map(dirent => dirent.name)
+                        .filter( file => path.extname(file).toLowerCase() === ".pdf" || path.extname(file).toLowerCase() === ".bak" || path.extname(file).toLowerCase() === ".ggb")
+                    
+                    let files = []
+                    filelist.forEach( file => {
+                        let modified = fs.statSync(   path.join(workdir,file)  ).mtime
+                        let mod = modified.getTime()
+                        if  (path.extname(file).toLowerCase() === ".pdf"){ files.push( {name: file, type: "pdf", mod: mod})   }         //pdf
+                        else if  (path.extname(file).toLowerCase() === ".bak"){ files.push( {name: file, type: "bak", mod: mod})   }   // editor backup
+                        else if  (path.extname(file).toLowerCase() === ".ggb"){ files.push( {name: file, type: "ggb", mod: mod})   }  // gogebra
+                        
+                    })
+                    this.multicastClient.clientinfo.numberOfFiles = filelist.length
+                    return files
+                }
+                catch (e) { console.log(e);return false; }
+            }
+        })
+
+
+
+
+
+
+
+
+
+
+
+
 
          /**
          * Append PrintRequest to clientinfo  

@@ -229,15 +229,6 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
             return res.json({warning: warning, pdfBuffer:false, latestfolderPath:latestfolderPath});
         }
     });
-    
-
-    
-  
- 
-
-
-
-
 })
 
 
@@ -391,26 +382,27 @@ async function concatPages(pdfsToMerge) {
   
     if ( !checkToken(studenttoken, mcServer ) ) { res.json({ status: t("data.tokennotvalid") }) }
     else {
-        console.log("Server: Receiving File(s)...")
         let errors = 0
-     
         let time = new Date(new Date().getTime()).toLocaleTimeString();  //convert to locale string otherwise the foldernames will be created in UTC
-      
         let student = mcServer.studentList.find(element => element.token === studenttoken) // get student from token
         
         if (req.files){
             for (const [key, file] of Object.entries( req.files)) {
                 let absoluteFilepath = path.join(config.workdirectory, mcServer.serverinfo.servername, file.name);
                 if (file.name.includes(".zip")){  //ABGABE as ZIP
-                    
-                    // create user abgabe directory
-                    let studentdirectory =  path.join(config.workdirectory, mcServer.serverinfo.servername, student.clientname)
-                    if (!fs.existsSync(studentdirectory)){ fs.mkdirSync(studentdirectory, { recursive: true });  }
 
-                    // create archive directory
+                    console.log("Server: Receiving File(s)...")
+
+                    let studentdirectory =  path.join(config.workdirectory, mcServer.serverinfo.servername, student.clientname)
                     let tstring = String(time).replace(/:/g, "_");
                     let studentarchivedir = path.join(studentdirectory, tstring)
-                    if (!fs.existsSync(studentarchivedir)){ fs.mkdirSync(studentarchivedir, { recursive: true }); }
+
+                    // check directories
+                    try {
+                        if (!fs.existsSync(studentdirectory)){ fs.mkdirSync(studentdirectory, { recursive: true });  }
+                        if (!fs.existsSync(studentarchivedir)){ fs.mkdirSync(studentarchivedir, { recursive: true }); }
+                    }catch (e) {console.log(e)}
+            
 
                     // extract zip file to archive
                     file.mv(absoluteFilepath, (err) => {  
@@ -418,6 +410,8 @@ async function concatPages(pdfsToMerge) {
                         else {
                             extract(absoluteFilepath, { dir: studentarchivedir }).then( () => {
                                 fs.unlink(absoluteFilepath, (err) => { if (err) console.log(err); }); // remove zip file after extracting
+                                console.log("ZIP file received!")
+                                res.json({ status:"success", sender: "server", message:t("data.filereceived"), errors: errors  })
                             }).catch( err => console.log(err))
                         }                     
                     });
@@ -425,10 +419,15 @@ async function concatPages(pdfsToMerge) {
                 else { // this is another file (most likely a screenshot as we do not yet transfer other files)
                     file.mv(absoluteFilepath, (err) => {  
                         if (err) { errors++; console.log( t("data.couldnotstore") ) }
+                        else {
+                            console.log("Single file received")
+                            res.json({ status:"success", sender: "server", message:t("data.filereceived"), errors: errors  })
+                        }
                     });
+                    
                 }
             }
-            res.json({ status:"success", sender: "server", message:t("data.filereceived"), errors: errors  })
+           
         }
         else {
             res.json({ status:"error",  sender: "server", message:t("data.nofilereceived"), errors: errors })

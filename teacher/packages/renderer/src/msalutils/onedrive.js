@@ -139,7 +139,7 @@ async function onedriveUploadSingle(student,file){
  * @param {*} targetfilename the filename is the username .xlsx or .docx
  */
 async function uploadAndShareFile(targetfilename, file) {
-    this.config = ipcRenderer.sendSync('getconfig')  // make sure we have an up2date config
+    this.config = await ipcRenderer.invoke('getconfigasync')  // make sure we have an up2date config
     if (!file){return} //just to be sure
 
     // Upload the file to the app folder
@@ -195,7 +195,7 @@ async function createSharingLink(fileId){
  * @param {*} fileName usually the username.xlsx  or username.docx
  */
 async function fileExistsInAppFolder(fileName) {
-    this.config = ipcRenderer.sendSync('getconfig')
+    this.config = await ipcRenderer.invoke('getconfigasync')
 
     //get the specific exam subfolder ID
     const folderID = await fetch(`https://graph.microsoft.com/v1.0/me/drive/special/approot/children?$filter=name eq '${this.servername}'`, {
@@ -231,10 +231,10 @@ async function fileExistsInAppFolder(fileName) {
         headers: new Headers({'Authorization': `Bearer ${this.config.accessToken}`})
     })
     .then(response => response.json())
-    .then( response => {  
+    .then( async (response) => {  
         if (response.error && response.error.code.includes("InvalidAuthenticationToken")  ){ // this is usually the first method that accesses onedrive api - thats why we test here
             console.log("token error - resetting token")  //reset token - something is off here!
-            this.config = ipcRenderer.sendSync('resetToken')
+            this.config = await ipcRenderer.invoke('resetToken')   //reset and update config
         }
         let res =  response.value.some(file => file.name === fileName);
         if (!res){return false}

@@ -43,10 +43,15 @@ class IpcHandler {
             event.returnValue = clonedObject
         })  
 
-        ipcMain.on('resetToken', (event) => {  
+        ipcMain.handle('getconfigasync', (event) => {  
+            const clonedObject = this.copyConfig(config);  // we cant just copy the config because it contains examServerList which contains confic (circular structure)
+            return clonedObject
+        })  
+
+        ipcMain.handle('resetToken', (event) => {  
             config.accessToken = false
             const clonedObject = this.copyConfig(config);  // we cant just copy the config because it contains examServerList which contains confic (circular structure)
-            event.returnValue = clonedObject
+            return clonedObject
         })  
 
         ipcMain.on('getCurrentWorkdir', (event) => {   event.returnValue = config.workdirectory  })
@@ -61,7 +66,7 @@ class IpcHandler {
 
 
 
-        ipcMain.on('setworkdir', async (event, arg) => {
+        ipcMain.handle('setworkdir', async (event, arg) => {
             const result = await dialog.showOpenDialog( this.WindowHandler.mainwindow, {
             properties: ['openDirectory']
             })
@@ -79,10 +84,10 @@ class IpcHandler {
                     message = "error"
                     console.log(e)
                 }
-                event.returnValue = {workdir: config.workdirectory, message : message}
+                return {workdir: config.workdirectory, message : message}
             }
             else {
-                event.returnValue = {workdir: config.workdirectory, message : 'canceled'}
+                return {workdir: config.workdirectory, message : 'canceled'}
             }
         })
 
@@ -113,26 +118,30 @@ class IpcHandler {
         /**
          * returns old exam folders in workdirectory
          */
-        ipcMain.on('scanWorkdir', async (event, arg) => {
+        ipcMain.handle('scanWorkdir', async (event, arg) => {
             let examfolders = []
             if (fs.existsSync(config.workdirectory)){
                     examfolders = fs.readdirSync(config.workdirectory, { withFileTypes: true })
                 .filter(dirent => dirent.isDirectory())
                 .map(dirent => dirent.name);
             }
-            event.returnValue = examfolders
+            return examfolders
         })
 
 
         /**
          * deletes old exam folder in workdirectory
          */
-        ipcMain.on('delPrevious', async (event, arg) => {
+        ipcMain.handle('delPrevious', async (event, arg) => {
             let examdir = join( config.workdirectory, arg)
             if (fs.statSync(examdir).isDirectory()){
-                fs.rmSync(examdir, { recursive: true, force: true });
+                try {
+                    fs.rmSync(examdir, { recursive: true, force: true });
+                }
+                catch (e) {console.log(e)}
+
             }   
-            event.returnValue = examdir
+            return examdir
         })
 
 

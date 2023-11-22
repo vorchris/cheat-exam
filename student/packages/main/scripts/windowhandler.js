@@ -21,7 +21,6 @@ import { app, BrowserWindow, BrowserView, dialog, screen, ipcMain} from 'electro
 import { join } from 'path'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 import fs from 'fs' 
-import examMenu from './examMenu.js';
 import Nodehun from 'nodehun'
 
   ////////////////////////////////////////////////////////////

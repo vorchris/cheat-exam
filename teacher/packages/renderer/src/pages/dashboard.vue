@@ -1,6 +1,5 @@
 <template>
 
-<div id="description" v-if="showDesc">{{ currentDescription }}</div>
 
 <!-- Header  -->
 <div class="w-100 p-3 text-white bg-dark shadow text-right">
@@ -156,8 +155,11 @@
                 <span v-if="serverstatus.screenshotinterval > 0" > ({{ serverstatus.screenshotinterval }}s)</span>
             </div>
         </div>
-
+        <br>
         <div id="statusdiv" class="btn btn-warning m-1"> {{$t('dashboard.connected')}}  </div>
+        <div id="description" class="btn m-1"  v-if="showDesc">{{ currentDescription }}</div>
+
+
         <span @click="showCopyleft()" style="position: absolute; bottom:2px; left: 6px; font-size:0.8em;cursor: pointer;">
             <span style=" display:inline-block; transform: scaleX(-1);font-size:1.2em; ">&copy; </span> 
             <span style="vertical-align: text-bottom;">&nbsp;{{version}}</span>
@@ -312,7 +314,7 @@ export default {
         /**
          * Microsoft OneDrive API Authentication and File Handling
          */
-        openAuthWindow(){ ipcRenderer.sendSync('openmsauth')  },
+        openAuthWindow(){ ipcRenderer.send('openmsauth')  },
         onedriveUploadselect: uploadselect,
         onedriveUpload: onedriveUpload,
         onedriveUploadSingle : onedriveUploadSingle,
@@ -372,9 +374,9 @@ export default {
          * Handles Student-Widgets (create, delete, update)
          * Checks Screenshots and MSO Share Links
          */
-        fetchInfo() {
+        async fetchInfo() {
             if (!this.config.accessToken){
-                this.config = ipcRenderer.sendSync('getconfig')  // this is only needed in order to get the accesstoken from the backend for MSAuthentication - but it doesn't hurt
+                this.config = await ipcRenderer.invoke('getconfigasync')  // this is only needed in order to get the accesstoken from the backend for MSAuthentication
             }
             this.now = new Date().getTime()
             axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/studentlist/${this.servername}/${this.servertoken}`)
@@ -751,7 +753,7 @@ export default {
         })
         if (this.electron){
             this.hostname = "localhost"
-            this.currentdirectory = ipcRenderer.sendSync('getCurrentWorkdir') 
+            this.currentdirectory = ipcRenderer.sendSync('getCurrentWorkdir')  //in case user changed it to different location
             this.workdirectory= `${this.currentdirectory}/${this.servername}`
         }
     },
@@ -945,17 +947,16 @@ export default {
 
 
 #description {
-    padding: 6px;
-    padding-left:12px;
-    position: absolute; /* Positioniert den Div relativ zum nächsten positionierten Vorfahren */
-    top:0px;
-    left:256px;
-    z-index: 100;
+   
+    /* position: absolute;  */
+    
     font-size: 0.8em;
     border-bottom-left-radius:5px;
     border-bottom-right-radius:5px;
-    width: 458px !important;
-    height:52px;
+     width: 200px  ;
+    /* height:52px; */
+    border-radius: 5px;
+  
 }
 
 
