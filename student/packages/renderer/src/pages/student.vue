@@ -55,14 +55,14 @@
         <div class="col-8 mb-2">
             <div v-if="!biplogin" class="input-group  mb-1">
                 <span class="input-group-text col-3" style="width:100px;" id="inputGroup-sizing-lg">{{ $t("student.name") }}</span>
-                <input v-model="username" type="text" required="required" maxlength="25" class="form-control" id="user" placeholder="" style="width:135px;max-width:135px;min-width:135px;">
+                <input v-model="username" type="text" required="required" maxlength="25" class="form-control" id="user" placeholder="" style="width:200px;max-width:200px;min-width:135px;">
             </div> 
 
             <div v-if="biplogin" class="input-group  mb-1">
                 <span class="input-group-text col-3" style="width:100px;" id="inputGroup-sizing-lg">{{ $t("student.name") }}</span>
                
-                <span v-if="username" class="input-group-text col-3" style="width:135px;" id="inputGroup-sizing-lg"> {{ username  }} </span>
-                <span v-else class="input-group-text col-3 " style="width:135px;" id="inputGroup-sizing-lg">  </span>
+                <span v-if="username" class="input-group-text col-3" style="width:200px;" id="inputGroup-sizing-lg"> {{ username  }} </span>
+                <span v-else class="input-group-text col-3 " style="width:200px;" id="inputGroup-sizing-lg">  </span>
                
             </div> 
       

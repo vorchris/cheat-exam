@@ -17,7 +17,7 @@ const config = {
     examServerList: {},
     accessToken: false,
     version: pjson.version,
-    info: "Release Candidate 2",
+    info: "Release Candidate 3",
     buildforWEB: false
 }
 export default config
