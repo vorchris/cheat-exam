@@ -356,16 +356,23 @@ class IpcHandler {
          * ASYNC GET FILE-LIST from workdirectory
          * @param filename if set the content of the file is returned
          */ 
-        ipcMain.handle('getfilesasync', (event, filename) => {   
+        ipcMain.handle('getfilesasync', (event, filename, audio=false) => {   
             const workdir = path.join(config.workdirectory,"/")
 
             if (filename) { //return content of specific file as string (html) to replace in editor)
                 let filepath = path.join(workdir,filename)
-                try {
-                    let data = fs.readFileSync(filepath, 'utf8')
-                    return data
+                console.log(filepath)
+                if (audio){
+                    const audioData = fs.readFileSync(filepath);
+                    return audioData.toString('base64');
                 }
-                catch (e) {console.log(e); return false}
+                else {
+                    try {
+                        let data = fs.readFileSync(filepath, 'utf8')
+                        return data
+                    }
+                    catch (e) {console.log(e); return false}
+                }
             }
             else {  // return file list of exam directory
                 try {
@@ -373,7 +380,7 @@ class IpcHandler {
                     let filelist =  fs.readdirSync(workdir, { withFileTypes: true })
                         .filter(dirent => dirent.isFile())
                         .map(dirent => dirent.name)
-                        .filter( file => path.extname(file).toLowerCase() === ".pdf" || path.extname(file).toLowerCase() === ".bak" || path.extname(file).toLowerCase() === ".ggb")
+                        .filter( file => path.extname(file).toLowerCase() === ".pdf" || path.extname(file).toLowerCase() === ".ogg" || path.extname(file).toLowerCase() === ".wav"|| path.extname(file).toLowerCase() === ".mp3" || path.extname(file).toLowerCase() === ".bak" || path.extname(file).toLowerCase() === ".ggb")
                     
                     let files = []
                     filelist.forEach( file => {
@@ -382,7 +389,7 @@ class IpcHandler {
                         if  (path.extname(file).toLowerCase() === ".pdf"){ files.push( {name: file, type: "pdf", mod: mod})   }         //pdf
                         else if  (path.extname(file).toLowerCase() === ".bak"){ files.push( {name: file, type: "bak", mod: mod})   }   // editor backup
                         else if  (path.extname(file).toLowerCase() === ".ggb"){ files.push( {name: file, type: "ggb", mod: mod})   }  // gogebra
-                        
+                        else if  (path.extname(file).toLowerCase() === ".mp3" || path.extname(file).toLowerCase() === ".ogg" || path.extname(file).toLowerCase() === ".wav" ){ files.push( {name: file, type: "audio", mod: mod})   }  // audio
                     })
                     this.multicastClient.clientinfo.numberOfFiles = filelist.length
                     return files

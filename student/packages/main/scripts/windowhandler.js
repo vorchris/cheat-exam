@@ -562,7 +562,6 @@ class WindowHandler {
                 this.examwindow.focus()
                 this.addBlurListener()
             }
-            this.addBlurListener()
             this.examwindow.removeMenu() 
             if (this.config.showdevtools) { this.examwindow.webContents.openDevTools()  }
             this.examwindow.show()

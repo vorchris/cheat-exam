@@ -93,10 +93,23 @@
                 <button :title="$t('editor.headerrow')" @click="editor.chain().focus().toggleHeaderRow().run()" :disabled="!editor.can().toggleHeaderRow()" class="invisible-button btn btn-outline-info p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/table-header-top.svg" width="22" height="22" ></button>
             </div>
            
+            <div id="specialcharsdiv" style="display:inline-block">
+                <div class="btn btn-outline-secondary btn-sm invisible-button" @click="insertSpecialchar('¿')" style="width:28px; ">¿</div>
+                <div class="btn btn-outline-secondary btn-sm invisible-button" @click="insertSpecialchar('ñ')" style="width:28px; ">ñ</div>
+                <div class="btn btn-outline-secondary btn-sm invisible-button" @click="insertSpecialchar('ç')" style="width:28px; ">ç</div>
+                <div class="btn btn-outline-secondary btn-sm invisible-button" @click="insertSpecialchar('©')" style="width:28px; ">©</div>
+                <div class="btn btn-outline-secondary btn-sm invisible-button" @click="insertSpecialchar('™')" style="width:28px; ">™</div>
+                <div class="btn btn-outline-secondary btn-sm invisible-button" @click="insertSpecialchar('¡')" style="width:28px; ">¡</div>
+                <div class="btn btn-outline-secondary btn-sm invisible-button" @click="insertSpecialchar('µ')" style="width:28px; ">µ</div>
+            </div>
+
+
             <br>
            <div v-for="file in localfiles" class="d-inline" style="text-align:left">
                 <div v-if="(file.type == 'bak')" class="btn btn-success p-0  pe-2 ps-1 me-1 mb-0 btn-sm"   @click="selectedFile=file.name; loadHTML(file.name)"><img src="/src/assets/img/svg/games-solve.svg" class="" width="22" height="22" style="vertical-align: top;"> {{file.name}}     ({{ new Date(this.now - file.mod).toISOString().substr(11, 5) }})</div>
                 <div v-if="(file.type == 'pdf')" class="btn btn-info p-0 pe-2 ps-1 me-1 mb-0 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" style="vertical-align: top;"> {{file.name}} </div>
+                <div v-if="(file.type == 'audio')" class="btn btn-info p-0 pe-2 ps-1 me-1 mb-0 btn-sm" @click="playAudio(file.name)"><img src="/src/assets/img/svg/im-google-talk.svg" class="" width="22" height="22" style="vertical-align: top;"> {{file.name}} </div>
+
             </div>
         
         </div>
@@ -119,15 +132,19 @@
     </div>
     <!-- focuswarning end  -->
 
-    <div id="specialcharsdiv">
-        <div class="btn btn-outline-secondary btn-sm m-1" @click="insertSpecialchar('¿')">¿</div>
-        <div class="btn btn-outline-secondary btn-sm m-1" @click="insertSpecialchar('ñ')">ñ</div>
-        <div class="btn btn-outline-secondary btn-sm m-1" @click="insertSpecialchar('ç')">ç</div>
-        <div class="btn btn-outline-secondary btn-sm m-1" @click="insertSpecialchar('©')">©</div>
-        <div class="btn btn-outline-secondary btn-sm m-1" @click="insertSpecialchar('™')">™</div>
-        <div class="btn btn-outline-secondary btn-sm m-1" @click="insertSpecialchar('¡')">¡</div>
-        <div class="btn btn-outline-secondary btn-sm m-1" @click="insertSpecialchar('µ')">µ</div>
-    </div>
+
+
+
+
+     <!-- AUDIO Player start -->
+        <div id="aplayer">
+            <audio id="audioPlayer" controls controlsList="nodownload">
+                <source :src="audioSource" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+            <button  id="audioclose" type="button" class="btn-close" style="vertical-align: top;" title="close" ></button> 
+        </div>
+    <!-- AUDIO Player end -->
 
 
 
@@ -256,7 +273,8 @@ export default {
             spellcheck: false,
             serverstatus: {
                 spellcheck:false,
-            }
+            },
+            audioSource: null,
         }
     },
     computed: {
@@ -282,6 +300,38 @@ export default {
         removeElementsByClassFromString:SpellChecker.removeElementsByClassFromString,  // this removes html elements from a string that contains html elements
         hideSpellcheckMenu:SpellChecker.hideSpellcheckMenu, // hides the spellcheck context menu
         checkAllWordsOnSpacebar:SpellChecker.checkAllWordsOnSpacebar,  //does a complete spellcheck after hitting spacebar while writing
+
+
+        async playAudio(file) {
+            const audioPlayer = document.getElementById('audioPlayer');
+          
+            if (audioPlayer) {
+                audioPlayer.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                });
+            }
+
+            $("#aplayer").css("display","block");
+            $("#audioclose").click(function(e) {
+                audioPlayer.pause();
+                $("#aplayer").css("display","none");
+            });
+
+
+            try {
+               
+                const base64Data = await ipcRenderer.invoke('getfilesasync', file, true);
+                if (base64Data) {
+                    this.audioSource = `data:audio/mp3;base64,${base64Data}`;
+                    audioPlayer.load(); // Lädt die neue Quelle
+                    audioPlayer.play().then(() => { console.log('Playback started'); }).catch(e => { console.error('Playback failed:', e); });
+                } else {
+                    console.error('Keine Daten empfangen');
+                }
+            } catch (error) {
+                console.error('Fehler beim Empfangen der MP3-Datei:', error);
+            }
+        },
 
         showInsertSpecial(){
             let display =  $("#specialcharsdiv").css('display')
@@ -440,7 +490,7 @@ export default {
         showMore(){
             let moreoptions= document.getElementById('moreoptions')
             if (moreoptions.style.display === "none") {
-                $("#moreoptions").css("display","block");
+                $("#moreoptions").css("display","inline-block");
             } else {
                 $("#moreoptions").css("display","none");
             }
@@ -824,7 +874,7 @@ export default {
 <style lang="scss">
 
 @media print {  //this controls how the editor view is printed (to pdf)
-    #editortoolbar, #editorheader, #editselected, #focuswarning, #specialcharsdiv {
+    #editortoolbar, #editorheader, #editselected, #focuswarning, #specialcharsdiv, #aplayer {
         display: none !important;
     }
     #statusbar {
@@ -892,20 +942,33 @@ export default {
 
 }
 
-#specialcharsdiv {
-  position: absolute;
-  top: 18%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 182px; /* Adjust width as desired */
-  height: 84px; /* Adjust height as desired */
-  background-color: rgb(255, 255, 255);
-  border-radius: 8px; /* Slight rounded corners */
-  /* Additional styling if needed */
-  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-  z-index:1000000;
-  padding: 4px;
+#aplayer{
+    display:none;
+    background-color: rgb(255, 255, 255);
+    z-index:1000000;
+    width: 100%;
+    text-align: center;
 }
+
+#audioPlayer {
+    position: relative;
+    width: 70vw;
+    height:24px;
+ 
+}
+
+audio::-webkit-media-controls-panel {
+    background-color: rgb(255, 255, 255);
+}
+
+#specialcharsdiv {
+    display:none;
+    
+    width: 100%;
+    background-color: rgb(255, 255, 255);
+    z-index:1000000;
+}
+
 
 
 .invisible-button {
