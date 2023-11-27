@@ -90,6 +90,15 @@
 
 <script>
 import $ from 'jquery'
+import log from 'electron-log/renderer';
+const originalConsoleLog = console.log;
+
+console.log = (...args) => {
+  originalConsoleLog(...args);
+  log.info(...args);
+};
+
+
 
 export default {
     data() {
@@ -232,6 +241,9 @@ export default {
 
     },
     mounted() {  // when ready
+        
+        log.info('Frontend mounted...');
+   
         $("#statusdiv").fadeOut("slow")
         if (this.prod) {  //clear input fields in production mode
             $("#servername").val("")
