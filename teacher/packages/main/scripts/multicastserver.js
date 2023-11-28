@@ -18,6 +18,7 @@
 import { createSocket } from 'dgram'
 import config from '../config.js'
 import crypto from 'crypto';
+import log from 'electron-log/main';
 
 /**
  * Starts a dgram (udp) socket that broadcasts information about this server
@@ -59,7 +60,7 @@ class MulticastServer {
             this.server.setTTL(128)
             this.server.addMembership(this.MULTICAST_ADDR); 
             this.broadcastInterval = setInterval(() => { this.sendMulticastMessage() }, 2000)
-            console.log(`UDP MC Server listening on http://${config.hostip}:${this.server.address().port}`)
+            log.info(`UDP MC Server listening on http://${config.hostip}:${this.server.address().port}`)
         })
     }
 

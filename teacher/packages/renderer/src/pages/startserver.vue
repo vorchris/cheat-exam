@@ -102,8 +102,6 @@ window.addEventListener('unhandledrejection', event => {
 
 Object.assign(console, log.functions);
 
-fds
-
 
 
 

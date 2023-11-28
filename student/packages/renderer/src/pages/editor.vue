@@ -77,8 +77,8 @@
             <button :title="$t('editor.specialchar')"  @click="showInsertSpecial()" class="invisible-button btn btn-outline-warning p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/sign.svg" class="" width="22" height="22" ></button>
 
 
-            <button v-if="serverstatus.spellcheck && spellcheck"  :title="$t('editor.spellcheckdeactivate')"  @click="deactivateSpellcheck()" class="invisible-button btn btn-outline-danger p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/autocorrection.svg" class="" width="22" height="22" ></button>
-            <button v-if="serverstatus.spellcheck && !spellcheck" :title="$t('editor.spellcheck')"  @click="activateSpellcheck()" class="invisible-button btn btn-outline-success p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/autocorrection.svg" class="" width="22" height="22" ></button>
+            <button v-if="(serverstatus.spellcheck || allowspellcheck) && spellcheck"  :title="$t('editor.spellcheckdeactivate')"  @click="deactivateSpellcheck()" class="invisible-button btn btn-outline-danger p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/autocorrection.svg" class="" width="22" height="22" ></button>
+            <button v-if="(serverstatus.spellcheck || allowspellcheck) && !spellcheck" :title="$t('editor.spellcheck')"  @click="activateSpellcheck()" class="invisible-button btn btn-outline-success p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/autocorrection.svg" class="" width="22" height="22" ></button>
 
             <button :title="$t('editor.more')" id="more" @click="showMore()" class="invisible-button btn btn-outline-info p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/view-more-horizontal-symbolic.svg" class="white" width="22" height="22" ></button>
             <div id="moreoptions" style="display:none;">
@@ -93,7 +93,7 @@
                 <button :title="$t('editor.headerrow')" @click="editor.chain().focus().toggleHeaderRow().run()" :disabled="!editor.can().toggleHeaderRow()" class="invisible-button btn btn-outline-info p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/table-header-top.svg" width="22" height="22" ></button>
             </div>
            
-            <div id="specialcharsdiv" style="display:inline-block">
+            <div id="specialcharsdiv" style="display:none">
                 <div class="btn btn-outline-secondary btn-sm invisible-button" @click="insertSpecialchar('¿')" style="width:28px; ">¿</div>
                 <div class="btn btn-outline-secondary btn-sm invisible-button" @click="insertSpecialchar('ñ')" style="width:28px; ">ñ</div>
                 <div class="btn btn-outline-secondary btn-sm invisible-button" @click="insertSpecialchar('ç')" style="width:28px; ">ç</div>
@@ -274,6 +274,7 @@ export default {
             serverstatus: {
                 spellcheck:false,
             },
+            allowspellcheck: false, // this is a per student override (for students with legasthenie)
             audioSource: null,
         }
     },
@@ -304,38 +305,27 @@ export default {
 
         async playAudio(file) {
             const audioPlayer = document.getElementById('audioPlayer');
-          
-            if (audioPlayer) {
-                audioPlayer.addEventListener('contextmenu', (e) => {
-                    e.preventDefault();
-                });
-            }
-
+            if (audioPlayer) { audioPlayer.addEventListener('contextmenu', (e) => { e.preventDefault(); }); }
             $("#aplayer").css("display","block");
             $("#audioclose").click(function(e) {
                 audioPlayer.pause();
+                console.log('Playback stopped');
                 $("#aplayer").css("display","none");
             });
 
-
             try {
-               
                 const base64Data = await ipcRenderer.invoke('getfilesasync', file, true);
                 if (base64Data) {
                     this.audioSource = `data:audio/mp3;base64,${base64Data}`;
                     audioPlayer.load(); // Lädt die neue Quelle
                     audioPlayer.play().then(() => { console.log('Playback started'); }).catch(e => { console.error('Playback failed:', e); });
-                } else {
-                    console.error('Keine Daten empfangen');
-                }
-            } catch (error) {
-                console.error('Fehler beim Empfangen der MP3-Datei:', error);
-            }
+                } else { console.error('Keine Daten empfangen'); }
+            } catch (error) { console.error('Fehler beim Empfangen der MP3-Datei:', error); }
         },
 
         showInsertSpecial(){
             let display =  $("#specialcharsdiv").css('display')
-            if (display == "none"){    $("#specialcharsdiv").fadeIn("slow")  }
+            if (display == "none"){   $("#specialcharsdiv").css('display','inline-block'); }
             else { $("#specialcharsdiv").hide()}
         },
   
@@ -355,7 +345,6 @@ export default {
                 sel.removeAllRanges(); // Remove all ranges to clear the previous selection
                 sel.addRange(range); // Add the new range to set the caret position
             }
-            $("#specialcharsdiv").hide()
          },
 
 
@@ -395,11 +384,16 @@ export default {
             this.clientname = this.clientinfo.name
             this.exammode = this.clientinfo.exammode
             this.pincode = this.clientinfo.pin
+            this.allowspellcheck = this.clientinfo.allowspellcheck
             this.serverstatus =  getinfo.serverstatus
             if (!this.focus){  this.entrytime = new Date().getTime()}
             if (this.clientinfo && this.clientinfo.token){  this.online = true  }
             else { this.online = false  }
             this.battery = await navigator.getBattery()
+            if (this.allowspellcheck) {
+                let ipcResponse = await ipcRenderer.invoke('activatespellcheck', this.allowspellcheck.spellchecklang )  // this.allowspellcheck contains an object with spell config
+                if (ipcResponse == false) { this.allowspellcheck = false}  // something went wrong on the backend - do not show spellchecker button
+            }
         }, 
         reconnect(){
             this.$swal.fire({
@@ -540,6 +534,7 @@ export default {
         print(){
            //make sure to post print request to teacher for the latest work
            ipcRenderer.sendSync('sendPrintRequest') 
+           console.log("[print] sending printrequest")
            this.$swal.fire({
                 title: this.$t("editor.requestsent"),
                 icon: "info",
@@ -550,7 +545,7 @@ export default {
         },
         // display print denied message and reason
         printdenied(why){
-            console.log("Print request denied")
+            console.log("[printdenied] Print request denied")
             this.$swal.fire({
                 title: `${this.$t("editor.requestdenied")}`,
                 icon: "info",
@@ -593,7 +588,7 @@ export default {
         },
         pasteSelection(){
             if (!this.selectedText || this.selectedText == "") {return}
-            console.log("pasted:",this.selectedText)
+            console.log("[pasteSelection] pasted:",this.selectedText)
             //paste previously selected html code
             this.editor.commands.insertContent(this.selectedText)         
         },
@@ -610,7 +605,7 @@ export default {
                     let nodecheck = selection.anchorNode;
                     while (nodecheck !== null && nodecheck !== document.body) {
                         if (nodecheck.tagName === 'CODE') {
-                            console.log("Cursor is inside <code> element.");
+                            console.log("[replaceQuotes] Cursor is inside <code> element.");
                             return;
                         }
                         nodecheck = nodecheck.parentNode;
@@ -650,11 +645,11 @@ export default {
             });
         },
         activateSpellcheck(){
-            if (this.serverstatus.spellcheck) {
-                console.log("spellcheck activated")
+            if (this.serverstatus.spellcheck || this.allowspellcheck) {
+                console.log("[activateSpellcheck] spellcheck activated")
                 document.addEventListener('input', this.checkAllWordsOnSpacebar)  // do a spellcheck when the user hits space
-                if (this.serverstatus.suggestions){
-                    console.log("suggestions activated")
+                if (this.serverstatus.suggestions || this.allowspellcheck.suggestions){
+                    console.log("[activateSpellcheck] suggestions activated")
                     document.addEventListener('click', this.hideSpellcheckMenu); // Hide suggestion menu when clicking elsewhere
                     this.editorcontentcontainer.addEventListener('contextmenu', this.getWord );   // show the context menu
                 } 
@@ -756,8 +751,6 @@ export default {
 
 
     mounted() {
-        $("#specialcharsdiv").hide()
-
         switch (this.cmargin.size) {
             case 4:       this.proseMirrorMargin = '90px';   break;
             case 3.5:     this.proseMirrorMargin = '70px';   break;
@@ -954,7 +947,6 @@ export default {
     position: relative;
     width: 70vw;
     height:24px;
- 
 }
 
 audio::-webkit-media-controls-panel {
@@ -963,7 +955,6 @@ audio::-webkit-media-controls-panel {
 
 #specialcharsdiv {
     display:none;
-    
     width: 100%;
     background-color: rgb(255, 255, 255);
     z-index:1000000;

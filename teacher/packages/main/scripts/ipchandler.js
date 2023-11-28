@@ -23,6 +23,7 @@ const { t } = i18n.global
 import {  ipcMain, dialog } from 'electron'
 import checkDiskSpace from 'check-disk-space'
 import {join} from 'path'
+import log from 'electron-log/main';
 
 class IpcHandler {
     constructor () {
@@ -65,18 +66,18 @@ class IpcHandler {
         ipcMain.handle('setworkdir', async (event, arg) => {
             const result = await dialog.showOpenDialog( this.WindowHandler.mainwindow, { properties: ['openDirectory']  })
             if (!result.canceled){
-                console.log('directories selected', result.filePaths)
+                log.info('directories selected', result.filePaths)
                 let message = ""
                 try {
                     let testdir = join(result.filePaths[0]   , config.examdirectory)
                     if (!fs.existsSync(testdir)){fs.mkdirSync(testdir)}
                     message = "success"
                     config.workdirectory = testdir
-                    console.log("setworkdir:", config)
+                    log.info("setworkdir:", config)
                 }
                 catch (e){
                     message = "error"
-                    console.log(e)
+                    log.error(e)
                 }
                 return {workdir: config.workdirectory, message : message}
             }
@@ -88,7 +89,7 @@ class IpcHandler {
 
         ipcMain.on('setPreviousWorkdir', async (event, workdir) => {
             if (workdir){
-                console.log('previous directory selected', workdir)
+                log.info('previous directory selected', workdir)
                 let message = ""
                 try {
                     if (!fs.existsSync(workdir)){fs.mkdirSync(workdir)}
@@ -97,7 +98,7 @@ class IpcHandler {
                 }
                 catch (e){
                     message = "error"
-                    console.log(e)
+                    log.error(e)
                 }
                 event.returnValue = {workdir: config.workdirectory, message : message}
             }
@@ -128,8 +129,7 @@ class IpcHandler {
                 try {
                     fs.rmSync(examdir, { recursive: true, force: true });
                 }
-                catch (e) {console.log(e)}
-
+                catch (e) {log.error(e)}
             }   
             return examdir
         })
@@ -140,7 +140,7 @@ class IpcHandler {
          * Downloads the files for a specific student to his workdirectory (abgabe)
          */
         ipcMain.on('storeOnedriveFiles', async (event, args) => { 
-            console.log("downloading onedrive files...")  
+            log.info("downloading onedrive files...")  
             const studentName = args.studentName
             const accessToken = args.accessToken
             const fileName = args.fileName
@@ -156,32 +156,32 @@ class IpcHandler {
             try {
                 if (!fs.existsSync(studentdirectory)) { fs.mkdirSync(studentdirectory, { recursive: true });  }
                 if (!fs.existsSync(studentarchivedir)){ fs.mkdirSync(studentarchivedir, { recursive: true }); }
-            } catch (e) {console.log(e)}
+            } catch (e) {log.error(e)}
          
 
             const fileResponse = await fetch(`https://graph.microsoft.com/v1.0/me/drive/items/${fileID}/content`, {
                 headers: {'Authorization': `Bearer ${accessToken}`,  },
-            }).catch( err => {console.log(err)});
+            }).catch( err => {log.error(err)});
 
             try {
                 const fileBuffer = await fileResponse.arrayBuffer();
                 fs.writeFileSync(join(studentarchivedir, fileName), Buffer.from(fileBuffer));
-            } catch (e) {console.log(e)}
+            } catch (e) {log.error(e)}
 
             const pdfFileResponse = await fetch(`https://graph.microsoft.com/v1.0/me/drive/items/${fileID}/content?format=pdf`, {
                 headers: {'Authorization': `Bearer ${accessToken}`,  },
-            }).catch( err => {console.log(err)});
+            }).catch( err => {log.error(err)});
 
             if (pdfFileResponse.ok) {
                 const pdfFileBuffer = await pdfFileResponse.arrayBuffer();
                 const pdfFilePath = join(studentarchivedir, `${fileName}.pdf`);
                 try {
                     fs.writeFileSync(pdfFilePath, Buffer.from(pdfFileBuffer));
-                    console.log(`Downloaded ${fileName} and ${fileName}.pdf`);
-                } catch (e) {console.log(e)}  
+                    log.info(`Downloaded ${fileName} and ${fileName}.pdf`);
+                } catch (e) {log.error(e)}  
             }
             else {
-                console.log("there was a problem downloading the files as pdf")
+                log.error("there was a problem downloading the files as pdf")
             }
             
         })

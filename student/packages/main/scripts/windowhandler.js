@@ -22,6 +22,7 @@ import { join } from 'path'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 import fs from 'fs' 
 import Nodehun from 'nodehun'
+import log from 'electron-log/main';
 
   ////////////////////////////////////////////////////////////
  // Window handling (ipcRenderer Process - Frontend) START
@@ -88,29 +89,29 @@ class WindowHandler {
         });
 
         this.bipwindow.webContents.on('did-navigate', (event, url) => {    // a pdf could contain a link ^^
-            console.log("did-navigate")
-            console.log(url)
+            log.info("did-navigate")
+            log.info(url)
         })
         this.bipwindow.webContents.on('will-navigate', (event, url) => {    // a pdf could contain a link ^^
-            console.log("will-navigate")
-            console.log(url)
+            log.info("will-navigate")
+            log.info(url)
         })
 
          this.bipwindow.webContents.on('new-window', (event, url) => {  // if a new window should open triggered by window.open()
-            console.log("new-window")
-            console.log(url)
+            log.info("new-window")
+            log.info(url)
             event.preventDefault();    // Prevent the new window from opening
         }); 
      
          
          this.bipwindow.webContents.setWindowOpenHandler(({ url }) => { // if a new window should open triggered by target="_blank"
-            console.log("target: _blank")
-            console.log(url)
+            log.info("target: _blank")
+            log.info(url)
             return { action: 'deny' };   // Prevent the new window from opening
         }); 
 
         this.bipwindow.webContents.on('will-redirect', (event, url) => {
-            console.log('Redirecting to:', url);
+            log.info('Redirecting to:', url);
             // Prüfen, ob die URL das gewünschte Format hat
             if (url.startsWith('moodlemobile://')) {
                 event.preventDefault(); // Verhindert den Standard-Redirect
@@ -119,8 +120,8 @@ class WindowHandler {
                 const token = url.substring(prefix.length);
                 
     
-                console.log('Captured Token:');
-                console.log(token);
+                log.info('Captured Token:');
+                log.info(token);
                 this.mainwindow.webContents.send('bipToken', token);
                 this.bipwindow.close();
             }
@@ -294,7 +295,7 @@ class WindowHandler {
     async createExamWindow(examtype, token, serverstatus, primarydisplay) {
         // just to be sure we check some important vars here
         if (examtype !== "gforms" && examtype !== "eduvidual" && examtype !== "editor" && examtype !== "math" && examtype !== "microsoft365" || !token){  // for now.. we probably should stop everything here
-            console.log("missing parameters for exam-mode or mode not in allowed list!")
+            log.warn("missing parameters for exam-mode or mode not in allowed list!")
             examtype = "editor" 
         } 
         
@@ -338,14 +339,14 @@ class WindowHandler {
          */
 
         if (examtype === "microsoft365"  ) { //external page
-            console.log("starting microsoft365 exam...")
+            log.info("starting microsoft365 exam...")
            
             let urlview = this.multicastClient.clientinfo.msofficeshare   
            
 
             if (!urlview) {// we wait for the next update tick - msofficeshare needs to be set ! (could happen when a student connects later then exam mode is set but his share url needs some time)
-                console.log("no url for microsoft365 was set")
-                console.log(this.multicastClient.clientinfo)
+                log.warn("no url for microsoft365 was set")
+                log.warn(this.multicastClient.clientinfo)
                 this.examwindow.destroy(); 
                 this.examwindow = null;
                 disableRestrictions(this.examwindow)
@@ -485,7 +486,7 @@ class WindowHandler {
             // if the user wants to navigate away from this page
             browserView.webContents.on('will-navigate', (event, url) => {
                 if (url !== this.multicastClient.clientinfo.msofficeshare ) {
-                    console.log("do not navigate away from this test.. ")
+                    log.warn("do not navigate away from this test.. ")
                     event.preventDefault()
                 }  
             })
@@ -663,20 +664,20 @@ class WindowHandler {
 
     //adds blur listener when entering exammode
     addBlurListener(window = "examwindow"){
-        console.log("adding blur listener")
-        console.log(window)
+        log.info("adding blur listener")
+        log.info(window)
         if (window === "examwindow"){ 
-            console.log(`Setting Blur Event for ${window}`)
+            log.info(`Setting Blur Event for ${window}`)
             this.examwindow.addListener('blur', () => this.blurevent(this)) 
         }
         else if (window === "screenlock") {
-            console.log(`Setting Blur Event for ${window}window`)
+            log.info(`Setting Blur Event for ${window}window`)
             this.screenlockWindow.addListener('blur', () => this.blureventScreenlock(this))    
         }
     }
     //removes blur listener when leaving exam mode
     removeBlurListener(){
-        console.log("removing blur listener")
+        log.info("removing blur listener")
         this.examwindow.removeAllListeners('blur')
     }
     // implementing a sleep (wait) function
@@ -685,7 +686,7 @@ class WindowHandler {
     }
     //student fogus went to another window
     blurevent(winhandler) { 
-        console.log("blur-exam")
+        log.info("blur-exam")
         if (winhandler.screenlockWindow) { return }// do nothing if screenlockwindow stole focus // do not trigger an infinite loop between exam window and screenlock window (stealing each others focus)
             
         winhandler.multicastClient.clientinfo.focus = false
@@ -712,12 +713,12 @@ class WindowHandler {
         //                     warning.setAttribute('style', 'text-align: center; padding: 20px;display: block; background-color:#ffc107; border-radius:5px;  z-index:100000; position: absolute; top: 50%; left: 50%; margin-left: -10vw; margin-top: -5vh;width:20vw; height: 10vh; box-shadow: 0 0 10px rgba(0,0,0,0.4); ');
         //                     setTimeout( ()=>{ document.getElementById('nextexamwaring').style.display = 'none'  } , 5000); 
         //                 }` , true)
-        //     .catch(err => console.log(err))
+        //     .catch(err => log.error(err))
         // }
     }
     //special blur event for temporary low security screenlock
     blureventScreenlock(winhandler) { 
-        console.log("blur-screenlock")
+        log.info("blur-screenlock")
         winhandler.screenlockWindow.show();  // we keep focus on the window.. no matter what
         winhandler.screenlockWindow.moveTop();
         winhandler.screenlockWindow.focus();

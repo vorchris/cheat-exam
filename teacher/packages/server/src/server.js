@@ -34,7 +34,7 @@ import defaultGateway from'default-gateway';
 import multicastClient from '../../main/scripts/multicastclient.js'
 import cookieParser from 'cookie-parser'
 import { app } from 'electron'
-
+import log from 'electron-log/main';
 
 config.workdirectory = path.join(os.homedir(), config.examdirectory)  //Attention! In Electron this makes sense. the WEBserver version will most likely need another Workdirectory
 config.tempdirectory = path.join(os.tmpdir(), 'exam-tmp')
@@ -46,7 +46,7 @@ try {
     config.hostip = ip.address(iface)    // this returns the ip of the interface that has a default gateway..  should work in MOST cases.  probably provide "ip-options" in UI ?
  }
  catch (e) {
-   console.log(e)
+   log.info(e)
    config.hostip = false
  }
 
@@ -75,7 +75,7 @@ const publicPath = app.isPackaged
 // Kopieren Sie den Inhalt von `public/` in das `config.tempdirectory`.
 fsExtra.copy(publicPath, `${config.tempdirectory}/`, function (err) {
   if (err) return console.error(err);
-  console.log('success!');
+  log.info('copied public directory to temp...');
 });
 
 
@@ -110,7 +110,7 @@ const server = https.createServer(options, api);
 
 if (config.buildforWEB){  // the api is started by the electron main process - for web we do it here
     server.listen(config.serverApiPort, () => {  
-        console.log(`Express listening on https://${config.hostip}:${config.serverApiPort}`)
+        log.info(`Express listening on https://${config.hostip}:${config.serverApiPort}`)
     })
     if (config.hostip) {
         multicastClient.init()

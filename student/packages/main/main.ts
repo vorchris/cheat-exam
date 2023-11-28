@@ -40,7 +40,7 @@ import fs from 'fs'
 import fsExtra from "fs-extra"
 import os from 'os'
 import ip from 'ip'
-
+import log from 'electron-log/main';
 
 
 config.electron = true
@@ -65,6 +65,19 @@ fsExtra.emptyDirSync(config.tempdirectory)  // clean temp directory
 WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow
 CommHandler.init(multicastClient, config)    // starts "beacon" intervall and fetches information from the teacher - acts on it (startexam, stopexam, sendfile, getfile)
 IpcHandler.init(multicastClient, config, WindowHandler, CommHandler)  //controll all Inter Process Communication
+
+
+
+log.initialize(); // initialize the logger for any renderer process
+let logfile = `${WindowHandler.config.workdirectory}/next-exam-student.log`
+log.transports.file.resolvePathFn = (config) => { return logfile  }
+log.eventLogger.startLogging();
+log.errorHandler.startCatching();
+log.warn(`-------------------`)
+log.info(`Logfile: ${logfile}`)
+log.info('Next-Exam Logger initialized...');
+
+
 
   ////////////////////////////////
  // APP handling (Backend) START
@@ -146,12 +159,12 @@ app.whenReady()
     }
    // }
 
-    globalShortcut.register('CommandOrControl+Shift+D', () => {
-        const win = BrowserWindow.getFocusedWindow()
-        if (win) {
-            win.webContents.toggleDevTools()
-        }
-    })
+    // globalShortcut.register('CommandOrControl+Shift+D', () => {
+    //     const win = BrowserWindow.getFocusedWindow()
+    //     if (win) {
+    //         win.webContents.toggleDevTools()
+    //     }
+    // })
 
 })
 

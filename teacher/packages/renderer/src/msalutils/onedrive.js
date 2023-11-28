@@ -1,3 +1,5 @@
+import log from 'electron-log/renderer';
+
 
 
 //upload file to authorized onedrive "next-exam" appfolder
@@ -47,8 +49,8 @@ async function uploadselect() {
         await this.onedriveUpload(input.value)  //this can take a while if 30 students are connected - set this.serverstatus.msOfficeFile only after it finished because it activates the "startexam" button
         //save valid file info for other students that connect later or reconnect (they all should get a file in onedrive and a sharing link if not 'none')
         this.serverstatus.msOfficeFile = input.value   
-        console.log(this.serverstatus.msOfficeFile)
-        console.log("upload to onedrive and sharelink setup finished")
+        log.info(this.serverstatus.msOfficeFile)
+        log.info("upload to onedrive and sharelink setup finished")
     });    
 }
 
@@ -59,7 +61,7 @@ async function uploadselect() {
  * otherwise it will trigger the upload for the specific students and tells the API to set the sharinglink for every student
  */
 async function onedriveUpload(file){
-    if (this.studentlist.length == 0){ console.log("no students connected - upload delayed")}
+    if (this.studentlist.length == 0){ log.info("no students connected - upload delayed")}
    
     for (let student of this.studentlist){
         //reuse onedriveUploadSingle() here (but check replaceMSOfile)
@@ -75,7 +77,7 @@ async function onedriveUpload(file){
  */
 async function onedriveUploadSingle(student,file){
     let studenttoken = student.token
-    //console.log(file)
+    //log.info(file)
     let fileName = ""
     if (file.name.endsWith('.docx')){
         fileName =  `${student.clientname}.docx`
@@ -97,7 +99,7 @@ async function onedriveUploadSingle(student,file){
 
         // handle first onedrive api access problems when we try to access the appfolder
         if (fileExists == 403) { 
-            console.log("Access Denied! Contact your organizations Administrator to grant Access to Next-Exam" )
+            log.warn("Access Denied! Contact your organizations Administrator to grant Access to Next-Exam" )
             this.$swal.fire({
                 title: this.$t("dashboard.accessDenied"),
                 text: this.$t("dashboard.accessDeniedtext"),
@@ -110,13 +112,13 @@ async function onedriveUploadSingle(student,file){
         if (fileExists && this.replaceMSOfile === false) {
             //we can set/get the sharing link from an existing file as often as neccessary - it will stay the same
             sharingLink = await this.createSharingLink(fileExists) //if file exists fileExists will contain the FILE ID
-            console.log(`onedriveUpload(): File "${fileName}" exists`, sharingLink);
+            log.info(`onedriveUpload(): File "${fileName}" exists`, sharingLink);
         } else {
             sharingLink = await this.uploadAndShareFile(fileName, file);
-            console.log('onedriveUpload(): Link created:', sharingLink);
+            log.info('onedriveUpload(): Link created:', sharingLink);
         }
         if (!sharingLink){
-            console.log("some students couldn't receive a sharing link")  // happens if file is opened for example
+            log.warn("some students couldn't receive a sharing link")  // happens if file is opened for example
             return
         }
 
@@ -128,8 +130,8 @@ async function onedriveUploadSingle(student,file){
             body: JSON.stringify({ sharelink: sharingLink  })
             })
         .then( res => res.json())
-        .then( response => {console.log(response.message) })
-        .catch(err => { console.warn(err) })
+        .then( response => {log.info(response.message) })
+        .catch(err => { log.error(err) })
     });
 }
 
@@ -153,7 +155,7 @@ async function uploadAndShareFile(targetfilename, file) {
         body: file // Send the file directly as the request body
     })
     .then(response => response.json())
-    .catch(error=>{console.warn(error)});
+    .catch(error=>{log.error(error)});
 
     // Create a sharing link with edit permissions using the file ID
     const fileId = fileUploadResponse.id; // Retrieve the file ID of the uploaded file
@@ -181,7 +183,7 @@ async function createSharingLink(fileId){
         body: JSON.stringify(sharingData)
     })
     .then(response => response.json())
-    .catch(error => {console.warn(error)});
+    .catch(error => {log.error(error)});
 
     //if (!sharingResponse.link && sharingResponse.link.webUrl) {return false}
     if (!sharingResponse.link) {return false}
@@ -209,17 +211,17 @@ async function fileExistsInAppFolder(fileName) {
     .then( data => { 
         if (data.value && data.value.length > 0) {  return data.value[0].id;  } 
         else {
-           //console.log(data.error)
+           //log.info(data.error)
             return data.error.code;   // it's either "accessDenied" or "  "
         }
      })
     .catch(err => { 
-        console.warn(`Get AppRoot error: ${err}`)
+        log.error(`Get AppRoot error: ${err}`)
     });
 
     //check if folderID was received correctly
     if (folderID === "accessDenied") { return 403}
-    if (folderID === "notFound")     { console.log("appfolder does not exist") }
+    if (folderID === "notFound")     { log.warn("appfolder does not exist") }
    
 
  
@@ -233,7 +235,7 @@ async function fileExistsInAppFolder(fileName) {
     .then(response => response.json())
     .then( async (response) => {  
         if (response.error && response.error.code.includes("InvalidAuthenticationToken")  ){ // this is usually the first method that accesses onedrive api - thats why we test here
-            console.log("token error - resetting token")  //reset token - something is off here!
+            log.error("token error - resetting token")  //reset token - something is off here!
             this.config = await ipcRenderer.invoke('resetToken')   //reset and update config
         }
         let res =  response.value.some(file => file.name === fileName);
@@ -241,7 +243,7 @@ async function fileExistsInAppFolder(fileName) {
         else {return response.value[0].id}
     })
     .catch(err => { 
-        console.warn(err)
+        log.error(err)
         return null
     })
     return fileExists
@@ -267,9 +269,9 @@ async function downloadFilesFromOneDrive() {
     .then(response => response.json())
     .then( data => { 
         if (data.value && data.value.length > 0) {  return data.value[0].id;  } 
-        else { console.log('Folder not found'); return null; }
+        else { log.error('Folder not found'); return null; }
      })
-    .catch(err => { console.warn(err) });
+    .catch(err => { log.error(err) });
 
     const appFolderEndpoint = `https://graph.microsoft.com/v1.0/me/drive/items/${folderID}/children`
 
@@ -280,7 +282,7 @@ async function downloadFilesFromOneDrive() {
     .then(response => response.json())
     .then( async data => { 
         const files = data.value;
-        //console.log(files)
+        //log.info(files)
         // save file for every student (this is done in the backend therefore we trigger an IPC)
         for (let student of this.studentlist) {
             for (let file of files) { // check if there is a file that equals the student name
@@ -289,10 +291,10 @@ async function downloadFilesFromOneDrive() {
                 }
             }
         }
-        console.log('All files downloaded successfully');
+        log.info('All files downloaded successfully');
     })
     .catch(err => { 
-        console.warn(err)
+        log.error(err)
     });
   }
 

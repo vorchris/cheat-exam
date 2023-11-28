@@ -98,9 +98,19 @@
 
 
 <script>
-import axios from "axios";
+import axios from "axios"
 import validator from 'validator'
 import $ from 'jquery'
+import log from 'electron-log/renderer'
+
+// Erfassen von unhandled promise rejections
+window.addEventListener('unhandledrejection', event => {
+  log.error('Unhandled promise rejection:', event.reason); // Loggen des Fehlers
+});
+
+Object.assign(console, log.functions);  //alle console logs durch logger ersetzen
+
+
 
 export default {
     data() {

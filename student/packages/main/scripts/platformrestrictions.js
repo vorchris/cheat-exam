@@ -38,6 +38,7 @@ import { join } from 'path'
 import childProcess from 'child_process'   //needed to run bash commands on linux 
 import { TouchBar, clipboard } from 'electron'
 import config from '../config.js';
+import log from 'electron-log/main';
 
 // unfortunately there is no convenient way for gnome-shell to un-set ALL shortcuts at once
 const gnomeKeybindings = [  
@@ -94,7 +95,7 @@ function enableRestrictions(win){
         // PLASMASHELL
         //////////////
 
-        console.log("enabling platform restrictions")
+        log.info("enabling platform restrictions")
 
 
         appsToClose.forEach(app => {
@@ -175,27 +176,27 @@ function enableRestrictions(win){
         //block important keyboard shortcuts (disable-shortcuts.exe is a selfmade C application - shortcuts are hardcoded there - need to rebuild if adding shortcuts)
         let executable1 = join(__dirname, '../../public/disable-shortcuts.exe')
         childProcess.execFile(executable1, [], { detached: true, shell: false, windowsHide: true}, (error, stdout, stderr) => {
-           // if (stderr) {  console.log(stderr)  }
-          //  if (error)  {  console.log(error)   }
+           // if (stderr) {  log.info(stderr)  }
+          //  if (error)  {  log.info(error)   }
         })
-        console.log("shortcuts disabled")
+        log.info("shortcuts disabled")
 
         //clear clipboard - stop copy before and paste after examstart
         let executable0 = join(__dirname, '../../public/clear-clipboard.bat')
         childProcess.execFile(executable0, [], (error, stdout, stderr) => {
-            if (stderr) { console.log(stderr) }
-            if (error) { console.log(error) }
+            if (stderr) { log.info(stderr) }
+            if (error) { log.info(error) }
         })
 
 
         // kill windowsbutton and swipe gestures - kill everything else
         childProcess.exec('taskkill /f /im explorer.exe', (error, stdout, stderr) => {
             if (error) {
-              console.error(`exec error: ${error}`);
+              log.error(`exec error: ${error}`);
               return;
             }
-            console.log(`stdout: ${stdout}`);
-            console.error(`stderr: ${stderr}`);
+            log.info(`stdout: ${stdout}`);
+            log.error(`stderr: ${stderr}`);
         });
 
         appsToClose.forEach(app => {
@@ -306,14 +307,14 @@ function disableRestrictions(win){
      */
     if (process.platform === 'win32') {
         //unblock important keyboard shortcuts (disable-shortcuts.exe)
-        console.log("deactivating shortcuts...")
+        log.info("deactivating shortcuts...")
         childProcess.exec('taskkill /f /im disable-shortcuts.exe', (error, stdout, stderr) => {
             if (error) {
-                console.error(`exec error: ${error}`);
+                log.error(`exec error: ${error}`);
                 return;
             }
-           // console.log(`stdout: ${stdout}`);
-           // console.error(`stderr: ${stderr}`);
+           // log.info(`stdout: ${stdout}`);
+           // log.error(`stderr: ${stderr}`);
           });
 
 
@@ -321,7 +322,7 @@ function disableRestrictions(win){
         // Überprüfe, ob explorer.exe läuft
         childProcess.exec('tasklist /FI "IMAGENAME eq explorer.exe"', (error, stdout, stderr) => {
             if (error) {
-                console.error(`tasklist error: ${error}`);
+                log.error(`tasklist error: ${error}`);
                 return;
             }
 
@@ -330,11 +331,11 @@ function disableRestrictions(win){
                 // Starte explorer.exe, wenn es nicht läuft
                 childProcess.exec('start explorer.exe', (error, stdout, stderr) => {
                     if (error) {
-                        console.error(`exec error: ${error}`);
+                        log.error(`exec error: ${error}`);
                         return;
                     }
-                    console.log(`stdout: ${stdout}`);
-                    console.error(`stderr: ${stderr}`);
+                    log.info(`stdout: ${stdout}`);
+                    log.error(`stderr: ${stderr}`);
                 });
             }
         });
@@ -347,8 +348,8 @@ function disableRestrictions(win){
         //clear clipboard - stop keeping screenshots of exam in clipboard
         let executable0 = join(__dirname, '../../public/clear-clipboard.bat')
         childProcess.execFile(executable0, [], (error, stdout, stderr) => {
-            if (stderr) { console.log(stderr) }
-            if (error) { console.log(error) }
+            if (stderr) { log.info(stderr) }
+            if (error) { log.info(error) }
         })
     }
 

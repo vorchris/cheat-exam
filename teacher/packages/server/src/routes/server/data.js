@@ -26,7 +26,7 @@ import i18n from '../../../../renderer/src/locales/locales.js'
 const { t } = i18n.global
 import archiver from 'archiver'
 import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied version otherwise we get 1000 sourcemap warnings
-
+import log from 'electron-log/main';
 
 
 /**
@@ -86,7 +86,7 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
             studentfolders.push({ path: filepath, name : file })
         }
     }, []);
-    console.log(studentfolders)
+    log.info(studentfolders)
 
     // get latest directory of every student (add to array)
     let latestfolders = []
@@ -111,14 +111,14 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
         const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
         if (now - latest.time > fiveMinutes) {
             warning = true
-            console.log('The file is older than 5 minutes.');
+            log.info('The file is older than 5 minutes.');
         } 
   
 
         const filepath = path.join(studentdir.path, latest.path);
         latestfolders.push( { path: filepath, parent : studentdir.name })  // we store studentdir.name here because in the next step we need to make sure only the main.pdf (studentsname) is used
     }
-    //console.log(latestfolders)
+    //log.info(latestfolders)
 
     // get PDFs from latest directories 
     let files = []
@@ -225,7 +225,7 @@ import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied
                 return res.json({warning: warning, pdfBuffer:false, latestfolderPath:latestfolderPath});
             }
         } else {
-            console.log('Keine Ordner gefunden.'); 
+            log.info('Keine Ordner gefunden.'); 
             return res.json({warning: warning, pdfBuffer:false, latestfolderPath:latestfolderPath});
         }
     });
@@ -292,7 +292,7 @@ async function concatPages(pdfsToMerge) {
             fs.rmSync(filepath, { recursive: true, force: true });
         }
         else {
-            fs.unlink(filepath, (err) => { if (err) console.log(err); })
+            fs.unlink(filepath, (err) => { if (err) log.error(err); })
         }
         res.json({ status:"success", sender: "server", message:t("data.fdeleted"),  })
     }
@@ -391,7 +391,7 @@ async function concatPages(pdfsToMerge) {
                 let absoluteFilepath = path.join(config.workdirectory, mcServer.serverinfo.servername, file.name);
                 if (file.name.includes(".zip")){  //ABGABE as ZIP
 
-                    console.log("Server: Receiving File(s)...")
+                    log.info("Server: Receiving File(s)...")
 
                     let studentdirectory =  path.join(config.workdirectory, mcServer.serverinfo.servername, student.clientname)
                     let tstring = String(time).replace(/:/g, "_");
@@ -401,26 +401,26 @@ async function concatPages(pdfsToMerge) {
                     try {
                         if (!fs.existsSync(studentdirectory)){ fs.mkdirSync(studentdirectory, { recursive: true });  }
                         if (!fs.existsSync(studentarchivedir)){ fs.mkdirSync(studentarchivedir, { recursive: true }); }
-                    }catch (e) {console.log(e)}
+                    }catch (e) {log.error(e)}
             
 
                     // extract zip file to archive
                     file.mv(absoluteFilepath, (err) => {  
-                        if (err) { errors++; console.log( t("data.couldnotstore") ) }
+                        if (err) { errors++; log.error( t("data.couldnotstore") ) }
                         else {
                             extract(absoluteFilepath, { dir: studentarchivedir }).then( () => {
-                                fs.unlink(absoluteFilepath, (err) => { if (err) console.log(err); }); // remove zip file after extracting
-                                console.log("ZIP file received!")
+                                fs.unlink(absoluteFilepath, (err) => { if (err) log.error(err); }); // remove zip file after extracting
+                                log.info("ZIP file received!")
                                 res.json({ status:"success", sender: "server", message:t("data.filereceived"), errors: errors  })
-                            }).catch( err => console.log(err))
+                            }).catch( err => log.error(err))
                         }                     
                     });
                 }
                 else { // this is another file (most likely a screenshot as we do not yet transfer other files)
                     file.mv(absoluteFilepath, (err) => {  
-                        if (err) { errors++; console.log( t("data.couldnotstore") ) }
+                        if (err) { errors++; log.error( t("data.couldnotstore") ) }
                         else {
-                            console.log("Single file received")
+                            log.info("Single file received")
                             res.json({ status:"success", sender: "server", message:t("data.filereceived"), errors: errors  })
                         }
                     });
@@ -466,7 +466,7 @@ router.post('/upload/:servername/:servertoken/:studenttoken', async (req, res, n
             let filename = decodeURIComponent(file.name)  //encode to prevent non-ascii chars weirdness
             let absoluteFilepath = path.join(uploaddirectory, filename);
             await file.mv(absoluteFilepath, (err) => {  
-                if (err) { console.log( t("data.couldnotstore") ) }
+                if (err) { log.error( t("data.couldnotstore") ) }
             }); 
             files.push({ name:filename , path:absoluteFilepath });
         }
@@ -508,7 +508,7 @@ export default router
  */
 function checkToken(token, mcserver){
     let tokenexists = false
-    console.log("checking if student is registered on this server")
+    log.info("checking if student is registered on this server")
     mcserver.studentList.forEach( (student) => {
         if (token === student.token) {
             tokenexists = true

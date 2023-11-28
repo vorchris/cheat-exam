@@ -18,7 +18,6 @@
 
 import { app, BrowserWindow, dialog  } from 'electron'
 import { join } from 'path'
-import log from 'electron-log/main';
 
 
 class WindowHandler {
@@ -34,20 +33,9 @@ class WindowHandler {
         this.multicastClient = mc
         this.config = config
 
-        /**
-         * logger configuration and init
-         */
-        log.initialize({ preload: true }); // initialize the logger for any renderer process
-        log.transports.file.resolvePathFn = (config) => {
-            let logfile = `${this.config.workdirectory}/next-exam-teacher.log`
-            console.log(`Logfile: ${logfile}`)
-            return logfile
-        }
-        log.eventLogger.startLogging();
 
 
-        log.info('Next-Exam Logger initialized...');
-
+     
     }
 
     createWindow() {
@@ -63,7 +51,7 @@ class WindowHandler {
                 preload: join(__dirname, '../preload/preload.cjs')
             },
         })
-    
+        
         if (app.isPackaged || process.env["DEBUG"]) {
             this.mainwindow.removeMenu() 
             this.mainwindow.loadFile(join(__dirname, '../renderer/index.html'))
@@ -90,7 +78,7 @@ class WindowHandler {
     
         this.mainwindow.on('close', async  (e) => {   //ask before closing
             if (!this.config.development) {
-                if (this.mainwindow?.webContents.getURL().includes("dashboard")){console.log("do not close running exam this way"); e.preventDefault(); return}
+                if (this.mainwindow?.webContents.getURL().includes("dashboard")){log.info("do not close running exam this way"); e.preventDefault(); return}
                 let choice = dialog.showMessageBoxSync(this.mainwindow, {
                     type: 'question',
                     buttons: ['Ja', 'Nein'],

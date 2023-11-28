@@ -125,7 +125,8 @@
         "gforms": "Google Forms",
         "accessDenied":"Zugriff verweigert!",
         "accessDeniedtext":"Bitte kontaktieren sie ihren Systemadministrator um der Applikation Next-Exam Zugriff zu gewähren",
-        "msoWarn": "Bevor die Schüler:innen die Verbindung wieder aufnehmen können, müssen Sie sich zu ihrer Microsoft Cloud verbinden und die MSODatei erneut auswählen!"
+        "msoWarn": "Bevor die Schüler:innen die Verbindung wieder aufnehmen können, müssen Sie sich zu ihrer Microsoft Cloud verbinden und die MSODatei erneut auswählen!",
+        "allowspellcheck":"Rechtschreibhilfe für Schüler:in aktivieren"
     },
     "control": {
         "tokennotvalid": "Das Token ist ungültig",
