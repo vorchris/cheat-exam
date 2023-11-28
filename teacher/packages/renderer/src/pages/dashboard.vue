@@ -309,7 +309,6 @@ export default {
     },
 
 
-
     methods: {
         /**
          * Microsoft OneDrive API Authentication and File Handling

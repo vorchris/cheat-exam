@@ -32,6 +32,23 @@ WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwin
 IpcHandler.init(multicastClient, config, WindowHandler)  //controll all Inter Process Communication
 
 
+import log from 'electron-log/main';
+
+
+log.initialize({ preload: true }); // initialize the logger for any renderer process
+
+
+log.transports.file.resolvePathFn = (config) => {
+    let logfile = `${WindowHandler.config.workdirectory}/next-exam-teacher.log`
+    console.log(`Logfile: ${logfile}`)
+    return logfile
+}
+log.eventLogger.startLogging();
+log.errorHandler.startCatching();
+
+
+
+
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
 

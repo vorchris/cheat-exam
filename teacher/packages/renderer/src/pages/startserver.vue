@@ -91,12 +91,20 @@
 <script>
 import $ from 'jquery'
 import log from 'electron-log/renderer';
-const originalConsoleLog = console.log;
 
-console.log = (...args) => {
-  originalConsoleLog(...args);
-  log.info(...args);
-};
+
+
+
+// Erfassen von unhandled promise rejections
+window.addEventListener('unhandledrejection', event => {
+  log.error('Unhandled promise rejection:', event.reason); // Loggen des Fehlers
+});
+
+Object.assign(console, log.functions);
+
+fds
+
+
 
 
 

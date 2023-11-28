@@ -21,7 +21,6 @@ import { join } from 'path'
 import log from 'electron-log/main';
 
 
-
 class WindowHandler {
     constructor () {
       this.mainwindow = null
@@ -40,47 +39,14 @@ class WindowHandler {
          */
         log.initialize({ preload: true }); // initialize the logger for any renderer process
         log.transports.file.resolvePathFn = (config) => {
-            let logfile = `${this.config.workdirectory}/next-exam.log`
+            let logfile = `${this.config.workdirectory}/next-exam-teacher.log`
             console.log(`Logfile: ${logfile}`)
-
             return logfile
         }
         log.eventLogger.startLogging();
-        log.eventLogger.format = ({ eventName, eventSource, handlerArgs }) => {
-            const [event, ...eventArgs] = handlerArgs;
-            return [`${eventSource}#${eventName}:`, JSON.stringify(eventArgs)];
-        };
-        log.eventLogger.events = {
-            app: {
-            'certificate-error': true,
-            'child-process-gone': true,
-            'render-process-gone': true,
-            },
-            webContents: {
-            'did-fail-load': true,
-            'did-fail-provisional-load': true,
-            'plugin-crashed': true,
-            'preload-error': true,
-            'unresponsive': true,
-            'console-message' : true,
-            }
-        }
 
-        log.eventLogger.formatters.webContents['console-message'] = ({
-            args: [level, message, line, sourceId],
-            event,
-            eventName,
-            eventSource
-        }) => {
-            const webContents = event.sender;
-        
-            if (level > 2) {
-                return undefined;
-            }
-        
-            return { message, source: `${sourceId}:${line}`, url: webContents?.getURL() };
-        };
-        log.info('Next-Exam successfully started...');
+
+        log.info('Next-Exam Logger initialized...');
 
     }
 
