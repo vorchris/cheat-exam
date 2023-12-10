@@ -126,7 +126,9 @@
         "accessDenied":"Access Denied!",
         "accessDeniedtext":"Contact your organizations Administrator to grant Access to Next-Exam",
         "msoWarn": "You need to reconnect and select an MSOFile before reconnecting all students",
-        "allowspellcheck":"Activate spellcheck for specific student"
+        "allowspellcheck":"Activate spellcheck for specific student",
+        "linespacing": "Linespacing",
+        "fontfamily": "Fontfamily"
     },
     "control": {
         "tokennotvalid": "token is not valid",

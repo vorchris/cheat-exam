@@ -305,6 +305,7 @@ export default {
                 msOfficeFile: null,
                 screenslocked: false,
                 pin: this.$route.params.pin,
+                linespacing : 1
               
             }
         };
@@ -595,6 +596,23 @@ export default {
                     </label>
                 </div>
                 <br>
+                <div> 
+                    ${this.$t("dashboard.linespacing")}<br>
+
+                    <label><input type="radio" name="linespacing" value="1"/> 1</label> &nbsp;
+                    <label><input type="radio" name="linespacing" value="2" checked/> 2</label> &nbsp;
+                    <label><input type="radio" name="linespacing" value="3"/> 3</label> &nbsp;
+                </div>
+                <br>
+
+                <div> 
+                    ${this.$t("dashboard.fontfamily")}<br>
+
+                    <label><input type="radio" name="fontfamily" value="serif"/> serif</label> &nbsp;
+                    <label><input type="radio" name="fontfamily" value="sans-serif" checked/> sans-serif</label> &nbsp;
+                   
+                </div>
+                <br>
                 <div style="border: 0px solid black;">
                     <h4 style: margin-bottom: 0px;padding-bottom: 0px;>${this.$t("dashboard.spellcheck")}</h4>
                     <input class="form-check-input" type="checkbox" id="checkboxsuggestions">
@@ -622,18 +640,39 @@ export default {
                     this.serverstatus.suggestions = document.getElementById('checkboxsuggestions').checked; 
                     const radioButtons = document.querySelectorAll('input[name="correction_margin"]');
                     const marginValue = document.getElementById('marginValue').value;
+                    const linespacingradioButtons = document.querySelectorAll('input[name="linespacing"]');
+                    const fontfamilyradioButtons = document.querySelectorAll('input[name="fontfamily"]');
+
                     let selectedMargin = '';
                     radioButtons.forEach((radio) => {
                         if (radio.checked) {
                             selectedMargin = radio.value;
                         }
                     });
+
+                    let selectedSpacing = '';
+                    linespacingradioButtons.forEach((radio) => {
+                        if (radio.checked) {
+                            selectedSpacing = radio.value;
+                        }
+                    });
+
+                    let selectedFont = '';
+                    fontfamilyradioButtons.forEach((radio) => {
+                        if (radio.checked) {
+                            selectedFont = radio.value;
+                        }
+                    });
+
                     if (marginValue && selectedMargin) {
                         this.serverstatus.cmargin = {
                             side: selectedMargin,
                             size: parseInt(marginValue)
                         }
                     }
+
+                    this.serverstatus.linespacing = selectedSpacing
+                    this.serverstatus.fontfamily = selectedFont
                 }
             })
             if (language) {

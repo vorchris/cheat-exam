@@ -274,6 +274,8 @@ export default {
             serverstatus: {
                 spellcheck:false,
             },
+            linespacing: this.$route.params.serverstatus.linespacing,
+            fontfamily:  this.$route.params.serverstatus.fontfamily  ? this.$route.params.serverstatus.fontfamily : "sans-serif", 
             allowspellcheck: false, // this is a per student override (for students with legasthenie)
             audioSource: null,
         }
@@ -386,6 +388,7 @@ export default {
             this.pincode = this.clientinfo.pin
             this.allowspellcheck = this.clientinfo.allowspellcheck
             this.serverstatus =  getinfo.serverstatus
+
             if (!this.focus){  this.entrytime = new Date().getTime()}
             if (this.clientinfo && this.clientinfo.token){  this.online = true  }
             else { this.online = false  }
@@ -770,6 +773,10 @@ export default {
             this.setCSSVariable('--js-borderleft', `1px solid #ccc`); 
         }
 
+      
+        this.setCSSVariable('--js-linespacing', `${this.linespacing}`); 
+        this.setCSSVariable('--js-fontfamily', `${this.fontfamily}`); 
+
         this.createEditor(); // this initializes the editor
 
        
@@ -867,7 +874,7 @@ export default {
 <style lang="scss">
 
 @media print {  //this controls how the editor view is printed (to pdf)
-    #editortoolbar, #editorheader, #editselected, #focuswarning, #specialcharsdiv, #aplayer {
+    #editortoolbar, #editorheader, #editselected, #focuswarning, #specialcharsdiv, #aplayer, span.NXTEhighlight  {
         display: none !important;
     }
     #statusbar {
@@ -877,7 +884,7 @@ export default {
         border-top: 1px solid #666 !important;
     }
     #editorcontent div {
-        line-height: 200%;
+        line-height: var(--js-linespacing);;
     }
     #editorcontainer {
         width: 100% !important;
@@ -1024,6 +1031,7 @@ Other Styles
     margin-right: auto;
     margin-bottom:50px;
     zoom:1;
+    font-family: var(--js-fontfamily);
 }
 
 #editorcontent div {
