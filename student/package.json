@@ -60,7 +60,7 @@
         },
         "portable": {
             "useZip": true,
-            "unpackDirName": "next-exam-student",
+            "unpackDirName": true,
             "splashImage": "public/splash.bmp"
         },
         "win": {
