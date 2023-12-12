@@ -241,6 +241,14 @@ function enableRestrictions(win){
             });
           });
 
+          //mission control
+          //let scriptfile = join(__dirname, '../../public/mc.appelscript')   //spaces, shortcuts
+          let scriptfile = join(__dirname, '../../public/check.appelscript')  //just spaces (less intrusive - easier to grant permissions)
+          childProcess.execFile(osascript, [scriptfile], (error, stdout, stderr) => {
+              if (stderr) { log.info(stderr) }
+              if (error) { log.info(error) }
+          })
+
     }
 }
 

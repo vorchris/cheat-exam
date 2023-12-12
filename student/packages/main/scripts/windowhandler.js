@@ -19,6 +19,7 @@
 
 import { app, BrowserWindow, BrowserView, dialog, screen, ipcMain} from 'electron'
 import { join } from 'path'
+import childProcess from 'child_process' 
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 import fs from 'fs' 
 import Nodehun from 'nodehun'
@@ -651,6 +652,34 @@ class WindowHandler {
             this.mainwindow.show()
             this.mainwindow.moveTop();
             this.mainwindow.focus();
+
+
+            //mission control
+            let scriptfile = join(__dirname, '../../public/check.applescript')
+            childProcess.execFile('osascript', [scriptfile], (error, stdout, stderr) => {
+                if (stderr) { 
+                    log.info(stderr) 
+                    if (stderr.includes("Berechtigung") || stderr.includes("authorized")){
+                        log.error("no permissions granted")
+                        childProcess.exec('tccutil reset AppleEvents com.nextexam-student.app')   //reset permission settings - ask gain next time!
+
+
+                        //show warning and quit app
+                        dialog.showMessageBoxSync(this.mainwindow, {
+                            type: 'warning',
+                            buttons: ['Ok'],
+                            title: 'Programm Beenden',
+                            message: 'Sie müssen die Berechtigungen erteilen!',
+                            cancelId: 1
+                        });
+                        
+                        app.quit()
+                    }
+                }
+               
+            })
+
+
         })
     }
 
