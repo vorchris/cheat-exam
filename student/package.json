@@ -24,7 +24,8 @@
         "afterSign": "scripts/notarize.cjs",
         "asarUnpack": [
             "node_modules/screenshot-desktop/lib/win32",
-            "public"
+            "public",
+            "node_modules/sharp/**/*"
         ],
         "directories": {
             "output": "../release/${version}"

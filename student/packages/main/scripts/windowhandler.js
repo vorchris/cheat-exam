@@ -20,6 +20,7 @@
 import { app, BrowserWindow, BrowserView, dialog, screen, ipcMain} from 'electron'
 import { join } from 'path'
 import childProcess from 'child_process' 
+import screenshot from 'screenshot-desktop'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 import fs from 'fs' 
 import Nodehun from 'nodehun'
@@ -653,38 +654,62 @@ class WindowHandler {
             this.mainwindow.moveTop();
             this.mainwindow.focus();
 
-
-            //mission control
-            let scriptfile = join(__dirname, '../../public/check.applescript')
-            childProcess.execFile('osascript', [scriptfile], (error, stdout, stderr) => {
-                if (stderr) { 
-                    log.info(stderr) 
-                    if (stderr.includes("Berechtigung") || stderr.includes("authorized")){
-                        log.error("no permissions granted")
-                        childProcess.exec('tccutil reset AppleEvents com.nextexam-student.app')   //reset permission settings - ask gain next time!
+            if (process.platform == 'darwin'){
 
 
-                        //show warning and quit app
-                        dialog.showMessageBoxSync(this.mainwindow, {
-                            type: 'warning',
-                            buttons: ['Ok'],
-                            title: 'Programm Beenden',
-                            message: 'Sie müssen die Berechtigungen erteilen!',
-                            cancelId: 1
-                        });
-                        
-                        app.quit()
-                    }
+                
+                //mission control
+                
+                let scriptfile = join(__dirname, '../../public/check.applescript')
+                if (app.isPackaged) {
+                    scriptfile = join(process.resourcesPath, 'app.asar.unpacked', '../../public/check.applescript')
                 }
                
-            })
-
-
+                
+                childProcess.execFile('osascript', [scriptfile], (error, stdout, stderr) => {
+                    log.info(scriptfile)
+                    if (stderr) { 
+                        log.info(stderr) 
+                        if (stderr.includes("Berechtigung") || stderr.includes("authorized")){
+                            log.error("no permissions granted")
+                            childProcess.exec('tccutil reset AppleEvents com.nextexam-student.app')   //reset permission settings - ask gain next time!
+                            //childProcess.exec('tccutil reset Accessibility com.nextexam-student.app') 
+                            childProcess.exec('tccutil reset AppleEvents com.vscodium') // apple events können resetted werde da macos immerwieder danach fragt
+                            //childProcess.exec('tccutil reset Accessibility com.vscodium')  //accessibility wird nur einmal gefragt, danach muss der user es manuell aktivieren
+                            
+                            let message = "Sie müssen die Berechtigungen zur Automation erteilen!"
+                            if (stderr.includes("Hilfszugriff") || stderr.includes("Accessibility")){
+                                message = "Sie müssen die Berechtigungen für den Hilfszugriff erteilen!"
+                            }
+                           this.showExitWarning(message)  //show warning and quit app
+                        }
+                    }
+                })
+                // attention ! das neue macos erlaubt auch ohne berechtiung screenshots aber diese beinhalten dann keine apps (sind quasi nur der background)
+                screenshot()   //grab "screenshot" with screenshot node module 
+                .then( (res) => { log.info("screenshot allowed")} )
+                .catch((err) => {   
+                    log.error(`requestUpdate Screenshot: ${err}`) 
+                    let message = "Sie müssen die Berechtigungen zur Bildschirmaufnahme erteilen!"
+                    //childProcess.exec('tccutil reset ScreenCapture com.nextexam-student.app') 
+                    //childProcess.exec('tccutil reset ScreenCapture com.vscodium') 
+                    this.showExitWarning(message) 
+                });
+            }
         })
     }
 
 
-
+    showExitWarning(message){
+        dialog.showMessageBoxSync(this.mainwindow, {
+            type: 'warning',
+            buttons: ['Ok'],
+            title: 'Programm Beenden',
+            message: message,
+            cancelId: 1
+        });
+        app.quit()
+    }
 
 
     /**
