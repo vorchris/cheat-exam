@@ -24,7 +24,9 @@ import screenshot from 'screenshot-desktop'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 import fs from 'fs' 
 import Nodehun from 'nodehun'
-import log from 'electron-log/main';
+import log from 'electron-log/main'
+
+// import Tesseract from 'tesseract.js';
 
   ////////////////////////////////////////////////////////////
  // Window handling (ipcRenderer Process - Frontend) START
@@ -654,6 +656,24 @@ class WindowHandler {
             this.mainwindow.moveTop();
             this.mainwindow.focus();
 
+          
+            // screenshot()   //grab "screenshot" with screenshot node module 
+            // .then( (imageBuffer) => { 
+            //     log.info("screenshot allowed") 
+            //     Tesseract.recognize(imageBuffer, 'eng')
+            //     .then(({ data: { text } }) => {
+            //         // Text aus dem Bild extrahieren und prüfen
+            //         console.log(text);
+            //         if(text.includes('Next-Exam')) {
+            //           console.log('Der Text "Next-Exam" wurde im Bild gefunden.');
+            //         } else {
+            //           console.log('Der Text "Next-Exam" wurde nicht im Bild gefunden.');
+            //         }
+            //       });
+            //  })
+
+
+
             if (process.platform == 'darwin'){
 
 
@@ -685,9 +705,12 @@ class WindowHandler {
                         }
                     }
                 })
+
                 // attention ! das neue macos erlaubt auch ohne berechtiung screenshots aber diese beinhalten dann keine apps (sind quasi nur der background)
                 screenshot()   //grab "screenshot" with screenshot node module 
-                .then( (res) => { log.info("screenshot allowed")} )
+                .then( (res) => { 
+                    log.info("screenshot allowed") 
+                 })
                 .catch((err) => {   
                     log.error(`requestUpdate Screenshot: ${err}`) 
                     let message = "Sie müssen die Berechtigungen zur Bildschirmaufnahme erteilen!"

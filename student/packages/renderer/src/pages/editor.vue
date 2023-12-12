@@ -755,6 +755,8 @@ export default {
 
     mounted() {
         switch (this.cmargin.size) {
+            case 5:       this.proseMirrorMargin = '130px';   break;
+            case 4.5:     this.proseMirrorMargin = '110px';   break;
             case 4:       this.proseMirrorMargin = '90px';   break;
             case 3.5:     this.proseMirrorMargin = '70px';   break;
             case 3:       this.proseMirrorMargin = '50px';   break;

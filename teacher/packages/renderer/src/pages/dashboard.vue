@@ -582,7 +582,7 @@ export default {
                 <div>
                     <label>
                         ${this.$t("dashboard.cmargin-value")}<br>
-                        <input style="width:100px" type="range" id="marginValue" name="margin_value" min="2" max="4" step="0.5" />
+                        <input style="width:100px" type="range" id="marginValue" name="margin_value" min="2" max="5" step="0.5" />
                         <div style="width:32px; display: inline-block"  id="marginValueDisplay">${this.serverstatus.cmargin.size}</div>(cm)
                     </label>
                     <br>
