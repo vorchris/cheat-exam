@@ -25,6 +25,8 @@ const {t} = i18n.global
 import{ipcMain} from 'electron'
 import defaultGateway from'default-gateway';
 import os from 'os'
+import log from 'electron-log/main';
+import Nodehun from 'nodehun'
 
   ////////////////////////////////
  // IPC handling (Backend) START
@@ -42,6 +44,19 @@ class IpcHandler {
         this.WindowHandler = wh  
         this.CommunicationHandler = ch
         
+
+        /**
+         *  Start BIP Login Sequence
+         */
+
+        ipcMain.on('loginBiP', (event) => {
+            log.info("opening bip window")
+            this.WindowHandler.createBiPLoginWin()
+            event.returnValue = "hello from bip logon"
+        })
+
+
+
         /**
          * Registers virtualized status
          */ 
@@ -69,14 +84,14 @@ class IpcHandler {
                 this.config.hostip = ip.address(iface)    // this returns the ip of the interface that has a default gateway..  should work in MOST cases.  probably provide "ip-options" in UI ?
             }
             catch (e) {
-                console.log("ipcHandler: Unable to determine default gateway")
+                log.error("ipcHandler: Unable to determine default gateway")
                 this.config.hostip = false
             }
             // check if multicast client is running - otherwise start it
             if (this.config.hostip) {
                 let address = false
                 try { address = this.multicastClient.client.address() }
-                catch (e) { console.log("ipcHandler: multicastclient not running") }
+                catch (e) { log.error("ipcHandler: multicastclient not running") }
                 if (!address){ this.multicastClient.init()}
             }
             event.returnValue = this.config.hostip 
@@ -104,34 +119,82 @@ class IpcHandler {
                 this.WindowHandler.examwindow.webContents.printToPDF(options).then(data => {
                     fs.writeFile(pdffilepath, data, (err) => { 
                         if (err) {
-                            console.log(err.message); 
+                            log.error(err.message); 
                             if (err.message.includes("permission denied")){
-                                console.log("writing under different name")
+                                log.error("writing under different name")
                                 let alternatepath = `${pdffilepath}-${this.multicastClient.clientinfo.token}.pdf`
-                                fs.writeFile(alternatepath, data, function (err) { if (err) { console.log(err.message); console.log("giving up"); }  } ); 
+                                fs.writeFile(alternatepath, data, function (err) { 
+                                    if (err) {
+                                        log.error(err.message);
+                                        log.error("giving up"); 
+                                        event.reply("fileerror", { sender: "client", message:err , status:"error" } )
+                                    }
+                                    else { event.returnValue = { sender: "client", message:t("data.filestored") , status:"success" }  }
+                                }); 
                             }
-                        
                         }  
                     } ); 
-                }).catch(error => { console.log(error)});
+                }).catch(error => { 
+                    log.error(error)
+                    event.reply("fileerror", { sender: "client", message:error , status:"error" } )
+                });
             }
         })
 
 
         /**
+         * activate spellcheck on demand for specific student
+         */ 
+        ipcMain.handle('activatespellcheck', (event, spellchecklang) => {  
+            const dictionaryPath = path.join( __dirname,'../../public/dictionaries');
+            let language = "de"
+            if (spellchecklang){ language = spellchecklang }
+    
+            let affix = null;
+            let dictionary = null;
+
+            try {
+                if (language === "en-GB") {
+                    affix       = fs.readFileSync(path.join(dictionaryPath, 'en_US.aff'))
+                    dictionary  = fs.readFileSync(path.join(dictionaryPath, 'en_US.dic'))
+                }
+                else if (language === "de"){
+                    affix       = fs.readFileSync(path.join(dictionaryPath, 'de_DE_frami.aff'))
+                    dictionary  = fs.readFileSync(path.join(dictionaryPath, 'de_DE_frami.dic'))
+                }
+                else if (language === "it"){
+                    affix       = fs.readFileSync(path.join(dictionaryPath, 'it_IT.aff'))
+                    dictionary  = fs.readFileSync(path.join(dictionaryPath, 'it_IT.dic'))
+                }
+                else if (language === "fr"){
+                    affix       = fs.readFileSync(path.join(dictionaryPath, 'fr.aff'))
+                    dictionary  = fs.readFileSync(path.join(dictionaryPath, 'fr.dic'))
+                }
+                else if (language === "es"){
+                    affix       = fs.readFileSync(path.join(dictionaryPath, 'es_ES.aff'))
+                    dictionary  = fs.readFileSync(path.join(dictionaryPath, 'es_ES.dic'))
+                }
+                this.WindowHandler.nodehun  = new Nodehun(affix, dictionary)
+                return true
+            }
+            catch (e) { log.error(e); return false}
+            
+        })
+    
+
+        /**
          * Returns all found Servers and the information about this client
          */ 
-        ipcMain.on('getinfo', (event) => {   
+        ipcMain.handle('getinfoasync', (event) => {   
             let serverstatus = false
             if (this.WindowHandler.examwindow) { serverstatus = this.WindowHandler.examwindow.serverstatus }
 
-            event.returnValue = {   
+            return {   
                 serverlist: this.multicastClient.examServerList,
                 clientinfo: this.multicastClient.clientinfo,
                 serverstatus: serverstatus
             }   
         })
-
 
 
         /**
@@ -195,7 +258,7 @@ class IpcHandler {
             
             }).catch(err => {
                 //we return the servers error message to the ui
-                console.log(err.message)
+                log.error(err.message)
                 if (err.message.includes("timeout")){err.message = t("student.timeout") }
                 event.returnValue = { sender: "client", message:err.message , status:"error" } 
             })
@@ -213,9 +276,19 @@ class IpcHandler {
             const htmlfile = path.join(this.config.workdirectory, htmlfilename);
 
             if (htmlContent) { 
-                console.log("saving students work to disk...")
-                fs.writeFile(htmlfile, htmlContent, (err) => {if (err) console.log(err); }); 
-                event.returnValue = { sender: "client", message:t("data.filestored") , status:"success" }
+                log.info("saving students work to disk...")
+                try {
+                    fs.writeFile(htmlfile, htmlContent, (err) => {
+                        if (err) {
+                            log.error(err);
+                            event.reply("fileerror", { sender: "client", message:err , status:"error" } )
+                        }
+                    }); 
+                }
+                catch(e){
+                    log.error(e)
+                    event.returnValue = { sender: "client", message:err , status:"error" }
+                }
             }
         })
 
@@ -229,10 +302,17 @@ class IpcHandler {
             const filename = args.filename
             const ggbFilePath = path.join(this.config.workdirectory, filename);
             if (content) { 
-                console.log("saving students work to disk...")
+                log.info("saving students work to disk...")
                 const fileData = Buffer.from(content, 'base64');
-                fs.writeFileSync(ggbFilePath, fileData);
-                event.returnValue = { sender: "client", message:t("data.filestored") , status:"success" }
+
+                try {
+                    fs.writeFileSync(ggbFilePath, fileData);
+                    event.returnValue = { sender: "client", message:t("data.filestored") , status:"success" }
+                }
+                catch(e){
+                    log.error(e)
+                    event.returnValue = { sender: "client", message:err , status:"error" }
+                }
             }
         })
 
@@ -267,8 +347,13 @@ class IpcHandler {
             const workdir = path.join(config.workdirectory,"/")
             if (filename) { //return content of specific file
                 let filepath = path.join(workdir,filename)
-                let data = fs.readFileSync(filepath)
-                event.returnValue = data
+                try {
+                    let data = fs.readFileSync(filepath)
+                    event.returnValue = data
+                } 
+                catch (error) {
+                    event.returnValue = { sender: "client", content: false , status:"error" }
+                }    
             }
         })
 
@@ -306,6 +391,65 @@ class IpcHandler {
             }
         })
 
+
+        /**
+         * ASYNC GET FILE-LIST from workdirectory
+         * @param filename if set the content of the file is returned
+         */ 
+        ipcMain.handle('getfilesasync', (event, filename, audio=false) => {   
+            const workdir = path.join(config.workdirectory,"/")
+
+            if (filename) { //return content of specific file as string (html) to replace in editor)
+                let filepath = path.join(workdir,filename)
+                log.info(filepath)
+                if (audio){
+                    const audioData = fs.readFileSync(filepath);
+                    return audioData.toString('base64');
+                }
+                else {
+                    try {
+                        let data = fs.readFileSync(filepath, 'utf8')
+                        return data
+                    }
+                    catch (e) {log.error(e); return false}
+                }
+            }
+            else {  // return file list of exam directory
+                try {
+                    if (!fs.existsSync(workdir)){ fs.mkdirSync(workdir, { recursive: true });  } //do not crash if the directory is deleted after the app is started ^^
+                    let filelist =  fs.readdirSync(workdir, { withFileTypes: true })
+                        .filter(dirent => dirent.isFile())
+                        .map(dirent => dirent.name)
+                        .filter( file => path.extname(file).toLowerCase() === ".pdf" || path.extname(file).toLowerCase() === ".ogg" || path.extname(file).toLowerCase() === ".wav"|| path.extname(file).toLowerCase() === ".mp3" || path.extname(file).toLowerCase() === ".bak" || path.extname(file).toLowerCase() === ".ggb")
+                    
+                    let files = []
+                    filelist.forEach( file => {
+                        let modified = fs.statSync(   path.join(workdir,file)  ).mtime
+                        let mod = modified.getTime()
+                        if  (path.extname(file).toLowerCase() === ".pdf"){ files.push( {name: file, type: "pdf", mod: mod})   }         //pdf
+                        else if  (path.extname(file).toLowerCase() === ".bak"){ files.push( {name: file, type: "bak", mod: mod})   }   // editor backup
+                        else if  (path.extname(file).toLowerCase() === ".ggb"){ files.push( {name: file, type: "ggb", mod: mod})   }  // gogebra
+                        else if  (path.extname(file).toLowerCase() === ".mp3" || path.extname(file).toLowerCase() === ".ogg" || path.extname(file).toLowerCase() === ".wav" ){ files.push( {name: file, type: "audio", mod: mod})   }  // audio
+                    })
+                    this.multicastClient.clientinfo.numberOfFiles = filelist.length
+                    return files
+                }
+                catch (e) { log.error(e);return false; }
+            }
+        })
+
+
+
+
+
+
+
+
+
+
+
+
+
          /**
          * Append PrintRequest to clientinfo  
          */ 
@@ -319,9 +463,9 @@ class IpcHandler {
          * this is our manually implemented spellchecker for the editor
          */
         ipcMain.on('checkword', async (event, selectedWord) => {
-            console.log(`Received selected text: ${selectedWord}`);
+            log.info(`Received selected text: ${selectedWord}`);
             const suggestions = await this.WindowHandler.nodehun.suggest(selectedWord)
-            //console.log(suggestions)
+            //log.info(suggestions)
             event.returnValue = {  suggestions : suggestions }   
         });
         ipcMain.on('checktext', async (event, selectedText) => {
@@ -331,13 +475,13 @@ class IpcHandler {
                 const correct = await this.WindowHandler.nodehun.spell(word);
                 if (!correct) {
                     misspelledWords.push(word);
-                   // console.log(word)
+                   // log.info(word)
                 }
             }
             event.returnValue = { misspelledWords };
         });
         ipcMain.on('add-word-to-dictionary', (event, word) => {
-            console.log("adding word to dictionary")
+            log.info("adding word to dictionary")
             this.WindowHandler.nodehun.add(word)
         });
     }

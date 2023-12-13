@@ -33,7 +33,7 @@
         <div v-if="advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("startserver.simple") }}</div> 
         <div v-if="freeDiscspace < 0.1" class="warning">  {{ $t("startserver.freespacewarning") }}   </div>
         
-        <div id="previous" class="mt-4" v-if="previousExams.length > 0">
+        <div id="previous" class="mt-4" v-if="previousExams && previousExams.length > 0">
             <span class="small">{{$t("startserver.previousexams")}}</span>
             <div v-for="exam of previousExams">
                 <div class="input-group">
@@ -90,6 +90,21 @@
 
 <script>
 import $ from 'jquery'
+import log from 'electron-log/renderer';
+
+
+
+
+// Erfassen von unhandled promise rejections
+window.addEventListener('unhandledrejection', event => {
+  log.error('Unhandled promise rejection:', event.reason); // Loggen des Fehlers
+});
+
+Object.assign(console, log.functions);
+
+
+
+
 
 export default {
     data() {
@@ -112,14 +127,14 @@ export default {
     },
     components: {},
     methods: {
-        checkDiscspace(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
-           this.freeDiscspace = ipcRenderer.sendSync('checkDiscspace')
+        async checkDiscspace(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
+           this.freeDiscspace = await ipcRenderer.invoke('checkDiscspace')
         },
 
-        getPreviousExams(){
-            this.previousExams = ipcRenderer.sendSync('scanWorkdir')
+        async getPreviousExams(){
+            this.previousExams = await ipcRenderer.invoke('scanWorkdir')
             //console.log(this.previousExams)
-            this.config = ipcRenderer.sendSync('getconfig') 
+            this.config = await ipcRenderer.invoke('getconfigasync') 
             this.workdir = this.config.workdirectory   // just in case this is already altered in the backend make sure to display current settings
         },
 
@@ -148,16 +163,16 @@ export default {
                 cancelButtonText: this.$t("dashboard.cancel"),
                 reverseButtons: true
             })
-            .then((result) => {
+            .then(async (result) => {
                 if (result.isConfirmed) { 
-                    let response = ipcRenderer.sendSync('delPrevious', name)
+                    let response = await ipcRenderer.invoke('delPrevious', name)
                     console.log(response)
                     this.getPreviousExams()
                 } 
             });  
         },
-        setWorkdir(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
-            let response = ipcRenderer.sendSync('setworkdir')
+        async setWorkdir(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
+            let response = await ipcRenderer.invoke('setworkdir')
             this.workdir = response.workdir
             if (response.message == "error"){
                 this.status(this.$t("startserver.directoryerror"))
@@ -232,6 +247,9 @@ export default {
 
     },
     mounted() {  // when ready
+        
+        log.info('Frontend mounted...');
+   
         $("#statusdiv").fadeOut("slow")
         if (this.prod) {  //clear input fields in production mode
             $("#servername").val("")

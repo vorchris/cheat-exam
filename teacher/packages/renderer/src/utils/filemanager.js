@@ -1,5 +1,6 @@
-
 import $ from 'jquery'
+import log from 'electron-log/renderer';
+
 
 
 // DASHBOARD EXPLORER
@@ -23,11 +24,12 @@ function fdelete(file){
             })
             .then( res => res.json() )
             .then( result => { 
-                console.log(result)
+                log.info(result)
                 this.loadFilelist(this.currentdirectory)
-            });
+            }).catch(err => { log.error(err)});
         }
-    });
+    })
+    .catch(err => { log.error(err)});;
 }
 
 
@@ -50,7 +52,7 @@ function downloadFile(file){
             a.click();
         return
     }
-    console.log("requesting file for downlod ")
+    log.info("requesting file for downlod ")
     fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/download/${this.servername}/${this.servertoken}`, { 
         method: 'POST',
         headers: {'Content-Type': 'application/json' },
@@ -64,7 +66,7 @@ function downloadFile(file){
             a.setAttribute("download", file.name);
             a.click();
     })
-    .catch(err => { console.warn(err)});
+    .catch(err => { log.error(err)});
 }
 
 
@@ -95,9 +97,10 @@ function dashboardExplorerSendFile(file){
                 body: JSON.stringify({ files:[ {name:file.name, path:file.path } ] })
             })
             .then( res => res.json() )
-            .then( result => { console.log(result)});
+            .then( result => { log.info(result)})
+            .catch(err => { log.error(err)});
         }
-    });
+    }).catch(err => { log.error(err)});
 }
 
 
@@ -117,7 +120,7 @@ function loadPDF(filepath, filename){
         $("#pdfpreview").click(function(e) {
             $("#pdfpreview").css("display","none");
         });
-        }).catch(err => { console.warn(err)});     
+        }).catch(err => { log.error(err)});     
 }
 
 
@@ -143,7 +146,7 @@ function loadImage(file){
                 $("#pdfembed").css("height","96vh");
                 $("#pdfembed").css("margin-top","-48vh");
             });
-        }).catch(err => { console.warn(err)});     
+        }).catch(err => { log.error(err)});     
 }
 
 
@@ -158,7 +161,7 @@ async function getLatest(){
     .then( response => response.json() )
     .then( async(responseObj) => {
         if (!responseObj.pdfBuffer ){
-            console.log("nothing found")
+            log.info("nothing found")
             this.visualfeedback(this.$t("dashboard.nopdf"))
             return
         }
@@ -177,7 +180,7 @@ async function getLatest(){
         $("#pdfpreview").click(function(e) {
                 $("#pdfpreview").css("display","none");
         });
-    }).catch(err => { console.warn(err)});
+    }).catch(err => { log.error(err)});
 }
 
 
@@ -195,19 +198,20 @@ async function getLatestFromStudent(student){
             body: JSON.stringify({ printdenied : true } )
         })
         .then( res => res.json() )
-        .then( result => { console.log(result)});
+        .then( result => { log.info(result)})
+        .catch(err => { log.error(err)});
         return
     }
 
 
     this.printrequest = true // this is a new one - we allow it and block others for the time beeing
-    console.log("print request accepted")
+    log.info("print request accepted")
     
     // this informs the student that an exam upload is requested. 
     // this needs 4sek minimum for the student to react because of the current update interval  
     // so if the teacher is faster than that it could happen that no pdf file is found
     this.getFiles(student.token, false, true)
-    console.log("requesting current file from student") 
+    log.info("requesting current file from student") 
     await this.sleep(4000);  // give it some time
 
 
@@ -230,7 +234,7 @@ async function getLatestFromStudent(student){
             .then( response => response.json() )
             .then( async(responseObj) => {
                 if (!responseObj.pdfBuffer ){
-                    console.log("nothing found")
+                    log.info("nothing found")
                     this.visualfeedback(this.$t("dashboard.nopdf"))
                     return
                 }
@@ -251,9 +255,9 @@ async function getLatestFromStudent(student){
                 $("#pdfpreview").click(function(e) {
                         $("#pdfpreview").css("display","none");
                 });
-            }).catch(err => { console.warn(err)});
+            }).catch(err => { log.error(err)});
         }
-    });
+    }).catch(err => { log.error(err)});
 }
 
 
@@ -264,7 +268,7 @@ function openLatestFolder(student){
     })
     .then( response => response.json() )
     .then( async(responseObj) => {
-        console.log(responseObj.latestfolderPath)
+        log.info(responseObj.latestfolderPath)
         if (responseObj.latestfolderPath === ""){ 
             this.loadFilelist(this.workdirectory)
         }
@@ -273,7 +277,7 @@ function openLatestFolder(student){
         }
         this.showWorkfolder();
 
-    }).catch(err => { console.warn(err)});
+    }).catch(err => { log.error(err)});
 
 }
 
@@ -281,10 +285,17 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+
+//print pdf in focus - depends on system print dialog
 function print(){
-    var iframe = $('#pdfembed')[0]; 
-    iframe.contentWindow.focus();
-    iframe.contentWindow.print(); 
+    try {
+        var iframe = $('#pdfembed')[0]; 
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print(); 
+    }
+    catch (e){
+        log.error(e)
+    }
 }
 
 function loadFilelist(directory){
@@ -295,14 +306,14 @@ function loadFilelist(directory){
     })
     .then( response => response.json() )
     .then( filelist => {
-        console.log(filelist)
+        //log.error(filelist)
         filelist.sort()
         filelist.reverse()
         this.localfiles = filelist;
         this.currentdirectory = directory
         this.currentdirectoryparent = filelist[filelist.length-1].parentdirectory // the currentdirectory and parentdirectory properties are always on [0]
         if (directory === this.workdirectory) {this.showWorkfolder(); }
-    }).catch(err => { console.warn(err)});
+    }).catch(err => { log.error(err)});
 }
  
 export {loadFilelist, print, getLatest, getLatestFromStudent, loadImage, loadPDF, dashboardExplorerSendFile, downloadFile, showWorkfolder, fdelete, openLatestFolder  }

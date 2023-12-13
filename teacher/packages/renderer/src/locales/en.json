@@ -48,8 +48,11 @@
         "eduvidual": "Eduvidual",
         "autoget": "auto fetch",
         "startexam": "Secure devices",
-        "sendfile": "Send Files",
-        "getfile": "Fetch Work",
+        "startexamdesc": "This starts the Exam Mode for all students",
+        "sendfile": "Send Files to all students",
+        "sendfileSingle": "Send Files",
+        "getfile": "Fetch Work of all students",
+        "getfileSingle": "Fetch Work",
         "stopexam": "Release devices",
         "sure": "Are you sure?",
         "exitexamsure": "Close Exam Server?",
@@ -69,6 +72,7 @@
         "attention": "Attention!",
         "abgaberequest": "Requesting files from all students",
         "showworkfolder": "Show Workfolder",
+        "shownewestfolder": "Show newest Workfolder",
         "filesfolder": "Workfolder files",
         "choosestudent": "Select Student",
         "chooserequire": "You need to choose a student!",
@@ -121,8 +125,10 @@
         "gforms": "Google Forms",
         "accessDenied":"Access Denied!",
         "accessDeniedtext":"Contact your organizations Administrator to grant Access to Next-Exam",
-        "msoWarn": "You need to reconnect and select an MSOFile before reconnecting all students"
-
+        "msoWarn": "You need to reconnect and select an MSOFile before reconnecting all students",
+        "allowspellcheck":"Activate spellcheck for specific student",
+        "linespacing": "Linespacing",
+        "fontfamily": "Fontfamily"
     },
     "control": {
         "tokennotvalid": "token is not valid",

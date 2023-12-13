@@ -17,12 +17,16 @@
 
 
 
-import { app, BrowserWindow, BrowserView, dialog, screen} from 'electron'
+import { app, BrowserWindow, BrowserView, dialog, screen, ipcMain} from 'electron'
 import { join } from 'path'
+import childProcess from 'child_process' 
+import screenshot from 'screenshot-desktop'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 import fs from 'fs' 
-import examMenu from './examMenu.js';
 import Nodehun from 'nodehun'
+import log from 'electron-log/main'
+
+// import Tesseract from 'tesseract.js';
 
   ////////////////////////////////////////////////////////////
  // Window handling (ipcRenderer Process - Frontend) START
@@ -39,6 +43,7 @@ class WindowHandler {
       this.mainwindow = null
       this.examwindow = null
       this.splashwin = null
+      this.bipwindow = null
       this.config = null
       this.multicastClient = null
       this.nodehun = null  //needed for manual spellchecker
@@ -63,8 +68,87 @@ class WindowHandler {
     }
 
 
-    createSplashWin() {
+    createBiPLoginWin() {
+        this.bipwindow = new BrowserWindow({
+            title: 'Next-Exam',
+            icon: join(__dirname, '../../public/icons/icon.png'),
+            center:true,
+            width: 1000,
+            height:800,
+            alwaysOnTop: true,
+            skipTaskbar:true,
+            autoHideMenuBar: true,
+           // resizable: false,
+            minimizable: false,
+           // movable: false,
+           // frame: false,
+            show: false,
+           // transparent: true
+        })
+     
+        this.bipwindow.loadURL(`https://www.bildung.gv.at/admin/tool/mobile/launch.php?service=moodle_mobile_app&passport=next-exam`)
 
+        this.bipwindow.once('ready-to-show', () => {
+            this.bipwindow.show()
+        });
+
+        this.bipwindow.webContents.on('did-navigate', (event, url) => {    // a pdf could contain a link ^^
+            log.info("did-navigate")
+            log.info(url)
+        })
+        this.bipwindow.webContents.on('will-navigate', (event, url) => {    // a pdf could contain a link ^^
+            log.info("will-navigate")
+            log.info(url)
+        })
+
+         this.bipwindow.webContents.on('new-window', (event, url) => {  // if a new window should open triggered by window.open()
+            log.info("new-window")
+            log.info(url)
+            event.preventDefault();    // Prevent the new window from opening
+        }); 
+     
+         
+         this.bipwindow.webContents.setWindowOpenHandler(({ url }) => { // if a new window should open triggered by target="_blank"
+            log.info("target: _blank")
+            log.info(url)
+            return { action: 'deny' };   // Prevent the new window from opening
+        }); 
+
+        this.bipwindow.webContents.on('will-redirect', (event, url) => {
+            log.info('Redirecting to:', url);
+            // Prüfen, ob die URL das gewünschte Format hat
+            if (url.startsWith('moodlemobile://')) {
+                event.preventDefault(); // Verhindert den Standard-Redirect
+                const prefix = 'moodlemobile://token=';
+
+                const token = url.substring(prefix.length);
+                
+    
+                log.info('Captured Token:');
+                log.info(token);
+                this.mainwindow.webContents.send('bipToken', token);
+                this.bipwindow.close();
+            }
+          });
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * this is the windows splashscreen
+     */
+    createSplashWin() {
         this.splashwin = new BrowserWindow({
             title: 'Next-Exam',
             icon: join(__dirname, '../../public/icons/icon.png'),
@@ -215,7 +299,7 @@ class WindowHandler {
     async createExamWindow(examtype, token, serverstatus, primarydisplay) {
         // just to be sure we check some important vars here
         if (examtype !== "gforms" && examtype !== "eduvidual" && examtype !== "editor" && examtype !== "math" && examtype !== "microsoft365" || !token){  // for now.. we probably should stop everything here
-            console.log("missing parameters for exam-mode or mode not in allowed list!")
+            log.warn("missing parameters for exam-mode or mode not in allowed list!")
             examtype = "editor" 
         } 
         
@@ -259,14 +343,14 @@ class WindowHandler {
          */
 
         if (examtype === "microsoft365"  ) { //external page
-            console.log("starting microsoft365 exam...")
+            log.info("starting microsoft365 exam...")
            
             let urlview = this.multicastClient.clientinfo.msofficeshare   
            
 
             if (!urlview) {// we wait for the next update tick - msofficeshare needs to be set ! (could happen when a student connects later then exam mode is set but his share url needs some time)
-                console.log("no url for microsoft365 was set")
-                console.log(this.multicastClient.clientinfo)
+                log.warn("no url for microsoft365 was set")
+                log.warn(this.multicastClient.clientinfo)
                 this.examwindow.destroy(); 
                 this.examwindow = null;
                 disableRestrictions(this.examwindow)
@@ -406,7 +490,7 @@ class WindowHandler {
             // if the user wants to navigate away from this page
             browserView.webContents.on('will-navigate', (event, url) => {
                 if (url !== this.multicastClient.clientinfo.msofficeshare ) {
-                    console.log("do not navigate away from this test.. ")
+                    log.warn("do not navigate away from this test.. ")
                     event.preventDefault()
                 }  
             })
@@ -571,11 +655,104 @@ class WindowHandler {
             this.mainwindow.show()
             this.mainwindow.moveTop();
             this.mainwindow.focus();
+
+          
+            // screenshot()   //grab "screenshot" with screenshot node module 
+            // .then( (imageBuffer) => { 
+            //     log.info("screenshot allowed") 
+            //     Tesseract.recognize(imageBuffer, 'eng')
+            //     .then(({ data: { text } }) => {
+            //         // Text aus dem Bild extrahieren und prüfen
+            //         console.log(text);
+            //         if(text.includes('Next-Exam')) {
+            //           console.log('Der Text "Next-Exam" wurde im Bild gefunden.');
+            //         } else {
+            //           console.log('Der Text "Next-Exam" wurde nicht im Bild gefunden.');
+            //         }
+            //       });
+            //  })
+
+
+
+            if (process.platform == 'darwin'){
+
+
+                
+                //mission control
+                //childProcess.exec('tccutil reset AppleEvents com.nextexam-student.app')   //reset permission settings - ask gain next time!
+                //childProcess.exec('tccutil reset Accessibility com.nextexam-student.app') 
+                //childProcess.exec('tccutil reset AppleEvents com.vscodium') // apple events können resetted werde da macos immerwieder danach fragt
+                //childProcess.exec('tccutil reset Accessibility com.vscodium')  //accessibility wird nur einmal gefragt, danach muss der user es manuell aktivieren
+                            
+                let scriptfile = join(__dirname, '../../public/check.applescript')
+                if (app.isPackaged) {
+                    scriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/check.applescript')
+                }
+               
+                childProcess.execFile('osascript', [scriptfile], (error, stdout, stderr) => {
+                    if (stderr) { 
+                        log.info(stderr) 
+                        if (stderr.includes("Berechtigung") || stderr.includes("authorized")){
+                            log.error("no Systemsettings permissions granted")
+                            let message = "Sie müssen die Berechtigungen zur Automation erteilen!"
+                            if (stderr.includes("Hilfszugriff") || stderr.includes("Accessibility")){
+                                message = "Sie müssen die Berechtigungen für den Hilfszugriff (Bedienungshilfen) erteilen!"
+                            }
+                           this.showExitWarning(message)  //show warning and quit app
+                        }
+                    }
+                })
+
+
+
+                let mcscriptfile = join(__dirname, '../../public/spaces.applescript')
+                if (app.isPackaged) {
+                    mcscriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/spaces.applescript')
+                }
+               
+                childProcess.execFile('osascript', [mcscriptfile], (error, stdout, stderr) => {
+                    if (stderr) { 
+                        log.info(stderr) 
+                        if (stderr.includes("Berechtigung") || stderr.includes("authorized")){
+                            log.error("no Systemsettings permissions granted")
+                            let message = "Sie müssen die Berechtigungen zur Automation erteilen!"
+                            if (stderr.includes("Hilfszugriff") || stderr.includes("Accessibility")){
+                                message = "Sie müssen die Berechtigungen für den Hilfszugriff (Bedienungshilfen) erteilen!"
+                            }
+                           this.showExitWarning(message)  //show warning and quit app
+                        }
+                    }
+                })
+
+
+
+                // attention ! das neue macos erlaubt auch ohne berechtiung screenshots aber diese beinhalten dann keine apps (sind quasi nur der background)
+                screenshot()   //grab "screenshot" with screenshot node module 
+                .then( (res) => { 
+                    log.info("screenshot allowed") 
+                 })
+                .catch((err) => {   
+                    log.error(`requestUpdate Screenshot: ${err}`) 
+                    let message = "Sie müssen die Berechtigungen zur Bildschirmaufnahme erteilen!"
+                    //childProcess.exec('tccutil reset ScreenCapture com.nextexam-student.app') 
+                    //childProcess.exec('tccutil reset ScreenCapture com.vscodium') 
+                    this.showExitWarning(message) 
+                });
+            }
         })
     }
 
 
-
+    showExitWarning(message){
+        dialog.showMessageBoxSync(this.mainwindow, {
+            type: 'warning',
+            buttons: ['Ok'],
+            title: 'Programm Beenden',
+            message: message,
+            cancelId: 1
+        });
+        app.quit()
+    }
 
 
     /**
@@ -584,20 +761,20 @@ class WindowHandler {
 
     //adds blur listener when entering exammode
     addBlurListener(window = "examwindow"){
-        console.log("adding blur listener")
-        console.log(window)
+        log.info("adding blur listener")
+        log.info(window)
         if (window === "examwindow"){ 
-            console.log(`Setting Blur Event for ${window}`)
+            log.info(`Setting Blur Event for ${window}`)
             this.examwindow.addListener('blur', () => this.blurevent(this)) 
         }
         else if (window === "screenlock") {
-            console.log(`Setting Blur Event for ${window}window`)
+            log.info(`Setting Blur Event for ${window}window`)
             this.screenlockWindow.addListener('blur', () => this.blureventScreenlock(this))    
         }
     }
     //removes blur listener when leaving exam mode
     removeBlurListener(){
-        console.log("removing blur listener")
+        log.info("removing blur listener")
         this.examwindow.removeAllListeners('blur')
     }
     // implementing a sleep (wait) function
@@ -606,7 +783,7 @@ class WindowHandler {
     }
     //student fogus went to another window
     blurevent(winhandler) { 
-        console.log("blur-exam")
+        log.info("blur-exam")
         if (winhandler.screenlockWindow) { return }// do nothing if screenlockwindow stole focus // do not trigger an infinite loop between exam window and screenlock window (stealing each others focus)
             
         winhandler.multicastClient.clientinfo.focus = false
@@ -633,12 +810,12 @@ class WindowHandler {
         //                     warning.setAttribute('style', 'text-align: center; padding: 20px;display: block; background-color:#ffc107; border-radius:5px;  z-index:100000; position: absolute; top: 50%; left: 50%; margin-left: -10vw; margin-top: -5vh;width:20vw; height: 10vh; box-shadow: 0 0 10px rgba(0,0,0,0.4); ');
         //                     setTimeout( ()=>{ document.getElementById('nextexamwaring').style.display = 'none'  } , 5000); 
         //                 }` , true)
-        //     .catch(err => console.log(err))
+        //     .catch(err => log.error(err))
         // }
     }
     //special blur event for temporary low security screenlock
     blureventScreenlock(winhandler) { 
-        console.log("blur-screenlock")
+        log.info("blur-screenlock")
         winhandler.screenlockWindow.show();  // we keep focus on the window.. no matter what
         winhandler.screenlockWindow.moveTop();
         winhandler.screenlockWindow.focus();

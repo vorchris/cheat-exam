@@ -18,6 +18,7 @@ export default defineConfig({
     rollupOptions: {
       external: [
         'electron',
+        'electron-log',
         ...builtinModules,
         ...Object.keys(pkg.dependencies || {}),
       ],

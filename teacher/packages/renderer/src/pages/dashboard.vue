@@ -1,6 +1,7 @@
 <template>
 
- 
+
+<!-- Header  -->
 <div class="w-100 p-3 text-white bg-dark shadow text-right">
     <router-link v-if="!electron" to="/" class="text-white m-1">
         <img src="/src/assets/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
@@ -14,30 +15,32 @@
     <span class="fs-4 align-middle ms-3" style="float: right">Dashboard</span>
      <div class="btn btn-sm btn-danger m-0 mt-1" @click="stopserver()" style="float: right">{{$t('dashboard.stopserver')}}</div>
 </div>
- 
+ <!-- Header END -->
 
 
 
 <div id="wrapper" class="w-100 h-100 d-flex" >
     
+    <!-- single student view  -->
     <div id="studentinfocontainer" class="fadeinslow p-4">
         <div v-if="activestudent!= null" id="studentinfodiv">
             <div v-cloak><img style="position: absolute; height: 100%" :src="(activestudent.imageurl && now - 20000 < activestudent.timestamp)? `${activestudent.imageurl}`:'user-red.svg'"></div>
 
             <div style="height:100%">
                 <div id="controlbuttons" style="text-align: center;">
-                    <button class="btn btn-close  btn-close-white align-right" @click="hideStudentview()"  style="width: 100px"></button>
+                    <button class="btn btn-close  btn-close-white align-right" @click="hideStudentview()"  style="width: 110px"></button>
                     <b>{{truncatedClientName(activestudent.clientname,12)}}</b><br>
                     <div style="font-size: 0.6em; margin-bottom: 0px;">{{activestudent.clientip}}</div>
                     <div style="font-size: 0.6em; margin-top: 0px;">{{activestudent.hostname}}</div>
-                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent.token)" style="width: 100px">{{$t('dashboard.sendfile')}}</div>
-                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="getFiles(activestudent.token, true)" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledblue':''" style="width: 100px">{{$t('dashboard.getfile')}}</div>
-                    <div class="col d-inlineblock btn btn-dark m-1 btn-sm "     @click="openLatestFolder(activestudent)"  style="width: 100px;">{{$t('dashboard.showworkfolder')}} </div>
-                    <div class="col d-inlineblock btn btn-warning m-1 btn-sm"   @click='kick(activestudent.token,activestudent.clientip);hideStudentview()'  style="width: 100px">{{$t('dashboard.kick')}}</div>
+                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="sendFiles(activestudent.token)" style="width: 110px">{{$t('dashboard.sendfileSingle')}}</div>
+                    <div class="col d-inlineblock btn btn-info m-1 btn-sm"      @click="getFiles(activestudent.token, true)" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledblue':''" style="width: 110px">{{$t('dashboard.getfileSingle')}}</div>
+                    <div class="col d-inlineblock btn btn-dark m-1 btn-sm "     @click="openLatestFolder(activestudent)"  style="width: 110px;">{{$t('dashboard.shownewestfolder')}} </div>
+                    <div class="col d-inlineblock btn btn-warning m-1 btn-sm"   @click='kick(activestudent.token,activestudent.clientip);hideStudentview()'  style="width: 110px">{{$t('dashboard.kick')}}</div>
                 </div>
             </div>
         </div>
     </div>
+    <!-- single student view END -->
 
 
     <!-- dashboard EXPLORER start -->
@@ -93,69 +96,70 @@
         <div class="btn btn-light m-1 text-start infobutton" @click="showinfo()">{{$t('dashboard.server')}} <br><b>{{serverip}}</b> </div><br>
         <div class="btn btn-light m-1 mb-3 text-start infobutton" @click="showinfo()">{{$t('dashboard.pin')}}<br><b> {{ serverstatus.pin }} </b>  </div><br>
         
+      
+
         <div style="font-size:0.9em">
-        <!-- geogebra -->
-        <div class="form-check m-1 mb-1"  :class="(serverstatus.exammode)? 'disabledexam':''">
-            <input v-model="serverstatus.examtype" value="math" class="form-check-input" type="radio" name="examtype" id="examtype2" checked>
-            <label class="form-check-label" for="examtype2"> {{$t('dashboard.math')}}  </label>
-        </div>
-        <!-- editor -->
-        <div class="form-check m-1" :class="(serverstatus.exammode)? 'disabledexam':''">
-            <input v-model="serverstatus.examtype" @click="activateSpellcheck()" value="editor" class="form-check-input" type="radio" name="examtype" id="examtype1">
-            <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}} <span v-if="(serverstatus.spellcheck)">({{serverstatus.spellchecklang}})</span></label>
-        </div>
-        <!-- eduvidual -->
-        <div class="form-check m-1 mb-1" :class="(serverstatus.exammode)? 'disabledexam':''">
-            <input v-model="serverstatus.examtype" @click="getTestID()" value="eduvidual" class="form-check-input" type="radio" name="examtype" id="examtype3">
-            <label class="form-check-label" for="examtype3"> {{$t('dashboard.eduvidual')}}  </label>
-        </div>
-        <!-- google forms -->
-        <div class="form-check m-1 mb-1" :class="(serverstatus.exammode)? 'disabledexam':''">
-            <input v-model="serverstatus.examtype" @click="getFormsID()" value="gforms" class="form-check-input" type="radio" name="examtype" id="examtype5">
-            <label class="form-check-label" for="examtype5"> {{$t('dashboard.gforms')}}  </label>
-        </div>
+            <!-- geogebra -->
+            <div class="form-check m-1 mb-1"  :class="(serverstatus.exammode)? 'disabledexam':''">
+                <input v-model="serverstatus.examtype" value="math" class="form-check-input" type="radio" name="examtype" id="examtype2" checked>
+                <label class="form-check-label" for="examtype2"> {{$t('dashboard.math')}}  </label>
+            </div>
+            <!-- editor -->
+            <div class="form-check m-1" :class="(serverstatus.exammode)? 'disabledexam':''">
+                <input v-model="serverstatus.examtype" @click="activateSpellcheck()" value="editor" class="form-check-input" type="radio" name="examtype" id="examtype1">
+                <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}} <span v-if="(serverstatus.spellcheck)">({{serverstatus.spellchecklang}})</span></label>
+            </div>
+            <!-- eduvidual -->
+            <div class="form-check m-1 mb-1" :class="(serverstatus.exammode)? 'disabledexam':''">
+                <input v-model="serverstatus.examtype" @click="getTestID()" value="eduvidual" class="form-check-input" type="radio" name="examtype" id="examtype3">
+                <label class="form-check-label" for="examtype3"> {{$t('dashboard.eduvidual')}}  </label>
+            </div>
+            <!-- google forms -->
+            <div class="form-check m-1 mb-1" :class="(serverstatus.exammode)? 'disabledexam':''">
+                <input v-model="serverstatus.examtype" @click="getFormsID()" value="gforms" class="form-check-input" type="radio" name="examtype" id="examtype5">
+                <label class="form-check-label" for="examtype5"> {{$t('dashboard.gforms')}}  </label>
+            </div>
 
-        <!-- microsoft365 -->
-        <div class="form-check m-1 mb-3" :class="(serverstatus.exammode)? 'disabledexam':''">
-            <input v-model="serverstatus.examtype" value="microsoft365" class="form-check-input" type="radio" name="examtype" id="examtype4">
-            <label class="form-check-label" for="examtype4"> Microsoft365 <span v-if="(this.config.accessToken)">({{$t('dashboard.connected')}})</span> </label>
-            
-            <button v-if="(serverstatus.examtype === 'microsoft365' && !this.config.accessToken)"  @click="openAuthWindow()" class="btn btn-sm btn-primary mt-1  ">
-                <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
-                <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Verbinden </span>
-            </button>
+            <!-- microsoft365 -->
+            <div class="form-check m-1 mb-3" :class="(serverstatus.exammode)? 'disabledexam':''">
+                <input v-model="serverstatus.examtype" value="microsoft365" class="form-check-input" type="radio" name="examtype" id="examtype4">
+                <label class="form-check-label" for="examtype4"> Microsoft365 <span v-if="(this.config.accessToken)">({{$t('dashboard.connected')}})</span> </label>
+                
+                <button v-if="(serverstatus.examtype === 'microsoft365' && !this.config.accessToken)"  @click="openAuthWindow()" class="btn btn-sm btn-primary mt-1  ">
+                    <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
+                    <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Verbinden </span>
+                </button>
 
-            <button v-if="(serverstatus.examtype === 'microsoft365' && this.config.accessToken && !serverstatus.msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-info mt-1  ">
-                <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
-                <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Datei wählen </span>
-            </button>
+                <button v-if="(serverstatus.examtype === 'microsoft365' && this.config.accessToken && !serverstatus.msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-info mt-1  ">
+                    <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
+                    <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Datei wählen </span>
+                </button>
 
-            <button v-if="(serverstatus.examtype === 'microsoft365' && this.config.accessToken && serverstatus.msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-success mt-1  " style=" white-space: nowrap;  width: 170px;overflow: hidden; text-overflow: ellipsis; ">
-                <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
-                <span style="padding: 0 6px 0 4px; vertical-align:middle;">{{serverstatus.msOfficeFile.name}} </span>
-            </button>
+                <button v-if="(serverstatus.examtype === 'microsoft365' && this.config.accessToken && serverstatus.msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-success mt-1  " style=" white-space: nowrap;  width: 170px;overflow: hidden; text-overflow: ellipsis; ">
+                    <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
+                    <span style="padding: 0 6px 0 4px; vertical-align:middle;">{{serverstatus.msOfficeFile.name}} </span>
+                </button>
+            </div>
+
+
+
+            <!-- other options -->
+            <div class="form-check form-switch  m-1 mb-2" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledexam':''">
+                <input  @click="setAbgabeInterval()" v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
+                <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
+                <span v-if="autoabgabe" > ({{ abgabeintervalPause }}min)</span>
+            </div>
+            <div class="form-check form-switch  m-1 mb-2">
+                <input  @change="toggleScreenshot()" @click="setScreenshotInterval()" checked class="form-check-input" type="checkbox" id="screenshotinterval">
+                <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.screenshot')}}</label>
+                <span v-if="serverstatus.screenshotinterval > 0" > ({{ serverstatus.screenshotinterval }}s)</span>
+            </div>
         </div>
-
-
-
-        <!-- other options -->
-        <div class="form-check form-switch m-1 mb-2"  :class="(serverstatus.exammode || serverstatus.examtype === 'eduvidual'|| serverstatus.examtype === 'microsoft365'  || serverstatus.examtype === 'gforms')? 'disabledexam':''">
-            <input v-model="serverstatus.delfolder" @click="delfolderquestion()" value="del" class="form-check-input" type="checkbox" name="delfolder" id="delfolder">
-            <label class="form-check-label" for="delfolder"> {{$t('dashboard.del')}}  </label>
-        </div>
-        <div class="form-check form-switch  m-1 mb-2" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledexam':''">
-            <input @change="toggleAutoabgabe()"  @click="setAbgabeInterval()" v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
-            <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
-            <span v-if="autoabgabe" > ({{ abgabeintervalPause }}min)</span>
-        </div>
-        <div class="form-check form-switch  m-1 mb-2">
-            <input  @change="toggleScreenshot()" @click="setScreenshotInterval()" checked class="form-check-input" type="checkbox" id="screenshotinterval">
-            <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.screenshot')}}</label>
-            <span v-if="serverstatus.screenshotinterval > 0" > ({{ serverstatus.screenshotinterval }}s)</span>
-        </div>
-    </div>
-
+        <br>
         <div id="statusdiv" class="btn btn-warning m-1"> {{$t('dashboard.connected')}}  </div>
+        <div id="description" class="btn m-1"  v-if="showDesc">{{ currentDescription }}</div>
+
+
         <span @click="showCopyleft()" style="position: absolute; bottom:2px; left: 6px; font-size:0.8em;cursor: pointer;">
             <span style=" display:inline-block; transform: scaleX(-1);font-size:1.2em; ">&copy; </span> 
             <span style="vertical-align: text-bottom;">&nbsp;{{version}}</span>
@@ -167,16 +171,17 @@
 
    
     <div id="content" class="fadeinslow p-3">
-        
+
         <!-- control buttons start -->        
-        <div v-if="(serverstatus.exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:100px; height:62px;" @click="endExam()" >{{numberOfConnections}} {{$t('dashboard.stopexam')}}</div>
-        <div v-if="(!serverstatus.exammode)" @click="startExam()" :class="(serverstatus.examtype === 'microsoft365' && (!this.config.accessToken || !serverstatus.msOfficeFile))? 'disabledgreen':''" class="btn btn-success m-1 mt-0 text-start ms-0" style="width:100px; height:62px;">{{numberOfConnections}} {{$t('dashboard.startexam')}}</div>
+        <div v-if="(serverstatus.exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:128px; height:62px;" @click="endExam();hideDescription();"  @mouseover="showDescription($t('dashboard.exitkiosk'))" @mouseout="hideDescription"  >                                                                                                                                         <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" width="28" height="28" style="vertical-align: top;"> <div style="display:inline-block; margin-top:2px; margin-left:4px; width:60px; font-size:0.9em;"> {{numberOfConnections}} {{$t('dashboard.stopexam')}} </div></div>
+        <div v-if="(!serverstatus.exammode)" class="btn btn-teal m-1 mt-0 text-start ms-0"  @click="startExam();hideDescription();"  @mouseover="showDescription($t('dashboard.startexamdesc'))" @mouseout="hideDescription" :class="(serverstatus.examtype === 'microsoft365' && (!this.config.accessToken || !serverstatus.msOfficeFile))? 'disabledgreen':''" style="width:128px; height:62px;">  <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" width="28" height="28" style="vertical-align: top;"> <div style="display:inline-block; margin-top:2px; margin-left:4px; width:60px; font-size:0.9em;"> {{numberOfConnections}} {{$t('dashboard.startexam')}}</div></div>
      
-        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="sendFiles('all')"  style="width:100px; height:62px;">{{$t('dashboard.sendfile')}}</div>
-        <div class="btn btn-info m-1 mt-0 text-start ms-0 " @click="getFiles('all', true)" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledblue':''"  style="width:100px; height:62px;" >{{$t('dashboard.getfile')}}</div>
-        <div class="col d-inlineblock btn btn-dark m-1 mt-0 text-start ms-0 " @click="loadFilelist(workdirectory)"  style="width: 100px;">{{$t('dashboard.showworkfolder')}} </div>
-        <div  v-if="(serverstatus.screenslocked)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(false)"> <img src="/src/assets/img/svg/shield-lock-fill.svg" class="white mt-2" title="unlock" width="32" height="32" >   </div>
-        <div  v-if="(!serverstatus.screenslocked)" class="btn btn-dark m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(true)"> <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" title="lock" width="32" height="32" >  </div>
+        <div class="btn btn-cyan m-1 mt-0 text-start ms-0" @click="sendFiles('all');hideDescription();"   @mouseover="showDescription($t('dashboard.sendfile'))" @mouseout="hideDescription"  style="width:62px; height:62px;"><img src="/src/assets/img/svg/document-send.svg" class="mt-2" width="32" height="32"></div>
+        <div class="btn btn-cyan m-1 mt-0 text-start ms-0" @click="getFiles('all', true);hideDescription();"  @mouseover="showDescription($t('dashboard.getfile'))" @mouseout="hideDescription"  :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledblue':''"  style="width:62px; height:62px;" ><img src="/src/assets/img/svg/edit-download.svg" class="mt-2" width="32" height="32"></div>
+        <div class="btn btn-cyan m-1 mt-0 text-start ms-0" @click="loadFilelist(workdirectory);hideDescription();"  @mouseover="showDescription($t('dashboard.showworkfolder'))" @mouseout="hideDescription"  style="width: 62px; height:62px;"><img src="/src/assets/img/svg/folder-open.svg" class="mt-2" width="32" height="32" ></div>
+        <div v-if="(serverstatus.screenslocked)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(false);hideDescription();"> <img src="/src/assets/img/svg/eye-fill.svg" class="white mt-2" width="32" height="32" >   </div>
+        <div v-if="(!serverstatus.screenslocked)" class="btn btn-dark m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(true);hideDescription();"  @mouseover="showDescription($t('dashboard.lock'))" @mouseout="hideDescription" > <img src="/src/assets/img/svg/eye-slash-fill.svg" class="white mt-2" width="32" height="32" >  </div>
+        <div class="btn btn-dark m-1 mt-0 ms-0 text-start" @mouseover="showDescription($t('dashboard.del'))" @mouseout="hideDescription" style="width:62px; height:62px;" @click="delfolderquestion()"> <img src="/src/assets/img/svg/edit-delete.svg" class="mt-2" width="32" height="32" ></div>
         <!-- control buttons end -->
 
 
@@ -188,7 +193,9 @@
     
                 <div v-for="student in studentwidgets" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':''" class="studentwidget btn rounded-3 btn-block ">
                     <div v-if="student.clientname">
-                        <div class="studentimage rounded" style="position: relative; height:132px;">     
+                        <div class="studentimage rounded" style="position: relative; height:132px;">  
+                            <button v-if="serverstatus.examtype === 'editor' && !this.serverstatus.spellcheck" @mouseover="showDescription($t('dashboard.allowspellcheck'))" @mouseout="hideDescription" @click='activateSpellcheckForStudent(student.token,student.clientname)' type="button" class="btn btn-sm pt-1 mt-2 pe-1 float-end" style="z-index:1000; position:relative;"><img src="/src/assets/img/svg/autocorrection.svg" class="widgetbutton" width="22" height="22" ></button> 
+
                             <div v-cloak :id="student.token" style="position: relative;background-size: cover; height: 132px;" v-bind:style="(student.imageurl && now - 20000 < student.timestamp)? `background-image: url('${student.imageurl}')`:'background-image: url(user-red.svg)'"></div>
                             <div v-if="student.virtualized" class="virtualizedinfo" >{{$t("dashboard.virtualized")}}</div>
                             <div v-if="!student.focus" class="kioskwarning" >{{$t("dashboard.leftkiosk")}}</div>
@@ -199,7 +206,7 @@
                                     <img v-for="file in student.files" style="width:22px; margin-left:-4px; position: relative; filter: sepia(10%) hue-rotate(306deg) brightness(0.3) saturate(75);" class="" src="/src/assets/img/svg/document.svg"><br>
                                 </div>
                                 {{ truncatedClientName(student.clientname) }}  
-                                <button  @click='kick(student.token,student.clientip)' type="button" class=" btn-close  btn-close-white pt-1 pe-2 float-end" title="kick user"></button> 
+                                <button  @click='kick(student.token,student.clientip)'  @mouseover="showDescription($t('dashboard.kick'))" @mouseout="hideDescription" type="button" class=" btn-close  btn-close-white pt-1 pe-2 float-end"></button> 
                             </span>
                         </div>
 
@@ -218,8 +225,8 @@
     </div>
  
     <div style="position: fixed; bottom:20px; right: 20px; filter:opacity(50%)" class="col d-inlineblock btn " @click="sortStudentWidgets()">
-     <img src="/src/assets/img/svg/view-sort-ascending-name.svg" class="white" title="sort" width="24" height="24" >  
- </div>
+        <img src="/src/assets/img/svg/view-sort-ascending-name.svg" class="white" title="sort" width="24" height="24" >  
+    </div>
 
 
 </div>
@@ -234,8 +241,8 @@ import axios from "axios"
 import { VueDraggableNext } from 'vue-draggable-next'
 import { uploadselect, onedriveUpload, onedriveUploadSingle, uploadAndShareFile, createSharingLink, fileExistsInAppFolder, downloadFilesFromOneDrive} from '../msalutils/onedrive'
 import { handleDragEndItem, handleMoveItem, sortStudentWidgets, initializeStudentwidgets} from '../utils/dragndrop'
-import {loadFilelist, print, getLatest, getLatestFromStudent,  loadImage, loadPDF, dashboardExplorerSendFile, downloadFile, showWorkfolder, fdelete,  openLatestFolder } from '../utils/filemanager'
-import {stopserver, toggleScreenshot, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, toggleAutoabgabe, setAbgabeInterval } from '../utils/exammanagement.js'
+import { loadFilelist, print, getLatest, getLatestFromStudent,  loadImage, loadPDF, dashboardExplorerSendFile, downloadFile, showWorkfolder, fdelete,  openLatestFolder } from '../utils/filemanager'
+import { activateSpellcheckForStudent, delfolderquestion, stopserver, toggleScreenshot, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, setAbgabeInterval } from '../utils/exammanagement.js'
 
 export default {
     components: {
@@ -280,11 +287,11 @@ export default {
             freeDiscspace: 1000,
             replaceMSOfile: false,
             printrequest: false,
-
+            showDesc: false,
+            currentDescription: '',
             serverstatus:{   // this object contains all neccessary information for students about the current exam settings
                 exammode: false,
                 examtype: 'math',
-                delfolder: false,
                 delfolderonexit: false,
                 spellcheck: false,
                 spellchecklang: 'de',
@@ -298,18 +305,18 @@ export default {
                 msOfficeFile: null,
                 screenslocked: false,
                 pin: this.$route.params.pin,
+                linespacing : 1
               
             }
         };
     },
 
 
-
     methods: {
         /**
          * Microsoft OneDrive API Authentication and File Handling
          */
-        openAuthWindow(){ ipcRenderer.sendSync('openmsauth')  },
+        openAuthWindow(){ ipcRenderer.send('openmsauth')  },
         onedriveUploadselect: uploadselect,
         onedriveUpload: onedriveUpload,
         onedriveUploadSingle : onedriveUploadSingle,
@@ -345,12 +352,34 @@ export default {
 
 
         /**
+         * Exam Managment functions
+         */
+        startExam:startExam,                         // enable exam mode 
+        endExam:endExam,                             // disable exammode 
+        kick: kick,                                  //remove student from exam
+        restore: restore,                            //restore focus state for specific student -- we tell the client that his status is restored which will then (on the next update) update it's focus state on the server 
+        setAbgabeInterval:setAbgabeInterval,         // set abgabe interval
+        getFiles:getFiles,                           // get finished exams (ABGABE) from students
+        toggleScreenshot:toggleScreenshot,           //this just keeps the state of the toggle
+        setScreenshotInterval:setScreenshotInterval, //sets a new screenshot update interval - the value is sent to the students and then used to update the screenshots
+        lockscreens:lockscreens,                     // temporarily lock screens
+        sendFiles:sendFiles,                         //upload files to all students
+        stopserver:stopserver,                       //Stop and Exit Exam Server Instance
+        delfolderquestion: delfolderquestion,         // delete contents of studentfolder on student pc
+        activateSpellcheckForStudent: activateSpellcheckForStudent,  // activate spellcheck for specific student only
+   
+
+
+
+        /**
          * Runs every 4 seconds and fetches the current stundentlist from the backend
          * Handles Student-Widgets (create, delete, update)
          * Checks Screenshots and MSO Share Links
          */
-        fetchInfo() {
-            this.config = ipcRenderer.sendSync('getconfig')  // this is only needed in order to get the accesstoken from the backend for MSAuthentication - but it doesn't hurt
+        async fetchInfo() {
+            if (!this.config.accessToken){
+                this.config = await ipcRenderer.invoke('getconfigasync')  // this is only needed in order to get the accesstoken from the backend for MSAuthentication
+            }
             this.now = new Date().getTime()
             axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/studentlist/${this.servername}/${this.servertoken}`)
             .then( response => {
@@ -411,23 +440,14 @@ export default {
             }).catch( err => {console.log(err)});
         }, 
 
-        /**
-         * Exam Managment functions
-         */
-        startExam:startExam,                         // enable exam mode 
-        endExam:endExam,                             // disable exammode 
-        kick: kick,                                  //remove student from exam
-        restore: restore,                            //restore focus state for specific student -- we tell the client that his status is restored which will then (on the next update) update it's focus state on the server 
-        toggleAutoabgabe:toggleAutoabgabe,
-        setAbgabeInterval:setAbgabeInterval,         // set abgabe interval
-        getFiles:getFiles,                           // get finished exams (ABGABE) from students
-        toggleScreenshot:toggleScreenshot,           //this just keeps the state of the toggle
-        setScreenshotInterval:setScreenshotInterval, //sets a new screenshot update interval - the value is sent to the students and then used to update the screenshots
-        lockscreens:lockscreens,                     // temporarily lock screens
-        sendFiles:sendFiles,                         //upload files to all students
-        stopserver:stopserver,                       //Stop and Exit Exam Server Instance
 
-
+        async showDescription(description) {
+            this.currentDescription = description;
+            this.showDesc = true;
+        },
+        hideDescription() {
+            this.showDesc = false;
+        },
         visualfeedback(message, timeout=1000){
              this.$swal.fire({
                 text: message,
@@ -562,7 +582,7 @@ export default {
                 <div>
                     <label>
                         ${this.$t("dashboard.cmargin-value")}<br>
-                        <input style="width:100px" type="range" id="marginValue" name="margin_value" min="2" max="4" step="0.5" />
+                        <input style="width:100px" type="range" id="marginValue" name="margin_value" min="2" max="5" step="0.5" />
                         <div style="width:32px; display: inline-block"  id="marginValueDisplay">${this.serverstatus.cmargin.size}</div>(cm)
                     </label>
                     <br>
@@ -574,6 +594,23 @@ export default {
                         <input type="radio" name="correction_margin" value="right" checked/>
                         ${this.$t("dashboard.cmargin-right")}
                     </label>
+                </div>
+                <br>
+                <div> 
+                    ${this.$t("dashboard.linespacing")}<br>
+
+                    <label><input type="radio" name="linespacing" value="1"/> 1</label> &nbsp;
+                    <label><input type="radio" name="linespacing" value="2" checked/> 2</label> &nbsp;
+                    <label><input type="radio" name="linespacing" value="3"/> 3</label> &nbsp;
+                </div>
+                <br>
+
+                <div> 
+                    ${this.$t("dashboard.fontfamily")}<br>
+
+                    <label><input type="radio" name="fontfamily" value="serif"/> serif</label> &nbsp;
+                    <label><input type="radio" name="fontfamily" value="sans-serif" checked/> sans-serif</label> &nbsp;
+                   
                 </div>
                 <br>
                 <div style="border: 0px solid black;">
@@ -603,18 +640,39 @@ export default {
                     this.serverstatus.suggestions = document.getElementById('checkboxsuggestions').checked; 
                     const radioButtons = document.querySelectorAll('input[name="correction_margin"]');
                     const marginValue = document.getElementById('marginValue').value;
+                    const linespacingradioButtons = document.querySelectorAll('input[name="linespacing"]');
+                    const fontfamilyradioButtons = document.querySelectorAll('input[name="fontfamily"]');
+
                     let selectedMargin = '';
                     radioButtons.forEach((radio) => {
                         if (radio.checked) {
                             selectedMargin = radio.value;
                         }
                     });
+
+                    let selectedSpacing = '';
+                    linespacingradioButtons.forEach((radio) => {
+                        if (radio.checked) {
+                            selectedSpacing = radio.value;
+                        }
+                    });
+
+                    let selectedFont = '';
+                    fontfamilyradioButtons.forEach((radio) => {
+                        if (radio.checked) {
+                            selectedFont = radio.value;
+                        }
+                    });
+
                     if (marginValue && selectedMargin) {
                         this.serverstatus.cmargin = {
                             side: selectedMargin,
                             size: parseInt(marginValue)
                         }
                     }
+
+                    this.serverstatus.linespacing = selectedSpacing
+                    this.serverstatus.fontfamily = selectedFont
                 }
             })
             if (language) {
@@ -625,16 +683,7 @@ export default {
         },
 
 
-        // show warning
-        delfolderquestion(){
-            if (!this.serverstatus.delfolder) {
-                this.$swal.fire({
-                    title: this.$t("dashboard.attention"),
-                    text: this.$t("dashboard.delsure"),
-                    icon: "info"
-                })
-            }
-        },
+
         //display student specific actions
         showStudentview(student) {
             $("#studentinfocontainer").css("display","block");
@@ -672,13 +721,14 @@ export default {
         sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         },
-        checkDiscspace(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
-            this.freeDiscspace = ipcRenderer.sendSync('checkDiscspace')
+        async checkDiscspace(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
+            this.freeDiscspace = await ipcRenderer.invoke('checkDiscspace')
+            //console.log(this.freeDiscspace)
             if (this.freeDiscspace < 0.5) {
                 this.status(this.$t("dashboard.freespacewarning")) 
             }
         }, 
-        truncatedClientName(value, len=16) {
+        truncatedClientName(value, len=18) {
             if (!value) return
             return value.length > len ? value.substr(0, len) + '...' : value;
         },
@@ -743,7 +793,7 @@ export default {
         })
         if (this.electron){
             this.hostname = "localhost"
-            this.currentdirectory = ipcRenderer.sendSync('getCurrentWorkdir') 
+            this.currentdirectory = ipcRenderer.sendSync('getCurrentWorkdir')  //in case user changed it to different location
             this.workdirectory= `${this.currentdirectory}/${this.servername}`
         }
     },
@@ -778,7 +828,7 @@ export default {
 <style scoped>
 
 .studentwidget {
-    width: 204px;
+    width: 194px;
     height: 172px;
     white-space: nowrap;
     text-overflow:    ellipsis; 
@@ -807,6 +857,7 @@ export default {
     position: absolute;
     bottom: 0;
     right: 0;
+    font-size:0.9em;
 }
 
 .studentimage {
@@ -859,15 +910,20 @@ export default {
     border-top-right-radius: 5px;
 }
 
-
+.widgetbutton {
+    background-color: transparent;
+}
+.widgetbutton:hover {
+    filter: brightness(120%);
+}
 
 #content {
     background-color: whitesmoke;
 }
 
 .infobutton{
-    width: 240px;
-    min-width: 240px;
+    width: 220px;
+    min-width: 220px;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     background-color: whitesmoke;
@@ -935,7 +991,18 @@ export default {
 
 
 
-
+#description {
+   
+    /* position: absolute;  */
+    
+    font-size: 0.8em;
+    border-bottom-left-radius:5px;
+    border-bottom-right-radius:5px;
+     width: 200px  ;
+    /* height:52px; */
+    border-radius: 5px;
+  
+}
 
 
 
@@ -990,13 +1057,13 @@ export default {
     backdrop-filter: blur(3px);
     position: absolute;
     right: 0px;
-    width: 128px; 
+    width: 132px; 
     height: 100%; 
     top: 0px;  
     background:  rgba(97, 97, 97, 0.693);
     color: white; 
     font-size: 1.4em; 
-    padding: 10px;
+    padding: 2px;
 }
 
 

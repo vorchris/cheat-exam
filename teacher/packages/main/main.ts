@@ -19,6 +19,7 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
+
 import { app, BrowserWindow, powerSaveBlocker, nativeTheme, globalShortcut  } from 'electron'
 import { release } from 'os'
 import config from './config.js';
@@ -26,10 +27,22 @@ import server from "../server/src/server.js"
 import multicastClient from './scripts/multicastclient.js'
 import WindowHandler from './scripts/windowhandler.js'
 import IpcHandler from './scripts/ipchandler.js'
-
+import log from 'electron-log/main';
 
 WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow
 IpcHandler.init(multicastClient, config, WindowHandler)  //controll all Inter Process Communication
+
+
+
+log.initialize(); // initialize the logger for any renderer process
+let logfile = `${WindowHandler.config.workdirectory}/next-exam-teacher.log`
+log.transports.file.resolvePathFn = (config) => { return logfile  }
+log.eventLogger.startLogging();
+log.errorHandler.startCatching();
+log.warn(`-------------------`)
+log.info(`Logfile: ${logfile}`)
+log.info('Next-Exam Logger initialized...');
+
 
 
 // Disable GPU Acceleration for Windows 7
@@ -70,7 +83,7 @@ app.on('activate', () => {
 app.whenReady().then(()=>{
     nativeTheme.themeSource = 'light'  // make sure it does't apply dark system themes (we have dark icons in editor)
     server.listen(config.serverApiPort, () => {  // start express API
-        console.log(`Express listening on https://${config.hostip}:${config.serverApiPort}`)
+        log.info(`Express listening on https://${config.hostip}:${config.serverApiPort}`)
     }) 
 })
 .then(()=>{
@@ -85,10 +98,12 @@ app.whenReady().then(()=>{
 
     WindowHandler.createWindow()
 
-    globalShortcut.register('CommandOrControl+Shift+D', () => {
-        const win = BrowserWindow.getFocusedWindow()
-        if (win) {
-            win.webContents.toggleDevTools()
-        }
-    })
+    // globalShortcut.register('CommandOrControl+Shift+D', () => {
+    //     const win = BrowserWindow.getFocusedWindow()
+    //     if (win) {
+    //         win.webContents.toggleDevTools()
+    //     }
+    // })
+
+
 })

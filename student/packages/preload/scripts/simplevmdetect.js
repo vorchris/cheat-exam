@@ -24,7 +24,7 @@ const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL).toLowerCase(
 //console.log(vendor)
 //console.log(renderer)
 
-const keywords = ['vmware','virtualbox','parallels','solarwinds','qemu','hyper-v','bootcamp', 'swiftshader']
+const keywords = ['vmware','virtualbox','parallels','solarwinds','qemu','hyper-v','bootcamp', 'swiftshader','xen']
 
 
 let virtual = false

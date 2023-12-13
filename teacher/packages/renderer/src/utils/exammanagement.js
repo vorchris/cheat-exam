@@ -1,11 +1,13 @@
 import axios from "axios"
 import FormData from 'form-data'
+import log from 'electron-log/renderer';
+
 
 // enable exam mode 
 function startExam(){
     this.lockscreens(false, false); // deactivate lockscreen
     this.serverstatus.exammode = true;
-    console.log("starting exammode")
+    log.info("starting exammode")
     this.visualfeedback(this.$t("dashboard.startexam"))
     this.setServerStatus()
 }
@@ -58,9 +60,9 @@ function kick(studenttoken, studentip){
                 //unregister locally
             axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/kick/${this.servername}/${this.servertoken}/${studenttoken}`)
             .then( response => {
-                console.log(response.data);
+                log.info(response.data);
                 this.status(response.data.message);
-            }).catch(error => {console.log(error)});
+            }).catch(error => {log.error(error)});
         } 
     });  
 }
@@ -71,15 +73,11 @@ function kick(studenttoken, studentip){
 function restore(studenttoken){
     this.visualfeedback(this.$t("dashboard.restore"),2000)
     axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/restore/${this.servername}/${this.servertoken}/${studenttoken}`)
-        .then( response => { console.log(response.data)  })
-        .catch( err => {console.log(err)});
+        .then( response => { log.info(response.data)  })
+        .catch( err => {log.error(err)});
 }
 
 
-function toggleAutoabgabe(){
-    if (this.autoabgabe) { this.abgabeinterval = setInterval(() => { this.getFiles('all') }, 60000 * this.abgabeintervalPause) }   //trigger getFiles('all') every other minute
-    else { clearInterval( this.abgabeinterval )} 
-}
 
 function setAbgabeInterval(){
     if (!this.autoabgabe) {
@@ -94,10 +92,21 @@ function setAbgabeInterval(){
                 step: 1
             },
             inputValue: this.abgabeintervalPause
-        }).then((input) => {
-            this.abgabeintervalPause= input.value
-            if (!this.abgabeintervalPause){this.abgabeintervalPause = 5}   // make sure it is set otherwise we well fetch the exams X times per second
+        }).then((result) => {
+            const inputInteger = parseInt(result.value, 10); // Convert to integer
+            this.abgabeintervalPause = inputInteger
+            if (!this.abgabeintervalPause || !Number.isInteger(this.abgabeintervalPause) ){  // make sure it is set otherwise we well fetch the exams X times per second
+                log.warn("something wrong with interval frequency - setting to default")
+                this.abgabeintervalPause = 5
+            }   
+            log.info("starting submission intervall", this.abgabeintervalPause)
+            this.abgabeinterval = setInterval(() => { this.getFiles('all') }, 60000 * this.abgabeintervalPause) //trigger getFiles('all') every other minute
         })
+    }
+    else {
+        log.info(this.abgabeinterval)
+        log.info("stopping submission interval")
+        clearInterval( this.abgabeinterval); 
     }
 }
 
@@ -105,7 +114,7 @@ function setAbgabeInterval(){
 // get finished exams (ABGABE) from students
 function getFiles(who, feedfack=false, quiet=false){
     this.checkDiscspace()
-    if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); console.log("no clients connected"); return; }
+    if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); log.warn("no clients connected"); return; }
 
     if (this.serverstatus.examtype === "microsoft365"){ //fetch files from onedrive
         this.downloadFilesFromOneDrive()
@@ -123,7 +132,7 @@ function getFiles(who, feedfack=false, quiet=false){
                 if (quiet) {return}  //completely quiet
                 this.status(response.data.message); 
             } })  
-        .catch( err => {console.log(err)});
+        .catch( err => {log.error(err)});
     }
 }
 
@@ -143,11 +152,12 @@ function getFiles(who, feedfack=false, quiet=false){
             step: 4
         },
         inputValue: this.serverstatus.screenshotinterval
-    }).then((input) => {
-        this.serverstatus.screenshotinterval= input.value
+    }).then((result) => {
+        const inputInteger = parseInt(result.value, 10); // Convert to integer
+        this.serverstatus.screenshotinterval= inputInteger
         if (this.serverstatus.screenshotinterval == 0) { document.getElementById("screenshotinterval").checked = false }
         else { document.getElementById("screenshotinterval").checked = true}
-        if (!this.serverstatus.screenshotinterval){this.serverstatus.screenshotinterval = 4}
+        if (!this.serverstatus.screenshotinterval || !Number.isInteger(this.serverstatus.screenshotinterval)){this.serverstatus.screenshotinterval = 4}
 
         // WRITE screenshotinterval serverstatus ojbect so it can be retrieved on the next student update 
         this.setServerStatus()
@@ -206,8 +216,8 @@ function sendFiles(who) {
             url: `https://${this.serverip}:${this.serverApiPort}/server/data/upload/${this.servername}/${this.servertoken}/${who}`, 
             data: formData, 
         })
-        .then( (response) => {console.log(response.data) })
-        .catch( err =>{ console.log(`${err}`) })
+        .then( (response) => {log.info(response.data) })
+        .catch( err =>{ log.error(`${err}`) })
     });    
 }
 
@@ -237,16 +247,135 @@ function stopserver(){
             axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/stopserver/${this.servername}/${this.servertoken}`)
             .then( async (response) => {
                 this.status(response.data.message);
-                //console.log(response.data);
+                //log.info(response.data);
                 await this.sleep(2000);
                 this.$router.push({ path: '/startserver' })
-            }).catch( err => {console.log(err)});
+            }).catch( err => {log.error(err)});
         } 
     });    
+}
+
+
+        // show warning
+function delfolderquestion(){
+    if (this.studentlist.length === 0) { this.status(this.$t("dashboard.noclients")); return;}
+    this.$swal.fire({
+        title: this.$t("dashboard.attention"),
+        text:  this.$t("dashboard.delsure"),
+        icon: "question",
+        showCancelButton: true,
+        cancelButtonText: this.$t("dashboard.cancel"),
+        reverseButtons: true,
+        
+    })
+    .then((result) => {
+        if (result.isConfirmed) {
+        
+                // inform student that folder needs to be deleted
+            fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/setstudentstatus/${this.servername}/${this.servertoken}/all`, { 
+                method: 'POST',
+                headers: {'Content-Type': 'application/json' },
+                body: JSON.stringify({ delfolder : true } )
+            })
+            .then( res => res.json() )
+            .then( result => { log.info(result)});
+        } 
+    });  
+}
+
+
+
+
+/**
+ * Spellcheck for specific student
+ * workflow:  es wird durch einen api call an control.js der studentstatus.allowspellcheck gesetzt (object {spellchecklang, suggestions})
+ * beim nächsten update holt sich der student den studentstatus und sollte allowspellcheck true sein wird
+ * clientinfo.allowspellcheck (communicationhandler.js) gesetzt,  clientinfo holt sich das frontend alle 4 sek.
+ * der editor (frontend) sieht dann allowspellcheck und aktiviert mittels IPC invoke (ipchandler.js) dann nodehun() und macht den spellcheckbutton sichtbar
+ */
+async function activateSpellcheckForStudent(token, clientname){
+    let suggestions = null
+    const inputOptions = new Promise((resolve) => {
+        setTimeout(() => {
+            resolve({
+                'none':this.$t("dashboard.none"),
+                'de': this.$t("dashboard.de"),
+                'en-GB': this.$t("dashboard.en"),
+                'fr': this.$t("dashboard.fr"),
+                'es': this.$t("dashboard.es"),
+                'it': this.$t("dashboard.it"),
+            })
+        }, 100)
+    })
+    const { value: language } = await this.$swal.fire({
+        title: this.$t("dashboard.spellcheck"),
+        html: `
+        <div style="border: 0px solid black;">
+            <h4 style: margin-bottom: 0px;padding-bottom: 0px;>${this.$t("dashboard.allowspellcheck")}</h4>
+            <input class="form-check-input" type="checkbox" id="checkboxsuggestions">
+            <label class="form-check-label" for="checkboxsuggestions"> ${this.$t("dashboard.suggest")} </label>
+            <br><br>
+            <span>${this.$t("dashboard.spellcheckchoose")}</span>
+        </div>`,
+        input: 'select',
+        inputOptions: inputOptions,
+        focusConfirm: false,
+        inputValidator: (value) => {
+            if (!value) {
+            return 'You need to choose something!'
+            }
+        },
+        preConfirm: () => {
+            suggestions = document.getElementById('checkboxsuggestions').checked; 
+        }
+    })
+    if (language) {
+        let spellcheck = true
+        let spellchecklang = language
+        if (language === 'none'){
+            spellcheck = false
+            console.log(`de-activating spellcheck for user: ${clientname} `)
+            console.log(spellcheck,spellchecklang,suggestions )
+            // inform student that spellcheck can be activated
+            fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/setstudentstatus/${this.servername}/${this.servertoken}/${token}`, { 
+                method: 'POST',
+                headers: {'Content-Type': 'application/json' },
+                body: JSON.stringify({ allowspellcheck : false } )
+            })
+            .then( res => res.json() )
+            .then( result => { log.info(result)});
+        }
+        else {
+            console.log(`activating spellcheck for user: ${clientname} `)
+            // inform student that spellcheck can be activated
+            fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/setstudentstatus/${this.servername}/${this.servertoken}/${token}`, { 
+                method: 'POST',
+                headers: {'Content-Type': 'application/json' },
+                body: JSON.stringify({ allowspellcheck : true, spellchecklang : spellchecklang, suggestions: suggestions } )
+            })
+            .then( res => res.json() )
+            .then( result => { log.info(result)});
+        }
+    }  
 }
 
 
 
 
 
-export {stopserver, toggleScreenshot, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, toggleAutoabgabe, setAbgabeInterval  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export {activateSpellcheckForStudent, delfolderquestion, stopserver, toggleScreenshot, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, setAbgabeInterval  }

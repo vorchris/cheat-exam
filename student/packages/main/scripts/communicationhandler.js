@@ -27,11 +27,10 @@ import FormData from 'form-data/lib/form_data.js';     //we need to import the f
 import { join } from 'path'
 import { screen } from 'electron'
 import WindowHandler from './windowhandler.js'
-import ExamMenu from './examMenu.js'
-
+import sharp from 'sharp'
 import { execSync } from 'child_process';
 const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
-
+import log from 'electron-log/main';
 
 
 
@@ -68,7 +67,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
             if (output.includes('wayland')){ return true } 
             return false
         } catch(error){
-            console.log("Next-Exam detected a Wayland Session - Screenshots are not supported yet")
+            log.error("Next-Exam detected a Wayland Session - Screenshots are not supported yet")
             return false
         }
     }
@@ -80,7 +79,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
     imagemagickAvailable(){
         try{ shell(`which import`); return true}
         catch(error){
-            console.log("ImageMagick is required to take screenshots on linux")
+            log.error("ImageMagick is required to take screenshots on linux")
             return false
         }
     }
@@ -92,16 +91,10 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
     async sendHeartbeat(){
         // CONNECTION LOST - UNLOCK SCREEN
         if (this.multicastClient.beaconsLost >= 5 ){ // no serversignal for 20 seconds
-            console.log("Connection to Teacher lost! Removing registration.") //remove server registration locally (same as 'kick')
+            log.warn("Connection to Teacher lost! Removing registration.") //remove server registration locally (same as 'kick')
             this.multicastClient.beaconsLost = 0
-            this.resetConnection()
-            this.killScreenlock()
-            if (this.multicastClient.clientinfo.exammode === true) {
-                // lets try to allow students to gracefully exit exam on connection loss manually 
-                // this should lead to less irritation when the teacher connection is lost
-                // buttons will be automatically shows to "reconnect" or to "exit" the lockdownmode
-                console.log("Keeping Examwindow Lockdown")
-            }
+            this.resetConnection()   // this also resets serverip therefore no api calls are made afterwards
+            this.killScreenlock()       // just in case screens are blocked.. let students work
         }
 
         // ACTIVE SERVER CONNECTION - SEND HEARTBEAT
@@ -112,13 +105,13 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
                 headers: {'Content-Type': 'application/json' }
             }).then( response => {
                 if (response.data && response.data.status === "error") { 
-                     if      (response.data.message === "notavailable"){ console.log('Exam Instance not found!');        this.multicastClient.beaconsLost = 5} //server responded but exam is not available anymore 
-                     else if (response.data.message === "removed"){      console.log('Student registration not found!'); this.multicastClient.beaconsLost = 5} //server responded but student is no registered anymore (kicked)
-                     else { this.multicastClient.beaconsLost += 1;       console.log("heartbeat lost..") }  // other error
+                     if      (response.data.message === "notavailable"){ log.warn('Exam Instance not found!');        this.multicastClient.beaconsLost = 5} //server responded but exam is not available anymore 
+                     else if (response.data.message === "removed"){      log.warn('Student registration not found!'); this.multicastClient.beaconsLost = 5} //server responded but student is no registered anymore (kicked)
+                     else { this.multicastClient.beaconsLost += 1;       log.warn("heartbeat lost..") }  // other error
                 }
                 else if (response.data && response.data.status === "success") {  this.multicastClient.beaconsLost = 0  }
             })
-            .catch(error => { console.log(`SendHeartbeat Axios: ${error}`); this.multicastClient.beaconsLost += 1; console.log("heartbeat lost..") });
+            .catch(error => { log.error(`SendHeartbeat Axios: ${error}`); this.multicastClient.beaconsLost += 1; log.error("heartbeat lost..") });
         }
     }
 
@@ -138,13 +131,13 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
                 headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
             })
             .then( response => {
-                if (response.data && response.data.status === "error") { console.log("requestUpdate Axios: status error - try again in 5 seconds") }
+                if (response.data && response.data.status === "error") { log.error("requestUpdate Axios: status error - try again in 5 seconds") }
                 else if (response.data && response.data.status === "success") { 
                     this.multicastClient.beaconsLost = 0 // this also counts as successful heartbeat - keep connection
                     this.processUpdatedServerstatus(response.data.serverstatus, response.data.studentstatus)
                 }
             })
-            .catch(error => { console.log(`requestUpdate Axios: ${error}`); console.log("requestUpdate Axios: failed - try again in 5 seconds")});
+            .catch(error => { log.error(`requestUpdate Axios: ${error}`); log.error("requestUpdate Axios: failed - try again in 5 seconds")});
         }
     }
 
@@ -164,7 +157,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
             if (this.screenshotAbility){
                 img = await screenshot()   //grab "screenshot" with screenshot node module
                 .then( (res) => { this.screenshotFails=0; return res} )
-                .catch((err) => { this.screenshotFails+=1; if(this.screenshotFails > 4){ this.screenshotAbility=false;console.log(`requestUpdate Screenshot: switching to PageCapture`) } console.log(`requestUpdate Screenshot: ${err}`) });
+                .catch((err) => { this.screenshotFails+=1; if(this.screenshotFails > 4){ this.screenshotAbility=false;log.error(`requestUpdate Screenshot: switching to PageCapture`) } log.error(`requestUpdate Screenshot: ${err}`) });
             }
             else {
                 //grab "screenshot" from appwindow
@@ -175,18 +168,34 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
                         const imageBuffer = image.toPNG();// Convert the nativeImage to a Buffer (PNG format)
                         return imageBuffer
                       })
-                    .catch((err) => {console.log(`requestUpdate Screenshot: ${err}`)   });
+                    .catch((err) => {log.error(`requestUpdate Screenshot: ${err}`)   });
                 }
             }
 
             if (Buffer.isBuffer(img)){
-                let screenshotfilename = this.multicastClient.clientinfo.token +".jpg"
-                formData.append(screenshotfilename, img, screenshotfilename );
-                let hash = crypto.createHash('md5').update(img).digest("hex");
-                formData.append('screenshothash', hash);
-                formData.append('screenshotfilename', screenshotfilename);
+
+                let resized = null
+                try {
+                    resized = await sharp(img)
+                        .resize(1440) // Setzen Sie die gewünschte Breite; die Höhe wird proportional skaliert
+                        .toFormat('jpeg')
+                        .jpeg({ quality: 65, mozjpeg: true }) // Setzen Sie die gewünschte JPEG-Qualität
+                        .toBuffer();
+                } catch (error) {
+                    console.error('Fehler beim Reduzieren des Bildes:', error);
+                    throw error; // Weitergabe des Fehlers für weitere Fehlerbehandlung
+                }
+
+
+                    let screenshotfilename = this.multicastClient.clientinfo.token +".jpg"
+                    formData.append(screenshotfilename, resized, screenshotfilename );
+                    let hash = crypto.createHash('md5').update(resized).digest("hex");
+                    formData.append('screenshothash', hash);
+                    formData.append('screenshotfilename', screenshotfilename);
+              
+              
             }
-            else { console.log("Image is no buffer:", img) }
+            else { log.error("Image is no buffer:", img) }
 
             axios({    //send screenshot update
                 method: "post", 
@@ -195,9 +204,9 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
                 headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
             })
             .then( response => {
-                if (response.data && response.data.status === "error") { console.log("sendScreenshot Axios: status error",  response.data.message ) }
+                if (response.data && response.data.status === "error") { log.error("sendScreenshot Axios: status error",  response.data.message ) }
             })
-            .catch(error => { console.log(`sendScreenshot Axios: ${error}`); });
+            .catch(error => { log.error(`sendScreenshot Axios: ${error}`); });
         }
     }
 
@@ -232,16 +241,34 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
                 WindowHandler.examwindow.webContents.send('denied','toomany')   //trigger, why
             }
 
+            if (studentstatus.delfolder === true){
+                log.info("[processUpdatedServerstatus] cleaning exam workfolder")
+                try {
+                    if (fs.existsSync(this.config.workdirectory)){   // set by server.js (desktop path + examdir)
+                        fs.rmSync(this.config.workdirectory, { recursive: true });
+                        fs.mkdirSync(this.config.workdirectory);
+                    }
+                } catch (error) { console.error(error); }
+            }
             if (studentstatus.restorefocusstate === true){
+                log.info("[processUpdatedServerstatus] restoring focus state for student")
                 this.multicastClient.clientinfo.focus = true
             }
+            if (studentstatus.allowspellcheck && studentstatus.allowspellcheck.spellchecklang){
+                log.info("[processUpdatedServerstatus] activating spellcheck for student")
+                this.multicastClient.clientinfo.allowspellcheck = studentstatus.allowspellcheck  // object with {spellchecklang, suggestions}
+            }
+            if (studentstatus.allowspellcheck === "deactivate") {
+                log.info("[processUpdatedServerstatus] de-activating spellcheck for student")
+                this.multicastClient.clientinfo.allowspellcheck = false
+            }
+
             if (studentstatus.sendexam === true){
                 this.sendExamToTeacher()
             }
             if (studentstatus.fetchfiles === true){
                 this.requestFileFromServer(studentstatus.files)
             }
-
             // this is an microsoft365 thing. check if exam mode is office, check if this is set - otherwise do not enter exammode - it will fail
             if (studentstatus.msofficeshare){
                 //set or update sharing link - it will be used in "microsoft365" exam mode
@@ -257,7 +284,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
         //update screenshotinterval
         if (serverstatus.screenshotinterval) { 
             if (this.multicastClient.clientinfo.screenshotinterval !== serverstatus.screenshotinterval*1000) {
-                console.log("ScreenshotInterval changed to", serverstatus.screenshotinterval*1000)
+                log.info("ScreenshotInterval changed to", serverstatus.screenshotinterval*1000)
                 this.multicastClient.clientinfo.screenshotinterval = serverstatus.screenshotinterval*1000
                 
                 // clear old interval and start new interval if set to something bigger than zero
@@ -300,7 +327,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
                 WindowHandler.screenlockWindow.close(); 
                 WindowHandler.screenlockWindow.destroy(); 
             }
-            catch(e){ console.log(e)}
+            catch(e){ log.error(e)}
             WindowHandler.screenlockWindow = null;
         }
         this.multicastClient.clientinfo.screenlock = false
@@ -327,25 +354,17 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
      * @param serverstatus contains information about exammode, examtype, and other settings from the teacher instance
      */
     async startExam(serverstatus){
-        if (serverstatus.delfolder === true){
-            console.log("cleaning exam workfolder")
-            try {
-                if (fs.existsSync(this.config.workdirectory)){   // set by server.js (desktop path + examdir)
-                    fs.rmSync(this.config.workdirectory, { recursive: true });
-                    fs.mkdirSync(this.config.workdirectory);
-                }
-            } catch (error) { console.error(error); }
-        }
-
+  
         let displays = screen.getAllDisplays()
         let primary = screen.getPrimaryDisplay()
         if (!primary || primary === "" || !primary.id){ primary = displays[0] }       
        
         this.multicastClient.clientinfo.exammode = true
         this.multicastClient.clientinfo.cmargin = serverstatus.cmargin  // this is used to configure margin settings for the editor
+        this.multicastClient.clientinfo.linespacing = serverstatus.linespacing // we try to double linespacing on demand in pdf creation
 
         if (!WindowHandler.examwindow){  // why do we check? because exammode is left if the server connection gets lost but students could reconnect while the exam window is still open and we don't want to create a second one
-            console.log("creating exam window")
+            log.info("creating exam window")
             this.multicastClient.clientinfo.examtype = serverstatus.examtype
             WindowHandler.createExamWindow(serverstatus.examtype, this.multicastClient.clientinfo.token, serverstatus, primary);
         }
@@ -389,10 +408,10 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
      * disables restrictions and blur 
      */
     async endExam(serverstatus){
-        console.log(serverstatus)
+        log.info(serverstatus)
         // delete students work on students pc (makes sense if exam is written on school property)
         if (serverstatus.delfolderonexit === true){
-            console.log("cleaning exam workfolder on exit")
+            log.info("cleaning exam workfolder on exit")
             try {
                 if (fs.existsSync(this.config.workdirectory)){   // set by server.js (desktop path + examdir)
                     fs.rmSync(this.config.workdirectory, { recursive: true });
@@ -413,7 +432,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
                 WindowHandler.examwindow.close(); 
                 WindowHandler.examwindow.destroy(); 
             }
-            catch(e){ console.log(e)}
+            catch(e){ log.error(e)}
            
             WindowHandler.examwindow = null;
             for (let blockwindow of WindowHandler.blockwindows){
@@ -432,7 +451,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
     // this is triggered if connection is lost during exam - we allow the student to get out of the kiosk mode but keep his work in the editor
     gracefullyEndExam(){
         if (WindowHandler.examwindow){ 
-            console.log("Unlocking Workstation")
+            log.warn("Unlocking Workstation")
             try {
                 WindowHandler.examwindow.setKiosk(false)
                 WindowHandler.examwindow.setAlwaysOnTop(false)
@@ -483,19 +502,19 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
         .then(response =>{ 
             let absoluteFilepath = join(this.config.tempdirectory, token.concat('.zip'));
             fs.writeFile(absoluteFilepath, response.data, (err) => {
-                if (err){console.log(err);}
+                if (err){log.error(err);}
                 else {
                     extract(absoluteFilepath, { dir: this.config.workdirectory }, ()=>{ 
-                        console.log("CommunicationHandler - files extracted")
-                        fs.unlink(absoluteFilepath, (err) => { if (err) console.log(err); }); // remove zip file after extracting
+                        log.info("CommunicationHandler - files extracted")
+                        fs.unlink(absoluteFilepath, (err) => { if (err) log.error(err); }); // remove zip file after extracting
                     }).then( () => {
-                        if (backupfile) {    if (WindowHandler.examwindow){ WindowHandler.examwindow.webContents.send('backup', backupfile  ); console.log("CommunicationHandler - Trigger Replace Event") } }
+                        if (backupfile) {    if (WindowHandler.examwindow){ WindowHandler.examwindow.webContents.send('backup', backupfile  ); log.error("CommunicationHandler - Trigger Replace Event") } }
                         if (WindowHandler.examwindow){ WindowHandler.examwindow.webContents.send('loadfilelist')}
                     })
                 }
             });
         })
-        .catch( err =>{console.log(`CommunicationHandler - requestFileFromServer: ${err}`) })   
+        .catch( err =>{log.error(`CommunicationHandler - requestFileFromServer: ${err}`) })   
     }
 
 
@@ -519,8 +538,11 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
         // give it some time
         await this.sleep(1000)  // wait one second before zipping workdirectory (give save some time - unfortunately we have no way to wait for save - we could check the filetime in a "while loop" though)
      
-        //zip config.work directory
-        if (!fs.existsSync(this.config.tempdirectory)){ fs.mkdirSync(this.config.tempdirectory); }
+        try {
+            //zip config.work directory
+            if (!fs.existsSync(this.config.tempdirectory)){ fs.mkdirSync(this.config.tempdirectory); }
+        }catch (e){ log.error(e)}
+
         //fsExtra.emptyDirSync(this.config.tempdirectory)
         let zipfilename = this.multicastClient.clientinfo.name.concat('.zip')
         let servername = this.multicastClient.clientinfo.servername
@@ -528,8 +550,14 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
         let token = this.multicastClient.clientinfo.token
         let zipfilepath = join(this.config.tempdirectory, zipfilename);
      
-        await this.zipDirectory(this.config.workdirectory, zipfilepath)
-        let file = fs.readFileSync(zipfilepath);
+        let file = null
+        try {
+            await this.zipDirectory(this.config.workdirectory, zipfilepath)
+            file = fs.readFileSync(zipfilepath);
+        }catch (e){ 
+            log.error(e)
+        }
+
         const form = new FormData()
         form.append(zipfilename, file, {contentType: 'application/zip', filename: zipfilename });   
      
@@ -539,8 +567,8 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
             data: form, 
             headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
         })
-        .then(response =>{ console.log(`Communication handler @ sendExamToTeacher: ${response.data.message}`)  })
-        .catch( err =>{console.log(`Communication handler @ sendExamToTeacher: ${err}`) })
+        .then(response =>{ log.info(`Communication handler @ sendExamToTeacher: ${response.data.message}`)  })
+        .catch( err =>{log.error(`Communication handler @ sendExamToTeacher: ${err}`) })
      
      }
 
@@ -562,7 +590,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
         ;
         stream.on('close', () => resolve());
         archive.finalize();
-        });
+        }).catch( error => { log.error(error)});
     }
 
 

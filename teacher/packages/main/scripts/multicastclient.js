@@ -17,7 +17,7 @@
 
 import dgram from 'dgram';
 import config from '../config.js';  // node not vue (relative path needed)
-
+import log from 'electron-log/main';
 /**
  * Starts a dgram (udp) socket that listens for mulitcast messages
  */
@@ -39,7 +39,7 @@ class MulticastClient {
             this.client.setBroadcast(true)
             this.client.setMulticastTTL(128); 
             this.client.addMembership(this.MULTICAST_ADDR)
-            console.log(`UDP MC Client listening on http://${config.hostip}:${this.client.address().port}`)
+            log.info(`UDP MC Client listening on http://${config.hostip}:${this.client.address().port}`)
         })
 
         this.client.on('message', (message, rinfo) => { this.messageReceived(message, rinfo) })
@@ -56,7 +56,7 @@ class MulticastClient {
         serverInfo.serverport = rinfo.port
         
         if (this.isNewExamInstance(serverInfo)) {
-            console.log(`Adding new Exam Instance "${serverInfo.servername}" to Serverlist`)
+            log.info(`Adding new Exam Instance "${serverInfo.servername}" to Serverlist`)
             this.examServerList.push(serverInfo)
         }
     }
@@ -81,7 +81,7 @@ class MulticastClient {
         for (let i = 0; i < this.examServerList.length; i++) {
             const now = new Date().getTime()
             if (now - 16000 > this.examServerList[i].timestamp) {
-                console.log('Removing inactive server from list')
+                log.warn('Removing inactive server from list')
                 this.examServerList.splice(i, 1)
             }
         }

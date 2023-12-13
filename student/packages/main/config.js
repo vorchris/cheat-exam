@@ -2,8 +2,9 @@ import pjson from "../../package.json"
 
 
 const config = {
-    development: false,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
-    showdevtools: false,
+    development: true,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
+    showdevtools: true,
+    bipIntegration: false,
 
     workdirectory : "",   // (desktop path + examdir)
     tempdirectory : "",   // (desktop path + 'tmp')
@@ -18,6 +19,6 @@ const config = {
     electron: false,
     virtualized: false,
     version: pjson.version,
-    info: "Release Candidate 2"
+    info: "Release Candidate 3"
 }
 export default config

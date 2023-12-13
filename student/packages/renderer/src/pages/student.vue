@@ -20,6 +20,21 @@
         <div v-if="!advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("student.advanced") }}</div>
         <div v-if="advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("student.simple") }}</div>
         
+        <div v-if="config.bipIntegration" @click="clearUser()" class="form-check form-switch  m-1 mb-2 mt-4" style="font-size:0.9em">
+            <!-- Checkbox mit dem Label "BiP Login" -->
+            <input class="form-check-input" type="checkbox" id="bipLogin" v-model="biplogin"> 
+            <label class="form-check-label" for="bipLogin"> BiP Login</label>
+        </div>
+
+
+        
+        <div  id="biploginbutton" v-if="biplogin" @click="loginBiP" class="btn btn-info mb-1 me-0" style="padding:0;">
+            <img v-if="biplogin" style="width:100%; border-top-left-radius:3px;border-top-right-radius:3px; margin:0; " src="/src/assets/img/login_students.jpg">
+             <span id="biploginbuttonlabel">Bildungsportal - Login</span>
+        </div> 
+        
+
+
         <div class="m-2">
             <br><div id="statusdiv" class="btn btn-warning m-1"></div>
         </div>
@@ -38,16 +53,25 @@
 
 
         <div class="col-8 mb-2">
-            <div class="input-group  mb-1">
-                <span class="input-group-text col-3" style="width:135px;" id="inputGroup-sizing-lg">{{ $t("student.username") }}</span>
-                <input v-model="username" type="text" required="required" maxlength="25" class="form-control" id="user" placeholder="" style="width:200px;max-width:200px;min-width:200px;">
-            </div>   
+            <div v-if="!biplogin" class="input-group  mb-1">
+                <span class="input-group-text col-3" style="width:100px;" id="inputGroup-sizing-lg">{{ $t("student.name") }}</span>
+                <input v-model="username" type="text" required="required" maxlength="25" class="form-control" id="user" placeholder="" style="width:200px;max-width:200px;min-width:135px;">
+            </div> 
+
+            <div v-if="biplogin" class="input-group  mb-1">
+                <span class="input-group-text col-3" style="width:100px;" id="inputGroup-sizing-lg">{{ $t("student.name") }}</span>
+               
+                <span v-if="username" class="input-group-text col-3" style="width:200px;" id="inputGroup-sizing-lg"> {{ username  }} </span>
+                <span v-else class="input-group-text col-3 " style="width:200px;" id="inputGroup-sizing-lg">  </span>
+               
+            </div> 
+      
             <div class="input-group  mb-1"> 
-                <span class="input-group-text col-3" style="width:135px;" id="inputGroup-sizing-lg">{{ $t("student.pin") }}</span>
-                <input  v-model="pincode" type="number" min="0" oninput="validity.valid||(value='')" class="form-control" id="pin" placeholder="" style="width:100px;max-width:100px;min-width:100px;">
+                <span class="input-group-text col-3" style="width:100px;" id="inputGroup-sizing-lg">{{ $t("student.pin") }}</span>
+                <input  v-model="pincode" type="number" min="0" oninput="validity.valid||(value='')" class="form-control" id="pin" placeholder="" style="width:135px;max-width:135px;min-width:135px;">
             </div>
             <div v-if="advanced" class="input-group  mb-1"> 
-                <span class="input-group-text col-3" style="width:135px;" id="inputGroup-sizing-lg">{{ $t("student.ip") }}</span>
+                <span class="input-group-text col-3" style="width:100px;" id="inputGroup-sizing-lg">{{ $t("student.ip") }}</span>
                 <input  v-model="serverip" class="form-control" id="serverip" placeholder="" style="width:135px;max-width:135px;min-width:135px;">
             </div>
         </div>
@@ -74,9 +98,19 @@
 
 
 <script>
-import axios from "axios";
+import axios from "axios"
 import validator from 'validator'
 import $ from 'jquery'
+import log from 'electron-log/renderer'
+
+// Erfassen von unhandled promise rejections
+window.addEventListener('unhandledrejection', event => {
+  log.error('Unhandled promise rejection:', event.reason); // Loggen des Fehlers
+});
+
+Object.assign(console, log.functions);  //alle console logs durch logger ersetzen
+
+
 
 export default {
     data() {
@@ -92,17 +126,52 @@ export default {
             serverApiPort: this.$route.params.serverApiPort,
             clientApiPort: this.$route.params.clientApiPort,
             electron: this.$route.params.electron,
+            config: this.$route.params.config,
             startExamEvent: null,
             advanced: false,
             serverip: "",
             servername: "",
-            hostip: config.hostip
-            
+            hostip: config.hostip,
+            biplogin: false
         };
     },
     methods: {
-        fetchInfo() {
-            let getinfo = ipcRenderer.sendSync('getinfo')  // gets serverlist and clientinfo from multicastclient
+        loginBiP(){
+            let IPCresponse = ipcRenderer.sendSync('loginBiP')
+            console.log(IPCresponse)
+        },
+        clearUser(){
+            this.username = ""
+        },  
+
+        // Überprüfen, ob der String Base64-codiert ist
+        isBase64(str) {
+            try {
+                return btoa(atob(str)) === str;
+            } catch (err) {
+                return false;
+            }
+        },
+
+        // Base64-String dekodieren und mögliche Tokens extrahieren
+        decodeBase64AndExtractTokens(base64Str) {
+            if (!this.isBase64(base64Str)) {
+                return null;
+            }
+            const decodedStr = atob(base64Str);
+            const tokens = decodedStr.split(/[:\s,]+/); // Trennzeichen anpassen, falls nötig
+            return tokens;
+        },
+
+
+
+
+
+
+
+
+        async fetchInfo() {
+            let getinfo = await ipcRenderer.invoke('getinfoasync')  // gets serverlist and clientinfo from multicastclient
             
             this.clientinfo = getinfo.clientinfo;
             this.token = this.clientinfo.token;
@@ -111,8 +180,10 @@ export default {
                 if (validator.isIP(this.serverip) || validator.isFQDN(this.serverip)){
                         console.log("fetching exams from server")
                         //give some userfeedback here
-                        this.status("Suche Prüfungen...")
-
+                        if (this.serverlist.length == 0){
+                            this.status("Suche Prüfungen...")
+                        }
+                    
                         axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/serverlist`)
                         .then( response => { if (response.data && response.data.status == "success") {  this.serverlist = response.data.serverlist} }) 
                         .catch(err => { console.log(err.message)}) 
@@ -151,10 +222,18 @@ export default {
 
         /** register client on the server **/
         registerClient(serverip, servername){
-           if (this.username === "" || this.pincode ===""){
+           if (this.username === ""){
                this.$swal.fire({
                     title: "Error",
-                    text: this.$t("student.nopw"),
+                    text: this.$t("student.nouser"),
+                    icon: 'error',
+                    showCancelButton: false,
+                })
+            }
+            else if(this.pincode ===""){
+                this.$swal.fire({
+                    title: "Error",
+                    text: this.$t("student.nopin"),
                     icon: 'error',
                     showCancelButton: false,
                 })
@@ -204,6 +283,34 @@ export default {
                 `,
             })
         },
+        fetchBiPData(base64String){
+
+            const tokens = this.decodeBase64AndExtractTokens(base64String);
+            console.log(tokens); // Zeigt die extrahierten Tokens, falls vorhanden
+            let token = tokens[1]
+
+            const url = `https://www.bildung.gv.at/webservice/rest/server.php?wstoken=${token}&wsfunction=core_webservice_get_site_info&moodlewsrestformat=json`
+                                                                             
+            console.log(url)
+
+            fetch(url, { method: 'POST'})
+            .then( res => res.json() )
+            .then( response => {
+                console.log(response)
+                this.$swal.fire({
+                        title: "BiP Response",
+                        text: "Verbindung hergestellt",
+                        icon: 'info',
+                        showCancelButton: false,
+                })
+                if (response.fullname){
+                    this.username = response.fullname
+                    $("#biploginbuttonlabel").text("verbunden")
+                    $("#biploginbutton").prop("disabled", true);
+                }
+            })
+            .catch(err => { console.warn(err) })
+        }
     },
     mounted() {  
         $("#statusdiv").hide()
@@ -216,6 +323,13 @@ export default {
             var key = e.key || String.fromCharCode(e.which);
             if (!lettersOnly.test(key)) { e.preventDefault(); }
         });
+
+        ipcRenderer.on('bipToken', (event, token) => {  
+            console.log("token received: ",token)
+            this.fetchBiPData(token)
+        });
+
+
     },
     beforeUnmount() {
         clearInterval( this.fetchinterval )

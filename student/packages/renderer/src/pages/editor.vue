@@ -39,11 +39,11 @@
      <!-- HEADER END -->
     <div id="suggestion-menu" style="display:none; position:fixed;"></div>
 
-    <div class="w-100 p-2 m-0 text-white shadow-sm text-center" style=" top: 66px; z-index: 10001 !important; background-color: white;">
+    <div class="w-100 p-0 m-0 text-white shadow-sm text-center" style=" top: 66px; z-index: 10001 !important; background-color: white;">
         
         <!-- toolbar start -->
         <div v-if="editor" class="m-2" id="editortoolbar" style="text-align:left;"> 
-            <button :title="$t('editor.backup')" @click="saveContent(true); backup();" class="invisible-button btn btn-outline-success p-1 me-1 mb-1 btn-sm"><img src="/src/assets/img/svg/document-save.svg" class="white" width="22" height="22" ></button>
+            <button :title="$t('editor.backup')" @click="saveContent(true, 'manual');" class="invisible-button btn btn-outline-success p-1 me-1 mb-1 btn-sm"><img src="/src/assets/img/svg/document-save.svg" class="white" width="22" height="22" ></button>
             <button :title="$t('editor.undo')" @click="editor.chain().focus().undo().run()" class="invisible-button btn btn-outline-warning p-1 me-0 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-undo.svg" class="white" width="22" height="22" ></button>
             <button :title="$t('editor.redo')" @click="editor.chain().focus().redo().run()" class="invisible-button btn btn-outline-warning p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-redo.svg" class="white" width="22" height="22" > </button>
             <button :title="$t('editor.clear')" @click="editor.chain().focus().clearNodes().run();editor.chain().focus().unsetColor().run()" class="invisible-button btn btn-outline-warning p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/draw-eraser.svg" class="white" width="22" height="22" ></button>
@@ -77,8 +77,8 @@
             <button :title="$t('editor.specialchar')"  @click="showInsertSpecial()" class="invisible-button btn btn-outline-warning p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/sign.svg" class="" width="22" height="22" ></button>
 
 
-            <button v-if="serverstatus.spellcheck && spellcheck"  :title="$t('editor.spellcheckdeactivate')"  @click="deactivateSpellcheck()" class="invisible-button btn btn-outline-danger p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/autocorrection.svg" class="" width="22" height="22" ></button>
-            <button v-if="serverstatus.spellcheck && !spellcheck" :title="$t('editor.spellcheck')"  @click="activateSpellcheck()" class="invisible-button btn btn-outline-success p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/autocorrection.svg" class="" width="22" height="22" ></button>
+            <button v-if="(serverstatus.spellcheck || allowspellcheck) && spellcheck"  :title="$t('editor.spellcheckdeactivate')"  @click="deactivateSpellcheck()" class="invisible-button btn btn-outline-danger p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/autocorrection.svg" class="" width="22" height="22" ></button>
+            <button v-if="(serverstatus.spellcheck || allowspellcheck) && !spellcheck" :title="$t('editor.spellcheck')"  @click="activateSpellcheck()" class="invisible-button btn btn-outline-success p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/autocorrection.svg" class="" width="22" height="22" ></button>
 
             <button :title="$t('editor.more')" id="more" @click="showMore()" class="invisible-button btn btn-outline-info p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/view-more-horizontal-symbolic.svg" class="white" width="22" height="22" ></button>
             <div id="moreoptions" style="display:none;">
@@ -93,10 +93,23 @@
                 <button :title="$t('editor.headerrow')" @click="editor.chain().focus().toggleHeaderRow().run()" :disabled="!editor.can().toggleHeaderRow()" class="invisible-button btn btn-outline-info p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/table-header-top.svg" width="22" height="22" ></button>
             </div>
            
+            <div id="specialcharsdiv" style="display:none">
+                <div class="btn btn-outline-secondary btn-sm invisible-button" @click="insertSpecialchar('¿')" style="width:28px; ">¿</div>
+                <div class="btn btn-outline-secondary btn-sm invisible-button" @click="insertSpecialchar('ñ')" style="width:28px; ">ñ</div>
+                <div class="btn btn-outline-secondary btn-sm invisible-button" @click="insertSpecialchar('ç')" style="width:28px; ">ç</div>
+                <div class="btn btn-outline-secondary btn-sm invisible-button" @click="insertSpecialchar('©')" style="width:28px; ">©</div>
+                <div class="btn btn-outline-secondary btn-sm invisible-button" @click="insertSpecialchar('™')" style="width:28px; ">™</div>
+                <div class="btn btn-outline-secondary btn-sm invisible-button" @click="insertSpecialchar('¡')" style="width:28px; ">¡</div>
+                <div class="btn btn-outline-secondary btn-sm invisible-button" @click="insertSpecialchar('µ')" style="width:28px; ">µ</div>
+            </div>
+
+
             <br>
            <div v-for="file in localfiles" class="d-inline" style="text-align:left">
                 <div v-if="(file.type == 'bak')" class="btn btn-success p-0  pe-2 ps-1 me-1 mb-0 btn-sm"   @click="selectedFile=file.name; loadHTML(file.name)"><img src="/src/assets/img/svg/games-solve.svg" class="" width="22" height="22" style="vertical-align: top;"> {{file.name}}     ({{ new Date(this.now - file.mod).toISOString().substr(11, 5) }})</div>
                 <div v-if="(file.type == 'pdf')" class="btn btn-info p-0 pe-2 ps-1 me-1 mb-0 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" style="vertical-align: top;"> {{file.name}} </div>
+                <div v-if="(file.type == 'audio')" class="btn btn-info p-0 pe-2 ps-1 me-1 mb-0 btn-sm" @click="playAudio(file.name)"><img src="/src/assets/img/svg/im-google-talk.svg" class="" width="22" height="22" style="vertical-align: top;"> {{file.name}} </div>
+
             </div>
         
         </div>
@@ -105,7 +118,7 @@
 
     <!-- angabe/pdf preview start -->
     <div id=preview class="fadeinslow p-4">
-        <div class="btn btn-dark me-2 btn-lg shadow" style="float: right;" @click="print()"><img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" > </div>
+        <div class="btn btn-warning me-2 btn-lg shadow" style="position: absolute; top:50%; margin-top:-45vh; left:50%; margin-left:35vw;" @click="print()"><img src="/src/assets/img/svg/print.svg" class="white" width="32" height="32" > </div>
         <embed src="" id="pdfembed">
     </div>
     <!-- angabe/pdf preview end -->
@@ -119,15 +132,19 @@
     </div>
     <!-- focuswarning end  -->
 
-    <div id="specialcharsdiv">
-        <div class="btn btn-outline-secondary btn-sm m-1" @click="insertSpecialchar('¿')">¿</div>
-        <div class="btn btn-outline-secondary btn-sm m-1" @click="insertSpecialchar('ñ')">ñ</div>
-        <div class="btn btn-outline-secondary btn-sm m-1" @click="insertSpecialchar('ç')">ç</div>
-        <div class="btn btn-outline-secondary btn-sm m-1" @click="insertSpecialchar('©')">©</div>
-        <div class="btn btn-outline-secondary btn-sm m-1" @click="insertSpecialchar('™')">™</div>
-        <div class="btn btn-outline-secondary btn-sm m-1" @click="insertSpecialchar('¡')">¡</div>
-        <div class="btn btn-outline-secondary btn-sm m-1" @click="insertSpecialchar('µ')">µ</div>
-    </div>
+
+
+
+
+     <!-- AUDIO Player start -->
+        <div id="aplayer">
+            <audio id="audioPlayer" controls controlsList="nodownload">
+                <source :src="audioSource" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+            <button  id="audioclose" type="button" class="btn-close" style="vertical-align: top;" title="close" ></button> 
+        </div>
+    <!-- AUDIO Player end -->
 
 
 
@@ -253,7 +270,14 @@ export default {
             currentRange:0,
             word:"",
             editorcontentcontainer:null,
-            spellcheck: false
+            spellcheck: false,
+            serverstatus: {
+                spellcheck:false,
+            },
+            linespacing: this.$route.params.serverstatus.linespacing,
+            fontfamily:  this.$route.params.serverstatus.fontfamily  ? this.$route.params.serverstatus.fontfamily : "sans-serif", 
+            allowspellcheck: false, // this is a per student override (for students with legasthenie)
+            audioSource: null,
         }
     },
     computed: {
@@ -280,9 +304,30 @@ export default {
         hideSpellcheckMenu:SpellChecker.hideSpellcheckMenu, // hides the spellcheck context menu
         checkAllWordsOnSpacebar:SpellChecker.checkAllWordsOnSpacebar,  //does a complete spellcheck after hitting spacebar while writing
 
+
+        async playAudio(file) {
+            const audioPlayer = document.getElementById('audioPlayer');
+            if (audioPlayer) { audioPlayer.addEventListener('contextmenu', (e) => { e.preventDefault(); }); }
+            $("#aplayer").css("display","block");
+            $("#audioclose").click(function(e) {
+                audioPlayer.pause();
+                console.log('Playback stopped');
+                $("#aplayer").css("display","none");
+            });
+
+            try {
+                const base64Data = await ipcRenderer.invoke('getfilesasync', file, true);
+                if (base64Data) {
+                    this.audioSource = `data:audio/mp3;base64,${base64Data}`;
+                    audioPlayer.load(); // Lädt die neue Quelle
+                    audioPlayer.play().then(() => { console.log('Playback started'); }).catch(e => { console.error('Playback failed:', e); });
+                } else { console.error('Keine Daten empfangen'); }
+            } catch (error) { console.error('Fehler beim Empfangen der MP3-Datei:', error); }
+        },
+
         showInsertSpecial(){
             let display =  $("#specialcharsdiv").css('display')
-            if (display == "none"){    $("#specialcharsdiv").fadeIn("slow")  }
+            if (display == "none"){   $("#specialcharsdiv").css('display','inline-block'); }
             else { $("#specialcharsdiv").hide()}
         },
   
@@ -302,7 +347,6 @@ export default {
                 sel.removeAllRanges(); // Remove all ranges to clear the previous selection
                 sel.addRange(range); // Add the new range to set the caret position
             }
-            $("#specialcharsdiv").hide()
          },
 
 
@@ -335,18 +379,24 @@ export default {
             this.timesinceentry =  new Date(this.now - this.entrytime).toISOString().substr(11, 8)
         },
         async fetchInfo() {
-            let getinfo = ipcRenderer.sendSync('getinfo')  // we need to fetch the updated version of the systemconfig from express api (server.js)
+            let getinfo = await ipcRenderer.invoke('getinfoasync')  // we need to fetch the updated version of the systemconfig from express api (server.js)
             this.clientinfo = getinfo.clientinfo;
             this.token = this.clientinfo.token
             this.focus = this.clientinfo.focus
             this.clientname = this.clientinfo.name
             this.exammode = this.clientinfo.exammode
             this.pincode = this.clientinfo.pin
+            this.allowspellcheck = this.clientinfo.allowspellcheck
             this.serverstatus =  getinfo.serverstatus
+
             if (!this.focus){  this.entrytime = new Date().getTime()}
             if (this.clientinfo && this.clientinfo.token){  this.online = true  }
             else { this.online = false  }
             this.battery = await navigator.getBattery()
+            if (this.allowspellcheck) {
+                let ipcResponse = await ipcRenderer.invoke('activatespellcheck', this.allowspellcheck.spellchecklang )  // this.allowspellcheck contains an object with spell config
+                if (ipcResponse == false) { this.allowspellcheck = false}  // something went wrong on the backend - do not show spellchecker button
+            }
         }, 
         reconnect(){
             this.$swal.fire({
@@ -401,12 +451,12 @@ export default {
             }); 
         },
         //get all files in user directory
-        loadFilelist(){
-            let filelist = ipcRenderer.sendSync('getfiles', null)
+        async loadFilelist(){
+            let filelist = await ipcRenderer.invoke('getfilesasync', null)
             this.localfiles = filelist;
         },
         // get file from local workdirectory and replace editor content with it
-        loadHTML(file){
+        async loadHTML(file){
             this.$swal.fire({
                 title: this.$t("editor.replace"),
                 html:  `${this.$t("editor.replacecontent1")} <b>${file}</b> ${this.$t("editor.replacecontent2")}`,
@@ -415,9 +465,9 @@ export default {
                 cancelButtonText: this.$t("editor.cancel"),
                 reverseButtons: true
             })
-            .then((result) => {
+            .then(async (result) => {
                 if (result.isConfirmed) {
-                    let data = ipcRenderer.sendSync('getfiles', file )
+                    let data = await ipcRenderer.invoke('getfilesasync', file )
                     this.editor.commands.clearContent(true)
                     this.editor.commands.insertContent(data)  
                 } 
@@ -437,7 +487,7 @@ export default {
         showMore(){
             let moreoptions= document.getElementById('moreoptions')
             if (moreoptions.style.display === "none") {
-                $("#moreoptions").css("display","block");
+                $("#moreoptions").css("display","inline-block");
             } else {
                 $("#moreoptions").css("display","none");
             }
@@ -447,12 +497,34 @@ export default {
             // inform mainprocess to save webcontent as pdf (see @media css query for adjustments for pdf)
             let filename = this.currentFile.replace(/\.[^/.]+$/, "")  // we dont need the extension
             ipcRenderer.send('printpdf', {clientname:this.clientname, filename: `${filename}.pdf`, servername: this.servername })
+
+            if (why === "manual"){
+                this.$swal.fire({
+                    title: this.$t("editor.saved"),
+                    icon: "info",
+                    timer: 1000,
+                    showCancelButton: false,
+                    didOpen: () => { this.$swal.showLoading(); },
+                })
+            }
             if (why === "exitexam") { 
                 this.$swal.fire({
                     title: this.$t("editor.leaving"),
-                    text: this.$t("editor.saved"),
-                    icon: "info"
+                    text: this.$t("editor.savedclip"),
+                    icon: "info",
+                    timer: 3000,
+                    showCancelButton: false,
+                    didOpen: () => { this.$swal.showLoading(); },
                 })
+
+                let text = this.editor.getText(); 
+                navigator.clipboard.writeText(text).then(function() {
+                    console.log('Text erfolgreich kopiert');
+                }).catch(function(err) {
+                    console.log('Fehler beim Kopieren des Textes: ', err);
+                });
+                
+
             }
             if (backup){
                 //also save editorcontent as *html file - used to re-populate the editor window in case something went completely wrong
@@ -465,6 +537,7 @@ export default {
         print(){
            //make sure to post print request to teacher for the latest work
            ipcRenderer.sendSync('sendPrintRequest') 
+           console.log("[print] sending printrequest")
            this.$swal.fire({
                 title: this.$t("editor.requestsent"),
                 icon: "info",
@@ -475,20 +548,13 @@ export default {
         },
         // display print denied message and reason
         printdenied(why){
-            console.log("Print request denied")
+            console.log("[printdenied] Print request denied")
             this.$swal.fire({
                 title: `${this.$t("editor.requestdenied")}`,
                 icon: "info",
                 timer: 2000,
                 timerProgressBar: true,
                 didOpen: () => { this.$swal.showLoading() }
-            })
-        },
-        // show confirmation
-        backup(){
-            this.$swal.fire({
-                title: this.$t("editor.saved"),
-                icon: "info"
             })
         },
         zoomin(){
@@ -525,7 +591,7 @@ export default {
         },
         pasteSelection(){
             if (!this.selectedText || this.selectedText == "") {return}
-            console.log("pasted:",this.selectedText)
+            console.log("[pasteSelection] pasted:",this.selectedText)
             //paste previously selected html code
             this.editor.commands.insertContent(this.selectedText)         
         },
@@ -542,7 +608,7 @@ export default {
                     let nodecheck = selection.anchorNode;
                     while (nodecheck !== null && nodecheck !== document.body) {
                         if (nodecheck.tagName === 'CODE') {
-                            console.log("Cursor is inside <code> element.");
+                            console.log("[replaceQuotes] Cursor is inside <code> element.");
                             return;
                         }
                         nodecheck = nodecheck.parentNode;
@@ -582,11 +648,11 @@ export default {
             });
         },
         activateSpellcheck(){
-            if (this.serverstatus.spellcheck) {
-                console.log("spellcheck activated")
+            if (this.serverstatus.spellcheck || this.allowspellcheck) {
+                console.log("[activateSpellcheck] spellcheck activated")
                 document.addEventListener('input', this.checkAllWordsOnSpacebar)  // do a spellcheck when the user hits space
-                if (this.serverstatus.suggestions){
-                    console.log("suggestions activated")
+                if (this.serverstatus.suggestions || this.allowspellcheck.suggestions){
+                    console.log("[activateSpellcheck] suggestions activated")
                     document.addEventListener('click', this.hideSpellcheckMenu); // Hide suggestion menu when clicking elsewhere
                     this.editorcontentcontainer.addEventListener('contextmenu', this.getWord );   // show the context menu
                 } 
@@ -688,9 +754,9 @@ export default {
 
 
     mounted() {
-        $("#specialcharsdiv").hide()
-
         switch (this.cmargin.size) {
+            case 5:       this.proseMirrorMargin = '130px';   break;
+            case 4.5:     this.proseMirrorMargin = '110px';   break;
             case 4:       this.proseMirrorMargin = '90px';   break;
             case 3.5:     this.proseMirrorMargin = '70px';   break;
             case 3:       this.proseMirrorMargin = '50px';   break;
@@ -709,6 +775,10 @@ export default {
             this.setCSSVariable('--js-borderleft', `1px solid #ccc`); 
         }
 
+      
+        this.setCSSVariable('--js-linespacing', `${this.linespacing}`); 
+        this.setCSSVariable('--js-fontfamily', `${this.fontfamily}`); 
+
         this.createEditor(); // this initializes the editor
 
        
@@ -726,7 +796,18 @@ export default {
         ipcRenderer.on('loadfilelist', () => {  
             console.log("Reload Files event received ")
             this.loadFilelist() 
-        }); 
+        });
+        ipcRenderer.on('fileerror', (event, msg) => {
+            console.log('writing file error received');
+            this.$swal.fire({
+                    title: "Error",
+                    text: msg.message,
+                    icon: "error",
+                    timer: 3000,
+                    showCancelButton: false,
+                    didOpen: () => { this.$swal.showLoading(); },
+            })
+        });
 
         this.currentFile = this.clientname
         this.entrytime = new Date().getTime()
@@ -795,7 +876,7 @@ export default {
 <style lang="scss">
 
 @media print {  //this controls how the editor view is printed (to pdf)
-    #editortoolbar, #editorheader, #editselected, #focuswarning, #specialcharsdiv {
+    #editortoolbar, #editorheader, #editselected, #focuswarning, #specialcharsdiv, #aplayer, span.NXTEhighlight  {
         display: none !important;
     }
     #statusbar {
@@ -805,7 +886,7 @@ export default {
         border-top: 1px solid #666 !important;
     }
     #editorcontent div {
-        line-height: 200%;
+        line-height: var(--js-linespacing);;
     }
     #editorcontainer {
         width: 100% !important;
@@ -863,20 +944,31 @@ export default {
 
 }
 
-#specialcharsdiv {
-  position: absolute;
-  top: 18%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 182px; /* Adjust width as desired */
-  height: 84px; /* Adjust height as desired */
-  background-color: rgb(255, 255, 255);
-  border-radius: 8px; /* Slight rounded corners */
-  /* Additional styling if needed */
-  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-  z-index:1000000;
-  padding: 4px;
+#aplayer{
+    display:none;
+    background-color: rgb(255, 255, 255);
+    z-index:1000000;
+    width: 100%;
+    text-align: center;
 }
+
+#audioPlayer {
+    position: relative;
+    width: 70vw;
+    height:24px;
+}
+
+audio::-webkit-media-controls-panel {
+    background-color: rgb(255, 255, 255);
+}
+
+#specialcharsdiv {
+    display:none;
+    width: 100%;
+    background-color: rgb(255, 255, 255);
+    z-index:1000000;
+}
+
 
 
 .invisible-button {
@@ -936,18 +1028,18 @@ Other Styles
 #editorcontainer {
     border-radius:0; 
     margin-top:20px; 
-    width: 90vw; 
-    margin-left:5vw;
+    width: 70vw; 
+    margin-left: auto;
+    margin-right: auto;
     margin-bottom:50px;
     zoom:1;
+    font-family: var(--js-fontfamily);
 }
 
 #editorcontent div {
-        overflow-x: auto;
-        overflow-y: hidden;
-    }
-
-
+    overflow-x: auto;
+    overflow-y: hidden;
+}
 
 #statusbar {
     position: relative;
@@ -1007,7 +1099,7 @@ Other Styles
 /* Basic editor styles */
 
 .ProseMirror {
-    min-height: 40vh;
+    min-height: 60vh;
     padding: 14px;
     outline: 1px solid rgb(197, 197, 197);
     border-radius: 5px;

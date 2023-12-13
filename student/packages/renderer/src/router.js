@@ -65,7 +65,7 @@ function addParams(to){
  * push a lot of infos to the view
  */
 async function fetchInfo(to, from){
-    let response = ipcRenderer.sendSync('getinfo')
+    let response = await ipcRenderer.invoke('getinfoasync')
     let clientinfo = response.clientinfo
     let serverstatus = response.serverstatus
 

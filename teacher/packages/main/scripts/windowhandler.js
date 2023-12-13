@@ -20,7 +20,6 @@ import { app, BrowserWindow, dialog  } from 'electron'
 import { join } from 'path'
 
 
-
 class WindowHandler {
     constructor () {
       this.mainwindow = null
@@ -33,6 +32,10 @@ class WindowHandler {
     init (mc, config) {
         this.multicastClient = mc
         this.config = config
+
+
+
+     
     }
 
     createWindow() {
@@ -48,7 +51,7 @@ class WindowHandler {
                 preload: join(__dirname, '../preload/preload.cjs')
             },
         })
-    
+        
         if (app.isPackaged || process.env["DEBUG"]) {
             this.mainwindow.removeMenu() 
             this.mainwindow.loadFile(join(__dirname, '../renderer/index.html'))
@@ -75,7 +78,7 @@ class WindowHandler {
     
         this.mainwindow.on('close', async  (e) => {   //ask before closing
             if (!this.config.development) {
-                if (this.mainwindow?.webContents.getURL().includes("dashboard")){console.log("do not close running exam this way"); e.preventDefault(); return}
+                if (this.mainwindow?.webContents.getURL().includes("dashboard")){log.info("do not close running exam this way"); e.preventDefault(); return}
                 let choice = dialog.showMessageBoxSync(this.mainwindow, {
                     type: 'question',
                     buttons: ['Ja', 'Nein'],

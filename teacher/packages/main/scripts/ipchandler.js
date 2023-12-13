@@ -23,6 +23,7 @@ const { t } = i18n.global
 import {  ipcMain, dialog } from 'electron'
 import checkDiskSpace from 'check-disk-space'
 import {join} from 'path'
+import log from 'electron-log/main';
 
 class IpcHandler {
     constructor () {
@@ -43,95 +44,94 @@ class IpcHandler {
             event.returnValue = clonedObject
         })  
 
-        ipcMain.on('resetToken', (event) => {  
+        ipcMain.handle('getconfigasync', (event) => {  
+            const clonedObject = this.copyConfig(config);  // we cant just copy the config because it contains examServerList which contains confic (circular structure)
+            return clonedObject
+        })  
+
+        ipcMain.handle('resetToken', (event) => {  
             config.accessToken = false
             const clonedObject = this.copyConfig(config);  // we cant just copy the config because it contains examServerList which contains confic (circular structure)
-            event.returnValue = clonedObject
+            return clonedObject
         })  
 
         ipcMain.on('getCurrentWorkdir', (event) => {   event.returnValue = config.workdirectory  })
 
-        ipcMain.on('checkDiscspace', async (event) => {   
-            let freespace = await checkDiskSpace(config.workdirectory).then((diskSpace) => {
-                let free = Math.round(diskSpace.free/1024/1024/1024 * 1000)/1000
-                return free
+        ipcMain.handle('checkDiscspace', async () => {
+            let diskSpace = await checkDiskSpace(config.workdirectory);
+            let free = Math.round(diskSpace.free / 1024 / 1024 / 1024 * 1000) / 1000;
+            return free;
+        });
 
-            })
-            event.returnValue = freespace
-        })
-
-        ipcMain.on('setworkdir', async (event, arg) => {
-            const result = await dialog.showOpenDialog( this.WindowHandler.mainwindow, {
-            properties: ['openDirectory']
-            })
+        ipcMain.handle('setworkdir', async (event, arg) => {
+            const result = await dialog.showOpenDialog( this.WindowHandler.mainwindow, { properties: ['openDirectory']  })
             if (!result.canceled){
-                console.log('directories selected', result.filePaths)
+                log.info('directories selected', result.filePaths)
                 let message = ""
                 try {
                     let testdir = join(result.filePaths[0]   , config.examdirectory)
                     if (!fs.existsSync(testdir)){fs.mkdirSync(testdir)}
                     message = "success"
                     config.workdirectory = testdir
-                    console.log("setworkdir:", config)
+                    log.info("setworkdir:", config)
                 }
                 catch (e){
                     message = "error"
-                    console.log(e)
+                    log.error(e)
                 }
-                event.returnValue = {workdir: config.workdirectory, message : message}
+                return {workdir: config.workdirectory, message : message}
             }
             else {
-                event.returnValue = {workdir: config.workdirectory, message : 'canceled'}
+                return {workdir: config.workdirectory, message : 'canceled'}
             }
         })
 
 
         ipcMain.on('setPreviousWorkdir', async (event, workdir) => {
-    
             if (workdir){
-                console.log('previous directory selected', workdir)
+                log.info('previous directory selected', workdir)
                 let message = ""
                 try {
-                  
                     if (!fs.existsSync(workdir)){fs.mkdirSync(workdir)}
                     message = "success"
                     config.workdirectory = workdir
                 }
                 catch (e){
                     message = "error"
-                    console.log(e)
+                    log.error(e)
                 }
                 event.returnValue = {workdir: config.workdirectory, message : message}
             }
-            else {
-                event.returnValue = {workdir: config.workdirectory, message : 'canceled'}
-            }
+            else {  event.returnValue = {workdir: config.workdirectory, message : 'canceled'} }
         })
 
 
         /**
          * returns old exam folders in workdirectory
          */
-        ipcMain.on('scanWorkdir', async (event, arg) => {
+        ipcMain.handle('scanWorkdir', async (event, arg) => {
             let examfolders = []
             if (fs.existsSync(config.workdirectory)){
                     examfolders = fs.readdirSync(config.workdirectory, { withFileTypes: true })
                 .filter(dirent => dirent.isDirectory())
                 .map(dirent => dirent.name);
             }
-            event.returnValue = examfolders
+            return examfolders
         })
 
 
         /**
          * deletes old exam folder in workdirectory
          */
-        ipcMain.on('delPrevious', async (event, arg) => {
+        ipcMain.handle('delPrevious', async (event, arg) => {
             let examdir = join( config.workdirectory, arg)
             if (fs.statSync(examdir).isDirectory()){
-                fs.rmSync(examdir, { recursive: true, force: true });
+                try {
+                    fs.rmSync(examdir, { recursive: true, force: true });
+                }
+                catch (e) {log.error(e)}
             }   
-            event.returnValue = examdir
+            return examdir
         })
 
 
@@ -140,41 +140,48 @@ class IpcHandler {
          * Downloads the files for a specific student to his workdirectory (abgabe)
          */
         ipcMain.on('storeOnedriveFiles', async (event, args) => { 
-            console.log("downloading onedrive files...")  
+            log.info("downloading onedrive files...")  
             const studentName = args.studentName
             const accessToken = args.accessToken
             const fileName = args.fileName
             const fileID = args.fileID
             const servername = args.servername
 
-            // create user abgabe directory
+            // create user abgabe directory  // create archive directory
             let studentdirectory =  join(config.workdirectory, servername ,studentName)
-            if (!fs.existsSync(studentdirectory)){ fs.mkdirSync(studentdirectory, { recursive: true });  }
-
-            // create archive directory
             let time = new Date(new Date().getTime()).toLocaleTimeString();  //convert to locale string otherwise the foldernames will be created in UTC
             let tstring = String(time).replace(/:/g, "_");
             let studentarchivedir = join(studentdirectory, tstring)
-            if (!fs.existsSync(studentarchivedir)){ fs.mkdirSync(studentarchivedir, { recursive: true }); }
+            
+            try {
+                if (!fs.existsSync(studentdirectory)) { fs.mkdirSync(studentdirectory, { recursive: true });  }
+                if (!fs.existsSync(studentarchivedir)){ fs.mkdirSync(studentarchivedir, { recursive: true }); }
+            } catch (e) {log.error(e)}
+         
 
             const fileResponse = await fetch(`https://graph.microsoft.com/v1.0/me/drive/items/${fileID}/content`, {
                 headers: {'Authorization': `Bearer ${accessToken}`,  },
-            });
-            const fileBuffer = await fileResponse.arrayBuffer();
-            fs.writeFileSync(join(studentarchivedir, fileName), Buffer.from(fileBuffer));
+            }).catch( err => {log.error(err)});
+
+            try {
+                const fileBuffer = await fileResponse.arrayBuffer();
+                fs.writeFileSync(join(studentarchivedir, fileName), Buffer.from(fileBuffer));
+            } catch (e) {log.error(e)}
 
             const pdfFileResponse = await fetch(`https://graph.microsoft.com/v1.0/me/drive/items/${fileID}/content?format=pdf`, {
                 headers: {'Authorization': `Bearer ${accessToken}`,  },
-            });
+            }).catch( err => {log.error(err)});
 
             if (pdfFileResponse.ok) {
                 const pdfFileBuffer = await pdfFileResponse.arrayBuffer();
                 const pdfFilePath = join(studentarchivedir, `${fileName}.pdf`);
-                fs.writeFileSync(pdfFilePath, Buffer.from(pdfFileBuffer));
-                console.log(`Downloaded ${fileName} and ${fileName}.pdf`);
+                try {
+                    fs.writeFileSync(pdfFilePath, Buffer.from(pdfFileBuffer));
+                    log.info(`Downloaded ${fileName} and ${fileName}.pdf`);
+                } catch (e) {log.error(e)}  
             }
             else {
-                console.log("there was a problem downloading the files as pdf")
+                log.error("there was a problem downloading the files as pdf")
             }
             
         })

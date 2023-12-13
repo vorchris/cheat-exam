@@ -38,6 +38,7 @@ import { join } from 'path'
 import childProcess from 'child_process'   //needed to run bash commands on linux 
 import { TouchBar, clipboard } from 'electron'
 import config from '../config.js';
+import log from 'electron-log/main';
 
 // unfortunately there is no convenient way for gnome-shell to un-set ALL shortcuts at once
 const gnomeKeybindings = [  
@@ -94,7 +95,7 @@ function enableRestrictions(win){
         // PLASMASHELL
         //////////////
 
-        console.log("enabling platform restrictions")
+        log.info("enabling platform restrictions")
 
 
         appsToClose.forEach(app => {
@@ -110,18 +111,18 @@ function enableRestrictions(win){
         //childProcess.execFile('sed', ['-i', '-e', 's/global=Alt+F1/global=/g', `${config.homedirectory}/.config/plasma-org.kde.plasma.desktop-appletsrc` ])   // alt+f1 or f2 is translated by "kickoff" to meta/win/cmd shortcut (wtf)
         //childProcess.execFile('qdbus', ['org.kde.plasmashell','/PlasmaShell','refreshCurrentShell'])    // i really dont like that but this is the fastest way i found to disable the windows/meta key
         childProcess.execFile('kwriteconfig5', ['--file',`${config.homedirectory}/.config/kwinrc`,'--group','ModifierOnlyShortcuts','--key','Meta','""']) 
-        childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
+        childProcess.execFile('kwriteconfig5', ['--file',`kwinrc`,'--group','Desktops','--key','Number','1'])  //remove virtual desktops
+        childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','setCurrentDesktop','1'])
+        //childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
+        childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','replace'])
         childProcess.execFile('kquitapp5', ['kglobalaccel'])
 
 
-        // Temporarily deactivate ALL global keyboardshortcuts 
-        childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'true'])
-        // Temporarily deactivate ALL 3d Effects (present window, change desktop, etc.) 
-        childProcess.execFile('qdbus', ['org.kde.KWin' ,'/Compositor', 'org.kde.kwin.Compositing.suspend'])
-        // Clear Clipboard history 
-        childProcess.execFile('qdbus', ['org.kde.klipper' ,'/klipper', 'org.kde.klipper.klipper.clearClipboardHistory'])
-        // wayland
-        childProcess.execFile('wl-copy', ['-c'])
+        
+        childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'true']) // Temporarily deactivate ALL global keyboardshortcuts 
+        childProcess.execFile('qdbus', ['org.kde.KWin' ,'/Compositor', 'org.kde.kwin.Compositing.suspend'])   // Temporarily deactivate ALL 3d Effects (present window, change desktop, etc.) 
+        childProcess.execFile('qdbus', ['org.kde.klipper' ,'/klipper', 'org.kde.klipper.klipper.clearClipboardHistory']) // Clear Clipboard history 
+        childProcess.execFile('wl-copy', ['-c'])   // wayland
 
     
 
@@ -131,6 +132,7 @@ function enableRestrictions(win){
         ///////////
 
         //we probably should do it the "windows - way" and just kill gnomeshell for as long as the exam-mode is active
+        //but it seems there is no convenient way to kill gnome-shell without all applications started on top of it 
         
 
         // for gnome3 we need to set every key individually => reset will obviously set defaults (so we may mess up customized shortcuts here)
@@ -152,6 +154,10 @@ function enableRestrictions(win){
         }
 
         childProcess.execFile('gsettings', ['set' ,'org.gnome.mutter', `overlay-key`, `''`])
+        
+        // deactivate multiple desktops
+        childProcess.exec('gsettings set org.gnome.mutter dynamic-workspaces false')
+        childProcess.exec('gsettings set org.gnome.desktop.wm.preferences num-workspaces 1')
 
 
         // clear clipboard gnome and x11  (this will fail unless xclip or xsell are installed)
@@ -170,27 +176,27 @@ function enableRestrictions(win){
         //block important keyboard shortcuts (disable-shortcuts.exe is a selfmade C application - shortcuts are hardcoded there - need to rebuild if adding shortcuts)
         let executable1 = join(__dirname, '../../public/disable-shortcuts.exe')
         childProcess.execFile(executable1, [], { detached: true, shell: false, windowsHide: true}, (error, stdout, stderr) => {
-           // if (stderr) {  console.log(stderr)  }
-          //  if (error)  {  console.log(error)   }
+           // if (stderr) {  log.info(stderr)  }
+          //  if (error)  {  log.info(error)   }
         })
-        console.log("shortcuts disabled")
+        log.info("shortcuts disabled")
 
         //clear clipboard - stop copy before and paste after examstart
         let executable0 = join(__dirname, '../../public/clear-clipboard.bat')
         childProcess.execFile(executable0, [], (error, stdout, stderr) => {
-            if (stderr) { console.log(stderr) }
-            if (error) { console.log(error) }
+            if (stderr) { log.info(stderr) }
+            if (error) { log.info(error) }
         })
 
 
         // kill windowsbutton and swipe gestures - kill everything else
         childProcess.exec('taskkill /f /im explorer.exe', (error, stdout, stderr) => {
             if (error) {
-              console.error(`exec error: ${error}`);
+              log.error(`exec error: ${error}`);
               return;
             }
-            console.log(`stdout: ${stdout}`);
-            console.error(`stderr: ${stderr}`);
+            log.info(`stdout: ${stdout}`);
+            log.error(`stderr: ${stderr}`);
         });
 
         appsToClose.forEach(app => {
@@ -235,6 +241,19 @@ function enableRestrictions(win){
             });
           });
 
+          //mission control
+          //let scriptfile = join(__dirname, '../../public/mc.appelscript')   //spaces, shortcuts
+          let scriptfile = join(__dirname, '../../public/check.appelscript')  //just spaces (less intrusive - easier to grant permissions)
+          if (app.isPackaged) {
+              scriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/check.applescript')  //on macos the path changes if packaged
+          }
+         
+         
+          childProcess.execFile(osascript, [scriptfile], (error, stdout, stderr) => {
+              if (stderr) { log.info(stderr) }
+              if (error) { log.info(error) }
+          })
+
     }
 }
 
@@ -275,6 +294,7 @@ function disableRestrictions(win){
         //childProcess.execFile('sed', ['-i', '-e', 's/global=.*/global=Alt+F1/g', `${config.homedirectory}/.config/plasma-org.kde.plasma.desktop-appletsrc` ])
         childProcess.execFile('kwriteconfig5', ['--file',`${config.homedirectory}/.config/kwinrc`,'--group','ModifierOnlyShortcuts','--key','Meta','--delete']) 
         childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
+        childProcess.exec('kwin --replace &')
 
 
         // reset specific shortcuts GNOME
@@ -300,14 +320,14 @@ function disableRestrictions(win){
      */
     if (process.platform === 'win32') {
         //unblock important keyboard shortcuts (disable-shortcuts.exe)
-        console.log("deactivating shortcuts...")
+        log.info("deactivating shortcuts...")
         childProcess.exec('taskkill /f /im disable-shortcuts.exe', (error, stdout, stderr) => {
             if (error) {
-                console.error(`exec error: ${error}`);
+                log.error(`exec error: ${error}`);
                 return;
             }
-           // console.log(`stdout: ${stdout}`);
-           // console.error(`stderr: ${stderr}`);
+           // log.info(`stdout: ${stdout}`);
+           // log.error(`stderr: ${stderr}`);
           });
 
 
@@ -315,7 +335,7 @@ function disableRestrictions(win){
         // Überprüfe, ob explorer.exe läuft
         childProcess.exec('tasklist /FI "IMAGENAME eq explorer.exe"', (error, stdout, stderr) => {
             if (error) {
-                console.error(`tasklist error: ${error}`);
+                log.error(`tasklist error: ${error}`);
                 return;
             }
 
@@ -324,11 +344,11 @@ function disableRestrictions(win){
                 // Starte explorer.exe, wenn es nicht läuft
                 childProcess.exec('start explorer.exe', (error, stdout, stderr) => {
                     if (error) {
-                        console.error(`exec error: ${error}`);
+                        log.error(`exec error: ${error}`);
                         return;
                     }
-                    console.log(`stdout: ${stdout}`);
-                    console.error(`stderr: ${stderr}`);
+                    log.info(`stdout: ${stdout}`);
+                    log.error(`stderr: ${stderr}`);
                 });
             }
         });
@@ -341,8 +361,8 @@ function disableRestrictions(win){
         //clear clipboard - stop keeping screenshots of exam in clipboard
         let executable0 = join(__dirname, '../../public/clear-clipboard.bat')
         childProcess.execFile(executable0, [], (error, stdout, stderr) => {
-            if (stderr) { console.log(stderr) }
-            if (error) { console.log(error) }
+            if (stderr) { log.info(stderr) }
+            if (error) { log.info(error) }
         })
     }
 

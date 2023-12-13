@@ -28,7 +28,7 @@ import fs from 'fs'
 import qs from 'qs'
 import axios from "axios"
 import { msalConfig } from '../../../../renderer/src/msalutils/authConfig'
-
+import log from 'electron-log/main';
 
 
 
@@ -155,7 +155,7 @@ router.get('/msauth', async (req, res) => {
     const servername = req.params.servername 
     const mcServer = config.examServerList[servername]
 
-    console.log(req.body) // optional: we could store the current workdirectory for every mcserver on mcserver.serverinfo in the future
+    log.info(req.body) // optional: we could store the current workdirectory for every mcserver on mcserver.serverinfo in the future
     
     //generate random pin
     let pin = String(Math.floor(Math.random()*9000) + 1000)  // 4 digits is enough  Math.floor(Math.random() * 9000) + 1000;
@@ -172,11 +172,11 @@ router.get('/msauth', async (req, res) => {
         }
      }
     
-    console.log('Initializing new Exam Server')
+    log.info('Initializing new Exam Server')
     let mcs = new multiCastserver();
     mcs.init(servername, pin, req.params.passwd)
     config.examServerList[servername]=mcs
-     console.log(config.workdirectory)
+     log.info(config.workdirectory)
     let serverinstancedir = path.join(config.workdirectory, servername)
 
     if (!fs.existsSync(serverinstancedir)){ fs.mkdirSync(serverinstancedir, { recursive: true }); }
@@ -325,7 +325,7 @@ for (let i = 0; i<16; i++ ){
     const mcServer = config.examServerList[servername] // get the multicastserver object
     const hostname = req.params.hostname
 
-    console.log(version)
+    log.info(version)
     // this needs to change once we reached v1.0 (featurefreeze for stable version)
     let vteacher = config.version.split('.').slice(0, 2),
     versionteacher = vteacher.join('.'); 
@@ -339,7 +339,7 @@ for (let i = 0; i<16; i++ ){
         let registeredClient = mcServer.studentList.find(element => element.clientname === clientname)
 
         if (!registeredClient) {   // create client object
-            console.log('adding new client')
+            log.info('adding new client')
             const client = {    // we have a different representation of the clientobject on the server than on the client - why exactly? we could just send the whole client object via POST (as we already do in /update route )
                 clientname: clientname,
                 hostname: hostname,
@@ -365,7 +365,7 @@ for (let i = 0; i<16; i++ ){
             let now = new Date().getTime()
             if (now - 20000 > registeredClient.timestamp) { // student probably went offline (teacher connection loss) but is coming back now
                 registeredClient.timestamp = now
-                console.log("student reconnected")
+                log.info("student reconnected")
                 return res.json({sender: "server", message:t("control.registered"), status: "success", token: registeredClient.token})  //send back old token
             }
             else {
@@ -489,7 +489,7 @@ router.post('/sharelink/:servername/:csrfservertoken/:studenttoken', function (r
 
 
 /**
- * RESTORE cients focused state  !! USE /inform/ instead (simplify code)
+ * RESTORE cients focused state  !! USE /setstudentstatus/ instead (simplify code)
  * @param servename the server 
  * @param csrfservertoken the servers token to authenticate
  * @param studenttoken the students token who's state should be restored
@@ -512,32 +512,14 @@ router.post('/sharelink/:servername/:csrfservertoken/:studenttoken', function (r
 })
 
 
-/**
- * Set STUDENT.STATUS and therefore Inform Client on the next update cycle about a denied printrequest (we handle one request at a time) and other things.
- * @param servename the server 
- * @param csrfservertoken the servers token to authenticate
- * @param studenttoken the students token who should be informed
- */
-router.post('/setstudentstatus/:servername/:csrfservertoken/:studenttoken', function (req, res, next) {
-    const servername = req.params.servername
-    const studenttoken = req.params.studenttoken
-    const mcServer = config.examServerList[servername]
-    const printdenied = req.body.printdenied
 
-    if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {  //first check if csrf token is valid and server is allowed to trigger this api request
-        let student = mcServer.studentList.find(element => element.token === studenttoken)
-        if (student) {  
 
-            // here we could handle different forms of information that needs to be set on studentstatus
-            if (printdenied){ student.status.printdenied = true } // set student.status so that the student can act on it on the next update
 
-         }
-        res.send( {sender: "server", message: t("control.studentupdate"), status: "success"} )
-    }
-    else {
-        res.send( {sender: "server", message: t("control.actiondenied"), status: "error"} )
-    }
-})
+
+
+
+
+
 
 
 
@@ -616,10 +598,10 @@ router.post('/setserverstatus/:servername/:csrfservertoken', function (req, res,
     mcServer.serverstatus = req.body.serverstatus
     mcServer.serverstatus.msOfficeFile = false  // we cant store a file object as json
 
-    console.log("saving server status to disc")
+    log.info("saving server status to disc")
     const filePath = path.join(config.workdirectory, mcServer.serverinfo.servername, 'serverstatus.json');
     try {  fs.writeFileSync(filePath, JSON.stringify(mcServer.serverstatus, null, 2));  }   // mcServer.serverstatus als JSON-Datei speichern
-    catch (error) {  console.log(error) }
+    catch (error) {  log.error(error) }
 
     res.json({ sender: "server", message:t("general.ok"), status: "success" })
 })
@@ -635,6 +617,46 @@ router.post('/setserverstatus/:servername/:csrfservertoken', function (req, res,
 
 
 
+
+
+
+/**
+ * Set STUDENT.STATUS and therefore Inform Client on the next update cycle about a denied printrequest (we handle one request at a time) and other things.
+ * @param servename the server 
+ * @param csrfservertoken the servers token to authenticate
+ * @param studenttoken the students token who should be informed
+ */
+router.post('/setstudentstatus/:servername/:csrfservertoken/:studenttoken', function (req, res, next) {
+    const servername = req.params.servername
+    const studenttoken = req.params.studenttoken
+    const mcServer = config.examServerList[servername]
+    const printdenied = req.body.printdenied
+    const delfolder = req.body.delfolder
+    const allowspellcheck = req.body.allowspellcheck
+
+    if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {  //first check if csrf token is valid and server is allowed to trigger this api request
+        
+        if (studenttoken === "all"){
+            for (let student of mcServer.studentList){ 
+                if (delfolder)  { student.status.delfolder = true   } // on the next update cycle the student gets informed to delete workfolder
+            }
+        }
+        else {
+            let student = mcServer.studentList.find(element => element.token === studenttoken)
+            if (student) {  
+                // here we handle different forms of information that needs to be set on studentstatus (dont forget to reset those values in /update/route)
+                if (printdenied){ student.status.printdenied = true } // set student.status so that the student can act on it on the next update
+                if (delfolder)  { student.status.delfolder = true   } // on the next update cycle the student gets informed to delete workfolder
+                if (allowspellcheck) {student.status.allowspellcheck = { spellchecklang : req.body.spellchecklang, suggestions: req.body.suggestions } } // allow spellcheck for this specific student (special cases)
+                if (allowspellcheck == false) { student.status.allowspellcheck = "deactivate" }
+            }
+        }
+        res.send( {sender: "server", message: t("control.studentupdate"), status: "success"} )
+    }
+    else {
+        res.send( {sender: "server", message: t("control.actiondenied"), status: "error"} )
+    }
+})
 
 
 
@@ -679,6 +701,9 @@ router.post('/setserverstatus/:servername/:csrfservertoken', function (req, res,
    
     // reset some status values that are only used to transport something once
     student.status.printdenied = false 
+    student.status.delfolder = false 
+    student.status.sendexam = false // request only once
+    student.status.allowspellcheck = false
 
     // return current serverinformation to process on clientside
     res.charset = 'utf-8';
@@ -710,18 +735,21 @@ router.post('/updatescreenshot', function (req, res, next) {
         if (hash === req.body.screenshothash) {
             student.imageurl = 'data:image/png;base64,' + file.data.toString('base64') //prepare file data buffer for direct use as css background
             if (!student.focus){  // archive screenshot if student out of focus for investigation
-                console.log("Server Control: Student out of focus - securing screenshots")
+                log.info("Server Control: Student out of focus - securing screenshots")
                 let time = new Date(new Date().getTime()).toISOString().substr(11, 8);
                 let filepath =path.join(config.workdirectory, mcServer.serverinfo.servername, student.clientname, "focuslost");
                 let absoluteFilename = path.join(filepath,`${time}-${file.name}`)
-                if (!fs.existsSync(filepath)){ fs.mkdirSync(filepath, { recursive: true } ); }
-                file.mv(absoluteFilename, (err) => {  if (err) {  console.log(err)  } });
+                try {
+                    if (!fs.existsSync(filepath)){ fs.mkdirSync(filepath, { recursive: true } ); }
+                    file.mv(absoluteFilename, (err) => {  if (err) {  log.error(err)  } });
+                }
+                catch (err) {log.error(err)}
             }
         }
-        else { console.log("md5hash missmatch - do not update file")}
+        else { log.error("md5hash missmatch - do not update file")}
     }
     else {
-        //console.log("no screenshot received - probably missing image library (imagemagick)")
+        //log.error("no screenshot received - probably missing image library (imagemagick)")
         student.imageurl = "person-lines-fill.svg"
     }
     res.send({sender: "server", message:t("control.studentupdate"), status:"success" })
@@ -785,7 +813,7 @@ function requestSourceAllowed(req,res){
     if (req.ip == "::1"  || req.ip == "127.0.0.1" || req.ip.includes('127.0.0.1') ){ 
       return true
     }  
-    console.log(`Blocked request from remote Host: ${req.ip}`); 
+    log.error(`Blocked request from remote Host: ${req.ip}`); 
     res.json('Request denied') 
     return false 
 }
