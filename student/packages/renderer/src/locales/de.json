@@ -21,7 +21,8 @@
         "offline": "Keine Netzwerkverbindung",
         "nopin": "Pincode fehlt",
         "unreachable": "Server API auf Grund von Firewall nicht erreichbar.",
-        "timeout":"Timeout! Exam-Teacher befindet sich möglicherweise hinter einer Firewall."
+        "timeout":"Timeout! Exam-Teacher befindet sich möglicherweise hinter einer Firewall.",
+        "noapi": "Keine Prüfungsserver an angegebener Adresse"
     },
     "control": {
         "tokennotvalid": "das token ist ungültig",

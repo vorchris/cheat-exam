@@ -42,6 +42,36 @@ function endExam(){
 }
 
 
+/** 
+ * Stop and Exit Exam Server Instance
+ */
+function stopserver(){
+    this.getFiles('all') // fetch files from students before ending exam for everybody - this takes up to 8 seconds and may fail - so this is just a emergency backup and should be properly handled by the teacher
+    let message = this.$t("dashboard.exitexam")
+    if (!this.serverstatus.exammode) { message = this.$t("dashboard.exitexaminfo")}
+
+    this.$swal.fire({
+        title: this.$t("dashboard.exitexamsure"),
+        html: `<div> ${message} <br> </div>`,
+        icon: "question",
+        showCancelButton: true,
+        cancelButtonText: this.$t("dashboard.cancel"),
+        reverseButtons: true,
+    })
+    .then( async (result) => {
+        if (result.isConfirmed) {
+            axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/stopserver/${this.servername}/${this.servertoken}`)
+            .then( async (response) => {
+                this.status(response.data.message);
+                //log.info(response.data);
+                await this.sleep(2000);
+                this.$router.push({ path: '/startserver' })
+            }).catch( err => {log.error(err)});
+        } 
+    });    
+}
+
+
 
 //remove student from exam
 function kick(studenttoken, studentip){
@@ -230,30 +260,7 @@ function toggleScreenshot(){
 
 
 
-/** 
- * Stop and Exit Exam Server Instance
- */
-function stopserver(){
-    this.$swal.fire({
-        title: this.$t("dashboard.exitexamsure"),
-        text:  this.$t("dashboard.exitexam"),
-        icon: "question",
-        showCancelButton: true,
-        cancelButtonText: this.$t("dashboard.cancel"),
-        reverseButtons: true
-    })
-    .then((result) => {
-        if (result.isConfirmed) {
-            axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/stopserver/${this.servername}/${this.servertoken}`)
-            .then( async (response) => {
-                this.status(response.data.message);
-                //log.info(response.data);
-                await this.sleep(2000);
-                this.$router.push({ path: '/startserver' })
-            }).catch( err => {log.error(err)});
-        } 
-    });    
-}
+
 
 
         // show warning
