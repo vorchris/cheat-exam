@@ -26,8 +26,6 @@ import fs from 'fs'
 import Nodehun from 'nodehun'
 import log from 'electron-log/main'
 
-// import Tesseract from 'tesseract.js';
-
   ////////////////////////////////////////////////////////////
  // Window handling (ipcRenderer Process - Frontend) START
 ////////////////////////////////////////////////////////////
@@ -657,28 +655,10 @@ class WindowHandler {
             this.mainwindow.focus();
 
           
-            // screenshot()   //grab "screenshot" with screenshot node module 
-            // .then( (imageBuffer) => { 
-            //     log.info("screenshot allowed") 
-            //     Tesseract.recognize(imageBuffer, 'eng')
-            //     .then(({ data: { text } }) => {
-            //         // Text aus dem Bild extrahieren und prüfen
-            //         console.log(text);
-            //         if(text.includes('Next-Exam')) {
-            //           console.log('Der Text "Next-Exam" wurde im Bild gefunden.');
-            //         } else {
-            //           console.log('Der Text "Next-Exam" wurde nicht im Bild gefunden.');
-            //         }
-            //       });
-            //  })
-
-
 
             if (process.platform == 'darwin'){
+                // check permissions to handle settings in macos
 
-
-                
-                //mission control
                 //childProcess.exec('tccutil reset AppleEvents com.nextexam-student.app')   //reset permission settings - ask gain next time!
                 //childProcess.exec('tccutil reset Accessibility com.nextexam-student.app') 
                 //childProcess.exec('tccutil reset AppleEvents com.vscodium') // apple events können resetted werde da macos immerwieder danach fragt
@@ -703,13 +683,10 @@ class WindowHandler {
                     }
                 })
 
-
-
                 let mcscriptfile = join(__dirname, '../../public/spaces.applescript')
                 if (app.isPackaged) {
                     mcscriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/spaces.applescript')
                 }
-               
                 childProcess.execFile('osascript', [mcscriptfile], (error, stdout, stderr) => {
                     if (stderr) { 
                         log.info(stderr) 
@@ -723,8 +700,6 @@ class WindowHandler {
                         }
                     }
                 })
-
-
 
                 // attention ! das neue macos erlaubt auch ohne berechtiung screenshots aber diese beinhalten dann keine apps (sind quasi nur der background)
                 screenshot()   //grab "screenshot" with screenshot node module 

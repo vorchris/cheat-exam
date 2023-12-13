@@ -60,7 +60,8 @@ class MulticastClient {
      * receives messages and stores new exam instances in this.examServerList[]
      * starts an intervall to check server status and reacts on information given by the server instance
      */
-    init () {
+    init (gateway) {
+        this.gateway = gateway
         this.client = dgram.createSocket('udp4')  // moving this here will allow to respawn it if binding fails
 
         this.client.on('error', (err) => {
@@ -72,7 +73,7 @@ class MulticastClient {
             this.client.bind(this.PORT, '0.0.0.0',  () => { 
                 this.client.setBroadcast(true)
                 this.client.setMulticastTTL(128); 
-                this.client.addMembership(this.MULTICAST_ADDR)
+                if (this.gateway) {this.client.addMembership(this.MULTICAST_ADDR)} // es ist für ein verlässliches multicast sinnvoll der gruppe beizutreten
                 log.info(`UDP MC Client listening on http://${config.hostip}:${this.client.address().port}`)
             })
         }
