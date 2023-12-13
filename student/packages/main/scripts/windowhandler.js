@@ -659,32 +659,53 @@ class WindowHandler {
 
                 
                 //mission control
-                
+                //childProcess.exec('tccutil reset AppleEvents com.nextexam-student.app')   //reset permission settings - ask gain next time!
+                //childProcess.exec('tccutil reset Accessibility com.nextexam-student.app') 
+                //childProcess.exec('tccutil reset AppleEvents com.vscodium') // apple events können resetted werde da macos immerwieder danach fragt
+                //childProcess.exec('tccutil reset Accessibility com.vscodium')  //accessibility wird nur einmal gefragt, danach muss der user es manuell aktivieren
+                            
                 let scriptfile = join(__dirname, '../../public/check.applescript')
                 if (app.isPackaged) {
-                    scriptfile = join(process.resourcesPath, 'app.asar.unpacked', '../../public/check.applescript')
+                    scriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/check.applescript')
                 }
                
-                
                 childProcess.execFile('osascript', [scriptfile], (error, stdout, stderr) => {
-                    log.info(scriptfile)
                     if (stderr) { 
                         log.info(stderr) 
                         if (stderr.includes("Berechtigung") || stderr.includes("authorized")){
-                            log.error("no permissions granted")
-                            childProcess.exec('tccutil reset AppleEvents com.nextexam-student.app')   //reset permission settings - ask gain next time!
-                            //childProcess.exec('tccutil reset Accessibility com.nextexam-student.app') 
-                            childProcess.exec('tccutil reset AppleEvents com.vscodium') // apple events können resetted werde da macos immerwieder danach fragt
-                            //childProcess.exec('tccutil reset Accessibility com.vscodium')  //accessibility wird nur einmal gefragt, danach muss der user es manuell aktivieren
-                            
+                            log.error("no Systemsettings permissions granted")
                             let message = "Sie müssen die Berechtigungen zur Automation erteilen!"
                             if (stderr.includes("Hilfszugriff") || stderr.includes("Accessibility")){
-                                message = "Sie müssen die Berechtigungen für den Hilfszugriff erteilen!"
+                                message = "Sie müssen die Berechtigungen für den Hilfszugriff (Bedienungshilfen) erteilen!"
                             }
                            this.showExitWarning(message)  //show warning and quit app
                         }
                     }
                 })
+
+
+
+                let mcscriptfile = join(__dirname, '../../public/spaces.applescript')
+                if (app.isPackaged) {
+                    mcscriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/spaces.applescript')
+                }
+               
+                childProcess.execFile('osascript', [mcscriptfile], (error, stdout, stderr) => {
+                    if (stderr) { 
+                        log.info(stderr) 
+                        if (stderr.includes("Berechtigung") || stderr.includes("authorized")){
+                            log.error("no Systemsettings permissions granted")
+                            let message = "Sie müssen die Berechtigungen zur Automation erteilen!"
+                            if (stderr.includes("Hilfszugriff") || stderr.includes("Accessibility")){
+                                message = "Sie müssen die Berechtigungen für den Hilfszugriff (Bedienungshilfen) erteilen!"
+                            }
+                           this.showExitWarning(message)  //show warning and quit app
+                        }
+                    }
+                })
+
+
+
                 // attention ! das neue macos erlaubt auch ohne berechtiung screenshots aber diese beinhalten dann keine apps (sind quasi nur der background)
                 screenshot()   //grab "screenshot" with screenshot node module 
                 .then( (res) => { log.info("screenshot allowed")} )

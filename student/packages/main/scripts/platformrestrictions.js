@@ -245,7 +245,7 @@ function enableRestrictions(win){
           //let scriptfile = join(__dirname, '../../public/mc.appelscript')   //spaces, shortcuts
           let scriptfile = join(__dirname, '../../public/check.appelscript')  //just spaces (less intrusive - easier to grant permissions)
           if (app.isPackaged) {
-              scriptfile = join(process.resourcesPath, 'app.asar.unpacked', '../../public/check.applescript')  //on macos the path changes if packaged
+              scriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/check.applescript')  //on macos the path changes if packaged
           }
          
          
