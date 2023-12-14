@@ -668,42 +668,57 @@ class WindowHandler {
                 //childProcess.exec('tccutil reset AppleEvents com.vscodium') // apple events können resetted werde da macos immerwieder danach fragt
                 //childProcess.exec('tccutil reset Accessibility com.vscodium')  //accessibility wird nur einmal gefragt, danach muss der user es manuell aktivieren
                             
-                let scriptfile = join(__dirname, '../../public/check.applescript')
+                let settingsScriptfile = join(__dirname, '../../public/opensettings.applescript')
                 if (app.isPackaged) {
-                    scriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/check.applescript')
+                    settingsScriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/opensettings.applescript')
                 }
-               
-                childProcess.execFile('osascript', [scriptfile], (error, stdout, stderr) => {
+         
+                let accessScriptfile = join(__dirname, '../../public/access.applescript')
+                if (app.isPackaged) {
+                    accessScriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/acess.applescript')
+                }
+
+                let spacesScriptfile = join(__dirname, '../../public/spaces.applescript')
+                if (app.isPackaged) {
+                    spacesScriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/spaces.applescript')
+                }
+
+                childProcess.execFile('osascript', [accessScriptfile], (error, stdout, stderr) => {
                     if (stderr) { 
                         log.info(stderr) 
-                        if (stderr.includes("Berechtigung") || stderr.includes("authorized")){
-                            log.error("no Systemsettings permissions granted")
-                            let message = "Sie müssen die Berechtigungen zur Automation erteilen!"
-                            if (stderr.includes("Hilfszugriff") || stderr.includes("Accessibility")){
-                                message = "Sie müssen die Berechtigungen für den Hilfszugriff (Bedienungshilfen) erteilen!"
-                            }
+                        if (stderr.includes("Berechtigung") || stderr.includes("authorized")|| stderr.includes("berechtigt")){
+                            log.error("no accessibility permissions granted")
+                         
+                            let message = "Sie müssen die Berechtigungen für den Hilfszugriff (Bedienungshilfen) erteilen!"
+                            
+                                childProcess.execFile('osascript', [settingsScriptfile], (error, stdout, stderr) => {
+                                    if (stderr) { 
+                                        log.info(stderr) 
+                                    }
+                                })
+
                            this.showExitWarning(message)  //show warning and quit app
                         }
+                    }
+                    else {  // accessibility rights should be set
+                        childProcess.execFile('osascript', [spacesScriptfile], (error, stdout, stderr) => {
+                            if (stderr) { 
+                                log.info(stderr) 
+                                if (stderr.includes("Berechtigung") || stderr.includes("authorized")){
+                                    log.error("no Systemsettings permissions granted")
+                                    let message = "Sie müssen die Berechtigungen zur Automation erteilen!"
+                                    if (stderr.includes("Hilfszugriff") || stderr.includes("Accessibility")){
+                                        message = "Sie müssen die Berechtigungen für den Hilfszugriff (Bedienungshilfen) erteilen!"
+                                    }
+                                this.showExitWarning(message)  //show warning and quit app
+                                }
+                            }
+                        })
                     }
                 })
 
-                let mcscriptfile = join(__dirname, '../../public/spaces.applescript')
-                if (app.isPackaged) {
-                    mcscriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/spaces.applescript')
-                }
-                childProcess.execFile('osascript', [mcscriptfile], (error, stdout, stderr) => {
-                    if (stderr) { 
-                        log.info(stderr) 
-                        if (stderr.includes("Berechtigung") || stderr.includes("authorized")){
-                            log.error("no Systemsettings permissions granted")
-                            let message = "Sie müssen die Berechtigungen zur Automation erteilen!"
-                            if (stderr.includes("Hilfszugriff") || stderr.includes("Accessibility")){
-                                message = "Sie müssen die Berechtigungen für den Hilfszugriff (Bedienungshilfen) erteilen!"
-                            }
-                           this.showExitWarning(message)  //show warning and quit app
-                        }
-                    }
-                })
+            
+                
 
                 // attention ! das neue macos erlaubt auch ohne berechtiung screenshots aber diese beinhalten dann keine apps (sind quasi nur der background)
                 screenshot()   //grab "screenshot" with screenshot node module 
