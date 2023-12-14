@@ -114,7 +114,10 @@ function enableRestrictions(win){
         childProcess.execFile('kwriteconfig5', ['--file',`kwinrc`,'--group','Desktops','--key','Number','1'])  //remove virtual desktops
         childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','setCurrentDesktop','1'])
         //childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
-        childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','replace'])
+        
+        //childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','replace'])
+        childProcess.exec('kwin --replace &')
+
         childProcess.execFile('kquitapp5', ['kglobalaccel'])
 
 
