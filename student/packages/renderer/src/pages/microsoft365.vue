@@ -56,13 +56,15 @@
         <!-- angabe/pdf preview end -->
 
         <!-- focus warning start -->
-         <div v-if="!focus" id="" class="infodiv p-4 d-block focuswarning" >
-            <div class="mb-3 row">
-                <div class="mb-3 "> {{$t('editor.leftkiosk')}} <br> {{$t('editor.tellsomeone')}} </div>
-                <img src="/src/assets/img/svg/eye-slash-fill.svg" class=" me-2" width="32" height="32" >
+        <div v-if="!focus" class="focus-container">
+            <div id="focuswarning" class="infodiv p-4 d-block focuswarning" >
+                <div class="mb-3 row">
+                    <div class="mb-3 "> {{$t('editor.leftkiosk')}} <br> {{$t('editor.tellsomeone')}} </div>
+                    <img src="/src/assets/img/svg/eye-slash-fill.svg" class=" me-2" width="32" height="32" >
+                </div>
             </div>
         </div>
-        <!-- focus warning end -->
+        <!-- focuswarning end  -->
     </div>
 
     <!-- 
@@ -105,6 +107,7 @@ export default {
             now : new Date().getTime(),
             localfiles: null,
             battery: null,
+            warning: false,
            
         }
     }, 
@@ -246,7 +249,16 @@ export default {
             this.exammode = this.clientinfo.exammode
             this.pincode = this.clientinfo.pin
 
-            if (!this.focus){  this.entrytime = new Date().getTime()}
+            if (!this.focus){
+                this.warning = true 
+                this.entrytime = new Date().getTime()
+                ipcRenderer.send('collapse-browserview')
+            }
+            if (this.focus && this.warning){
+                this.warning = false
+                ipcRenderer.send('restore-browserview')
+            }
+
             if (this.clientinfo && this.clientinfo.token){  this.online = true  }
             else { this.online = false  }
 

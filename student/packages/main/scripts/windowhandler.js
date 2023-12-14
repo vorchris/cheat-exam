@@ -565,6 +565,7 @@ class WindowHandler {
                 this.examwindow.focus()
                 this.addBlurListener()
             }
+            this.addBlurListener() // just for dev purposes in order to test blur
             this.examwindow.removeMenu() 
             if (this.config.showdevtools) { this.examwindow.webContents.openDevTools()  }
             this.examwindow.show()

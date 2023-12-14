@@ -124,10 +124,12 @@
     <!-- angabe/pdf preview end -->
 
     <!-- focus warning start -->
-   <div v-if="!focus" id="focuswarning" class="infodiv p-4 d-block focuswarning" >
-        <div class="mb-3 row">
-            <div class="mb-3 "> {{$t('editor.leftkiosk')}} <br> {{$t('editor.tellsomeone')}} </div>
-            <img src="/src/assets/img/svg/eye-slash-fill.svg" class=" me-2" width="32" height="32" >
+    <div v-if="!focus" class="focus-container">
+        <div id="focuswarning" class="infodiv p-4 d-block focuswarning" >
+            <div class="mb-3 row">
+                <div class="mb-3 "> {{$t('editor.leftkiosk')}} <br> {{$t('editor.tellsomeone')}} </div>
+                <img src="/src/assets/img/svg/eye-slash-fill.svg" class=" me-2" width="32" height="32" >
+            </div>
         </div>
     </div>
     <!-- focuswarning end  -->
@@ -876,7 +878,7 @@ export default {
 <style lang="scss">
 
 @media print {  //this controls how the editor view is printed (to pdf)
-    #editortoolbar, #editorheader, #editselected, #focuswarning, #specialcharsdiv, #aplayer, span.NXTEhighlight  {
+    #editortoolbar, #editorheader, #editselected, #focuswarning, .focus-container, #specialcharsdiv, #aplayer, span.NXTEhighlight  {
         display: none !important;
     }
     #statusbar {
