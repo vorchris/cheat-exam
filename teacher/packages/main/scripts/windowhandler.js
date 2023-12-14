@@ -18,7 +18,7 @@
 
 import { app, BrowserWindow, dialog  } from 'electron'
 import { join } from 'path'
-
+import log from 'electron-log/main';
 
 class WindowHandler {
     constructor () {
