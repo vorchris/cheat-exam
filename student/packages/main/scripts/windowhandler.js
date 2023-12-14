@@ -26,8 +26,6 @@ import fs from 'fs'
 import Nodehun from 'nodehun'
 import log from 'electron-log/main'
 
-// import Tesseract from 'tesseract.js';
-
   ////////////////////////////////////////////////////////////
  // Window handling (ipcRenderer Process - Frontend) START
 ////////////////////////////////////////////////////////////
@@ -206,6 +204,7 @@ class WindowHandler {
             minimizable: false,
             // resizable:false,   // leads to weird 20px bottomspace on windows
             movable: false,
+            frame: false,
             icon: join(__dirname, '../../public/icons/icon.png'),
             webPreferences: {
                 preload: join(__dirname, '../preload/preload.cjs'),
@@ -223,6 +222,7 @@ class WindowHandler {
         }
         
         blockwin.removeMenu() 
+        blockwin.setMinimizable(false)
         blockwin.setKiosk(true)
         blockwin.setAlwaysOnTop(true, "screen-saver", 1) 
         blockwin.show()
@@ -252,6 +252,7 @@ class WindowHandler {
             minimizable: false,
             // resizable:false, // leads to weird 20px bottomspace on windows
             movable: false,
+            frame: false,
             icon: join(__dirname, '../../public/icons/icon.png'),
             webPreferences: {
                 preload: join(__dirname, '../preload/preload.cjs'),
@@ -508,7 +509,7 @@ class WindowHandler {
                             function lock(){
 
                                 // 'WACDialogOuterContainer','WACDialogInnerContainer','WACDialogPanel',
-                                const hideusByID = ['InsertAddInFlyout','Designer','Editor','FarPane','Help','InsertAppsForOffice','FileMenuLauncherContainer','Help-wrapper','Review-wrapper','Header','FarPeripheralControlsContainer','BusinessBar']
+                                const hideusByID = ['Ribbon-PictureMenuMLRDropdown','InsertAddInFlyout','Designer','Editor','FarPane','Help','InsertAppsForOffice','FileMenuLauncherContainer','Help-wrapper','Review-wrapper','Header','FarPeripheralControlsContainer','BusinessBar']
                                 for (entry of hideusByID) {
                                     let element = document.getElementById(entry)
                                     if (element) { element.style.display = "none" }
@@ -535,6 +536,9 @@ class WindowHandler {
                                 elements.forEach(element => { element.style.display = 'none'; });
                                 elements = document.querySelectorAll('[data-unique-id="GetAddins"]');
                                 elements.forEach(element => { element.style.display = 'none'; });
+                                elements = document.querySelectorAll('[data-unique-id="Pictures_MLR"]');
+                                elements.forEach(element => { element.style.display = 'none'; });
+                                
                             }
                             const intervalId = setInterval(lock, 400);
                             lock()  //for some reason excel delays that call.. doesnt happen on page finish load
@@ -567,6 +571,7 @@ class WindowHandler {
                 this.examwindow.focus()
                 this.addBlurListener()
             }
+            // this.addBlurListener() // just for dev purposes in order to test blur
             this.examwindow.removeMenu() 
             if (this.config.showdevtools) { this.examwindow.webContents.openDevTools()  }
             this.examwindow.show()
@@ -657,74 +662,66 @@ class WindowHandler {
             this.mainwindow.focus();
 
           
-            // screenshot()   //grab "screenshot" with screenshot node module 
-            // .then( (imageBuffer) => { 
-            //     log.info("screenshot allowed") 
-            //     Tesseract.recognize(imageBuffer, 'eng')
-            //     .then(({ data: { text } }) => {
-            //         // Text aus dem Bild extrahieren und prüfen
-            //         console.log(text);
-            //         if(text.includes('Next-Exam')) {
-            //           console.log('Der Text "Next-Exam" wurde im Bild gefunden.');
-            //         } else {
-            //           console.log('Der Text "Next-Exam" wurde nicht im Bild gefunden.');
-            //         }
-            //       });
-            //  })
-
-
 
             if (process.platform == 'darwin'){
+                // check permissions to handle settings in macos
 
-
-                
-                //mission control
                 //childProcess.exec('tccutil reset AppleEvents com.nextexam-student.app')   //reset permission settings - ask gain next time!
                 //childProcess.exec('tccutil reset Accessibility com.nextexam-student.app') 
                 //childProcess.exec('tccutil reset AppleEvents com.vscodium') // apple events können resetted werde da macos immerwieder danach fragt
                 //childProcess.exec('tccutil reset Accessibility com.vscodium')  //accessibility wird nur einmal gefragt, danach muss der user es manuell aktivieren
                             
-                let scriptfile = join(__dirname, '../../public/check.applescript')
+                let settingsScriptfile = join(__dirname, '../../public/opensettings.applescript')
                 if (app.isPackaged) {
-                    scriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/check.applescript')
+                    settingsScriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/opensettings.applescript')
                 }
-               
-                childProcess.execFile('osascript', [scriptfile], (error, stdout, stderr) => {
+         
+                let accessScriptfile = join(__dirname, '../../public/access.applescript')
+                if (app.isPackaged) {
+                    accessScriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/access.applescript')
+                }
+
+                let spacesScriptfile = join(__dirname, '../../public/spaces.applescript')
+                if (app.isPackaged) {
+                    spacesScriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/spaces.applescript')
+                }
+
+                childProcess.execFile('osascript', [accessScriptfile], (error, stdout, stderr) => {
                     if (stderr) { 
                         log.info(stderr) 
-                        if (stderr.includes("Berechtigung") || stderr.includes("authorized")){
-                            log.error("no Systemsettings permissions granted")
-                            let message = "Sie müssen die Berechtigungen zur Automation erteilen!"
-                            if (stderr.includes("Hilfszugriff") || stderr.includes("Accessibility")){
-                                message = "Sie müssen die Berechtigungen für den Hilfszugriff (Bedienungshilfen) erteilen!"
-                            }
+                        if (stderr.includes("Berechtigung") || stderr.includes("authorized")|| stderr.includes("berechtigt")){
+                            log.error("no accessibility permissions granted")
+                         
+                            let message = "Sie müssen die Berechtigungen für den Hilfszugriff (Bedienungshilfen) erteilen!"
+                            
+                                childProcess.execFile('osascript', [settingsScriptfile], (error, stdout, stderr) => {
+                                    if (stderr) { 
+                                        log.info(stderr) 
+                                    }
+                                })
+
                            this.showExitWarning(message)  //show warning and quit app
                         }
                     }
-                })
-
-
-
-                let mcscriptfile = join(__dirname, '../../public/spaces.applescript')
-                if (app.isPackaged) {
-                    mcscriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/spaces.applescript')
-                }
-               
-                childProcess.execFile('osascript', [mcscriptfile], (error, stdout, stderr) => {
-                    if (stderr) { 
-                        log.info(stderr) 
-                        if (stderr.includes("Berechtigung") || stderr.includes("authorized")){
-                            log.error("no Systemsettings permissions granted")
-                            let message = "Sie müssen die Berechtigungen zur Automation erteilen!"
-                            if (stderr.includes("Hilfszugriff") || stderr.includes("Accessibility")){
-                                message = "Sie müssen die Berechtigungen für den Hilfszugriff (Bedienungshilfen) erteilen!"
+                    else {  // accessibility rights should be set
+                        childProcess.execFile('osascript', [spacesScriptfile], (error, stdout, stderr) => {
+                            if (stderr) { 
+                                log.info(stderr) 
+                                if (stderr.includes("Berechtigung") || stderr.includes("authorized")){
+                                    log.error("no Systemsettings permissions granted")
+                                    let message = "Sie müssen die Berechtigungen zur Automation erteilen!"
+                                    if (stderr.includes("Hilfszugriff") || stderr.includes("Accessibility")){
+                                        message = "Sie müssen die Berechtigungen für den Hilfszugriff (Bedienungshilfen) erteilen!"
+                                    }
+                                this.showExitWarning(message)  //show warning and quit app
+                                }
                             }
-                           this.showExitWarning(message)  //show warning and quit app
-                        }
+                        })
                     }
                 })
 
-
+            
+                
 
                 // attention ! das neue macos erlaubt auch ohne berechtiung screenshots aber diese beinhalten dann keine apps (sind quasi nur der background)
                 screenshot()   //grab "screenshot" with screenshot node module 

@@ -78,22 +78,34 @@ class IpcHandler {
         /**
          * re-check hostip and enable multicast client
          */ 
-        ipcMain.on('checkhostip', (event) => {   
+        ipcMain.on('checkhostip', (event) => { 
+            let address = false
+            try { address = this.multicastClient.client.address() }
+            catch (e) { log.error("ipcHandler: multicastclient not running") }
+            if (address) { event.returnValue = this.config.hostip }
+
+
             try { //bind to the correct interface
                 const {gateway, interface: iface} =  defaultGateway.v4.sync()
                 this.config.hostip = ip.address(iface)    // this returns the ip of the interface that has a default gateway..  should work in MOST cases.  probably provide "ip-options" in UI ?
+                this.config.gateway = true
             }
             catch (e) {
-                log.error("ipcHandler: Unable to determine default gateway")
                 this.config.hostip = false
+                this.config.gateway = false
             }
+
+            if (!this.config.hostip) {
+                try {this.config.hostip = ip.address() }  //this delivers an ip even if gateway is not set
+                catch (e) {
+                    log.error("ipcHandler: Unable to determine ip address")
+                    this.config.hostip = false
+                    this.config.gateway = false
+                }
+            }
+
             // check if multicast client is running - otherwise start it
-            if (this.config.hostip) {
-                let address = false
-                try { address = this.multicastClient.client.address() }
-                catch (e) { log.error("ipcHandler: multicastclient not running") }
-                if (!address){ this.multicastClient.init()}
-            }
+            if (this.config.hostip && !address ) { this.multicastClient.init(this.config.gateway) }
             event.returnValue = this.config.hostip 
         })
 

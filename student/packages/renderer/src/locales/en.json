@@ -21,7 +21,8 @@
         "offline": "No Network Connection",
         "nopin": "no pincode given",
         "unreachable":"Server API unreachable",
-        "timeout":"Timeout! Exam-Teacher is behind Firewall."
+        "timeout":"Timeout! Exam-Teacher is behind Firewall.",
+        "noapi": "No Teacher API found on the given address"
     },
     "control": {
         "tokennotvalid": "token is not valid",

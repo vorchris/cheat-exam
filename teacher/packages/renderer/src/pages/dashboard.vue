@@ -305,8 +305,8 @@ export default {
                 msOfficeFile: null,
                 screenslocked: false,
                 pin: this.$route.params.pin,
-                linespacing : 1
-              
+                linespacing: 1,
+                unlockonexit: false
             }
         };
     },

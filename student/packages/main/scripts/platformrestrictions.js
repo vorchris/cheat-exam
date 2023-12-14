@@ -114,7 +114,10 @@ function enableRestrictions(win){
         childProcess.execFile('kwriteconfig5', ['--file',`kwinrc`,'--group','Desktops','--key','Number','1'])  //remove virtual desktops
         childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','setCurrentDesktop','1'])
         //childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
-        childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','replace'])
+        
+        //childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','replace'])
+        childProcess.exec('kwin --replace &')
+
         childProcess.execFile('kquitapp5', ['kglobalaccel'])
 
 
@@ -239,21 +242,13 @@ function enableRestrictions(win){
             childProcess.exec(`pkill -9 -f "${app}"`, (error, stderr, stdout) => {
    
             });
-          });
+        });
 
-          //mission control
-          //let scriptfile = join(__dirname, '../../public/mc.appelscript')   //spaces, shortcuts
-          let scriptfile = join(__dirname, '../../public/check.appelscript')  //just spaces (less intrusive - easier to grant permissions)
-          if (app.isPackaged) {
-              scriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/check.applescript')  //on macos the path changes if packaged
-          }
-         
-         
-          childProcess.execFile(osascript, [scriptfile], (error, stdout, stderr) => {
-              if (stderr) { log.info(stderr) }
-              if (error) { log.info(error) }
-          })
-
+        //mission control
+        //let scriptfile = join(__dirname, '../../public/mc.appelscript')   //spaces, shortcuts
+        let mcscriptfile = join(__dirname, '../../public/spaces.applescript')
+        if (app.isPackaged) { mcscriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/spaces.applescript') }
+        childProcess.execFile('osascript', [mcscriptfile], (error, stdout, stderr) => {if (stderr) { log.info(stderr)  } })
     }
 }
 

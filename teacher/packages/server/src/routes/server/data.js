@@ -509,11 +509,17 @@ export default router
 function checkToken(token, mcserver){
     let tokenexists = false
     log.info("checking if student is registered on this server")
-    mcserver.studentList.forEach( (student) => {
-        if (token === student.token) {
-            tokenexists = true
-        }
-    });
+    try {
+        mcserver.studentList.forEach( (student) => {
+            if (token === student.token) {
+                tokenexists = true
+            }
+        });
+    }
+    catch(err){
+        log.error(`data: ${err}`)
+    }
+
     return tokenexists
 }
 

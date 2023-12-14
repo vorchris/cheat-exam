@@ -53,11 +53,20 @@ if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory); }
 try { //bind to the correct interface
     const {gateway, interface: iface} =  defaultGateway.v4.sync()
     config.hostip = ip.address(iface)    // this returns the ip of the interface that has a default gateway..  should work in MOST cases.  probably provide "ip-options" in UI ?
- }
+    config.gateway = true
+}
  catch (e) {
-   console.log(e)
-   config.hostip = false
+   log.error("main: unable to determine default gateway")
+   config.hostip = ip.address() 
+   log.info(`main: IP ${config.hostip}`)
+   config.gateway = false
  }
+
+
+
+
+
+
 
 app.commandLine.appendSwitch('lang', 'de')
 fsExtra.emptyDirSync(config.tempdirectory)  // clean temp directory
@@ -130,7 +139,15 @@ app.on('activate', () => {
 app.whenReady()
 .then(()=>{
     nativeTheme.themeSource = 'light'
-    if (config.hostip) { multicastClient.init() }
+
+
+
+    if (config.hostip) {
+        log.info(`main:  HOSTIP: ${config.hostip}`)
+        multicastClient.init(config.gateway) 
+    }
+
+
     powerSaveBlocker.start('prevent-display-sleep')
     if (process.platform === 'win32') {
         import('node-prevent-sleep').then( preventSleep => {

@@ -7,6 +7,7 @@
     <span class="fs-4 align-middle  ms-3" style="float: right">Student</span>
     <div v-if="token" id="adv" class="btn btn-success btn-sm m-0  mt-1 " style="cursor: unset; float: right">{{ $t("student.connected") }}</div>
     <div v-if="!hostip" id="adv" class="btn btn-danger btn-sm m-0  mt-1 " style="cursor: unset; float: right">{{ $t("student.offline") }}</div>
+    <div v-if="networkerror" id="adv" class="btn btn-danger btn-sm m-0  mt-1 " style="cursor: unset; float: right">{{ $t("student.noapi") }}</div>
 </div>
  
 
@@ -132,7 +133,8 @@ export default {
             serverip: "",
             servername: "",
             hostip: config.hostip,
-            biplogin: false
+            biplogin: false,
+            networkerror: false
         };
     },
     methods: {
@@ -178,7 +180,7 @@ export default {
 
             if (getinfo.serverlist.length  === 0) {
                 if (validator.isIP(this.serverip) || validator.isFQDN(this.serverip)){
-                        console.log("fetching exams from server")
+                        //console.log("student.vue: fetching exams from server")
                         //give some userfeedback here
                         if (this.serverlist.length == 0){
                             this.status("Suche Prüfungen...")
@@ -186,7 +188,10 @@ export default {
                     
                         axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/serverlist`)
                         .then( response => { if (response.data && response.data.status == "success") {  this.serverlist = response.data.serverlist} }) 
-                        .catch(err => { console.log(err.message)}) 
+                        .catch(err => { 
+                            log.error(`student.vue: ${err.message}`); 
+                            this.networkerror = true
+                        }) 
                 }
                 else { this.serverlist = getinfo.serverlist;  }
             }
