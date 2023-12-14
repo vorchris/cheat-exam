@@ -161,6 +161,8 @@ export default {
                     else if ( event.url.includes("logout") && event.url.includes(this.serverstatus.moodleDomain) )             { console.log(" url allowed") }
                     else if ( event.url.includes("lookup") && event.url.includes("google") )                                   { console.log(" url allowed") }
                     else if ( event.url.includes("login") && event.url.includes("eduvidual") )                                 { console.log(" url allowed") }
+                    else if ( event.url.includes("login") && event.url.includes(this.serverstatus.moodleDomain) )              { console.log(" url allowed") }
+
                     else {
                         console.log("blocked leaving exam mode")
                         webview.stop()
