@@ -675,7 +675,7 @@ class WindowHandler {
          
                 let accessScriptfile = join(__dirname, '../../public/access.applescript')
                 if (app.isPackaged) {
-                    accessScriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/acess.applescript')
+                    accessScriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/access.applescript')
                 }
 
                 let spacesScriptfile = join(__dirname, '../../public/spaces.applescript')
