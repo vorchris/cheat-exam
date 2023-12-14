@@ -395,8 +395,14 @@ import log from 'electron-log/main';
             for (let display of displays){
                 if ( display.id !== primary.id ) {
                     WindowHandler.newBlockWin(display)  // add blockwindows for additional displays
+                   // WindowHandler.blockwin.moveTop();
                 }
             }
+            await this.sleep(2000)
+            WindowHandler.blockwindows.forEach( (blockwin) => {
+                blockwin.moveTop();
+            })
+
         }
        
     }

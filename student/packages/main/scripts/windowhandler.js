@@ -204,6 +204,7 @@ class WindowHandler {
             minimizable: false,
             // resizable:false,   // leads to weird 20px bottomspace on windows
             movable: false,
+            frame: false,
             icon: join(__dirname, '../../public/icons/icon.png'),
             webPreferences: {
                 preload: join(__dirname, '../preload/preload.cjs'),
@@ -221,6 +222,7 @@ class WindowHandler {
         }
         
         blockwin.removeMenu() 
+        blockwin.setMinimizable(false)
         blockwin.setKiosk(true)
         blockwin.setAlwaysOnTop(true, "screen-saver", 1) 
         blockwin.show()
@@ -250,6 +252,7 @@ class WindowHandler {
             minimizable: false,
             // resizable:false, // leads to weird 20px bottomspace on windows
             movable: false,
+            frame: false,
             icon: join(__dirname, '../../public/icons/icon.png'),
             webPreferences: {
                 preload: join(__dirname, '../preload/preload.cjs'),
