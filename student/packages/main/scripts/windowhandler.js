@@ -506,7 +506,7 @@ class WindowHandler {
                             function lock(){
 
                                 // 'WACDialogOuterContainer','WACDialogInnerContainer','WACDialogPanel',
-                                const hideusByID = ['InsertAddInFlyout','Designer','Editor','FarPane','Help','InsertAppsForOffice','FileMenuLauncherContainer','Help-wrapper','Review-wrapper','Header','FarPeripheralControlsContainer','BusinessBar']
+                                const hideusByID = ['Ribbon-PictureMenuMLRDropdown','InsertAddInFlyout','Designer','Editor','FarPane','Help','InsertAppsForOffice','FileMenuLauncherContainer','Help-wrapper','Review-wrapper','Header','FarPeripheralControlsContainer','BusinessBar']
                                 for (entry of hideusByID) {
                                     let element = document.getElementById(entry)
                                     if (element) { element.style.display = "none" }
@@ -533,6 +533,9 @@ class WindowHandler {
                                 elements.forEach(element => { element.style.display = 'none'; });
                                 elements = document.querySelectorAll('[data-unique-id="GetAddins"]');
                                 elements.forEach(element => { element.style.display = 'none'; });
+                                elements = document.querySelectorAll('[data-unique-id="Pictures_MLR"]');
+                                elements.forEach(element => { element.style.display = 'none'; });
+                                
                             }
                             const intervalId = setInterval(lock, 400);
                             lock()  //for some reason excel delays that call.. doesnt happen on page finish load
@@ -565,7 +568,7 @@ class WindowHandler {
                 this.examwindow.focus()
                 this.addBlurListener()
             }
-            this.addBlurListener() // just for dev purposes in order to test blur
+            // this.addBlurListener() // just for dev purposes in order to test blur
             this.examwindow.removeMenu() 
             if (this.config.showdevtools) { this.examwindow.webContents.openDevTools()  }
             this.examwindow.show()
