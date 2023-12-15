@@ -407,7 +407,7 @@ import log from 'electron-log/main';
             for (let display of displays){
                 if ( display.id !== primary.id ) {
                     if ( !this.isApproximatelyEqual(display.bounds.x, primary.bounds.x)) {  //on kde displays may be manually positioned at 1920px or 1921px so we allow a range to identify overlapping (cloned) displays
-                        console.log("create blockwin on:",display.id)
+                        log.info("create blockwin on:",display.id)
                         WindowHandler.newBlockWin(display)  // add blockwindows for additional displays
                     } 
                 }
