@@ -179,7 +179,7 @@ function getFiles(who, feedfack=false, quiet=false){
         inputAttributes: {
             min: 0,
             max: 60,
-            step: 4
+            step: 2
         },
         inputValue: this.serverstatus.screenshotinterval
     }).then((result) => {
@@ -187,7 +187,11 @@ function getFiles(who, feedfack=false, quiet=false){
         this.serverstatus.screenshotinterval= inputInteger
         if (this.serverstatus.screenshotinterval == 0) { document.getElementById("screenshotinterval").checked = false }
         else { document.getElementById("screenshotinterval").checked = true}
-        if (!this.serverstatus.screenshotinterval || !Number.isInteger(this.serverstatus.screenshotinterval)){this.serverstatus.screenshotinterval = 4}
+        if (!this.serverstatus.screenshotinterval || !Number.isInteger(this.serverstatus.screenshotinterval)){
+            console.log("deactivating screenshots");
+            this.serverstatus.screenshotinterval = 0
+            document.getElementById("screenshotinterval").checked = false 
+        }
 
         // WRITE screenshotinterval serverstatus ojbect so it can be retrieved on the next student update 
         this.setServerStatus()

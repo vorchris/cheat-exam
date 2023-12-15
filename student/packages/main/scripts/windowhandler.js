@@ -280,6 +280,7 @@ class WindowHandler {
             this.screenlockWindow.show()
             this.screenlockWindow.moveTop();
             this.screenlockWindow.setClosable(true)
+            this.screenlockWindow.setVisibleOnAllWorkspaces(true); // put the window on all virtual workspaces
             this.addBlurListener("screenlock")
         })
 
@@ -575,6 +576,7 @@ class WindowHandler {
             this.examwindow.removeMenu() 
             if (this.config.showdevtools) { this.examwindow.webContents.openDevTools()  }
             this.examwindow.show()
+            this.examwindow.setVisibleOnAllWorkspaces(true); 
             this.examwindow.focus()
         })
 
@@ -659,9 +661,8 @@ class WindowHandler {
            // this.splashwin.close()
             this.mainwindow.show()
             this.mainwindow.moveTop();
+            this.mainwindow.setVisibleOnAllWorkspaces(true); // put the window on all virtual workspaces
             this.mainwindow.focus();
-
-          
 
             if (process.platform == 'darwin'){
                 // check permissions to handle settings in macos

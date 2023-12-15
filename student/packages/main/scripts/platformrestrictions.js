@@ -116,7 +116,7 @@ function enableRestrictions(win){
         //childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
         
         //childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','replace'])
-        childProcess.exec('kwin --replace &')
+        //childProcess.exec('kwin --replace &')
 
         childProcess.execFile('kquitapp5', ['kglobalaccel'])
 

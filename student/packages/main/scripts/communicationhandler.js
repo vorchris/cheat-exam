@@ -281,9 +281,11 @@ import log from 'electron-log/main';
         if (serverstatus.screenslocked && !this.multicastClient.clientinfo.screenlock) {  this.activateScreenlock() }
         else if (!serverstatus.screenslocked ) { this.killScreenlock() }
 
+        console.log(serverstatus.screenshotinterval)
         //update screenshotinterval
         if (serverstatus.screenshotinterval) { 
-            if (this.multicastClient.clientinfo.screenshotinterval !== serverstatus.screenshotinterval*1000) {
+            
+            if (this.multicastClient.clientinfo.screenshotinterval !== serverstatus.screenshotinterval*1000|| serverstatus.screenshotinterval == 0) {
                 log.info("ScreenshotInterval changed to", serverstatus.screenshotinterval*1000)
                 this.multicastClient.clientinfo.screenshotinterval = serverstatus.screenshotinterval*1000
                 
