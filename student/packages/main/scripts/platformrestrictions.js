@@ -113,13 +113,10 @@ function enableRestrictions(win){
         childProcess.execFile('kwriteconfig5', ['--file',`${config.homedirectory}/.config/kwinrc`,'--group','ModifierOnlyShortcuts','--key','Meta','""']) 
         childProcess.execFile('kwriteconfig5', ['--file',`kwinrc`,'--group','Desktops','--key','Number','1'])  //remove virtual desktops
         childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','setCurrentDesktop','1'])
-        //childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
+        childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
         
         //childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','replace'])
         //childProcess.exec('kwin --replace &')
-
-        childProcess.execFile('kquitapp5', ['kglobalaccel'])
-
 
         
         childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'true']) // Temporarily deactivate ALL global keyboardshortcuts 
@@ -127,7 +124,11 @@ function enableRestrictions(win){
         childProcess.execFile('qdbus', ['org.kde.klipper' ,'/klipper', 'org.kde.klipper.klipper.clearClipboardHistory']) // Clear Clipboard history 
         childProcess.execFile('wl-copy', ['-c'])   // wayland
 
-    
+
+        childProcess.execFile('kquitapp5', ['kglobalaccel'])  // quitapp nees kglobalaccel while startapp needs kglobalaccel5
+
+      
+        childProcess.execFile('killall', ['plasmashell'])
 
 
         //////////
@@ -289,8 +290,11 @@ function disableRestrictions(win){
         //childProcess.execFile('sed', ['-i', '-e', 's/global=.*/global=Alt+F1/g', `${config.homedirectory}/.config/plasma-org.kde.plasma.desktop-appletsrc` ])
         childProcess.execFile('kwriteconfig5', ['--file',`${config.homedirectory}/.config/kwinrc`,'--group','ModifierOnlyShortcuts','--key','Meta','--delete']) 
         childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
-        childProcess.exec('kwin --replace &')
+        //childProcess.exec('kwin --replace &')
 
+
+        childProcess.execFile('kstart5', ['plasmashell'])
+   
 
         // reset specific shortcuts GNOME
         for (let binding of gnomeKeybindings){
