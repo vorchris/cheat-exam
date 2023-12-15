@@ -23,7 +23,7 @@ import childProcess from 'child_process'
 import screenshot from 'screenshot-desktop'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 import fs from 'fs' 
-import Nodehun from 'nodehun'
+import Nodehun from 'nodehun'   // npm rebuild nodehun --update-binary  on mac after build to run in dev mode
 import log from 'electron-log/main'
 
   ////////////////////////////////////////////////////////////
@@ -37,6 +37,7 @@ import log from 'electron-log/main'
 class WindowHandler {
     constructor () {
       this.blockwindows = []
+      this.screenlockwindows = []
       this.screenlockWindow = null
       this.mainwindow = null
       this.examwindow = null
@@ -237,7 +238,7 @@ class WindowHandler {
      */
 
     createScreenlockWindow(display) {
-        this.screenlockWindow = new BrowserWindow({
+        let screenlockWindow = new BrowserWindow({
             show: false,
             x: display.bounds.x + 0,
             y: display.bounds.y + 0,
@@ -262,30 +263,33 @@ class WindowHandler {
         let url = "lock"
         if (app.isPackaged) {
             let path = join(__dirname, `../renderer/index.html`)
-            this.screenlockWindow.loadFile(path, {hash: `#/${url}/`})
+            screenlockWindow.loadFile(path, {hash: `#/${url}/`})
         } 
         else {
             url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}/#/${url}/`
-            this.screenlockWindow.loadURL(url)
+            screenlockWindow.loadURL(url)
         }
 
-        if (this.config.showdevtools) { this.screenlockWindow.webContents.openDevTools()  }
+        if (this.config.showdevtools) { screenlockWindow.webContents.openDevTools()  }
 
-        this.screenlockWindow.once('ready-to-show', () => {
-            this.screenlockWindow.removeMenu() 
+        screenlockWindow.once('ready-to-show', () => {
+            screenlockWindow.removeMenu() 
            
-            this.screenlockWindow.setMinimizable(false)
-            this.screenlockWindow.setKiosk(true)
-            this.screenlockWindow.setAlwaysOnTop(true, "screen-saver", 1) 
-            this.screenlockWindow.show()
-            this.screenlockWindow.moveTop();
-            this.screenlockWindow.setClosable(true)
+            screenlockWindow.setMinimizable(false)
+            screenlockWindow.setKiosk(true)
+            screenlockWindow.setAlwaysOnTop(true, "pop-up-menu", 1)   //above exam window (pop-up-menu, 0)
+            screenlockWindow.show()
+            screenlockWindow.moveTop();
+            screenlockWindow.setClosable(true)
+            screenlockWindow.setVisibleOnAllWorkspaces(true); // put the window on all virtual workspaces
             this.addBlurListener("screenlock")
         })
 
-        this.screenlockWindow.on('close', async  (e) => {   // window should not be closed manually.. ever! but if you do make sure to clean examwindow variable and end exam for the client
+        screenlockWindow.on('close', async  (e) => {   // window should not be closed manually.. ever! but if you do make sure to clean examwindow variable and end exam for the client
             if (!this.config.development) { e.preventDefault(); }  
         });
+
+        this.screenlockwindows.push(screenlockWindow)
     }
 
 
@@ -575,6 +579,7 @@ class WindowHandler {
             this.examwindow.removeMenu() 
             if (this.config.showdevtools) { this.examwindow.webContents.openDevTools()  }
             this.examwindow.show()
+            this.examwindow.setVisibleOnAllWorkspaces(true); 
             this.examwindow.focus()
         })
 
@@ -643,7 +648,7 @@ class WindowHandler {
         });
 
         this.mainwindow.on('close', async  (e) => {   //ask before closing
-            if (!this.config.development) {
+            if (!this.config.development && !this.mainwindow.allowexit) {
                 let choice = dialog.showMessageBoxSync(this.mainwindow, {
                     type: 'question',
                     buttons: ['Ja', 'Nein'],
@@ -658,10 +663,10 @@ class WindowHandler {
         this.mainwindow.once('ready-to-show', () => {
            // this.splashwin.close()
             this.mainwindow.show()
-            this.mainwindow.moveTop();
+            
+            this.mainwindow.setVisibleOnAllWorkspaces(true); // put the window on all virtual workspaces
             this.mainwindow.focus();
-
-          
+            this.mainwindow.moveTop();
 
             if (process.platform == 'darwin'){
                 // check permissions to handle settings in macos
@@ -703,21 +708,21 @@ class WindowHandler {
                            this.showExitWarning(message)  //show warning and quit app
                         }
                     }
-                    else {  // accessibility rights should be set
-                        childProcess.execFile('osascript', [spacesScriptfile], (error, stdout, stderr) => {
-                            if (stderr) { 
-                                log.info(stderr) 
-                                if (stderr.includes("Berechtigung") || stderr.includes("authorized")){
-                                    log.error("no Systemsettings permissions granted")
-                                    let message = "Sie müssen die Berechtigungen zur Automation erteilen!"
-                                    if (stderr.includes("Hilfszugriff") || stderr.includes("Accessibility")){
-                                        message = "Sie müssen die Berechtigungen für den Hilfszugriff (Bedienungshilfen) erteilen!"
-                                    }
-                                this.showExitWarning(message)  //show warning and quit app
-                                }
-                            }
-                        })
-                    }
+                    // else {  // accessibility rights should be set
+                    //     childProcess.execFile('osascript', [spacesScriptfile], (error, stdout, stderr) => {
+                    //         if (stderr) { 
+                    //             log.info(stderr) 
+                    //             if (stderr.includes("Berechtigung") || stderr.includes("authorized")){
+                    //                 log.error("no Systemsettings permissions granted")
+                    //                 let message = "Sie müssen die Berechtigungen zur Automation erteilen!"
+                    //                 if (stderr.includes("Hilfszugriff") || stderr.includes("Accessibility")){
+                    //                     message = "Sie müssen die Berechtigungen für den Hilfszugriff (Bedienungshilfen) erteilen!"
+                    //                 }
+                    //             this.showExitWarning(message)  //show warning and quit app
+                    //             }
+                    //         }
+                    //     })
+                    // }
                 })
 
             
@@ -741,6 +746,7 @@ class WindowHandler {
 
 
     showExitWarning(message){
+        this.mainwindow.allowexit = true
         dialog.showMessageBoxSync(this.mainwindow, {
             type: 'warning',
             buttons: ['Ok'],
@@ -766,7 +772,10 @@ class WindowHandler {
         }
         else if (window === "screenlock") {
             log.info(`Setting Blur Event for ${window}window`)
-            this.screenlockWindow.addListener('blur', () => this.blureventScreenlock(this))    
+            for (let screenlockwindow of this.screenlockwindows){
+                screenlockwindow.addListener('blur', () => this.blureventScreenlock(this))   
+            }
+            
         }
     }
     //removes blur listener when leaving exam mode
@@ -781,7 +790,7 @@ class WindowHandler {
     //student fogus went to another window
     blurevent(winhandler) { 
         log.info("blur-exam")
-        if (winhandler.screenlockWindow) { return }// do nothing if screenlockwindow stole focus // do not trigger an infinite loop between exam window and screenlock window (stealing each others focus)
+        if (winhandler.screenlockwindows.length > 0) { return }// do nothing if screenlockwindow stole focus // do not trigger an infinite loop between exam window and screenlock window (stealing each others focus)
             
         winhandler.multicastClient.clientinfo.focus = false
         winhandler.examwindow.show();  // we keep focus on the window.. no matter what
@@ -813,9 +822,16 @@ class WindowHandler {
     //special blur event for temporary low security screenlock
     blureventScreenlock(winhandler) { 
         log.info("blur-screenlock")
-        winhandler.screenlockWindow.show();  // we keep focus on the window.. no matter what
-        winhandler.screenlockWindow.moveTop();
-        winhandler.screenlockWindow.focus();
+        try {
+            //don't cycle through all of them .. it will create an infinite focus race
+            winhandler.screenlockwindows[0].show();  // we keep focus on the window.. no matter what
+            winhandler.screenlockwindows[0].moveTop();
+            winhandler.screenlockwindows[0].focus();
+        }
+        catch (err){
+            log.error(err)
+        }
+    
     }
     
 }

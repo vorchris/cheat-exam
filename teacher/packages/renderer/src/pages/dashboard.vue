@@ -150,7 +150,8 @@
                 <span v-if="autoabgabe" > ({{ abgabeintervalPause }}min)</span>
             </div>
             <div class="form-check form-switch  m-1 mb-2">
-                <input  @change="toggleScreenshot()" @click="setScreenshotInterval()" checked class="form-check-input" type="checkbox" id="screenshotinterval">
+                <input v-if="serverstatus.screenshotinterval > 0" @change="toggleScreenshot()" @click="setScreenshotInterval()" checked class="form-check-input" type="checkbox" id="screenshotinterval">
+                <input v-if="serverstatus.screenshotinterval == 0" @change="toggleScreenshot()" @click="setScreenshotInterval()" class="form-check-input" type="checkbox" id="screenshotinterval">
                 <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.screenshot')}}</label>
                 <span v-if="serverstatus.screenshotinterval > 0" > ({{ serverstatus.screenshotinterval }}s)</span>
             </div>
@@ -772,6 +773,7 @@ export default {
          * this should be the goTo function from now on to update the backend in a single request
         */
         setServerStatus(){
+            console.log(this.serverstatus)
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/setserverstatus/${this.servername}/${this.servertoken}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },

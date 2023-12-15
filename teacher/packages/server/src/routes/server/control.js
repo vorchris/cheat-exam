@@ -598,6 +598,7 @@ router.post('/setserverstatus/:servername/:csrfservertoken', function (req, res,
     mcServer.serverstatus = req.body.serverstatus
     mcServer.serverstatus.msOfficeFile = false  // we cant store a file object as json
 
+    //console.log("control:", mcServer.serverstatus)
     log.info("saving server status to disc")
     const filePath = path.join(config.workdirectory, mcServer.serverinfo.servername, 'serverstatus.json');
     try {  fs.writeFileSync(filePath, JSON.stringify(mcServer.serverstatus, null, 2));  }   // mcServer.serverstatus als JSON-Datei speichern

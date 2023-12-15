@@ -34,13 +34,18 @@ class MulticastClient {
      * receives messages and stores new exam instances in this.examServerList[]
      * starts an intervall to check server status by timestamp
      */
-    init () {
-        this.client.bind(this.PORT, '0.0.0.0', () => { 
-            this.client.setBroadcast(true)
-            this.client.setMulticastTTL(128); 
-            this.client.addMembership(this.MULTICAST_ADDR)
-            log.info(`UDP MC Client listening on http://${config.hostip}:${this.client.address().port}`)
-        })
+    init (gateway) {
+        this.gateway = gateway
+        try {
+            this.client.bind(this.PORT, '0.0.0.0', () => { 
+                this.client.setBroadcast(true)
+                this.client.setMulticastTTL(128); 
+                if (this.gateway) { this.client.addMembership(this.MULTICAST_ADDR) }
+                if (!this.gateway) {log.warn("mcclient: No Gateway! Starting MulticastClient without adding group membership")}
+                log.info(`UDP MC Client listening on http://${config.hostip}:${this.client.address().port}`)
+            })
+        }
+        catch (err){log.error(err)}
 
         this.client.on('message', (message, rinfo) => { this.messageReceived(message, rinfo) })
         //start loops

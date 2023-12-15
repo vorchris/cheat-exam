@@ -113,13 +113,10 @@ function enableRestrictions(win){
         childProcess.execFile('kwriteconfig5', ['--file',`${config.homedirectory}/.config/kwinrc`,'--group','ModifierOnlyShortcuts','--key','Meta','""']) 
         childProcess.execFile('kwriteconfig5', ['--file',`kwinrc`,'--group','Desktops','--key','Number','1'])  //remove virtual desktops
         childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','setCurrentDesktop','1'])
-        //childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
+        childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
         
         //childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','replace'])
-        childProcess.exec('kwin --replace &')
-
-        childProcess.execFile('kquitapp5', ['kglobalaccel'])
-
+        //childProcess.exec('kwin --replace &')
 
         
         childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'true']) // Temporarily deactivate ALL global keyboardshortcuts 
@@ -127,7 +124,11 @@ function enableRestrictions(win){
         childProcess.execFile('qdbus', ['org.kde.klipper' ,'/klipper', 'org.kde.klipper.klipper.clearClipboardHistory']) // Clear Clipboard history 
         childProcess.execFile('wl-copy', ['-c'])   // wayland
 
-    
+
+        childProcess.execFile('kquitapp5', ['kglobalaccel'])  // quitapp nees kglobalaccel while startapp needs kglobalaccel5
+
+      
+        childProcess.execFile('killall', ['plasmashell'])
 
 
         //////////
@@ -246,9 +247,9 @@ function enableRestrictions(win){
 
         //mission control
         //let scriptfile = join(__dirname, '../../public/mc.appelscript')   //spaces, shortcuts
-        let mcscriptfile = join(__dirname, '../../public/spaces.applescript')
-        if (app.isPackaged) { mcscriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/spaces.applescript') }
-        childProcess.execFile('osascript', [mcscriptfile], (error, stdout, stderr) => {if (stderr) { log.info(stderr)  } })
+        // let mcscriptfile = join(__dirname, '../../public/spaces.applescript')
+        // if (app.isPackaged) { mcscriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/spaces.applescript') }
+        // childProcess.execFile('osascript', [mcscriptfile], (error, stdout, stderr) => {if (stderr) { log.info(stderr)  } })
     }
 }
 
@@ -283,14 +284,17 @@ function disableRestrictions(win){
         childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'false'])
         // activate ALL 3d Effects (present window, change desktop, etc.) 
         childProcess.execFile('qdbus', ['org.kde.KWin' ,'/Compositor', 'org.kde.kwin.Compositing.resume'])
-        childProcess.execFile('kstart5', ['kglobalaccel5'])
+        childProcess.exec('kstart5 kglobalaccel5&')
         
         //enable META Key for Launchermenu
         //childProcess.execFile('sed', ['-i', '-e', 's/global=.*/global=Alt+F1/g', `${config.homedirectory}/.config/plasma-org.kde.plasma.desktop-appletsrc` ])
         childProcess.execFile('kwriteconfig5', ['--file',`${config.homedirectory}/.config/kwinrc`,'--group','ModifierOnlyShortcuts','--key','Meta','--delete']) 
         childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
-        childProcess.exec('kwin --replace &')
+        //childProcess.exec('kwin --replace &')
 
+
+        childProcess.exec('kstart5 plasmashell&')
+   
 
         // reset specific shortcuts GNOME
         for (let binding of gnomeKeybindings){

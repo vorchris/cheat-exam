@@ -105,6 +105,7 @@ class IpcHandler {
             }
 
             // check if multicast client is running - otherwise start it
+            if (this.config.hostip == "127.0.0.1") { this.config.hostip = false }
             if (this.config.hostip && !address ) { this.multicastClient.init(this.config.gateway) }
             event.returnValue = this.config.hostip 
         })

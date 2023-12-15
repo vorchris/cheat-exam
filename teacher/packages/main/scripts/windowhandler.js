@@ -16,7 +16,7 @@
  */
 
 
-import { app, BrowserWindow, dialog  } from 'electron'
+import { app, BrowserWindow, dialog, screen  } from 'electron'
 import { join } from 'path'
 import log from 'electron-log/main';
 
@@ -27,24 +27,25 @@ class WindowHandler {
       this.config = null
       this.multicastClient = null
       this.multicastServer = null
+     
+  
     }
 
     init (mc, config) {
         this.multicastClient = mc
         this.config = config
-
-
-
-     
     }
 
     createWindow() {
+        const primaryDisplay = screen.getPrimaryDisplay();
+        const { width, height } = primaryDisplay ? primaryDisplay.workAreaSize : { width: 800, height: 600 };
+
         this.mainwindow = new BrowserWindow({
             title: 'Main window',
             icon: join(__dirname, '../../public/icons/icon.png'),
             center:true,
-            width: 1000,
-            height: 700,
+            width: width,
+            height: height,
             minWidth: 800,
             minHeight: 600,
             webPreferences: {
