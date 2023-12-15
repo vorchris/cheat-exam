@@ -663,9 +663,10 @@ class WindowHandler {
         this.mainwindow.once('ready-to-show', () => {
            // this.splashwin.close()
             this.mainwindow.show()
-            this.mainwindow.moveTop();
+            
             this.mainwindow.setVisibleOnAllWorkspaces(true); // put the window on all virtual workspaces
             this.mainwindow.focus();
+            this.mainwindow.moveTop();
 
             if (process.platform == 'darwin'){
                 // check permissions to handle settings in macos

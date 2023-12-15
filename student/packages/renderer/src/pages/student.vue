@@ -248,7 +248,7 @@ export default {
                 this.username = this.username.replace(/^\s+|\s+$/g, '');
 
                 let IPCresponse = ipcRenderer.sendSync('register', {clientname:this.username, servername:servername, serverip, serverip, pin:this.pincode })
-                console.log(IPCresponse)
+                console.log(IPCresponse.message)
                 if (IPCresponse && IPCresponse.token){
                     this.token = IPCresponse.token  // set token (used to determine server connection status)
                 }
