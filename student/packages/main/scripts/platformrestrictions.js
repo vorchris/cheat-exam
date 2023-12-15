@@ -284,7 +284,7 @@ function disableRestrictions(win){
         childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'false'])
         // activate ALL 3d Effects (present window, change desktop, etc.) 
         childProcess.execFile('qdbus', ['org.kde.KWin' ,'/Compositor', 'org.kde.kwin.Compositing.resume'])
-        childProcess.execFile('kstart5', ['kglobalaccel5'])
+        childProcess.exec('kstart5 kglobalaccel5&')
         
         //enable META Key for Launchermenu
         //childProcess.execFile('sed', ['-i', '-e', 's/global=.*/global=Alt+F1/g', `${config.homedirectory}/.config/plasma-org.kde.plasma.desktop-appletsrc` ])
@@ -293,7 +293,7 @@ function disableRestrictions(win){
         //childProcess.exec('kwin --replace &')
 
 
-        childProcess.execFile('kstart5', ['plasmashell'])
+        childProcess.exec('kstart5 plasmashell&')
    
 
         // reset specific shortcuts GNOME
