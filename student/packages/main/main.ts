@@ -141,7 +141,7 @@ app.whenReady()
     nativeTheme.themeSource = 'light'
 
 
-
+    if (config.hostip == "127.0.0.1") { config.hostip = false }
     if (config.hostip) {
         log.info(`main:  HOSTIP: ${config.hostip}`)
         multicastClient.init(config.gateway) 

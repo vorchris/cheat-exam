@@ -14,10 +14,12 @@ const config = {
 
     multicastServerAdrr: '239.255.255.250',
     hostip: "0.0.0.0",
+    gateway: true,
     examServerList: {},
     accessToken: false,
     version: pjson.version,
     info: "Release Candidate 3",
     buildforWEB: false
+
 }
 export default config
