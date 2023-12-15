@@ -316,23 +316,31 @@ import log from 'electron-log/main';
         let primary = screen.getPrimaryDisplay()
         if (!primary || primary === "" || !primary.id){ primary = displays[0] }       
        
-        if (!WindowHandler.screenlockWindow){  // why do we check? because exammode is left if the server connection gets lost but students could reconnect while the exam window is still open and we don't want to create a second one
+        if (WindowHandler.screenlockwindows.length == 0){  // why do we check? because exammode is left if the server connection gets lost but students could reconnect while the exam window is still open and we don't want to create a second one
             this.multicastClient.clientinfo.screenlock = true
-            WindowHandler.createScreenlockWindow(primary);
+            
+            for (let display of displays){
+                WindowHandler.createScreenlockWindow(display)  // add blockwindows for additional displays
+            }
+            
+            
         }
 
     }
 
     // remove temporary screenlockwindow
     killScreenlock(){
-        if (WindowHandler.screenlockWindow){ 
-            try {  
-                WindowHandler.screenlockWindow.close(); 
-                WindowHandler.screenlockWindow.destroy(); 
+        try {
+            for (let screenlockwindow of WindowHandler.screenlockwindows){
+                screenlockwindow.close(); 
+                screenlockwindow.destroy(); 
+                screenlockwindow = null;
             }
-            catch(e){ log.error(e)}
-            WindowHandler.screenlockWindow = null;
-        }
+        } catch (e) { 
+            WindowHandler.screenlockwindows = []
+            console.error("communicationhandler: no functional screenlockwindow to handle")
+        } 
+        WindowHandler.screenlockwindows = []
         this.multicastClient.clientinfo.screenlock = false
     }
 
@@ -360,6 +368,7 @@ import log from 'electron-log/main';
   
         let displays = screen.getAllDisplays()
         let primary = screen.getPrimaryDisplay()
+       
         if (!primary || primary === "" || !primary.id){ primary = displays[0] }       
        
         this.multicastClient.clientinfo.exammode = true
@@ -397,11 +406,13 @@ import log from 'electron-log/main';
         if (!this.config.development) {  // lock additional screens
             for (let display of displays){
                 if ( display.id !== primary.id ) {
-                    WindowHandler.newBlockWin(display)  // add blockwindows for additional displays
-                   // WindowHandler.blockwin.moveTop();
+                    if ( !this.isApproximatelyEqual(display.bounds.x, primary.bounds.x)) {  //on kde displays may be manually positioned at 1920px or 1921px so we allow a range to identify overlapping (cloned) displays
+                        console.log("create blockwin on:",display.id)
+                        WindowHandler.newBlockWin(display)  // add blockwindows for additional displays
+                    } 
                 }
             }
-            await this.sleep(2000)
+            await this.sleep(1000)
             WindowHandler.blockwindows.forEach( (blockwin) => {
                 blockwin.moveTop();
             })
@@ -410,6 +421,10 @@ import log from 'electron-log/main';
        
     }
 
+
+    isApproximatelyEqual(x1, x2, tolerance = 4) {
+        return Math.abs(x1 - x2) <= tolerance;
+    }
 
     /**
      * Disables Exam mode
@@ -443,12 +458,16 @@ import log from 'electron-log/main';
             }
             catch(e){ log.error(e)}
            
-            WindowHandler.examwindow = null;
-            for (let blockwindow of WindowHandler.blockwindows){
-                blockwindow.close(); 
-                blockwindow.destroy(); 
-                blockwindow = null;
-            }
+            try {
+                for (let blockwindow of WindowHandler.blockwindows){
+                    blockwindow.close(); 
+                    blockwindow.destroy(); 
+                    blockwindow = null;
+                }
+            } catch (e) { 
+                WindowHandler.blockwindows = []
+                console.error("communicationhandler: no functional blockwindow to handle")
+            } 
             WindowHandler.blockwindows = []
         }
         
@@ -483,6 +502,8 @@ import log from 'electron-log/main';
                 WindowHandler.blockwindows = []
                 console.error("communicationhandler: no functional blockwindow to handle")
             } 
+            WindowHandler.blockwindows = []
+
             this.multicastClient.clientinfo.focus = true
             this.multicastClient.clientinfo.exammode = false
         }

@@ -37,6 +37,7 @@ import log from 'electron-log/main'
 class WindowHandler {
     constructor () {
       this.blockwindows = []
+      this.screenlockwindows = []
       this.screenlockWindow = null
       this.mainwindow = null
       this.examwindow = null
@@ -237,7 +238,7 @@ class WindowHandler {
      */
 
     createScreenlockWindow(display) {
-        this.screenlockWindow = new BrowserWindow({
+        let screenlockWindow = new BrowserWindow({
             show: false,
             x: display.bounds.x + 0,
             y: display.bounds.y + 0,
@@ -262,31 +263,33 @@ class WindowHandler {
         let url = "lock"
         if (app.isPackaged) {
             let path = join(__dirname, `../renderer/index.html`)
-            this.screenlockWindow.loadFile(path, {hash: `#/${url}/`})
+            screenlockWindow.loadFile(path, {hash: `#/${url}/`})
         } 
         else {
             url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}/#/${url}/`
-            this.screenlockWindow.loadURL(url)
+            screenlockWindow.loadURL(url)
         }
 
-        if (this.config.showdevtools) { this.screenlockWindow.webContents.openDevTools()  }
+        if (this.config.showdevtools) { screenlockWindow.webContents.openDevTools()  }
 
-        this.screenlockWindow.once('ready-to-show', () => {
-            this.screenlockWindow.removeMenu() 
+        screenlockWindow.once('ready-to-show', () => {
+            screenlockWindow.removeMenu() 
            
-            this.screenlockWindow.setMinimizable(false)
-            this.screenlockWindow.setKiosk(true)
-            this.screenlockWindow.setAlwaysOnTop(true, "screen-saver", 1) 
-            this.screenlockWindow.show()
-            this.screenlockWindow.moveTop();
-            this.screenlockWindow.setClosable(true)
-            this.screenlockWindow.setVisibleOnAllWorkspaces(true); // put the window on all virtual workspaces
+            screenlockWindow.setMinimizable(false)
+            screenlockWindow.setKiosk(true)
+            screenlockWindow.setAlwaysOnTop(true, "pop-up-menu", 1)   //above exam window (pop-up-menu, 0)
+            screenlockWindow.show()
+            screenlockWindow.moveTop();
+            screenlockWindow.setClosable(true)
+            screenlockWindow.setVisibleOnAllWorkspaces(true); // put the window on all virtual workspaces
             this.addBlurListener("screenlock")
         })
 
-        this.screenlockWindow.on('close', async  (e) => {   // window should not be closed manually.. ever! but if you do make sure to clean examwindow variable and end exam for the client
+        screenlockWindow.on('close', async  (e) => {   // window should not be closed manually.. ever! but if you do make sure to clean examwindow variable and end exam for the client
             if (!this.config.development) { e.preventDefault(); }  
         });
+
+        this.screenlockwindows.push(screenlockWindow)
     }
 
 
@@ -768,7 +771,10 @@ class WindowHandler {
         }
         else if (window === "screenlock") {
             log.info(`Setting Blur Event for ${window}window`)
-            this.screenlockWindow.addListener('blur', () => this.blureventScreenlock(this))    
+            for (let screenlockwindow of this.screenlockwindows){
+                screenlockwindow.addListener('blur', () => this.blureventScreenlock(this))   
+            }
+            
         }
     }
     //removes blur listener when leaving exam mode
@@ -783,7 +789,7 @@ class WindowHandler {
     //student fogus went to another window
     blurevent(winhandler) { 
         log.info("blur-exam")
-        if (winhandler.screenlockWindow) { return }// do nothing if screenlockwindow stole focus // do not trigger an infinite loop between exam window and screenlock window (stealing each others focus)
+        if (winhandler.screenlockwindows.length > 0) { return }// do nothing if screenlockwindow stole focus // do not trigger an infinite loop between exam window and screenlock window (stealing each others focus)
             
         winhandler.multicastClient.clientinfo.focus = false
         winhandler.examwindow.show();  // we keep focus on the window.. no matter what
@@ -815,9 +821,16 @@ class WindowHandler {
     //special blur event for temporary low security screenlock
     blureventScreenlock(winhandler) { 
         log.info("blur-screenlock")
-        winhandler.screenlockWindow.show();  // we keep focus on the window.. no matter what
-        winhandler.screenlockWindow.moveTop();
-        winhandler.screenlockWindow.focus();
+        try {
+            //don't cycle through all of them .. it will create an infinite focus race
+            winhandler.screenlockwindows[0].show();  // we keep focus on the window.. no matter what
+            winhandler.screenlockwindows[0].moveTop();
+            winhandler.screenlockwindows[0].focus();
+        }
+        catch (err){
+            log.error(err)
+        }
+    
     }
     
 }
