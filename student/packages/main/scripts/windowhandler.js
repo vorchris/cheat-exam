@@ -23,7 +23,7 @@ import childProcess from 'child_process'
 import screenshot from 'screenshot-desktop'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 import fs from 'fs' 
-import Nodehun from 'nodehun'
+import Nodehun from 'nodehun'   // npm rebuild nodehun --update-binary  on mac after build to run in dev mode
 import log from 'electron-log/main'
 
   ////////////////////////////////////////////////////////////
@@ -704,21 +704,21 @@ class WindowHandler {
                            this.showExitWarning(message)  //show warning and quit app
                         }
                     }
-                    else {  // accessibility rights should be set
-                        childProcess.execFile('osascript', [spacesScriptfile], (error, stdout, stderr) => {
-                            if (stderr) { 
-                                log.info(stderr) 
-                                if (stderr.includes("Berechtigung") || stderr.includes("authorized")){
-                                    log.error("no Systemsettings permissions granted")
-                                    let message = "Sie müssen die Berechtigungen zur Automation erteilen!"
-                                    if (stderr.includes("Hilfszugriff") || stderr.includes("Accessibility")){
-                                        message = "Sie müssen die Berechtigungen für den Hilfszugriff (Bedienungshilfen) erteilen!"
-                                    }
-                                this.showExitWarning(message)  //show warning and quit app
-                                }
-                            }
-                        })
-                    }
+                    // else {  // accessibility rights should be set
+                    //     childProcess.execFile('osascript', [spacesScriptfile], (error, stdout, stderr) => {
+                    //         if (stderr) { 
+                    //             log.info(stderr) 
+                    //             if (stderr.includes("Berechtigung") || stderr.includes("authorized")){
+                    //                 log.error("no Systemsettings permissions granted")
+                    //                 let message = "Sie müssen die Berechtigungen zur Automation erteilen!"
+                    //                 if (stderr.includes("Hilfszugriff") || stderr.includes("Accessibility")){
+                    //                     message = "Sie müssen die Berechtigungen für den Hilfszugriff (Bedienungshilfen) erteilen!"
+                    //                 }
+                    //             this.showExitWarning(message)  //show warning and quit app
+                    //             }
+                    //         }
+                    //     })
+                    // }
                 })
 
             
