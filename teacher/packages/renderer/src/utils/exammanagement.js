@@ -184,14 +184,15 @@ function getFiles(who, feedfack=false, quiet=false){
         inputValue: this.serverstatus.screenshotinterval
     }).then((result) => {
         const inputInteger = parseInt(result.value, 10); // Convert to integer
-        this.serverstatus.screenshotinterval= inputInteger
-        if (this.serverstatus.screenshotinterval == 0) { document.getElementById("screenshotinterval").checked = false }
-        else { document.getElementById("screenshotinterval").checked = true}
+        this.serverstatus.screenshotinterval = inputInteger
+       
         if (!this.serverstatus.screenshotinterval || !Number.isInteger(this.serverstatus.screenshotinterval)){
             console.log("deactivating screenshots");
             this.serverstatus.screenshotinterval = 0
-            document.getElementById("screenshotinterval").checked = false 
         }
+
+        if (this.serverstatus.screenshotinterval == 0) { document.getElementById("screenshotinterval").checked = false }
+        else { document.getElementById("screenshotinterval").checked = true}
 
         // WRITE screenshotinterval serverstatus ojbect so it can be retrieved on the next student update 
         this.setServerStatus()
