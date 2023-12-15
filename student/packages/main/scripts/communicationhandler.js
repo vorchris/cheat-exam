@@ -556,7 +556,7 @@ import log from 'electron-log/main';
         this.multicastClient.clientinfo.focus = true  // we are focused 
         //this.multicastClient.clientinfo.exammode = false   // do not set to false until exam window is manually closed
         this.multicastClient.clientinfo.timestamp = false
-        this.multicastClient.clientinfo.virtualized = false  
+        //this.multicastClient.clientinfo.virtualized = false  // this check happens only at the application start.. do not reset once set
     }
  
 
