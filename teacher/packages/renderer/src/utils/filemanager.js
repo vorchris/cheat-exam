@@ -115,6 +115,10 @@ function loadPDF(filepath, filename){
         let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
         this.currentpreview = url   //needed for preview buttons
         this.currentpreviewname = filename   //needed for preview buttons
+        
+
+        this.currentpreviewPath = filepath
+
         $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
         $("#pdfpreview").css("display","block");
         $("#pdfpreview").click(function(e) {
@@ -132,6 +136,9 @@ function loadImage(file){
     fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getpdf/${this.servername}/${this.servertoken}`, { method: 'POST', body: form })
         .then( response => response.arrayBuffer())
         .then( data => {
+
+            this.currentpreviewPath = file
+
             let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
             // wanted to save code here but images need to be presented in a different way than pdf.. so...
             $("#pdfembed").css("background-image",`url(${ url  })`);
@@ -175,6 +182,9 @@ async function getLatest(){
         let url =  URL.createObjectURL(new Blob([pdfBuffer], {type: "application/pdf"})) 
         this.currentpreview = url   //needed for preview buttons
         this.currentpreviewname = "combined"   //needed for preview buttons
+        
+        this.currentpreviewPath = responseObj.pdfPath  //getlatest also saves the file as combined.pdf and attaches the current path
+
         $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
         $("#pdfpreview").css("display","block");
         $("#pdfpreview").click(function(e) {
@@ -288,14 +298,7 @@ function sleep(ms) {
 
 //print pdf in focus - depends on system print dialog
 function print(){
-    try {
-        var iframe = $('#pdfembed')[0]; 
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print(); 
-    }
-    catch (e){
-        log.error(e)
-    }
+    ipcRenderer.invoke("printpdf", this.currentpreviewPath)
 }
 
 function loadFilelist(directory){

@@ -74,6 +74,8 @@ const gnomeDashToDockKeybindings = ['app-ctrl-hotkey-1','app-ctrl-hotkey-10','ap
 
 function enableRestrictions(win){
     if (config.development) {return}
+    log.info("enabling platform restrictions")
+
 
     clipboard.clear()  //this should clean the clipboard for the electron app
     setInterval( ()=> { clipboard.clear()  },1000)
@@ -86,23 +88,18 @@ function enableRestrictions(win){
 
 
    
-    /**
+    /********************
      * L I N U X
-     */
+     ****************************************/
     if (process.platform === 'linux') {
         
         //////////////
         // PLASMASHELL
         //////////////
 
-        log.info("enabling platform restrictions")
-
-
+    
         appsToClose.forEach(app => {
-            // pgrep zum Finden der PID, dann kill zum Beenden des Prozesses
-            childProcess.exec(`pgrep ${app} | xargs kill -9`, (error) => {
-              
-            });
+            childProcess.exec(`pgrep ${app} | xargs kill -9`, (error) => { }); // pgrep zum Finden der PID, dann kill zum Beenden des Prozesses
         });
 
 

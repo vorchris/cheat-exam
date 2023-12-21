@@ -196,8 +196,8 @@ export default {
         },
 
         // fetch file from disc - show preview
-        loadPDF(file){
-            let data = ipcRenderer.sendSync('getpdf', file )
+        async loadPDF(file){
+            let data = await ipcRenderer.invoke('getpdfasync', file )
             let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
             $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
             $("#preview").css("display","block");
@@ -233,7 +233,11 @@ export default {
             if (this.clientinfo && this.clientinfo.token){  this.online = true  }
             else { this.online = false  }
 
-            this.battery = await navigator.getBattery();
+         
+            this.battery = await navigator.getBattery().then(battery => { return battery })
+            .catch(error => { console.error("Error accessing the Battery API:", error);  });
+
+
         }, 
 
          /** Saves Content as GGB */
@@ -264,8 +268,8 @@ export default {
                 });
             }
             
-            ggbApplet.getBase64((base64GgbFile) => {
-                let response = ipcRenderer.sendSync('saveGGB', {filename: filename, content: base64GgbFile})   // send base64 string to backend for saving
+            ggbApplet.getBase64( async (base64GgbFile) => {
+                let response = await ipcRenderer.invoke('saveGGB', {filename: filename, content: base64GgbFile})   // send base64 string to backend for saving
                 if (response.status === "success" && manual){  // we wait for a response - only show feed back if manually saved
                     this.loadFilelist()
                     this.$swal.fire({
@@ -280,7 +284,7 @@ export default {
 
 
         // get file from local workdirectory and replace editor content with it
-        loadGGB(file){
+        async loadGGB(file){
             this.$swal.fire({
                 title: this.$t("editor.replace"),
                 html:  `${this.$t("editor.replacecontent1")} <b>${file}</b> ${this.$t("editor.replacecontent2")}`,
@@ -289,10 +293,10 @@ export default {
                 cancelButtonText: this.$t("editor.cancel"),
                 reverseButtons: true
             })
-            .then((result) => {
+            .then(async (result) => {
                 if (result.isConfirmed) {
 
-                    const result = ipcRenderer.sendSync('loadGGB', file);
+                    const result = await ipcRenderer.invoke('loadGGB', file);
                     if (result.status === "success") {
                         const base64GgbFile = result.content;
                         const ggbIframe = document.getElementById('geogebraframe');

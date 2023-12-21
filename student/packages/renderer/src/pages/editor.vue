@@ -273,9 +273,7 @@ export default {
             word:"",
             editorcontentcontainer:null,
             spellcheck: false,
-            serverstatus: {
-                spellcheck:false,
-            },
+            serverstatus: this.$route.params.serverstatus,
             linespacing: this.$route.params.serverstatus.linespacing,
             fontfamily:  this.$route.params.serverstatus.fontfamily  ? this.$route.params.serverstatus.fontfamily : "sans-serif", 
             allowspellcheck: false, // this is a per student override (for students with legasthenie)
@@ -394,7 +392,10 @@ export default {
             if (!this.focus){  this.entrytime = new Date().getTime()}
             if (this.clientinfo && this.clientinfo.token){  this.online = true  }
             else { this.online = false  }
-            this.battery = await navigator.getBattery()
+
+            this.battery = await navigator.getBattery().then(battery => { return battery })
+            .catch(error => { console.error("Error accessing the Battery API:", error);  });
+
             if (this.allowspellcheck) {
                 let ipcResponse = await ipcRenderer.invoke('activatespellcheck', this.allowspellcheck.spellchecklang )  // this.allowspellcheck contains an object with spell config
                 if (ipcResponse == false) { this.allowspellcheck = false}  // something went wrong on the backend - do not show spellchecker button
@@ -825,7 +826,7 @@ export default {
         // show spellchecking context menu
         this.editorcontentcontainer = document.getElementById('editorcontent');        
         this.editorcontentcontainer.addEventListener('mouseup',  this.getSelectedTextInfo );   // show amount of words and characters
-        this.editorcontentcontainer.addEventListener('input', this.replaceQuotes); // replace every occurence of a " (quote) on the beginning of a line or after a whitespace with the german „
+        if (this.serverstatus.spellchecklang == "de") { this.editorcontentcontainer.addEventListener('input', this.replaceQuotes); }// replace every occurence of a " (quote) on the beginning of a line or after a whitespace with the german „
         this.editorcontentcontainer.addEventListener('keydown', this.insertSpaceInsteadOfTab)   //this changes the tab behaviour and allows tabstops
 
         // this.activateSpellcheck()  // set all eventlisteners for spellchecking
@@ -878,7 +879,7 @@ export default {
 <style lang="scss">
 
 @media print {  //this controls how the editor view is printed (to pdf)
-    #editortoolbar, #editorheader, #editselected, #focuswarning, .focus-container, #specialcharsdiv, #aplayer, span.NXTEhighlight  {
+    #editortoolbar, #editorheader, #editselected, #focuswarning, .focus-container, #specialcharsdiv, #aplayer,  span.NXTEhighlight::after {
         display: none !important;
     }
     #statusbar {
@@ -943,6 +944,7 @@ export default {
     .swal2-container, .swal2-center, .swal2-backdrop-show , .swal2-popup, .swal2-modal, .swal2-icon-info, .swal2-show {
         display:none !important;
     }
+
 
 }
 

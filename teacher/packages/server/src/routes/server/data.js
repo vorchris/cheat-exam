@@ -141,7 +141,18 @@ import log from 'electron-log/main';
         let PDF = await concatPages(files)
         let pdfBuffer = Buffer.from(PDF) 
           
-        return res.json({warning: warning, pdfBuffer:pdfBuffer });
+        let pdfPath = path.join(dir,"combined.pdf")
+        try {
+            fs.writeFile(pdfPath, pdfBuffer, (err) => {
+                if (err) throw err;
+                console.log('PDF saved successfully!');
+            });
+
+        }
+        catch(err){log.error("data.js:",err)}
+  
+
+        return res.json({warning: warning, pdfBuffer:pdfBuffer, pdfPath:pdfPath });
 
         //res.set('Content-Type', 'application/pdf');
         //return res.send( Buffer.from(PDF) )

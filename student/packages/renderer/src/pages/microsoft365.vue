@@ -262,7 +262,8 @@ export default {
             if (this.clientinfo && this.clientinfo.token){  this.online = true  }
             else { this.online = false  }
 
-            this.battery = await navigator.getBattery();
+            this.battery = await navigator.getBattery().then(battery => { return battery })
+            .catch(error => { console.error("Error accessing the Battery API:", error);  });
         }, 
        
     },

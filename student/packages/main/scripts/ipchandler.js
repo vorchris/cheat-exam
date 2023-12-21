@@ -310,7 +310,7 @@ class IpcHandler {
          * Store content from Geogebra as ggb file - as backup 
          * @param args contains an object with  { filename:`${this.clientname}.ggb`, content: base64 }
          */
-        ipcMain.on('saveGGB', (event, args) => {   
+        ipcMain.handle('saveGGB', (event, args) => {   
             const content = args.content
             const filename = args.filename
             const ggbFilePath = path.join(this.config.workdirectory, filename);
@@ -320,11 +320,11 @@ class IpcHandler {
 
                 try {
                     fs.writeFileSync(ggbFilePath, fileData);
-                    event.returnValue = { sender: "client", message:t("data.filestored") , status:"success" }
+                    return  { sender: "client", message:t("data.filestored") , status:"success" }
                 }
                 catch(e){
                     log.error(e)
-                    event.returnValue = { sender: "client", message:err , status:"error" }
+                    return { sender: "client", message:err , status:"error" }
                 }
             }
         })
@@ -335,16 +335,16 @@ class IpcHandler {
          * load content from ggb file and send it to the frontend 
          * @param args contains an object { filename:`${this.clientname}.ggb` }
          */
-        ipcMain.on('loadGGB', (event, filename) => {   
+        ipcMain.handle('loadGGB', (event, filename) => {   
             const ggbFilePath = path.join(this.config.workdirectory, filename);
             try {
                 // Read the file and convert it to base64
                 const fileData = fs.readFileSync(ggbFilePath);
                 const base64GgbFile = fileData.toString('base64');
-                event.returnValue = { sender: "client", content:base64GgbFile, status:"success" }
+                return { sender: "client", content:base64GgbFile, status:"success" }
             } 
             catch (error) {
-                event.returnValue = { sender: "client", content: false , status:"error" }
+                return { sender: "client", content: false , status:"error" }
             }     
         })
 
@@ -369,6 +369,22 @@ class IpcHandler {
                 }    
             }
         })
+
+        ipcMain.handle('getpdfasync', (event, filename) => {   
+            const workdir = path.join(config.workdirectory,"/")
+            if (filename) { //return content of specific file
+                let filepath = path.join(workdir,filename)
+                try {
+                    let data = fs.readFileSync(filepath)
+                    return data
+                } 
+                catch (error) {
+                    return { sender: "client", content: false , status:"error" }
+                }    
+            }
+        })
+
+
 
 
         /**
