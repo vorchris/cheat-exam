@@ -878,7 +878,7 @@ export default {
 <style lang="scss">
 
 @media print {  //this controls how the editor view is printed (to pdf)
-    #editortoolbar, #editorheader, #editselected, #focuswarning, .focus-container, #specialcharsdiv, #aplayer, span.NXTEhighlight  {
+    #editortoolbar, #editorheader, #editselected, #focuswarning, .focus-container, #specialcharsdiv, #aplayer,  span.NXTEhighlight::after {
         display: none !important;
     }
     #statusbar {
@@ -943,6 +943,7 @@ export default {
     .swal2-container, .swal2-center, .swal2-backdrop-show , .swal2-popup, .swal2-modal, .swal2-icon-info, .swal2-show {
         display:none !important;
     }
+
 
 }
 
