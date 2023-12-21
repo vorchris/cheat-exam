@@ -273,9 +273,7 @@ export default {
             word:"",
             editorcontentcontainer:null,
             spellcheck: false,
-            serverstatus: {
-                spellcheck:false,
-            },
+            serverstatus: this.$route.params.serverstatus,
             linespacing: this.$route.params.serverstatus.linespacing,
             fontfamily:  this.$route.params.serverstatus.fontfamily  ? this.$route.params.serverstatus.fontfamily : "sans-serif", 
             allowspellcheck: false, // this is a per student override (for students with legasthenie)
@@ -825,7 +823,7 @@ export default {
         // show spellchecking context menu
         this.editorcontentcontainer = document.getElementById('editorcontent');        
         this.editorcontentcontainer.addEventListener('mouseup',  this.getSelectedTextInfo );   // show amount of words and characters
-        this.editorcontentcontainer.addEventListener('input', this.replaceQuotes); // replace every occurence of a " (quote) on the beginning of a line or after a whitespace with the german „
+        if (this.serverstatus.spellchecklang == "de") { this.editorcontentcontainer.addEventListener('input', this.replaceQuotes); }// replace every occurence of a " (quote) on the beginning of a line or after a whitespace with the german „
         this.editorcontentcontainer.addEventListener('keydown', this.insertSpaceInsteadOfTab)   //this changes the tab behaviour and allows tabstops
 
         // this.activateSpellcheck()  // set all eventlisteners for spellchecking

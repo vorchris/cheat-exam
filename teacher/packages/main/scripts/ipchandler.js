@@ -20,7 +20,7 @@
 import fs from 'fs'
 import i18n from '../../renderer/src/locales/locales.js'
 const { t } = i18n.global
-import {  ipcMain, dialog } from 'electron'
+import {  ipcMain, dialog, BrowserWindow } from 'electron'
 import checkDiskSpace from 'check-disk-space'
 import {join} from 'path'
 import log from 'electron-log/main';
@@ -133,6 +133,26 @@ class IpcHandler {
             }   
             return examdir
         })
+
+
+        /**
+         * print pdf in new browserwindow process detached from the current exam view
+         */
+        ipcMain.handle('printpdf', async (event, pdfurl) => {
+            console.log(pdfurl)
+            let win = new BrowserWindow({ show: false });
+
+            win.loadFile(pdfurl).then(() => {
+                    win.webContents.print({}, (success, failureReason) => {
+                        if (success) { return true }
+                        else { log.error("ipchandler:", failureReason) }
+                    });
+                }).catch( (err) => {
+                    log.error("ipchandler: (catch)", err)
+                    return false
+                });  
+        })
+
 
 
 

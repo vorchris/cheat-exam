@@ -3,7 +3,7 @@ import pjson from "../../package.json"
 
 const config = {
     development: true,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
-    showdevtools: false,
+    showdevtools: true,
     bipIntegration: true,
 
     workdirectory : "",   // (desktop path + examdir)
