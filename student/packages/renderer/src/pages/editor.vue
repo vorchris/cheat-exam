@@ -392,7 +392,10 @@ export default {
             if (!this.focus){  this.entrytime = new Date().getTime()}
             if (this.clientinfo && this.clientinfo.token){  this.online = true  }
             else { this.online = false  }
-            this.battery = await navigator.getBattery()
+
+            this.battery = await navigator.getBattery().then(battery => { return battery })
+            .catch(error => { console.error("Error accessing the Battery API:", error);  });
+
             if (this.allowspellcheck) {
                 let ipcResponse = await ipcRenderer.invoke('activatespellcheck', this.allowspellcheck.spellchecklang )  // this.allowspellcheck contains an object with spell config
                 if (ipcResponse == false) { this.allowspellcheck = false}  // something went wrong on the backend - do not show spellchecker button
