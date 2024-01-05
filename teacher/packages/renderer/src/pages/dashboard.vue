@@ -1044,7 +1044,7 @@ export default {
     width:100vw;
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.4);
-    z-index:1000;
+    z-index:1002;
 }
 #workfolder { 
     position: absolute;
@@ -1054,7 +1054,7 @@ export default {
     height: 100vh;
     padding: 20px;
     background-color: rgba(255, 255, 255, 0.8);
-    z-index:1001;
+    z-index:1003;
     backdrop-filter: blur(3px);
     overflow-y: auto;
 }
@@ -1068,7 +1068,7 @@ export default {
     left: 0;
     width:100vw;
     height: 100vh;
-    z-index:100;
+    z-index:1001;
 }
 #studentinfodiv {
     position: absolute;
