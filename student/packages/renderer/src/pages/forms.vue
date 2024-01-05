@@ -66,7 +66,6 @@
 </template>
 
 <script>
-import $ from 'jquery'
 
 
 export default {
@@ -143,6 +142,10 @@ export default {
                 }
                 else {console.log("entered valid test environment")  }
             });
+
+            // add eventlisteners only once
+            document.querySelector("#preview").addEventListener("click", function() { this.style.display = 'none'; });
+
         });
 
 
@@ -204,11 +207,10 @@ export default {
         loadPDF(file){
             let data = ipcRenderer.sendSync('getpdf', file )
             let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
-            $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
-            $("#preview").css("display","block");
-            $("#preview").click(function(e) {
-                    $("#preview").css("display","none");
-            }); 
+      
+            document.querySelector("#pdfembed").setAttribute("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`);
+            document.querySelector("#preview").style.display = 'block';
+
         },
         async loadFilelist(){
             let filelist = await ipcRenderer.invoke('getfilesasync', null)

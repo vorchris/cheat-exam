@@ -101,7 +101,6 @@
 <script>
 import axios from "axios"
 import validator from 'validator'
-import $ from 'jquery'
 import log from 'electron-log/renderer'
 
 // Erfassen von unhandled promise rejections
@@ -212,13 +211,18 @@ export default {
             this.serverip = ""
         },
         
+
         //show status message
         async status(text){  
-            $("#statusdiv").text(text)
-            $("#statusdiv").fadeIn("slow")
+            const statusDiv = document.querySelector("#statusdiv");
+            statusDiv.textContent = text;
+            this.fadeIn(statusDiv);
             await this.sleep(2000);
-            $("#statusdiv").fadeOut("slow")
+            this.fadeOut(statusDiv)
         },
+
+
+
          // implementing a sleep (wait) function
          sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
@@ -310,15 +314,31 @@ export default {
                 })
                 if (response.fullname){
                     this.username = response.fullname
-                    $("#biploginbuttonlabel").text("verbunden")
-                    $("#biploginbutton").prop("disabled", true);
+
+                    document.querySelector("#biploginbuttonlabel").textContent = "verbunden";
+                    document.querySelector("#biploginbutton").disabled = true;
+
                 }
             })
             .catch(err => { console.warn(err) })
+        },
+        // Function to add fade-in effect
+        fadeIn(element) {
+            element.classList.add('fade-in');
+            element.classList.remove('fade-out');
+        },
+
+        // Function to add fade-out effect
+        fadeOut(element) {
+            element.classList.add('fade-out');
+            element.classList.remove('fade-in');
         }
+
     },
     mounted() {  
-        $("#statusdiv").hide()
+       
+        const statusDiv = document.querySelector("#statusdiv").style.visibility = "hidden";
+     
         this.fetchInfo();
         this.fetchinterval = setInterval(() => { this.fetchInfo() }, 4000)
 
@@ -355,6 +375,22 @@ export default {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     background-color: whitesmoke;
+}
+
+/* CSS classes for fade-in and fade-out */
+.fade-in {
+    animation: fadeInAnimation 2s;
+}
+.fade-out {
+    animation: fadeOutAnimation 2s forwards; /* 'forwards' keeps the final state after the animation */
+}
+@keyframes fadeInAnimation {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes fadeOutAnimation {
+    from { opacity: 1; }
+    to { opacity: 0; visibility: hidden; }
 }
 
 </style>

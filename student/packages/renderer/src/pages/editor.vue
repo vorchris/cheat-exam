@@ -199,7 +199,6 @@ import { SmilieReplacer } from '../components/SmilieReplacer'
 import { lowlight } from "lowlight/lib/common.js";
 import { Color } from '@tiptap/extension-color'
 import TextStyle from '@tiptap/extension-text-style'
-import $ from 'jquery'
 import { Node, mergeAttributes } from '@tiptap/core'   //we need this for our custom editor extension that allows to insert span elements
 import SpellChecker from '../utils/spellcheck'
 
@@ -306,14 +305,8 @@ export default {
 
 
         async playAudio(file) {
-            const audioPlayer = document.getElementById('audioPlayer');
-            if (audioPlayer) { audioPlayer.addEventListener('contextmenu', (e) => { e.preventDefault(); }); }
-            $("#aplayer").css("display","block");
-            $("#audioclose").click(function(e) {
-                audioPlayer.pause();
-                console.log('Playback stopped');
-                $("#aplayer").css("display","none");
-            });
+       
+            document.querySelector("#aplayer").style.display = 'block';
 
             try {
                 const base64Data = await ipcRenderer.invoke('getfilesasync', file, true);
@@ -326,9 +319,10 @@ export default {
         },
 
         showInsertSpecial(){
-            let display =  $("#specialcharsdiv").css('display')
-            if (display == "none"){   $("#specialcharsdiv").css('display','inline-block'); }
-            else { $("#specialcharsdiv").hide()}
+            let specialCharsDiv = document.querySelector("#specialcharsdiv");
+            let display = specialCharsDiv.style.display;
+            if (display === "none") {   specialCharsDiv.style.display = 'inline-block';  }
+            else { specialCharsDiv.style.display = 'none';  }
         },
   
         insertSpecialchar(character) {
@@ -480,19 +474,18 @@ export default {
         loadPDF(file){
             let data = ipcRenderer.sendSync('getpdf', file )
             let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
-            $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
-            $("#preview").css("display","block");
-            $("#preview").click(function(e) {
-                    $("#preview").css("display","none");
-            });
+
+            document.querySelector("#pdfembed").setAttribute("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`);
+            document.querySelector("#preview").style.display = 'block';
         },
         // display the table part of the toolbar
         showMore(){
-            let moreoptions= document.getElementById('moreoptions')
-            if (moreoptions.style.display === "none") {
-                $("#moreoptions").css("display","inline-block");
-            } else {
-                $("#moreoptions").css("display","none");
+            const moreOptions= document.getElementById('moreoptions')
+            if (moreOptions.style.display === "none") {
+                moreOptions.style.display = "inline-block";
+            } 
+            else {
+                moreOptions.style.display = "none";
             }
         },
         /** Converts the Editor View into a multipage PDF */
@@ -781,7 +774,6 @@ export default {
       
         this.setCSSVariable('--js-linespacing', `${this.linespacing}`); 
         this.setCSSVariable('--js-fontfamily', `${this.fontfamily}`); 
-
         this.createEditor(); // this initializes the editor
 
        
@@ -811,6 +803,18 @@ export default {
                     didOpen: () => { this.$swal.showLoading(); },
             })
         });
+
+        // add some eventlisteners once
+        document.querySelector("#preview").addEventListener("click", function() {  this.style.display = 'none';});
+
+        document.querySelector("#audioclose").addEventListener("click", function(e) {
+            audioPlayer.pause();
+            console.log('Playback stopped');
+            document.querySelector("#aplayer").style.display = 'none';
+        });
+
+        const audioPlayer = document.getElementById('audioPlayer');
+        if (audioPlayer) { audioPlayer.addEventListener('contextmenu', (e) => { e.preventDefault(); }); }
 
         this.currentFile = this.clientname
         this.entrytime = new Date().getTime()
@@ -951,7 +955,7 @@ export default {
 #aplayer{
     display:none;
     background-color: rgb(255, 255, 255);
-    z-index:1000000;
+    z-index:100000;
     width: 100%;
     text-align: center;
 }
@@ -1080,7 +1084,7 @@ Other Styles
     width:100vw;
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.4);
-    z-index:100000;
+    z-index:100001;
 }
 
 #pdfembed { 

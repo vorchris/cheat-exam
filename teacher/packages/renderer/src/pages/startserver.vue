@@ -330,18 +330,13 @@ export default {
 .fade-in {
     animation: fadeInAnimation 2s;
 }
-
-
 .fade-out {
     animation: fadeOutAnimation 2s forwards; /* 'forwards' keeps the final state after the animation */
 }
-
 @keyframes fadeInAnimation {
     from { opacity: 0; }
     to { opacity: 1; }
 }
-
-
 @keyframes fadeOutAnimation {
     from { opacity: 1; }
     to { opacity: 0; visibility: hidden; }

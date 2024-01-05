@@ -67,8 +67,6 @@
 </template>
 
 <script>
-import $ from 'jquery'
-
 
 export default {
     data() {
@@ -123,6 +121,11 @@ export default {
             const shadowRoot = webview.shadowRoot;
             const iframe = shadowRoot.querySelector('iframe');
             if (iframe) { iframe.style.height = '100%'; } 
+
+            //add eventlisteners only once
+            document.querySelector("#preview").addEventListener("click", function() {
+                this.style.display = 'none';
+            });
 
             webview.addEventListener('dom-ready', () => {
                 if (config.showdevtools){ webview.openDevTools();   }
@@ -230,11 +233,9 @@ export default {
         loadPDF(file){
             let data = ipcRenderer.sendSync('getpdf', file )
             let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
-            $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
-            $("#preview").css("display","block");
-            $("#preview").click(function(e) {
-                    $("#preview").css("display","none");
-            }); 
+   
+            document.querySelector("#pdfembed").setAttribute("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`);
+            document.querySelector("#preview").style.display = 'block';
         },
         async loadFilelist(){
             let filelist = await ipcRenderer.invoke('getfilesasync', null)
