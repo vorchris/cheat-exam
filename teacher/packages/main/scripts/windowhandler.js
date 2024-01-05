@@ -49,7 +49,8 @@ class WindowHandler {
             minWidth: 800,
             minHeight: 600,
             webPreferences: {
-                preload: join(__dirname, '../preload/preload.cjs')
+                preload: join(__dirname, '../preload/preload.cjs'),
+                spellcheck: false
             },
         })
         

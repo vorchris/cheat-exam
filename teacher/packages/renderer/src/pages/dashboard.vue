@@ -157,9 +157,10 @@
             </div>
         </div>
         <br>
-        <div id="statusdiv" class="btn btn-warning m-1"> {{$t('dashboard.connected')}}  </div>
-        <div id="description" class="btn m-1"  v-if="showDesc">{{ currentDescription }}</div>
 
+        
+        <div id="description" class="btn m-1"  v-if="showDesc">{{ currentDescription }}</div>
+        <div id="statusdiv" class="btn btn-warning m-1"> {{$t('dashboard.connected')}}  </div>
 
         <span @click="showCopyleft()" style="position: absolute; bottom:2px; left: 6px; font-size:0.8em;cursor: pointer;">
             <span style=" display:inline-block; transform: scaleX(-1);font-size:1.2em; ">&copy; </span> 
@@ -236,7 +237,6 @@
 
 
 <script >
-import $ from 'jquery'
 import axios from "axios"
 
 import { VueDraggableNext } from 'vue-draggable-next'
@@ -379,7 +379,7 @@ export default {
          * Checks Screenshots and MSO Share Links
          */
         async fetchInfo() {
-            if (!this.config.accessToken){
+            if (!this.config.accessToken && this.serverstatus.examtype === "microsoft365"){
                 this.config = await ipcRenderer.invoke('getconfigasync')  // this is only needed in order to get the accesstoken from the backend for MSAuthentication
             }
             this.now = new Date().getTime()
@@ -687,16 +687,16 @@ export default {
 
         //display student specific actions
         showStudentview(student) {
-            $("#studentinfocontainer").css("display","block");
+            document.querySelector("#studentinfocontainer").style.display = 'block';
             this.activestudent = student
         },
         hideStudentview() {
-            $("#studentinfocontainer").css("display","none");
+            document.querySelector("#studentinfocontainer").style.display = 'none';
             this.activestudent = false
         },
         // hide pdf preview
         hidepreview() {
-            $("#pdfpreview").css("display","none");
+            document.querySelector("#pdfpreview").style.display = 'none';
         },
         //show pincode 
         showinfo(){
@@ -711,13 +711,28 @@ export default {
                 },
             })
         },
-        // show status message
+
+        //show status message
         async status(text){  
-            $("#statusdiv").text(text)
-            $("#statusdiv").fadeIn("slow")
+            const statusDiv = document.querySelector("#statusdiv");
+            statusDiv.textContent = text;
+            this.fadeIn(statusDiv);
             await this.sleep(2000);
-            $("#statusdiv").fadeOut("slow")
+            this.fadeOut(statusDiv)
         },
+
+        // Function to add fade-in effect
+        fadeIn(element) {
+            element.classList.add('fade-in');
+            element.classList.remove('fade-out');
+        },
+
+        // Function to add fade-out effect
+        fadeOut(element) {
+            element.classList.add('fade-out');
+            element.classList.remove('fade-in');
+        },
+
         // implementing a sleep (wait) function
         sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
@@ -787,11 +802,22 @@ export default {
     },
     mounted() {  // when ready
         this.$nextTick(function () { // Code that will run only after the entire view has been rendered
-            $("#statusdiv").fadeOut("slow")
+       
+            const statusDiv = document.querySelector("#statusdiv");
+            this.fadeOut(statusDiv);
+
             this.getPreviousServerStatus()
             this.fetchInfo()
             this.initializeStudentwidgets()
             this.fetchinterval = setInterval(() => { this.fetchInfo() }, 4000)
+
+            // Add event listener to #closefilebrowser  (only once - do not accumulate event listeners)
+            document.querySelector("#closefilebrowser").addEventListener("click", function() { document.querySelector("#preview").style.display = "none"; });
+            // Prevent event propagation for clicks on #workfolder
+            document.querySelector('#workfolder').addEventListener("click", function(e) { e.stopPropagation(); });
+            // Set the event listener for #pdfpreview click to hide pdfpreview
+            document.querySelector("#pdfpreview").addEventListener("click", function() { this.style.display = 'none'; });
+
         })
         if (this.electron){
             this.hostname = "localhost"
@@ -1075,6 +1101,28 @@ hr {
     background-color: #b3b3b3;
     border: 0;
     opacity: 0.25;
+}
+
+
+/* CSS classes for fade-in and fade-out */
+.fade-in {
+    animation: fadeInAnimation 2s;
+}
+
+
+.fade-out {
+    animation: fadeOutAnimation 2s forwards; /* 'forwards' keeps the final state after the animation */
+}
+
+@keyframes fadeInAnimation {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+
+@keyframes fadeOutAnimation {
+    from { opacity: 1; }
+    to { opacity: 0; visibility: hidden; }
 }
 
 </style>

@@ -1,4 +1,3 @@
-import $ from 'jquery'
 import log from 'electron-log/renderer';
 
 
@@ -36,9 +35,7 @@ function fdelete(file){
 
 // show workfloder  TODO:  the whole workfolder thing is getting to complex.. this should be a standalone vue.js component thats embedded here
 function showWorkfolder(){
-    $("#preview").css("display","block");
-    $("#closefilebrowser").click(function(e) { $("#preview").css("display","none"); });  // the surroundings of #workfolder can be clicked to close the view
-    $('#workfolder').click(function(e){ e.stopPropagation(); });    // don't propagate clicks through the div to the preview div (it would hide the view)
+    document.querySelector("#preview").style.display = "block";
 }
 
 
@@ -115,16 +112,19 @@ function loadPDF(filepath, filename){
         let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
         this.currentpreview = url   //needed for preview buttons
         this.currentpreviewname = filename   //needed for preview buttons
-        
-
         this.currentpreviewPath = filepath
+  
+        const pdfEmbed = document.querySelector("#pdfembed");
+        pdfEmbed.style.backgroundImage = '';
+        pdfEmbed.style.height = "96vh";
+        pdfEmbed.style.marginTop = "-48vh";
 
-        $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
-        $("#pdfpreview").css("display","block");
-        $("#pdfpreview").click(function(e) {
-            $("#pdfpreview").css("display","none");
-        });
-        }).catch(err => { log.error(err)});     
+        document.querySelector("#pdfembed").setAttribute("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`);
+        document.querySelector("#pdfpreview").style.display = 'block';
+
+
+
+    }).catch(err => { log.error(err)});     
 }
 
 
@@ -136,23 +136,18 @@ function loadImage(file){
     fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getpdf/${this.servername}/${this.servertoken}`, { method: 'POST', body: form })
         .then( response => response.arrayBuffer())
         .then( data => {
-
             this.currentpreviewPath = file
 
             let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
             // wanted to save code here but images need to be presented in a different way than pdf.. so...
-            $("#pdfembed").css("background-image",`url(${ url  })`);
-            $("#pdfembed").css("height","60vh");
-            $("#pdfembed").css("margin-top","-30vh");
-            $("#pdfembed").attr("src", '')
+            const pdfEmbed = document.querySelector("#pdfembed");
+            pdfEmbed.style.backgroundImage = `url(${url})`;
+            pdfEmbed.style.height = "60vh";
+            pdfEmbed.style.marginTop = "-30vh";
+            pdfEmbed.setAttribute("src", '');
+            
+            document.querySelector("#pdfpreview").style.display = 'block';
 
-            $("#pdfpreview").css("display","block");
-            $("#pdfpreview").click(function(e) {
-                $("#pdfpreview").css("display","none");
-                $("#pdfembed").css("background-image",'');
-                $("#pdfembed").css("height","96vh");
-                $("#pdfembed").css("margin-top","-48vh");
-            });
         }).catch(err => { log.error(err)});     
 }
 
@@ -184,12 +179,8 @@ async function getLatest(){
         this.currentpreviewname = "combined"   //needed for preview buttons
         
         this.currentpreviewPath = responseObj.pdfPath  //getlatest also saves the file as combined.pdf and attaches the current path
-
-        $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
-        $("#pdfpreview").css("display","block");
-        $("#pdfpreview").click(function(e) {
-                $("#pdfpreview").css("display","none");
-        });
+        document.querySelector("#pdfembed").setAttribute("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`);
+        document.querySelector("#pdfpreview").style.display = 'block';
     }).catch(err => { log.error(err)});
 }
 
@@ -260,11 +251,10 @@ async function getLatestFromStudent(student){
                 //let url =  URL.createObjectURL(new Blob([pdfBuffer], {type: "application/pdf"})) 
                 this.currentpreview = url   //needed for preview buttons
                 this.currentpreviewname = "combined"   //needed for preview buttons
-                $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
-                $("#pdfpreview").css("display","block");
-                $("#pdfpreview").click(function(e) {
-                        $("#pdfpreview").css("display","none");
-                });
+       
+                document.querySelector("#pdfembed").setAttribute("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`);
+                document.querySelector("#pdfpreview").style.display = 'block';
+                
             }).catch(err => { log.error(err)});
         }
     }).catch(err => { log.error(err)});

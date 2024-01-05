@@ -40,19 +40,16 @@ class IpcHandler {
         ipcMain.on('openmsauth', (event) => { this.WindowHandler.createMsauthWindow();  event.returnValue = true })  
 
         ipcMain.on('getconfig', (event) => {  
-            const clonedObject = this.copyConfig(config);  // we cant just copy the config because it contains examServerList which contains confic (circular structure)
-            event.returnValue = clonedObject
+            event.returnValue = this.copyConfig(config); 
         })  
 
         ipcMain.handle('getconfigasync', (event) => {  
-            const clonedObject = this.copyConfig(config);  // we cant just copy the config because it contains examServerList which contains confic (circular structure)
-            return clonedObject
+            return this.copyConfig(config)
         })  
 
         ipcMain.handle('resetToken', (event) => {  
             config.accessToken = false
-            const clonedObject = this.copyConfig(config);  // we cant just copy the config because it contains examServerList which contains confic (circular structure)
-            return clonedObject
+            return this.copyConfig(config);  // we cant just copy the config because it contains examServerList which contains confic (circular structure)
         })  
 
         ipcMain.on('getCurrentWorkdir', (event) => {   event.returnValue = config.workdirectory  })
@@ -211,23 +208,23 @@ class IpcHandler {
     }
 
 
-    copyConfig(obj) {
-        if (obj === null || typeof obj !== 'object') {
-        return obj;
-        }
-        const clonedObj = Array.isArray(obj) ? [] : {};
-        for (const key in obj) {
-            if (Object.prototype.hasOwnProperty.call(obj, key)) {
-                if (key !== 'examServerList') {
-                    if (typeof obj[key] === 'object') {
-                        clonedObj[key] = copyConfig(obj[key]);
-                    } else {
-                        clonedObj[key] = obj[key];
-                    }
-                }
-            }
-        }
-        return clonedObj;
+    copyConfig(conf) {
+        let configCopy = {
+            workdirectory: conf.workdirectory,
+            tempdirectory: conf.tempdirectory,
+            examdirectory: conf.examdirectory,
+            serverApiPort: conf.serverApiPort,
+            multicastClientPort: conf.multicastClientPort,
+            multicastServerClientPort: conf.multicastServerClientPort,
+            multicastServerAdrr: conf.multicastServerAdrr,
+            hostip: conf.hostip,
+            gateway: conf.gateway,
+            accessToken: conf.accessToken,
+            version: conf.version,
+            info: conf.info,
+            buildforWEB: conf.buildforWEB
+          };
+        return configCopy
     }
 }
 

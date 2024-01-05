@@ -89,10 +89,7 @@
 
 
 <script>
-import $ from 'jquery'
 import log from 'electron-log/renderer';
-
-
 
 
 // Erfassen von unhandled promise rejections
@@ -234,27 +231,55 @@ export default {
         },
         //show status message
         async status(text){  
-            $("#statusdiv").text(text)
-            $("#statusdiv").fadeIn("slow")
+            const statusDiv = document.querySelector("#statusdiv");
+            statusDiv.textContent = text;
+            this.fadeIn(statusDiv);
             await this.sleep(2000);
-            $("#statusdiv").fadeOut("slow")
+            this.fadeOut(statusDiv)
         },
 
         // implementing a sleep (wait) function
         sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         },
+        handleKeyupEvent(e) {
+            this.servername = document.getElementById('servername').value;
+            this.checkExistingExam();
+        },
+        validateInput(e) {
+            var lettersOnly = /^[a-zA-Z0-9-_]+$/;
+            var key = e.key || String.fromCharCode(e.which);
+            if (!lettersOnly.test(key)) {
+                e.preventDefault();
+            }
+        },
+        // Function to add fade-in effect
+        fadeIn(element) {
+            element.classList.add('fade-in');
+            element.classList.remove('fade-out');
+        },
+
+        // Function to add fade-out effect
+        fadeOut(element) {
+            element.classList.add('fade-out');
+            element.classList.remove('fade-in');
+        }
+
 
     },
     mounted() {  // when ready
         
         log.info('Frontend mounted...');
    
-        $("#statusdiv").fadeOut("slow")
+  
+        const statusDiv = document.querySelector("#statusdiv");
+        this.fadeOut(statusDiv);
+
+
         if (this.prod) {  //clear input fields in production mode
-            $("#servername").val("")
-            $("#pin").val("")
-            $("#password").val("")
+            document.querySelector("#servername").value = "";
+            document.querySelector("#pin").value = "";
+            document.querySelector("#password").value = "";
         }
         if (this.electron){
             this.hostname = "localhost"
@@ -263,20 +288,14 @@ export default {
         }
 
         // add event listener to exam input field to supress all special chars 
-        document.getElementById("servername").addEventListener("keypress", (e) => {
-            var lettersOnly = /^[a-zA-Z0-9-_]+$/;
-            var key = e.key || String.fromCharCode(e.which);
-            if (!lettersOnly.test(key)) { e.preventDefault(); }
-        })
+        document.getElementById("servername").addEventListener("keypress", this.validateInput);
+        document.getElementById("servername").addEventListener("keyup",  this.handleKeyupEvent);
 
-        document.getElementById("servername").addEventListener("keyup", (e) => {
-            this.servername = document.getElementById('servername').value
-            this.checkExistingExam()
-        })
 
     },
     beforeUnmount() {
-        clearInterval( this.fetchinterval )
+        document.getElementById("servername").removeEventListener("keyup",  this.handleKeyupEvent);  // sollte eigentlich nicht notwendig sein, aber bei singlepage apps vielleicht besser und sauberer so
+        document.getElementById("servername").removeEventListener("keypress",  this.validateInput);
     },
 }
 </script>
@@ -306,5 +325,26 @@ export default {
     background-color:  #dc3545c7;
 }
 
+
+/* CSS classes for fade-in and fade-out */
+.fade-in {
+    animation: fadeInAnimation 2s;
+}
+
+
+.fade-out {
+    animation: fadeOutAnimation 2s forwards; /* 'forwards' keeps the final state after the animation */
+}
+
+@keyframes fadeInAnimation {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+
+@keyframes fadeOutAnimation {
+    from { opacity: 1; }
+    to { opacity: 0; visibility: hidden; }
+}
 
 </style>

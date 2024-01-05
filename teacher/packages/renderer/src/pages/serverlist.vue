@@ -65,7 +65,6 @@
 
 
 <script>
-import $ from 'jquery'
 import axios from "axios";
 
 export default {
@@ -93,7 +92,8 @@ export default {
         },  
 
         login(servername){
-            let password = $(`#${servername}`).val()
+           
+            let password = document.querySelector(`#${servername}`).value;
             if (password === ""){this.status(this.$t("serverlist.nopw") ); }
 
 
@@ -122,20 +122,35 @@ export default {
 
         //show status message
         async status(text){  
-            $("#statusdiv").text(text)
-            $("#statusdiv").fadeIn("slow")
+            const statusDiv = document.querySelector("#statusdiv");
+            statusDiv.textContent = text;
+            this.fadeIn(statusDiv);
             await this.sleep(2000);
-            $("#statusdiv").fadeOut("slow")
+            this.fadeOut(statusDiv)
         },
-
         // implementing a sleep (wait) function
         sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         },
+                // Function to add fade-in effect
+        fadeIn(element) {
+            element.classList.add('fade-in');
+            element.classList.remove('fade-out');
+        },
+
+        // Function to add fade-out effect
+        fadeOut(element) {
+            element.classList.add('fade-out');
+            element.classList.remove('fade-in');
+        }
+
 
     },
     mounted() {  // when ready
-        $("#statusdiv").fadeOut("slow")
+      
+        const statusDiv = document.querySelector("#statusdiv");
+        this.fadeOut(statusDiv);
+
         this.$nextTick(function () { // Code that will run only after the entire view has been rendered
             this.fetchInfo();
             this.fetchinterval = setInterval(() => { this.fetchInfo() }, 20000)
@@ -168,6 +183,29 @@ export default {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     background-color: whitesmoke;
+}
+
+
+
+/* CSS classes for fade-in and fade-out */
+.fade-in {
+    animation: fadeInAnimation 2s;
+}
+
+
+.fade-out {
+    animation: fadeOutAnimation 2s forwards; /* 'forwards' keeps the final state after the animation */
+}
+
+@keyframes fadeInAnimation {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+
+@keyframes fadeOutAnimation {
+    from { opacity: 1; }
+    to { opacity: 0; visibility: hidden; }
 }
 
 </style>
