@@ -40,19 +40,16 @@ class IpcHandler {
         ipcMain.on('openmsauth', (event) => { this.WindowHandler.createMsauthWindow();  event.returnValue = true })  
 
         ipcMain.on('getconfig', (event) => {  
-            const clonedObject = this.copyConfig(config);  // we cant just copy the config because it contains examServerList which contains confic (circular structure)
-            event.returnValue = clonedObject
+            event.returnValue = this.copyConfig(config); 
         })  
 
         ipcMain.handle('getconfigasync', (event) => {  
-            const clonedObject = this.copyConfig(config);  // we cant just copy the config because it contains examServerList which contains confic (circular structure)
-            return clonedObject
+            return this.copyConfig(config)
         })  
 
         ipcMain.handle('resetToken', (event) => {  
             config.accessToken = false
-            const clonedObject = this.copyConfig(config);  // we cant just copy the config because it contains examServerList which contains confic (circular structure)
-            return clonedObject
+            return this.copyConfig(config);  // we cant just copy the config because it contains examServerList which contains confic (circular structure)
         })  
 
         ipcMain.on('getCurrentWorkdir', (event) => {   event.returnValue = config.workdirectory  })
@@ -138,19 +135,36 @@ class IpcHandler {
         /**
          * print pdf in new browserwindow process detached from the current exam view
          */
-        ipcMain.handle('printpdf', async (event, pdfurl) => {
+        ipcMain.handle('printpdf', async (event, pdfurl, defaultPrinter) => {
             console.log(pdfurl)
             let win = new BrowserWindow({ show: false });
 
             win.loadFile(pdfurl).then(() => {
+                
+                if (defaultPrinter){
+                    const printOptions = {
+                        silent: true,
+                        printBackground: true,
+                        deviceName: printerName // Setzen des gewählten Druckers
+                      };
+                    
+                      // Druckauftrag senden
+                      win.webContents.print(printOptions, (success, errorType) => {
+                        if (success) { return true }
+                        else { log.error("ipchandler:", failureReason) }
+                      });
+
+                }
+                else {
                     win.webContents.print({}, (success, failureReason) => {
                         if (success) { return true }
                         else { log.error("ipchandler:", failureReason) }
                     });
-                }).catch( (err) => {
-                    log.error("ipchandler: (catch)", err)
-                    return false
-                });  
+                }
+            }).catch( (err) => {
+                log.error("ipchandler: (catch)", err)
+                return false
+            });  
         })
 
 
@@ -211,23 +225,23 @@ class IpcHandler {
     }
 
 
-    copyConfig(obj) {
-        if (obj === null || typeof obj !== 'object') {
-        return obj;
-        }
-        const clonedObj = Array.isArray(obj) ? [] : {};
-        for (const key in obj) {
-            if (Object.prototype.hasOwnProperty.call(obj, key)) {
-                if (key !== 'examServerList') {
-                    if (typeof obj[key] === 'object') {
-                        clonedObj[key] = copyConfig(obj[key]);
-                    } else {
-                        clonedObj[key] = obj[key];
-                    }
-                }
-            }
-        }
-        return clonedObj;
+    copyConfig(conf) {
+        let configCopy = {
+            workdirectory: conf.workdirectory,
+            tempdirectory: conf.tempdirectory,
+            examdirectory: conf.examdirectory,
+            serverApiPort: conf.serverApiPort,
+            multicastClientPort: conf.multicastClientPort,
+            multicastServerClientPort: conf.multicastServerClientPort,
+            multicastServerAdrr: conf.multicastServerAdrr,
+            hostip: conf.hostip,
+            gateway: conf.gateway,
+            accessToken: conf.accessToken,
+            version: conf.version,
+            info: conf.info,
+            buildforWEB: conf.buildforWEB
+          };
+        return configCopy
     }
 }
 

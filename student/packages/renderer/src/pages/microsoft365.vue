@@ -79,7 +79,6 @@
 </template>
 
 <script>
-import $ from 'jquery'
 
 export default {
     data() {
@@ -126,6 +125,12 @@ export default {
             this.clockinterval = setInterval(() => { this.clock() }, 1000)  
             this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 10000)   // zeigt html dateien (angaben, eigene arbeit) im header
             this.loadFilelist()
+
+
+            document.querySelector("#preview").addEventListener("click", function() {
+                this.style.display = 'none';
+                ipcRenderer.send('restore-browserview');
+            });
         });
     },
     methods: { 
@@ -224,12 +229,14 @@ export default {
 
             let data = ipcRenderer.sendSync('getpdf', file )
             let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
-            $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
-            $("#preview").css("display","block");
-            $("#preview").click(function(e) {
-                    $("#preview").css("display","none");
-                    ipcRenderer.send('restore-browserview')
-            }); 
+
+            document.querySelector("#pdfembed").setAttribute("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`);
+            document.querySelector("#preview").style.display = 'block';
+
+           
+
+
+
         },
         async loadFilelist(){
             let filelist = await ipcRenderer.invoke('getfilesasync', null)

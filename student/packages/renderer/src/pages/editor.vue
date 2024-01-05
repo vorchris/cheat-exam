@@ -44,6 +44,7 @@
         <!-- toolbar start -->
         <div v-if="editor" class="m-2" id="editortoolbar" style="text-align:left;"> 
             <button :title="$t('editor.backup')" @click="saveContent(true, 'manual');" class="invisible-button btn btn-outline-success p-1 me-1 mb-1 btn-sm"><img src="/src/assets/img/svg/document-save.svg" class="white" width="22" height="22" ></button>
+            <button :title="$t('editor.print')" @click="print();" class="invisible-button btn btn-outline-success p-1 me-1 mb-1 btn-sm"><img src="/src/assets/img/svg/print.svg" class="white" width="22" height="22" ></button>
             <button :title="$t('editor.undo')" @click="editor.chain().focus().undo().run()" class="invisible-button btn btn-outline-warning p-1 me-0 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-undo.svg" class="white" width="22" height="22" ></button>
             <button :title="$t('editor.redo')" @click="editor.chain().focus().redo().run()" class="invisible-button btn btn-outline-warning p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-redo.svg" class="white" width="22" height="22" > </button>
             <button :title="$t('editor.clear')" @click="editor.chain().focus().clearNodes().run();editor.chain().focus().unsetColor().run()" class="invisible-button btn btn-outline-warning p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/draw-eraser.svg" class="white" width="22" height="22" ></button>
@@ -51,7 +52,6 @@
             <button :title="$t('editor.bold')" @click="editor.chain().focus().toggleBold().run()" :class="{ 'is-active': editor.isActive('bold') }" class="invisible-button btn btn-outline-success p-1 me-0 mb-1 btn-sm"><img src="/src/assets/img/svg/format-text-bold.svg" class="white" width="22" height="22" ></button>
             <button :title="$t('editor.italic')" @click="editor.chain().focus().toggleItalic().run()" :class="{ 'is-active': editor.isActive('italic') }" class="invisible-button btn btn-outline-success p-1 me-0 mb-1 btn-sm"><img src="/src/assets/img/svg/format-text-italic.svg" class="white" width="22" height="22" ></button>
             <button :title="$t('editor.underline')" @click="editor.chain().focus().toggleUnderline().run()" :class="{ 'is-active': editor.isActive('underline') }" class="invisible-button btn btn-outline-success p-1 me-2 mb-1 btn-sm "> <img src="/src/assets/img/svg/format-text-underline.svg" class="white" width="22" height="22" ></button>
-            
             
             <button :title="$t('editor.heading2')" @click="editor.chain().focus().toggleHeading({ level: 2 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 2 }) }" class="invisible-button btn btn-outline-secondary p-1 me-0 mb-1 btn-sm"><img src="/src/assets/img/svg/h2.svg" width="22" height="22"></button>
             <button :title="$t('editor.heading3')" @click="editor.chain().focus().toggleHeading({ level: 3 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }" class="invisible-button btn btn-outline-secondary p-1 me-0 mb-1 btn-sm"><img src="/src/assets/img/svg/h3.svg" width="22" height="22"></button>
@@ -118,7 +118,6 @@
 
     <!-- angabe/pdf preview start -->
     <div id=preview class="fadeinslow p-4">
-        <div class="btn btn-warning me-2 btn-lg shadow" style="position: absolute; top:50%; margin-top:-45vh; left:50%; margin-left:35vw;" @click="print()"><img src="/src/assets/img/svg/print.svg" class="white" width="32" height="32" > </div>
         <embed src="" id="pdfembed">
     </div>
     <!-- angabe/pdf preview end -->
@@ -199,7 +198,6 @@ import { SmilieReplacer } from '../components/SmilieReplacer'
 import { lowlight } from "lowlight/lib/common.js";
 import { Color } from '@tiptap/extension-color'
 import TextStyle from '@tiptap/extension-text-style'
-import $ from 'jquery'
 import { Node, mergeAttributes } from '@tiptap/core'   //we need this for our custom editor extension that allows to insert span elements
 import SpellChecker from '../utils/spellcheck'
 
@@ -306,14 +304,8 @@ export default {
 
 
         async playAudio(file) {
-            const audioPlayer = document.getElementById('audioPlayer');
-            if (audioPlayer) { audioPlayer.addEventListener('contextmenu', (e) => { e.preventDefault(); }); }
-            $("#aplayer").css("display","block");
-            $("#audioclose").click(function(e) {
-                audioPlayer.pause();
-                console.log('Playback stopped');
-                $("#aplayer").css("display","none");
-            });
+       
+            document.querySelector("#aplayer").style.display = 'block';
 
             try {
                 const base64Data = await ipcRenderer.invoke('getfilesasync', file, true);
@@ -326,9 +318,10 @@ export default {
         },
 
         showInsertSpecial(){
-            let display =  $("#specialcharsdiv").css('display')
-            if (display == "none"){   $("#specialcharsdiv").css('display','inline-block'); }
-            else { $("#specialcharsdiv").hide()}
+            let specialCharsDiv = document.querySelector("#specialcharsdiv");
+            let display = specialCharsDiv.style.display;
+            if (display === "none") {   specialCharsDiv.style.display = 'inline-block';  }
+            else { specialCharsDiv.style.display = 'none';  }
         },
   
         insertSpecialchar(character) {
@@ -480,19 +473,17 @@ export default {
         loadPDF(file){
             let data = ipcRenderer.sendSync('getpdf', file )
             let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
-            $("#pdfembed").attr("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`)
-            $("#preview").css("display","block");
-            $("#preview").click(function(e) {
-                    $("#preview").css("display","none");
-            });
+            document.querySelector("#pdfembed").setAttribute("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`);
+            document.querySelector("#preview").style.display = 'block';
         },
         // display the table part of the toolbar
         showMore(){
-            let moreoptions= document.getElementById('moreoptions')
-            if (moreoptions.style.display === "none") {
-                $("#moreoptions").css("display","inline-block");
-            } else {
-                $("#moreoptions").css("display","none");
+            const moreOptions= document.getElementById('moreoptions')
+            if (moreOptions.style.display === "none") {
+                moreOptions.style.display = "inline-block";
+            } 
+            else {
+                moreOptions.style.display = "none";
             }
         },
         /** Converts the Editor View into a multipage PDF */
@@ -781,7 +772,6 @@ export default {
       
         this.setCSSVariable('--js-linespacing', `${this.linespacing}`); 
         this.setCSSVariable('--js-fontfamily', `${this.fontfamily}`); 
-
         this.createEditor(); // this initializes the editor
 
        
@@ -811,6 +801,18 @@ export default {
                     didOpen: () => { this.$swal.showLoading(); },
             })
         });
+
+        // add some eventlisteners once
+        document.querySelector("#preview").addEventListener("click", function() {  this.style.display = 'none';});
+
+        document.querySelector("#audioclose").addEventListener("click", function(e) {
+            audioPlayer.pause();
+            console.log('Playback stopped');
+            document.querySelector("#aplayer").style.display = 'none';
+        });
+
+        const audioPlayer = document.getElementById('audioPlayer');
+        if (audioPlayer) { audioPlayer.addEventListener('contextmenu', (e) => { e.preventDefault(); }); }
 
         this.currentFile = this.clientname
         this.entrytime = new Date().getTime()
@@ -951,7 +953,7 @@ export default {
 #aplayer{
     display:none;
     background-color: rgb(255, 255, 255);
-    z-index:1000000;
+    z-index:100000;
     width: 100%;
     text-align: center;
 }
@@ -1080,7 +1082,7 @@ Other Styles
     width:100vw;
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.4);
-    z-index:100000;
+    z-index:100001;
 }
 
 #pdfembed { 

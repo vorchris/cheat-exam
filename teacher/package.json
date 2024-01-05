@@ -151,7 +151,6 @@
         "express-rate-limit": "^6.3.0",
         "extract-zip": "^2.0.1",
         "ip": "^1.1.5",
-        "jquery": "^3.6.0",
         "lowlight": "^2.5.0",
         "node-forge": "^1.3.1",
         "node-notifier": "^10.0.1",

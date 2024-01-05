@@ -33,21 +33,6 @@ import log from 'electron-log/main';
 
 
 /**
- * GET the server config.js  // this is currently not in use (probably in router.js in the future if we move from electron to pure web)
- */
- router.post('/getconfig/:servername/:csrfservertoken', function (req, res, next) {
-    const servername = req.params.servername
-    const mcServer = config.examServerList[servername]
-
-    if (mcServer && req.params.csrfservertoken === mcServer.serverinfo.servertoken) {
-        const clonedObject = copyConfig(config); 
-        res.send({config:clonedObject, status: "success"})
-    }
-})
-
-
-
-/**
  * this route generates the nessesary codeVerifier and codeChallenge für PKCE 
  * authorization flow for the microsoft onedrive graph API
  * it receives a code and then redirects to /msauth which will aquire an
@@ -819,24 +804,6 @@ function requestSourceAllowed(req,res){
     return false 
 }
 
-
-//in order to get a copy of the config to the frontend we need to remove circular references like examserverlist
-function copyConfig(obj) {
-    if (obj === null || typeof obj !== 'object') { return obj; }
-    const clonedObj = Array.isArray(obj) ? [] : {};
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        if (key !== 'examServerList') {
-          if (typeof obj[key] === 'object') {
-            clonedObj[key] = cloneObjectExcludingExamServerList(obj[key]);
-          } else {
-            clonedObj[key] = obj[key];
-          }
-        }
-      }
-    }
-    return clonedObj;
-}
 
 
 //this is needed by the /oauth and /msauth routes 

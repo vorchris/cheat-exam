@@ -102,7 +102,8 @@
         "reload": "Reload",
         "reloadtext": "Would you like to reinitialize the Editor?",
         "reloadcontent": "keep content",
-        "specialchar":"Insert specialcharacter"
+        "specialchar":"Insert specialcharacter",
+        "print": "print"
     },
     "math": {
         "exit":"Exit safe exam mode",
