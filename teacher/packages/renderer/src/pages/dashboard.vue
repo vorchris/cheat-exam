@@ -291,6 +291,7 @@ export default {
             printrequest: false,
             showDesc: false,
             currentDescription: '',
+            defaultPrinter: false,
             serverstatus:{   // this object contains all neccessary information for students about the current exam settings
                 exammode: false,
                 examtype: 'math',

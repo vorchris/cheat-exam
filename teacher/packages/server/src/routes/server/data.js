@@ -220,17 +220,17 @@ import log from 'electron-log/main';
             if (fs.existsSync(latestPDFpath)) {
                 let PDF = await concatPages([latestPDFpath])
                 let pdfBuffer = Buffer.from(PDF) 
-                return res.json({warning: warning, pdfBuffer:pdfBuffer, latestfolderPath:latestfolderPath});
+                return res.json({warning: warning, pdfBuffer:pdfBuffer, latestfolderPath:latestfolderPath, pdfPath:latestPDFpath });
             }
             else if (fs.existsSync(latestXlsxPDFpath)){
                 let PDF = await concatPages([latestXlsxPDFpath])
                 let pdfBuffer = Buffer.from(PDF) 
-                return res.json({warning: warning, pdfBuffer:pdfBuffer, latestfolderPath:latestfolderPath});
+                return res.json({warning: warning, pdfBuffer:pdfBuffer, latestfolderPath:latestfolderPath, pdfPath:latestXlsxPDFpath });
             } 
             else if (fs.existsSync(latestDocxPDFpath)){
                 let PDF = await concatPages([latestDocxPDFpath])
                 let pdfBuffer = Buffer.from(PDF) 
-                return res.json({warning: warning, pdfBuffer:pdfBuffer, latestfolderPath:latestfolderPath});
+                return res.json({warning: warning, pdfBuffer:pdfBuffer, latestfolderPath:latestfolderPath, pdfPath:latestDocxPDFpath });
             } 
             else {
                 return res.json({warning: warning, pdfBuffer:false, latestfolderPath:latestfolderPath});

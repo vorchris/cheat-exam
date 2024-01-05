@@ -135,19 +135,36 @@ class IpcHandler {
         /**
          * print pdf in new browserwindow process detached from the current exam view
          */
-        ipcMain.handle('printpdf', async (event, pdfurl) => {
+        ipcMain.handle('printpdf', async (event, pdfurl, defaultPrinter) => {
             console.log(pdfurl)
             let win = new BrowserWindow({ show: false });
 
             win.loadFile(pdfurl).then(() => {
+                
+                if (defaultPrinter){
+                    const printOptions = {
+                        silent: true,
+                        printBackground: true,
+                        deviceName: printerName // Setzen des gewählten Druckers
+                      };
+                    
+                      // Druckauftrag senden
+                      win.webContents.print(printOptions, (success, errorType) => {
+                        if (success) { return true }
+                        else { log.error("ipchandler:", failureReason) }
+                      });
+
+                }
+                else {
                     win.webContents.print({}, (success, failureReason) => {
                         if (success) { return true }
                         else { log.error("ipchandler:", failureReason) }
                     });
-                }).catch( (err) => {
-                    log.error("ipchandler: (catch)", err)
-                    return false
-                });  
+                }
+            }).catch( (err) => {
+                log.error("ipchandler: (catch)", err)
+                return false
+            });  
         })
 
 

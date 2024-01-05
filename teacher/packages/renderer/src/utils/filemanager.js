@@ -186,9 +186,9 @@ async function getLatest(){
 
 
 
-// fetches latest file of specific student
-//show info (who sent the request) and wait for confirmation // handle multiple print requests (send "printrequest denied" if there is already an ongoing request)
-//introduce printlock variable that blocks additional popups
+// PRINT REQUEST: fetches latest file of specific student
+// show info (who sent the request) and wait for confirmation // handle multiple print requests (send "printrequest denied" if there is already an ongoing request)
+// introduce printlock variable that blocks additional popups
 async function getLatestFromStudent(student){
 
     if (this.printrequest){ 
@@ -251,7 +251,9 @@ async function getLatestFromStudent(student){
                 //let url =  URL.createObjectURL(new Blob([pdfBuffer], {type: "application/pdf"})) 
                 this.currentpreview = url   //needed for preview buttons
                 this.currentpreviewname = "combined"   //needed for preview buttons
-       
+                this.currentpreviewPath = responseObj.pdfPath 
+                log.info( "filemanager.js, print, pdfPath:", responseObj.pdfPath )
+
                 document.querySelector("#pdfembed").setAttribute("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`);
                 document.querySelector("#pdfpreview").style.display = 'block';
                 
@@ -288,7 +290,7 @@ function sleep(ms) {
 
 //print pdf in focus - depends on system print dialog
 function print(){
-    ipcRenderer.invoke("printpdf", this.currentpreviewPath)
+    ipcRenderer.invoke("printpdf", this.currentpreviewPath, this.defaultPrinter)  //default printer could be set upfront and students may print directly
 }
 
 function loadFilelist(directory){
