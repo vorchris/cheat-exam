@@ -455,6 +455,7 @@ import log from 'electron-log/main';
                 }
                 WindowHandler.examwindow.close(); 
                 WindowHandler.examwindow.destroy(); 
+                WindowHandler.examwindow = null;
             }
             catch(e){ log.error(e)}
            
@@ -563,7 +564,10 @@ import log from 'electron-log/main';
     async sendExamToTeacher(){
         //send save trigger to exam window
         if (WindowHandler.examwindow){
-            WindowHandler.examwindow.webContents.send('save','teacherrequest')   //trigger, why
+            try {
+                WindowHandler.examwindow.webContents.send('save','teacherrequest')   //trigger, why
+            }
+            catch(err){ `Communication handler @ sendExamToTeacher: Could not save students work. Is exammode active?`}
         }
         // give it some time
         await this.sleep(1000)  // wait one second before zipping workdirectory (give save some time - unfortunately we have no way to wait for save - we could check the filetime in a "while loop" though)
