@@ -562,25 +562,27 @@ class WindowHandler {
 
 
         this.examwindow.once('ready-to-show', async () => {
+
+            this.examwindow.removeMenu() 
+            if (this.config.showdevtools) { this.examwindow.webContents.openDevTools()  }
+            this.examwindow.show()
+            this.examwindow.focus()
+
             if (!this.config.development) { 
                 this.examwindow.setKiosk(true)
                 this.examwindow.setMinimizable(false)
-
+                this.examwindow.moveTop();
                 if (process.platform ==='darwin') {  this.examwindow.setAlwaysOnTop(true, "pop-up-menu", 0)  }  // do not display above popup because of colorpicker in editor (fix that!)
                 else { this.examwindow.setAlwaysOnTop(true, "screen-saver", 1)   }
+                
+                this.examwindow.setVisibleOnAllWorkspaces(true); 
 
-                this.examwindow.moveTop();
                 enableRestrictions(this.examwindow)  // enable restriction only when exam window is fully loaded and in focus
                 await this.sleep(2000) // wait an additional 2 sec for windows restrictions to kick in (they steal focus)
                 this.examwindow.focus()
                 this.addBlurListener()
             }
             // this.addBlurListener() // just for dev purposes in order to test blur
-            this.examwindow.removeMenu() 
-            if (this.config.showdevtools) { this.examwindow.webContents.openDevTools()  }
-            this.examwindow.show()
-            this.examwindow.setVisibleOnAllWorkspaces(true); 
-            this.examwindow.focus()
         })
 
         this.examwindow.on('close', async  (e) => {   // window should not be closed manually.. ever! but if you do make sure to clean examwindow variable and end exam for the client
