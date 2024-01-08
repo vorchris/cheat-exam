@@ -118,7 +118,7 @@ export default {
             hostip: this.$route.params.config.hostip,
             advanced: false,
             workdir: this.$route.params.config.workdirectory,
-            freeDiscspace: 0,
+            freeDiscspace: 100,
             previousExams: []
         };
     },
