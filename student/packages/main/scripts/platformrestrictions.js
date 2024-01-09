@@ -70,7 +70,7 @@ const gnomeDashToDockKeybindings = ['app-ctrl-hotkey-1','app-ctrl-hotkey-10','ap
     'app-shift-hotkey-6','app-shift-hotkey-7','app-shift-hotkey-8','app-shift-hotkey-9','shortcut']
 
 
-
+let clipboardInterval;
 
 function enableRestrictions(win){
     if (config.development) {return}
@@ -78,7 +78,7 @@ function enableRestrictions(win){
 
 
     clipboard.clear()  //this should clean the clipboard for the electron app
-    setInterval( ()=> { clipboard.clear()  },1000)
+    clipboardInterval = setInterval( ()=> { clipboard.clear()  },1000)
    
 
     // list of apps we do not want to run in background
@@ -262,9 +262,13 @@ function enableRestrictions(win){
 
 
 function disableRestrictions(win){
-
+    
     if (config.development) {return}
 
+    log.info("removing restrictions...")
+    
+    clearInterval(clipboardInterval);
+    
     // disable global keyboardshortcuts on PLASMA/KDE
     if (process.platform === 'linux') {
 

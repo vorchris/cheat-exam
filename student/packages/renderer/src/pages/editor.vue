@@ -393,6 +393,9 @@ export default {
                 let ipcResponse = await ipcRenderer.invoke('activatespellcheck', this.allowspellcheck.spellchecklang )  // this.allowspellcheck contains an object with spell config
                 if (ipcResponse == false) { this.allowspellcheck = false}  // something went wrong on the backend - do not show spellchecker button
             }
+            else {
+                this.deactivateSpellcheck()
+            }
         }, 
         reconnect(){
             this.$swal.fire({
@@ -502,6 +505,9 @@ export default {
                 })
             }
             if (why === "exitexam") { 
+                // stop clipboard clear interval
+                ipcRenderer.send('restrictions')
+
                 this.$swal.fire({
                     title: this.$t("editor.leaving"),
                     text: this.$t("editor.savedclip"),

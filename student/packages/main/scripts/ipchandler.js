@@ -27,6 +27,7 @@ import defaultGateway from'default-gateway';
 import os from 'os'
 import log from 'electron-log/main';
 import Nodehun from 'nodehun'
+import {disableRestrictions} from './platformrestrictions.js';
 
   ////////////////////////////////
  // IPC handling (Backend) START
@@ -73,6 +74,14 @@ class IpcHandler {
         * Unlock Computer
         */ 
         ipcMain.on('gracefullyexit', () => {  this.CommunicationHandler.gracefullyEndExam() } )
+
+        /**
+        * stop restrictions
+        */ 
+        ipcMain.on('restrictions', () => {  
+            //this also stops the clearClipboard interval
+            disableRestrictions(this.WindowHandler.examwindow) 
+        } )
 
 
         /**
