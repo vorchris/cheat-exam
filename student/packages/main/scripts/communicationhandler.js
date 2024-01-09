@@ -395,7 +395,7 @@ import log from 'electron-log/main';
             catch (e) { //examwindow variable is still set but the window is not managable anymore (manually closed in dev mode?)
                 console.error("communicationhandler @ startExam: no functional examwindow found.. resetting")
                 
-                disableRestrictions(WindowHandler.examwindow)
+                disableRestrictions(WindowHandler.examwindow)  //examwindow is given but not used in disableRestrictions
                 WindowHandler.examwindow = null;
                 this.multicastClient.clientinfo.exammode = false
                 this.multicastClient.clientinfo.focus = true
@@ -443,7 +443,7 @@ import log from 'electron-log/main';
                 }
             } catch (error) { console.error(error); }
         }
-
+        WindowHandler.removeBlurListener();
         disableRestrictions(WindowHandler.examwindow)
 
         if (WindowHandler.examwindow){ // in some edge cases in development this is set but still unusable - use try/catch
@@ -482,12 +482,14 @@ import log from 'electron-log/main';
         if (WindowHandler.examwindow){ 
             log.warn("Unlocking Workstation")
             try {
+                // remove listener
+                WindowHandler.removeBlurListener();
+                disableRestrictions(WindowHandler.examwindow)
+
                 WindowHandler.examwindow.setKiosk(false)
                 WindowHandler.examwindow.setAlwaysOnTop(false)
                 WindowHandler.examwindow.alwaysOnTop = false
-                  // remove listener
-                WindowHandler.removeBlurListener();
-                disableRestrictions(WindowHandler.examwindow)
+              
             } catch (e) { 
                 WindowHandler.examwindow = null
                 console.error("communicationhandler: no functional examwindow to handle")
