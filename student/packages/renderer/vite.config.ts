@@ -8,6 +8,11 @@ import path from 'path'
 // https://vitejs.dev/config/
 
 export default defineConfig({
+  define: {
+    // ... andere definierte Werte
+    '__VUE_PROD_HYDRATION_MISMATCH_DETAILS__': false, // oder true, je nach Bedarf
+    '__VUE_PROD_DEVTOOLS__': false
+  },
   mode: process.env.NODE_ENV,
   root: __dirname,
   plugins: [
