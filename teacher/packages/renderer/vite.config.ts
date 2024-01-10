@@ -7,6 +7,10 @@ import pkg from '../../package.json'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  define: {
+    '__VUE_PROD_HYDRATION_MISMATCH_DETAILS__': false,
+    '__VUE_PROD_DEVTOOLS__': false
+  },
   mode: process.env.NODE_ENV,
   root: __dirname,
   plugins: [
