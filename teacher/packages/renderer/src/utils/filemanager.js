@@ -205,7 +205,7 @@ async function getLatestFromStudent(student){
     }
 
 
-    this.printrequest = true // this is a new one - we allow it and block others for the time beeing
+    this.printrequest = student.clientname // this is a new one - we allow it and block others for the time beeing (we store student name to compare in dashboard)
     log.info("print request accepted")
     
     // this informs the student that an exam upload is requested. 

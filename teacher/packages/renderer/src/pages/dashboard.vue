@@ -404,7 +404,10 @@ export default {
                             }
                         }
                         if (student.printrequest){  // student sent a printrequest to the teacher
-                            this.getLatestFromStudent(student) 
+                            if (student.clientname !== this.printrequest)  {  //this.printrequest contains the name of the student who requested
+                                this.getLatestFromStudent(student) //do not trigger twice from same student
+                            }
+                            
                         }   
                     });
 
