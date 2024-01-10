@@ -124,6 +124,9 @@ import log from 'electron-log/main';
             const formData = new FormData()  //create formdata
             formData.append('clientinfo', JSON.stringify(this.multicastClient.clientinfo) );   //we send the complete clientinfo object
 
+            //some things should only be sent once - so the moment  we added clientinfo to formData we can reset some variables we only want to send once to the teacher
+            this.multicastClient.clientinfo.printrequest = false  //low priority request - always deactivate after sending once to avoid triggering it twice
+
             axios({    //send update and fetch server status
                 method: "post", 
                 url: `https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/update`, 
@@ -232,8 +235,6 @@ import log from 'electron-log/main';
      * could also handle kick, focusrestore, and even trigger file requests
      */
     processUpdatedServerstatus(serverstatus, studentstatus){
-
-        this.multicastClient.clientinfo.printrequest = false  //low priority request - always deactivate after sending once to avoid triggering it twice
 
         // individual status updates
         if ( studentstatus && Object.keys(studentstatus).length !== 0) {  // we have status updates (tasks) - do it!
