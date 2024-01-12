@@ -389,12 +389,13 @@ export default {
             this.battery = await navigator.getBattery().then(battery => { return battery })
             .catch(error => { console.error("Error accessing the Battery API:", error);  });
 
-            if (this.allowspellcheck) {
+            if (this.allowspellcheck) {  //this handles individual spellcheck (independend of global spellcheck)
                 let ipcResponse = await ipcRenderer.invoke('activatespellcheck', this.allowspellcheck.spellchecklang )  // this.allowspellcheck contains an object with spell config
                 if (ipcResponse == false) { this.allowspellcheck = false}  // something went wrong on the backend - do not show spellchecker button
             }
             else {
-                this.deactivateSpellcheck()
+                if (this.spellcheck === false) {  this.deactivateSpellcheck() }  //only deactivate if NOT globally allowed
+              
             }
         }, 
         reconnect(){
