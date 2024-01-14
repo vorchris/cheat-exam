@@ -275,7 +275,7 @@ export default {
         const statusDiv = document.querySelector("#statusdiv");
         this.fadeOut(statusDiv);
 
-
+        console.log(this.$route.params )
         if (this.prod) {  //clear input fields in production mode
             document.querySelector("#servername").value = "";
             document.querySelector("#pin").value = "";

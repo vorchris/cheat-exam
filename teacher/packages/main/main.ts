@@ -51,6 +51,8 @@ if (release().startsWith('6.1')) app.disableHardwareAcceleration()
 // Set application name for Windows 10+ notifications
 if (process.platform === 'win32') app.setAppUserModelId(app.getName())
 
+
+
 if (!app.requestSingleInstanceLock()) {
     app.quit()
     process.exit(0)
@@ -96,6 +98,9 @@ app.whenReady().then(()=>{
             preventSleep.enable();
         })
     }
+  
+    app.commandLine.appendSwitch('allow-file-access-from-files');
+    app.commandLine.appendSwitch('user-data-dir', config.workdirectory);
 
     WindowHandler.createWindow()
 
