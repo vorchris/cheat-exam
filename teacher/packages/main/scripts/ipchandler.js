@@ -25,6 +25,7 @@ import checkDiskSpace from 'check-disk-space'
 import {join} from 'path'
 import log from 'electron-log/main';
 
+
 class IpcHandler {
     constructor () {
         this.multicastClient = null
@@ -133,38 +134,60 @@ class IpcHandler {
 
 
         /**
-         * print pdf in new browserwindow process detached from the current exam view
+         * print pdf (or image) in new browserwindow process detached from the current exam view
          */
         ipcMain.handle('printpdf', async (event, pdfurl, defaultPrinter) => {
-            console.log(pdfurl)
-            let win = new BrowserWindow({ show: false });
-
-            win.loadFile(pdfurl).then(() => {
-                
-                if (defaultPrinter){
-                    const printOptions = {
-                        silent: true,
-                        printBackground: true,
-                        deviceName: printerName // Setzen des gewählten Druckers
-                      };
-                    
-                      // Druckauftrag senden
-                      win.webContents.print(printOptions, (success, errorType) => {
-                        if (success) { return true }
-                        else { log.error("ipchandler:", failureReason) }
-                      });
-
+            log.info(pdfurl, defaultPrinter)
+            let win = new BrowserWindow({ 
+                show: false, 
+                webPreferences: {
+                    webSecurity: false,
+                    nodeIntegration: false,
+                    contextIsolation: true,
                 }
-                else {
-                    win.webContents.print({}, (success, failureReason) => {
-                        if (success) { return true }
-                        else { log.error("ipchandler:", failureReason) }
-                    });
-                }
-            }).catch( (err) => {
-                log.error("ipchandler: (catch)", err)
-                return false
-            });  
+            });
+
+            const printOptions = {}
+            if (defaultPrinter){   // we do not use printoptions YET but if we can chose the default printer via dashboard ui then do not ask again here
+                printOptions = {
+                    silent: true,
+                    printBackground: true,
+                    deviceName: defaultPrinter // Setzen des gewählten Druckers
+                  };
+            }
+
+
+            // Lesen Sie die PDF-Datei und konvertieren Sie sie in Base64
+            const fBuffer = fs.readFileSync(pdfurl);
+            const fBase64 = fBuffer.toString('base64');
+
+            let framesource =  `<img src="data:image/png;base64,${fBase64}" alt="PNG or JPG" style="width:100%;" onload="printPage()">`;
+            if (this.isPdfUrl(pdfurl)){
+                framesource = `<iframe id="pdfFrame" src="data:application/pdf;base64,${fBase64}" style="width:100%; height:100vh;" onload="printPdf()"></iframe>`
+            }
+           
+            const htmlContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>PDF Viewer</title>
+                    <script>
+                        function printPdf() {
+                            const iframe = document.getElementById('pdfFrame');
+                            iframe.contentWindow.print();
+                        }
+                        function printPage() {
+                            window.print(); // Diese Zeile druckt die gesamte Seite, einschließlich des iframes
+                        }
+                    </script>
+                </head>
+                <body>
+                    ${framesource}  
+                </body>
+                </html>
+            `;
+            const dataUrl = `data:text/html;charset=UTF-8,${encodeURIComponent(htmlContent)}`;
+            win.loadURL(dataUrl);
         })
 
 
@@ -224,9 +247,14 @@ class IpcHandler {
 
     }
 
+    isPdfUrl(url) {
+        return url.toLowerCase().endsWith('.pdf');
+    }
 
     copyConfig(conf) {
         let configCopy = {
+            development: true, 
+            showdevtools: false,
             workdirectory: conf.workdirectory,
             tempdirectory: conf.tempdirectory,
             examdirectory: conf.examdirectory,

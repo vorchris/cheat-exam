@@ -250,7 +250,7 @@ async function getLatestFromStudent(student){
         
                 //let url =  URL.createObjectURL(new Blob([pdfBuffer], {type: "application/pdf"})) 
                 this.currentpreview = url   //needed for preview buttons
-                this.currentpreviewname = "combined"   //needed for preview buttons
+                this.currentpreviewname = student.clientname //needed for preview buttons
                 this.currentpreviewPath = responseObj.pdfPath 
                 log.info( "filemanager.js, print, pdfPath:", responseObj.pdfPath )
 
