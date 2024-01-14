@@ -161,9 +161,9 @@ class IpcHandler {
             const fBuffer = fs.readFileSync(pdfurl);
             const fBase64 = fBuffer.toString('base64');
 
-            let framesource =  `<img src="data:image/png;base64,${fBase64}" alt="PNG or JPG" style="width:100%;" onload="printPage()">`;
+            let framesource =  `<img src="data:image/png;base64,${fBase64}" alt="PNG or JPG" style="width:100%;" ">`;
             if (this.isPdfUrl(pdfurl)){
-                framesource = `<iframe id="pdfFrame" src="data:application/pdf;base64,${fBase64}" style="width:100%; height:100vh;" onload="printPdf()"></iframe>`
+                framesource = `<iframe id="pdfFrame" src="data:application/pdf;base64,${fBase64}" style="width:100%; height:100vh;""></iframe>`
             }
            
             const htmlContent = `
@@ -188,6 +188,24 @@ class IpcHandler {
             `;
             const dataUrl = `data:text/html;charset=UTF-8,${encodeURIComponent(htmlContent)}`;
             win.loadURL(dataUrl);
+
+
+
+
+            win.webContents.on('did-finish-load', () => {
+                log.info("ipchandler: finished loading content preview window")
+                let jscode = `printPage()`
+                if (this.isPdfUrl(pdfurl)){
+                    jscode = `printPdf()`
+                }
+
+                win.webContents.executeJavaScript(jscode, true, () => {
+                  // Code executed, now close the window
+                  win.close();
+                });
+            });
+
+
         })
 
 

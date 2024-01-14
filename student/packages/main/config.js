@@ -20,6 +20,6 @@ const config = {
     electron: false,
     virtualized: false,
     version: pjson.version,
-    info: "Release Candidate 3"
+    info: "Release Candidate 4"
 }
 export default config
