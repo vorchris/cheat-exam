@@ -80,6 +80,7 @@ class WindowHandler {
     
         this.mainwindow.on('close', async  (e) => {   //ask before closing
             if (!this.config.development) {
+                if (this.mainwindow.closetriggered) { app.quit(); return;}
                 if (this.mainwindow?.webContents.getURL().includes("dashboard")){log.info("do not close running exam this way"); e.preventDefault(); return}
                 let choice = dialog.showMessageBoxSync(this.mainwindow, {
                     type: 'question',
@@ -91,6 +92,13 @@ class WindowHandler {
                 if(choice == 1){
                     e.preventDefault();
                 }
+                else {
+                    this.mainwindow.closetriggered = true
+                    app.quit()
+                }
+            }
+            else {
+                app.quit()
             }
         });
     }

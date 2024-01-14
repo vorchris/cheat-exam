@@ -651,6 +651,7 @@ class WindowHandler {
 
         this.mainwindow.on('close', async  (e) => {   //ask before closing
             if (!this.config.development && !this.mainwindow.allowexit) {
+                if (this.mainwindow.closetriggered) { app.quit(); return;}
                 let choice = dialog.showMessageBoxSync(this.mainwindow, {
                     type: 'question',
                     buttons: ['Ja', 'Nein'],
@@ -659,6 +660,10 @@ class WindowHandler {
                     cancelId: 1
                 });
                 if(choice == 1){ e.preventDefault(); }
+                else {
+                    this.mainwindow.closetriggered = true
+                    app.quit()
+                }
             }
         });
 
