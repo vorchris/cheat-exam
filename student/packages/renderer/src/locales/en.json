@@ -108,6 +108,7 @@
     "math": {
         "exit":"Exit safe exam mode",
         "filename": "Filename",
-        "nospecial": "Please enter only letters and numbers without special characters"
+        "nospecial": "Please enter only letters and numbers without special characters",
+        "clear": "clear content?"
     }
 }
