@@ -147,7 +147,7 @@ class IpcHandler {
                 }
             });
 
-            const printOptions = {}
+            let printOptions = {}
             if (defaultPrinter){   // we do not use printoptions YET but if we can chose the default printer via dashboard ui then do not ask again here
                 printOptions = {
                     silent: true,
@@ -155,11 +155,18 @@ class IpcHandler {
                     deviceName: defaultPrinter // Setzen des gewählten Druckers
                   };
             }
-
-
+        
             // Lesen Sie die PDF-Datei und konvertieren Sie sie in Base64
-            const fBuffer = fs.readFileSync(pdfurl);
-            const fBase64 = fBuffer.toString('base64');
+            let fBase64 = ""
+            try {
+                const fBuffer = fs.readFileSync(pdfurl);
+                fBase64 = fBuffer.toString('base64');
+            }
+            catch (err) {
+                log.info(`${__filename}: printpdf: ${err}`)
+                win.show()
+            }
+           
 
             let framesource =  `<img src="data:image/png;base64,${fBase64}" alt="PNG or JPG" style="width:100%;" ">`;
             if (this.isPdfUrl(pdfurl)){
@@ -189,24 +196,21 @@ class IpcHandler {
             const dataUrl = `data:text/html;charset=UTF-8,${encodeURIComponent(htmlContent)}`;
             win.loadURL(dataUrl);
 
-
-
-
             win.webContents.on('did-finish-load', () => {
                 log.info("ipchandler: finished loading content preview window")
                 let jscode = `printPage()`
                 if (this.isPdfUrl(pdfurl)){
                     jscode = `printPdf()`
                 }
-
                 win.webContents.executeJavaScript(jscode, true, () => {
                   // Code executed, now close the window
                   win.close();
                 });
             });
-
-
         })
+
+
+
 
 
 
@@ -266,7 +270,14 @@ class IpcHandler {
     }
 
     isPdfUrl(url) {
-        return url.toLowerCase().endsWith('.pdf');
+        let pdf = false
+        try {
+           pdf =  url.toLowerCase().endsWith('.pdf');
+        }
+        catch (err) {
+            log.info(`${__filename}: isPdfUrl: ${err}`) 
+        }
+        return pdf
     }
 
     copyConfig(conf) {
