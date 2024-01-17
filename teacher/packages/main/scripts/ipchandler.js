@@ -163,7 +163,7 @@ class IpcHandler {
                 fBase64 = fBuffer.toString('base64');
             }
             catch (err) {
-                log.info(`${__filename}: printpdf: ${err}`)
+                log.info(`ipchandler: printpdf: ${err}`)
                 win.show()
             }
            
@@ -275,15 +275,15 @@ class IpcHandler {
            pdf =  url.toLowerCase().endsWith('.pdf');
         }
         catch (err) {
-            log.info(`${__filename}: isPdfUrl: ${err}`) 
+            log.info(`ipchandler: isPdfUrl: ${err}`) 
         }
         return pdf
     }
 
     copyConfig(conf) {
         let configCopy = {
-            development: true, 
-            showdevtools: false,
+            development: conf.development, 
+            showdevtools: conf.showdevtools,
             workdirectory: conf.workdirectory,
             tempdirectory: conf.tempdirectory,
             examdirectory: conf.examdirectory,
