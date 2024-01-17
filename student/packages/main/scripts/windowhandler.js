@@ -712,7 +712,7 @@ class WindowHandler {
                                     }
                                 })
 
-                           this.showExitWarning(message)  //show warning and quit app
+                           //this.showExitWarning(message)  //show warning and quit app
                         }
                     }
                     // else {  // accessibility rights should be set
