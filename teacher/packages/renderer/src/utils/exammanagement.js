@@ -312,7 +312,8 @@ async function activateSpellcheckForStudent(token, clientname){
             popup: 'my-popup',
             title: 'my-title',
             content: 'my-content',
-            input: 'my-custom-input'
+            input: 'my-custom-input',
+            actions: 'my-swal2-actions'
         },
         title: " ",
         html: `

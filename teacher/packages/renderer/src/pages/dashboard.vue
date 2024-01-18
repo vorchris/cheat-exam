@@ -586,7 +586,8 @@ export default {
                     popup: 'my-popup',
                     title: 'my-title',
                     content: 'my-content',
-                    input: 'my-custom-input'
+                    input: 'my-custom-input',
+                    actions: 'my-swal2-actions'
                 },
                 title: this.$t("dashboard.texteditor"),
                 html: `
@@ -1168,5 +1169,11 @@ hr {
 .my-custom-input {
     margin-top: 0px;
 }  
+
+.my-swal2-actions {
+    width: 100%;
+    margin-left: 1.9em;
+  justify-content: flex-start !important; /* Richtet die Buttons linksbündig aus */
+}
 
 </style>
