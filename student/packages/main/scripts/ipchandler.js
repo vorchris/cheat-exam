@@ -171,7 +171,8 @@ class IpcHandler {
             const dictionaryPath = path.join( __dirname,'../../public/dictionaries');
             let language = "de"
             if (spellchecklang){ language = spellchecklang }
-    
+            if (spellchecklang == "none"){return}  // "other" language selected 
+            
             let affix = null;
             let dictionary = null;
 
