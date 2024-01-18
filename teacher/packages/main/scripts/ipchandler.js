@@ -139,7 +139,7 @@ class IpcHandler {
         ipcMain.handle('printpdf', async (event, pdfurl, defaultPrinter) => {
             log.info(pdfurl, defaultPrinter)
             let win = new BrowserWindow({ 
-                show: false, 
+                show: true, 
                 webPreferences: {
                     webSecurity: false,
                     nodeIntegration: false,
@@ -177,16 +177,7 @@ class IpcHandler {
                 <!DOCTYPE html>
                 <html>
                 <head>
-                    <title>PDF Viewer</title>
-                    <script>
-                        function printPdf() {
-                            const iframe = document.getElementById('pdfFrame');
-                            iframe.contentWindow.print();
-                        }
-                        function printPage() {
-                            window.print(); // Diese Zeile druckt die gesamte Seite, einschließlich des iframes
-                        }
-                    </script>
+                    <title>Print Preview</title>
                 </head>
                 <body>
                     ${framesource}  
@@ -196,16 +187,20 @@ class IpcHandler {
             const dataUrl = `data:text/html;charset=UTF-8,${encodeURIComponent(htmlContent)}`;
             win.loadURL(dataUrl);
 
-            win.webContents.on('did-finish-load', () => {
+            win.webContents.on('did-finish-load', async () => {
                 log.info("ipchandler: finished loading content preview window")
-                let jscode = `printPage()`
+               
                 if (this.isPdfUrl(pdfurl)){
-                    jscode = `printPdf()`
+                    win.show()
                 }
-                win.webContents.executeJavaScript(jscode, true, () => {
-                  // Code executed, now close the window
-                  win.close();
-                });
+                else {
+                    win.webContents.executeJavaScript('window.print();');
+                   
+                   // win.close();
+                }
+
+               
+                
             });
         })
 
