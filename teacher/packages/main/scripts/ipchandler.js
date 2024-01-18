@@ -138,7 +138,7 @@ class IpcHandler {
          * print pdf (or image) in new browserwindow process detached from the current exam view
          */
         ipcMain.handle('printpdf', async (event, pdfurl, defaultPrinter) => {
-            log.info(pdfurl, defaultPrinter)
+            log.info(`ipchandler: printpdf: ${pdfurl} defaultprinter: ${defaultPrinter}`)
             
             if (process.platform === "linux"){  //there is a problem on ubuntu and mint with the window.print() function  https://github.com/electron/electron/issues/31151
                 let isKDE = false
