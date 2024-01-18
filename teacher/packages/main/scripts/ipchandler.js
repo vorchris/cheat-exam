@@ -143,7 +143,7 @@ class IpcHandler {
             if (process.platform === "linux"){  //there is a problem on ubuntu and mint with the window.print() function  https://github.com/electron/electron/issues/31151
                 let isKDE = false
                 try {  isKDE = childProcess.execSync("echo $XDG_CURRENT_DESKTOP"); } 
-                catch (error) { log.error(`Error: ${error.message}`);  }
+                catch (err) { log.error(`Error: ${err.message}`);  }
 
                 if (!isKDE.toString().trim().toLowerCase().includes('kde')){
                     try { childProcess.exec(`xdg-open ${pdfurl}`)  }
@@ -213,18 +213,13 @@ class IpcHandler {
             win.loadURL(dataUrl);
 
             win.webContents.on('did-finish-load', () => {
-                log.info("ipchandler: finished loading content preview window")
+                log.info("ipchandler: printpdf: finished loading content preview window - opening print dialog")
                 let jscode = `printPage()`
-                if (this.isPdfUrl(pdfurl)){
-                    jscode = `printPdf()`
-                }
+                if (this.isPdfUrl(pdfurl)){ jscode = `printPdf()` }
 
-                win.webContents.executeJavaScript(jscode, true, () => {
-                  // Code executed, now close the window
-                  win.close();
+                win.webContents.executeJavaScript(jscode, true, () => {  // Code executed, now close the window
+                    win.close();
                 });
-
-
             });
         })
 
