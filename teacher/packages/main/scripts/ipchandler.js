@@ -24,7 +24,8 @@ import {  ipcMain, dialog, BrowserWindow } from 'electron'
 import checkDiskSpace from 'check-disk-space'
 import {join} from 'path'
 import log from 'electron-log/main';
-
+import childProcess from 'child_process'
+import { execSync } from 'child_process';
 
 class IpcHandler {
     constructor () {
@@ -138,6 +139,21 @@ class IpcHandler {
          */
         ipcMain.handle('printpdf', async (event, pdfurl, defaultPrinter) => {
             log.info(pdfurl, defaultPrinter)
+            
+            if (process.platform === "linux"){  //there is a problem on ubuntu and mint with the window.print() function  https://github.com/electron/electron/issues/31151
+                let isKDE = false
+                try {  isKDE = childProcess.execSync("echo $XDG_CURRENT_DESKTOP"); } 
+                catch (error) { log.error(`Error: ${error.message}`);  }
+
+                if (!isKDE.toString().trim().toLowerCase().includes('kde')){
+                    try { childProcess.exec(`xdg-open ${pdfurl}`)  }
+                    catch(err){log.error(err)}
+                    return    //exit here - other operating systems may directly launch the print dialog and do not need external apps
+                }
+                log.info("ipchandler: printpdf: printing on kde desktop")
+            }
+            
+            
             let win = new BrowserWindow({ 
                 show: false, 
                 webPreferences: {
@@ -202,10 +218,13 @@ class IpcHandler {
                 if (this.isPdfUrl(pdfurl)){
                     jscode = `printPdf()`
                 }
+
                 win.webContents.executeJavaScript(jscode, true, () => {
                   // Code executed, now close the window
                   win.close();
                 });
+
+
             });
         })
 
