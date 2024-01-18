@@ -652,7 +652,7 @@ export default {
             if (this.serverstatus.spellcheck || this.allowspellcheck) {
                 console.log("[activateSpellcheck] spellcheck activated")
                 document.addEventListener('input', this.checkAllWordsOnSpacebar)  // do a spellcheck when the user hits space
-                if (this.serverstatus.suggestions || this.allowspellcheck.suggestions){
+                if (this.serverstatus.suggestions || (this.allowspellcheck && this.allowspellcheck.suggestions)){
                     console.log("[activateSpellcheck] suggestions activated")
                     document.addEventListener('click', this.hideSpellcheckMenu); // Hide suggestion menu when clicking elsewhere
                     this.editorcontentcontainer.addEventListener('contextmenu', this.getWord );   // show the context menu

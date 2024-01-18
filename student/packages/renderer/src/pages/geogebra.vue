@@ -55,7 +55,9 @@
     <!-- filelist start - show local files from workfolder (pdf and gbb only)-->
     <div id="toolbar" class="d-inline p-1 pb-0">  
         <button title="backup" @click="saveContent(true); " class="btn  d-inline btn-success p-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/document-save.svg" class="white" width="22" height="22" ></button>
-
+        <button title="delete" @click="clearAll(); " class="btn  d-inline btn-danger p-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-delete.svg" class="white" width="22" height="22" ></button>
+        
+        
         <div v-for="file in localfiles" class="d-inline">
             <div v-if="(file.type == 'pdf')" class="btn btn-secondary ms-2 mb-1 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file.name}} </div>
             <div v-if="(file.type == 'ggb')" class="btn btn-info ms-2 mb-1  btn-sm" @click="selectedFile=file.name; loadGGB(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file.name}} </div>
@@ -238,6 +240,28 @@ export default {
 
 
         }, 
+
+        clearAll(){
+            const ggbIframe = document.getElementById('geogebraframe');
+            const ggbApplet = ggbIframe.contentWindow.ggbApplet;   // get the geogebra applet and all of its methods
+            this.$swal({
+                title: "",
+                text: this.$t("math.clear") ,
+                showCancelButton: true,
+                inputAttributes: {
+                    maxlength: 20,
+                },
+                confirmButtonText: 'Ok',
+                cancelButtonText: this.$t("editor.cancel")
+         
+             })
+            .then((result) => {
+                if (result.isConfirmed) { 
+                    ggbApplet.reset()
+                }
+                else {return; }
+            });
+        },
 
          /** Saves Content as GGB */
         async saveContent(manual) {  

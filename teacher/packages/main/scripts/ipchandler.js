@@ -24,7 +24,8 @@ import {  ipcMain, dialog, BrowserWindow } from 'electron'
 import checkDiskSpace from 'check-disk-space'
 import {join} from 'path'
 import log from 'electron-log/main';
-
+import childProcess from 'child_process'
+import { execSync } from 'child_process';
 
 class IpcHandler {
     constructor () {
@@ -137,7 +138,22 @@ class IpcHandler {
          * print pdf (or image) in new browserwindow process detached from the current exam view
          */
         ipcMain.handle('printpdf', async (event, pdfurl, defaultPrinter) => {
-            log.info(pdfurl, defaultPrinter)
+            log.info(`ipchandler: printpdf: ${pdfurl} defaultprinter: ${defaultPrinter}`)
+            
+            if (process.platform === "linux"){  //there is a problem on ubuntu and mint with the window.print() function  https://github.com/electron/electron/issues/31151
+                let isKDE = false
+                try {  isKDE = childProcess.execSync("echo $XDG_CURRENT_DESKTOP"); } 
+                catch (err) { log.error(`Error: ${err.message}`);  }
+
+                if (!isKDE.toString().trim().toLowerCase().includes('kde')){
+                    try { childProcess.exec(`xdg-open ${pdfurl}`)  }
+                    catch(err){log.error(err)}
+                    return    //exit here - other operating systems may directly launch the print dialog and do not need external apps
+                }
+                log.info("ipchandler: printpdf: printing on kde desktop")
+            }
+            
+            
             let win = new BrowserWindow({ 
                 show: false, 
                 webPreferences: {
@@ -147,7 +163,7 @@ class IpcHandler {
                 }
             });
 
-            const printOptions = {}
+            let printOptions = {}
             if (defaultPrinter){   // we do not use printoptions YET but if we can chose the default printer via dashboard ui then do not ask again here
                 printOptions = {
                     silent: true,
@@ -155,11 +171,18 @@ class IpcHandler {
                     deviceName: defaultPrinter // Setzen des gewählten Druckers
                   };
             }
-
-
+        
             // Lesen Sie die PDF-Datei und konvertieren Sie sie in Base64
-            const fBuffer = fs.readFileSync(pdfurl);
-            const fBase64 = fBuffer.toString('base64');
+            let fBase64 = ""
+            try {
+                const fBuffer = fs.readFileSync(pdfurl);
+                fBase64 = fBuffer.toString('base64');
+            }
+            catch (err) {
+                log.info(`ipchandler: printpdf: ${err}`)
+                win.show()
+            }
+           
 
             let framesource =  `<img src="data:image/png;base64,${fBase64}" alt="PNG or JPG" style="width:100%;" ">`;
             if (this.isPdfUrl(pdfurl)){
@@ -189,24 +212,19 @@ class IpcHandler {
             const dataUrl = `data:text/html;charset=UTF-8,${encodeURIComponent(htmlContent)}`;
             win.loadURL(dataUrl);
 
-
-
-
             win.webContents.on('did-finish-load', () => {
-                log.info("ipchandler: finished loading content preview window")
+                log.info("ipchandler: printpdf: finished loading content preview window - opening print dialog")
                 let jscode = `printPage()`
-                if (this.isPdfUrl(pdfurl)){
-                    jscode = `printPdf()`
-                }
+                if (this.isPdfUrl(pdfurl)){ jscode = `printPdf()` }
 
-                win.webContents.executeJavaScript(jscode, true, () => {
-                  // Code executed, now close the window
-                  win.close();
+                win.webContents.executeJavaScript(jscode, true, () => {  // Code executed, now close the window
+                    win.close();
                 });
             });
-
-
         })
+
+
+
 
 
 
@@ -266,13 +284,20 @@ class IpcHandler {
     }
 
     isPdfUrl(url) {
-        return url.toLowerCase().endsWith('.pdf');
+        let pdf = false
+        try {
+           pdf =  url.toLowerCase().endsWith('.pdf');
+        }
+        catch (err) {
+            log.info(`ipchandler: isPdfUrl: ${err}`) 
+        }
+        return pdf
     }
 
     copyConfig(conf) {
         let configCopy = {
-            development: true, 
-            showdevtools: false,
+            development: conf.development, 
+            showdevtools: conf.showdevtools,
             workdirectory: conf.workdirectory,
             tempdirectory: conf.tempdirectory,
             examdirectory: conf.examdirectory,

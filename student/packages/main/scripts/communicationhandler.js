@@ -113,6 +113,10 @@ import log from 'electron-log/main';
             })
             .catch(error => { log.error(`SendHeartbeat Axios: ${error}`); this.multicastClient.beaconsLost += 1; log.error("heartbeat lost..") });
         }
+        else {
+            // no focus warning block if no connection 
+            this.multicastClient.clientinfo.focus = true  // if not connected but still in exam mode you could trigger a focus warning and nobody is able to unlock you
+        }
     }
 
 

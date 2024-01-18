@@ -108,6 +108,7 @@
     "math": {
         "exit":"Abgesicherten Modus beenden?",
         "filename": "Dateiname",
-        "nospecial": "Bitte geben Sie nur Buchstaben oder Zahlen ein."
+        "nospecial": "Bitte geben Sie nur Buchstaben oder Zahlen ein.",
+        "clear": "Alle Berechnungen löschen?"
     }
 }

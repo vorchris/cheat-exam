@@ -565,12 +565,12 @@ export default {
             const inputOptions = new Promise((resolve) => {
                 setTimeout(() => {
                     resolve({
-                        'none':this.$t("dashboard.none"),
                         'de': this.$t("dashboard.de"),
                         'en-GB': this.$t("dashboard.en"),
                         'fr': this.$t("dashboard.fr"),
                         'es': this.$t("dashboard.es"),
                         'it': this.$t("dashboard.it"),
+                        'none':this.$t("dashboard.none"),
                     })
                 }, 100)
             })
@@ -582,48 +582,50 @@ export default {
             };
 
             const { value: language } = await this.$swal.fire({
+                customClass: {
+                    popup: 'my-popup',
+                    title: 'my-title',
+                    content: 'my-content',
+                    input: 'my-custom-input'
+                },
                 title: this.$t("dashboard.texteditor"),
                 html: `
-                <div>
-                    <label>
-                        ${this.$t("dashboard.cmargin-value")}<br>
-                        <input style="width:100px" type="range" id="marginValue" name="margin_value" min="2" max="5" step="0.5" />
-                        <div style="width:32px; display: inline-block"  id="marginValueDisplay">${this.serverstatus.cmargin.size}</div>(cm)
-                    </label>
-                    <br>
-                    <label>
-                        <input type="radio" name="correction_margin" value="left"  />
-                        ${this.$t("dashboard.cmargin-left")}
-                    </label>
-                    <label>
-                        <input type="radio" name="correction_margin" value="right" checked/>
-                        ${this.$t("dashboard.cmargin-right")}
-                    </label>
-                </div>
-                <br>
-                <div> 
-                    ${this.$t("dashboard.linespacing")}<br>
-
-                    <label><input type="radio" name="linespacing" value="1"/> 1</label> &nbsp;
-                    <label><input type="radio" name="linespacing" value="2" checked/> 2</label> &nbsp;
-                    <label><input type="radio" name="linespacing" value="3"/> 3</label> &nbsp;
-                </div>
-                <br>
-
-                <div> 
-                    ${this.$t("dashboard.fontfamily")}<br>
-
-                    <label><input type="radio" name="fontfamily" value="serif"/> serif</label> &nbsp;
-                    <label><input type="radio" name="fontfamily" value="sans-serif" checked/> sans-serif</label> &nbsp;
-                   
-                </div>
-                <br>
-                <div style="border: 0px solid black;">
-                    <h4 style: margin-bottom: 0px;padding-bottom: 0px;>${this.$t("dashboard.spellcheck")}</h4>
-                    <input class="form-check-input" type="checkbox" id="checkboxsuggestions">
-                    <label class="form-check-label" for="checkboxsuggestions"> ${this.$t("dashboard.suggest")} </label>
-                    <br><br>
-                    <span>${this.$t("dashboard.spellcheckchoose")}</span>
+                <div style="font-size: 0.8em !important; text-align:left; margin-left:10px;">
+                    <div>
+                        <label >
+                            <h6>${this.$t("dashboard.cmargin-value")}</h6>
+                            <input style="width:100px" type="range" id="marginValue" name="margin_value" min="2" max="5" step="0.5" />
+                            <div style="width:32px; display: inline-block"  id="marginValueDisplay">${this.serverstatus.cmargin.size}</div>(cm)
+                        </label>
+                        <br>
+                        <label>
+                            <input type="radio" name="correction_margin" value="left"  />
+                            ${this.$t("dashboard.cmargin-left")}
+                        </label>
+                        <label>
+                            <input type="radio" name="correction_margin" value="right" checked/>
+                            ${this.$t("dashboard.cmargin-right")}
+                        </label>
+                    </div><br> 
+                    <div> 
+                        <h6> ${this.$t("dashboard.linespacing")}</h6>
+                        <label><input type="radio" name="linespacing" value="1"/> 1</label> &nbsp;
+                        <label><input type="radio" name="linespacing" value="2" checked/> 2</label> &nbsp;
+                        <label><input type="radio" name="linespacing" value="3"/> 3</label> &nbsp;
+                    </div><br>
+                    <div> 
+                        <h6>${this.$t("dashboard.fontfamily")}</h6>
+                        <label><input type="radio" name="fontfamily" value="serif"/> serif</label> &nbsp;
+                        <label><input type="radio" name="fontfamily" value="sans-serif" checked/> sans-serif</label> &nbsp;
+                    </div><br>
+                    <div>
+                        <h6>${this.$t("dashboard.spellcheck")}</h6>
+                        <input class="form-check-input" type="checkbox" id="checkboxspellcheck">
+                        <label class="form-check-label" for="checkboxspellcheck"> ${this.$t("dashboard.spellcheckactivate")} </label> <br>
+                        <input class="form-check-input" type="checkbox" id="checkboxsuggestions">
+                        <label class="form-check-label" for="checkboxsuggestions"> ${this.$t("dashboard.suggest")} </label><br><br>
+                        <h6>${this.$t("dashboard.spellcheckchoose")}</h6>
+                    </div>
                 </div>`,
                 input: 'select',
                 inputOptions: inputOptions,
@@ -643,6 +645,7 @@ export default {
                 },
                 preConfirm: () => {
                     this.serverstatus.suggestions = document.getElementById('checkboxsuggestions').checked; 
+                    this.serverstatus.spellcheck = document.getElementById('checkboxspellcheck').checked; 
                     const radioButtons = document.querySelectorAll('input[name="correction_margin"]');
                     const marginValue = document.getElementById('marginValue').value;
                     const linespacingradioButtons = document.querySelectorAll('input[name="linespacing"]');
@@ -681,10 +684,12 @@ export default {
                 }
             })
             if (language) {
-                this.serverstatus.spellcheck = true
                 this.serverstatus.spellchecklang = language
                 if (language === 'none'){this.serverstatus.spellcheck = false}
             }  
+            else {
+                this.serverstatus.spellchecklang = 'de'
+            }
         },
 
 
@@ -1141,4 +1146,27 @@ hr {
 .swal2-container {
     backdrop-filter: blur(2px); 
 } 
+
+.my-popup {
+ 
+}
+
+.my-title {
+    text-align: left;
+    font-size: 1.5em;
+}
+
+.my-content {
+    margin-bottom: 0px;
+}
+
+.my-content h5 {
+    font-size: 1em;
+    margin-bottom: 0px;
+}
+
+.my-custom-input {
+    margin-top: 0px;
+}  
+
 </style>
