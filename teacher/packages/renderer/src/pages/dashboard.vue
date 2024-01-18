@@ -1148,7 +1148,7 @@ hr {
 } 
 
 .my-popup {
- 
+   
 }
 
 .my-title {

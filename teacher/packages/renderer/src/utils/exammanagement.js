@@ -306,48 +306,36 @@ function delfolderquestion(){
  * der editor (frontend) sieht dann allowspellcheck und aktiviert mittels IPC invoke (ipchandler.js) dann nodehun() und macht den spellcheckbutton sichtbar
  */
 async function activateSpellcheckForStudent(token, clientname){
-    let suggestions = null
-    const inputOptions = new Promise((resolve) => {
-        setTimeout(() => {
-            resolve({
-                'none':this.$t("dashboard.none"),
-                'de': this.$t("dashboard.de"),
-                'en-GB': this.$t("dashboard.en"),
-                'fr': this.$t("dashboard.fr"),
-                'es': this.$t("dashboard.es"),
-                'it': this.$t("dashboard.it"),
-            })
-        }, 100)
-    })
-    const { value: language } = await this.$swal.fire({
-        title: this.$t("dashboard.spellcheck"),
+  
+    await this.$swal.fire({
+        customClass: {
+            popup: 'my-popup',
+            title: 'my-title',
+            content: 'my-content',
+            input: 'my-custom-input'
+        },
+        title: " ",
         html: `
-        <div style="border: 0px solid black;">
-            <h4 style: margin-bottom: 0px;padding-bottom: 0px;>${this.$t("dashboard.allowspellcheck")}</h4>
+        <div style="padding: 4px; font-size: 0.9em; text-align: left;">
+            <h5>${this.$t("dashboard.allowspellcheck")}</h5>
+            <input class="form-check-input" type="checkbox" id="checkboxspellcheck">
+            <label class="form-check-label" for="checkboxspellcheck"> ${this.$t("dashboard.spellcheckactivate")} </label> <br>
             <input class="form-check-input" type="checkbox" id="checkboxsuggestions">
             <label class="form-check-label" for="checkboxsuggestions"> ${this.$t("dashboard.suggest")} </label>
-            <br><br>
-            <span>${this.$t("dashboard.spellcheckchoose")}</span>
         </div>`,
-        input: 'select',
-        inputOptions: inputOptions,
         focusConfirm: false,
-        inputValidator: (value) => {
-            if (!value) {
-            return 'You need to choose something!'
-            }
-        },
         preConfirm: () => {
-            suggestions = document.getElementById('checkboxsuggestions').checked; 
+             
         }
-    })
-    if (language) {
-        let spellcheck = true
-        let spellchecklang = language
-        if (language === 'none'){
+    }).then((input) => {
+
+        let spellcheck = document.getElementById('checkboxspellcheck').checked; 
+        let suggestions = document.getElementById('checkboxsuggestions').checked;
+
+        if (!spellcheck){
             spellcheck = false
             console.log(`de-activating spellcheck for user: ${clientname} `)
-            console.log(spellcheck,spellchecklang,suggestions )
+            
             // inform student that spellcheck can be activated
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/setstudentstatus/${this.servername}/${this.servertoken}/${token}`, { 
                 method: 'POST',
@@ -359,16 +347,23 @@ async function activateSpellcheckForStudent(token, clientname){
         }
         else {
             console.log(`activating spellcheck for user: ${clientname} `)
+         
             // inform student that spellcheck can be activated
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/setstudentstatus/${this.servername}/${this.servertoken}/${token}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },
-                body: JSON.stringify({ allowspellcheck : true, spellchecklang : spellchecklang, suggestions: suggestions } )
+                body: JSON.stringify({ allowspellcheck : true, suggestions: suggestions } )
             })
             .then( res => res.json() )
             .then( result => { log.info(result)});
         }
-    }  
+
+    }) 
+    
+    
+    
+        
+     
 }
 
 

@@ -633,7 +633,7 @@ router.post('/setstudentstatus/:servername/:csrfservertoken/:studenttoken', func
                 // here we handle different forms of information that needs to be set on studentstatus (dont forget to reset those values in /update/route)
                 if (printdenied){ student.status.printdenied = true } // set student.status so that the student can act on it on the next update
                 if (delfolder)  { student.status.delfolder = true   } // on the next update cycle the student gets informed to delete workfolder
-                if (allowspellcheck) {student.status.allowspellcheck = { spellchecklang : req.body.spellchecklang, suggestions: req.body.suggestions } } // allow spellcheck for this specific student (special cases)
+                if (allowspellcheck) {student.status.allowspellcheck = { suggestions: req.body.suggestions } } // allow spellcheck for this specific student (special cases)
                 if (allowspellcheck == false) { student.status.allowspellcheck = "deactivate" }
             }
         }
