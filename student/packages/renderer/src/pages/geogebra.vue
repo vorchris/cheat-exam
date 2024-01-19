@@ -56,7 +56,8 @@
     <div id="toolbar" class="d-inline p-1 pb-0">  
         <button title="backup" @click="saveContent(true); " class="btn  d-inline btn-success p-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/document-save.svg" class="white" width="22" height="22" ></button>
         <button title="delete" @click="clearAll(); " class="btn  d-inline btn-danger p-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-delete.svg" class="white" width="22" height="22" ></button>
-        
+        <button title="paste" @click="copyClipboard(); " class="btn  d-inline btn-secondary p-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-paste-style.svg" class="white" width="22" height="22" ></button>
+
         
         <div v-for="file in localfiles" class="d-inline">
             <div v-if="(file.type == 'pdf')" class="btn btn-secondary ms-2 mb-1 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file.name}} </div>
@@ -92,6 +93,10 @@
 </template>
 
 <script>
+
+
+
+
 export default {
     data() {
         return {
@@ -118,11 +123,31 @@ export default {
             timesinceentry: 0,
             now : new Date().getTime(),
             localfiles: null,
-            battery: null
+            battery: null,
+            customClipboard: []
         }
     }, 
     components: {  },  
     mounted() {
+
+        const ggbIframe = document.getElementById('geogebraframe');
+        const iframeWindow = ggbIframe.contentWindow;  // Zugriff auf den Kontext des iframe
+        const originalIframeConsoleLog = iframeWindow.console.log;  // Speichern der originalen console.log Funktion des iframe
+
+        iframeWindow.console.log = (message) => {
+            // Prüfen, ob die Nachricht ein GeoGebra-spezifisches Muster enthält
+            if (typeof message === "string" && message.includes("existing")) {
+                const partAfterExistingGeo = message.split("existing geo:")[1].trim();
+                const extractedText = partAfterExistingGeo.split("=")[1].trim();
+                this.customClipboard.push( extractedText )
+                if (this.customClipboard.length > 10) {    this.customClipboard.shift();     }   //customclipboard länge begrenzen
+            } 
+            else {
+                // geogebra spammed jede aktion in die console daher unterdrücken wir das erstmal
+                //originalIframeConsoleLog.apply(iframeWindow.console, arguments);      // Aufrufen der ursprünglichen Funktion für alle anderen Nachrichten
+            }
+        };
+
         this.currentFile = this.clientname
         this.entrytime = new Date().getTime()  
          
@@ -240,6 +265,13 @@ export default {
 
 
         }, 
+        copyClipboard(){
+            const ggbIframe = document.getElementById('geogebraframe');
+            const ggbApplet = ggbIframe.contentWindow.ggbApplet;   // get the geogebra applet and all of its methods
+            
+            console.log(this.customClipboard[this.customClipboard.length-1])
+            ggbApplet.evalCommand(this.customClipboard[this.customClipboard.length-1]);
+        },
 
         clearAll(){
             const ggbIframe = document.getElementById('geogebraframe');
