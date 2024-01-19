@@ -93,8 +93,8 @@
 
 
     <div v-if="isClipboardVisible" class="customClipboard">
-      <button v-for="(item, index) in customClipboard" :key="index" @click="insertFromClipboar(item)">
-        {{ item }}
+      <button class="btn btn-sm btn-outline-success m-1" style="display: block; width:132px" v-for="(item, index) in customClipboard" :key="index" @click="insertFromClipboar(item)">
+        <img src="/src/assets/img/svg/edit-paste-style.svg" class="white" width="16" height="16" >{{ item }}
       </button>
     </div>
 
@@ -140,23 +140,7 @@ export default {
     components: {  },  
     mounted() {
 
-        const ggbIframe = document.getElementById('geogebraframe');
-        const iframeWindow = ggbIframe.contentWindow;  // Zugriff auf den Kontext des iframe
-        const originalIframeConsoleLog = iframeWindow.console.log;  // Speichern der originalen console.log Funktion des iframe
-
-        iframeWindow.console.log = (message) => {
-            // Prüfen, ob die Nachricht ein GeoGebra-spezifisches Muster enthält
-            if (typeof message === "string" && message.includes("existing")) {
-                const partAfterExistingGeo = message.split("existing geo:")[1].trim();
-                const extractedText = partAfterExistingGeo.split("=")[1].trim();
-                this.customClipboard.push( extractedText )
-                if (this.customClipboard.length > 10) {    this.customClipboard.shift();     }   //customclipboard länge begrenzen
-            } 
-            else {
-                // geogebra spammed jede aktion in die console daher unterdrücken wir das erstmal
-                //originalIframeConsoleLog.apply(iframeWindow.console, arguments);      // Aufrufen der ursprünglichen Funktion für alle anderen Nachrichten
-            }
-        };
+        this.redefineConsole()  // overwrite console log to grep specific outputs and store as clipboard entry
 
         this.currentFile = this.clientname
         this.entrytime = new Date().getTime()  
@@ -179,8 +163,26 @@ export default {
         })
     },
     methods: { 
+        redefineConsole(){
+            const ggbIframe = document.getElementById('geogebraframe');
+            const iframeWindow = ggbIframe.contentWindow;  // Zugriff auf den Kontext des iframe
+            const originalIframeConsoleLog = iframeWindow.console.log;  // Speichern der originalen console.log Funktion des iframe
 
-     reconnect(){
+            iframeWindow.console.log = (message) => {
+                // Prüfen, ob die Nachricht ein GeoGebra-spezifisches Muster enthält
+                if (typeof message === "string" && message.includes("existing")) {
+                    const partAfterExistingGeo = message.split("existing geo:")[1].trim();
+                    const extractedText = partAfterExistingGeo.split("=")[1].trim();
+                    this.customClipboard.push( extractedText )
+                    if (this.customClipboard.length > 10) {    this.customClipboard.shift();     }   //customclipboard länge begrenzen
+                } 
+                else {
+                    // geogebra spammed jede aktion in die console daher unterdrücken wir das erstmal
+                    //originalIframeConsoleLog.apply(iframeWindow.console, arguments);      // Aufrufen der ursprünglichen Funktion für alle anderen Nachrichten
+                }
+            };
+        },
+        reconnect(){
             this.$swal.fire({
                 title: this.$t("editor.reconnect"),
                 text:  this.$t("editor.info"),
@@ -250,6 +252,7 @@ export default {
             if (source === "suite")   { iFrame.src = `./geogebra/suite.html`  }
             if (source === "classic") { iFrame.src = `./geogebra/classic.html`}
             iFrame.parentNode.replaceChild(iFrame.cloneNode(), iFrame);
+            this.redefineConsole()
         },  
         clock(){
             this.now = new Date().getTime()
@@ -395,15 +398,16 @@ export default {
 
 .customClipboard {
     z-index: 1000000;
-    width: 200px;
-    height: 50vh;
+    width: 160px;
+    height: 380px;
     position: absolute;
-    top: 10%;
+    top: 100px;
     left: 50%;
     margin-left: -100px;
-    background-color: white;
+    background-color: rgb(33,37,41);
     border-radius: 5px;
     padding: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.8);
 
 }
 
