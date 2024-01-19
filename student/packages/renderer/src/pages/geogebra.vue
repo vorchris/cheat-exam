@@ -56,7 +56,7 @@
     <div id="toolbar" class="d-inline p-1 pb-0">  
         <button title="backup" @click="saveContent(true); " class="btn  d-inline btn-success p-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/document-save.svg" class="white" width="22" height="22" ></button>
         <button title="delete" @click="clearAll(); " class="btn  d-inline btn-danger p-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-delete.svg" class="white" width="22" height="22" ></button>
-        <button title="paste" @click="copyClipboard(); " class="btn  d-inline btn-secondary p-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-paste-style.svg" class="white" width="22" height="22" ></button>
+        <button title="paste" @click="showClipboard(); " class="btn  d-inline btn-secondary p-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-paste-style.svg" class="white" width="22" height="22" ></button>
 
         
         <div v-for="file in localfiles" class="d-inline">
@@ -90,6 +90,15 @@
         <!-- focuswarning end  -->
         <iframe id="geogebraframe" src="./geogebra/classic.html"></iframe>
     </div>
+
+
+    <div v-if="isClipboardVisible" class="customClipboard">
+      <button v-for="(item, index) in customClipboard" :key="index" @click="insertFromClipboar(item)">
+        {{ item }}
+      </button>
+    </div>
+
+
 </template>
 
 <script>
@@ -124,7 +133,8 @@ export default {
             now : new Date().getTime(),
             localfiles: null,
             battery: null,
-            customClipboard: []
+            customClipboard: [],
+            isClipboardVisible: false
         }
     }, 
     components: {  },  
@@ -265,12 +275,14 @@ export default {
 
 
         }, 
-        copyClipboard(){
+        showClipboard() {
+            this.isClipboardVisible = this.isClipboardVisible ? false: true;
+        },
+        insertFromClipboar(value){
             const ggbIframe = document.getElementById('geogebraframe');
             const ggbApplet = ggbIframe.contentWindow.ggbApplet;   // get the geogebra applet and all of its methods
             
-            console.log(this.customClipboard[this.customClipboard.length-1])
-            ggbApplet.evalCommand(this.customClipboard[this.customClipboard.length-1]);
+            ggbApplet.evalCommand(value);
         },
 
         clearAll(){
@@ -376,12 +388,28 @@ export default {
         clearInterval( this.loadfilelistinterval )
     },
 }
+
 </script>
 
 <style scoped>
 
+.customClipboard {
+    z-index: 1000000;
+    width: 200px;
+    height: 50vh;
+    position: absolute;
+    top: 10%;
+    left: 50%;
+    margin-left: -100px;
+    background-color: white;
+    border-radius: 5px;
+    padding: 10px;
+
+}
+
+
 #suiteAppPicker {
-visibility: visible !important;
+    visibility: visible !important;
 }
 
 @media print{

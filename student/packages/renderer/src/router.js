@@ -40,7 +40,7 @@ if (userAgent.indexOf(' electron/') > -1) {
 }
 
 const routes = [
-    { path: '/',                    name:"index",        component: student,      beforeEnter: [addParams]            },
+    { path: '/',                    name:"index",        component: geogebra,      beforeEnter: [addParams]            },
     { path: '/student',             name:"student",      component: student,      beforeEnter: [addParams]            },
     { path: '/editor/:token',       name:"editor",       component: editor,       beforeEnter: [addParams, fetchInfo] },  
     { path: '/math/:token',         name:"math",         component: geogebra,     beforeEnter: [addParams, fetchInfo] },
