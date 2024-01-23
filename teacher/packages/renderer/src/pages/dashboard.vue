@@ -595,7 +595,7 @@ export default {
                     <div>
                         <label >
                             <h6>${this.$t("dashboard.cmargin-value")}</h6>
-                            <input style="width:100px" type="range" id="marginValue" name="margin_value" min="2" max="5" step="0.5" />
+                            <input style="width:100px" type="range" id="marginValue" name="margin_value" min="2" max="5" step="0.5" value="${this.serverstatus.cmargin.size}" />
                             <div style="width:32px; display: inline-block"  id="marginValueDisplay">${this.serverstatus.cmargin.size}</div>(cm)
                         </label>
                         <br>
@@ -676,8 +676,9 @@ export default {
                     if (marginValue && selectedMargin) {
                         this.serverstatus.cmargin = {
                             side: selectedMargin,
-                            size: parseInt(marginValue)
+                            size: parseFloat(marginValue)
                         }
+                        console.log( this.serverstatus.cmargin)
                     }
 
                     this.serverstatus.linespacing = selectedSpacing

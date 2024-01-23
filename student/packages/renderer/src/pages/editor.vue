@@ -263,8 +263,9 @@ export default {
             pincode : this.$route.params.pincode,
             zoom:1,
             battery: null,
-            proseMirrorMargin: 90,
-            cmargin: this.$route.params.cmargin,
+            proseMirrorMargin: '30mm',
+            editorWidth: '210mm',
+            cmargin: this.$route.params.cmargin ? this.$route.params.cmargin : { side: 'right', size: 3 },
             selectedWordCount:0,
             selectedCharCount:0,
             currentRange:0,
@@ -272,7 +273,7 @@ export default {
             editorcontentcontainer:null,
             spellcheck: false,
             serverstatus: this.$route.params.serverstatus,
-            linespacing: this.$route.params.serverstatus.linespacing,
+            linespacing: this.$route.params.serverstatus.linespacing ? this.$route.params.serverstatus.linespacing : '2',
             fontfamily:  this.$route.params.serverstatus.fontfamily  ? this.$route.params.serverstatus.fontfamily : "sans-serif", 
             allowspellcheck: false, // this is a per student override (for students with legasthenie)
             audioSource: null,
@@ -389,11 +390,6 @@ export default {
             this.battery = await navigator.getBattery().then(battery => { return battery })
             .catch(error => { console.error("Error accessing the Battery API:", error);  });
 
-            // console.log("serverstatus.spellcheck",this.serverstatus.spellcheck)
-            // console.log("serverstatus.spellchecklang",this.serverstatus.spellchecklang)
-            // console.log("spellcheck",this.spellcheck)
-            // console.log("allowspellcheck",this.allowspellcheck)
-            // console.log("suggestions", this.serverstatus.suggestions)
             if (this.allowspellcheck) {  //this handles individual spellcheck (independend of global spellcheck)
                 let ipcResponse = await ipcRenderer.invoke('activatespellcheck', this.serverstatus.spellchecklang )  // this.allowspellcheck contains an object with spell config
                 if (ipcResponse == false) { this.allowspellcheck = false}  // something went wrong on the backend - do not show spellchecker button
@@ -761,14 +757,14 @@ export default {
 
     mounted() {
         switch (this.cmargin.size) {
-            case 5:       this.proseMirrorMargin = '130px';   break;
-            case 4.5:     this.proseMirrorMargin = '110px';   break;
-            case 4:       this.proseMirrorMargin = '90px';   break;
-            case 3.5:     this.proseMirrorMargin = '70px';   break;
-            case 3:       this.proseMirrorMargin = '50px';   break;
-            case 2.5:     this.proseMirrorMargin = '30px';   break;
-            case 2:       this.proseMirrorMargin = '10px';   break;
-            default:      this.proseMirrorMargin = '50px';
+            case 5:       this.proseMirrorMargin = '50mm'; this.editorWidth = '160mm'; break;
+            case 4.5:     this.proseMirrorMargin = '45mm'; this.editorWidth = '165mm'; break;
+            case 4:       this.proseMirrorMargin = '40mm'; this.editorWidth = '170mm'; break;
+            case 3.5:     this.proseMirrorMargin = '35mm'; this.editorWidth = '175mm'; break;
+            case 3:       this.proseMirrorMargin = '30mm'; this.editorWidth = '180mm'; break;
+            case 2.5:     this.proseMirrorMargin = '25mm'; this.editorWidth = '185mm'; break;
+            case 2:       this.proseMirrorMargin = '20mm'; this.editorWidth = '190mm'; break;
+            default:      this.proseMirrorMargin = '30mm'; this.editorWidth = '180mm';
         }
         if (this.cmargin.side === "right"){ 
             this.setCSSVariable('--js-margin', `0 ${this.proseMirrorMargin} 0 0`);    
@@ -781,7 +777,7 @@ export default {
             this.setCSSVariable('--js-borderleft', `1px solid #ccc`); 
         }
 
-      
+        this.setCSSVariable('--js-editorWidth', `${this.editorWidth}`);     
         this.setCSSVariable('--js-linespacing', `${this.linespacing}`); 
         this.setCSSVariable('--js-fontfamily', `${this.fontfamily}`); 
         this.createEditor(); // this initializes the editor
@@ -900,10 +896,18 @@ export default {
         position: relative !important;
         box-shadow: 0px 0px 0px transparent !important;
         background-color: white !important;
-        border-top: 1px solid #666 !important;
+        border-top: 1px solid #c5c5c5 !important;
+        //margin-right: var(--js-margin) !important;
+        margin-left: 14px !important;
+        width: var(--js-editorWidth) !important;
     }
+    #editorcontent {
+        border: 0px !important;
+    }
+
     #editorcontent div {
-        line-height: var(--js-linespacing);;
+        line-height: var(--js-linespacing) !important;
+        width: var(--js-editorWidth) !important;
     }
     #editorcontainer {
         width: 100% !important;
@@ -934,14 +938,14 @@ export default {
     }
 
     .ProseMirror{
-        padding: 4px !important;
+        padding: 5mm 1mm 5mm 8mm !important;
         border-radius: 0 !important; 
         outline: 0 !important;
         overflow: hidden !important;
-        margin: var(--js-margin);
-        border-right: var(--js-borderright);
-        border-left: var(--js-borderleft);
-        margin-bottom:4px;
+        margin: var(--js-margin) !important;
+        border-right: var(--js-borderright) !important;
+        border-left: var(--js-borderleft) !important;
+        margin-bottom:4px !important;
     }
 
     ::-webkit-scrollbar {
@@ -949,7 +953,10 @@ export default {
             }
 
    // p { page-break-after: always; }
-    .footer { position: fixed; bottom: 0px; }
+    .footer { 
+        position: fixed; 
+        bottom: 0px; 
+     }
 
     .zoombutton, #preview {
        display:none !important;
@@ -1046,7 +1053,7 @@ Other Styles
 #editorcontainer {
     border-radius:0; 
     margin-top:20px; 
-    width: 70vw; 
+    width: 210mm; 
     margin-left: auto;
     margin-right: auto;
     margin-bottom:50px;
@@ -1054,9 +1061,17 @@ Other Styles
     font-family: var(--js-fontfamily);
 }
 
+#editorcontent {
+    border-radius: 0px;
+    border:1px solid #c5c5c5;
+}
+
 #editorcontent div {
     overflow-x: auto;
     overflow-y: hidden;
+    line-height: var(--js-linespacing) !important;
+    width: var(--js-editorWidth);
+    border-radius: 0px;
 }
 
 #statusbar {
@@ -1118,7 +1133,7 @@ Other Styles
 
 .ProseMirror {
     min-height: 60vh;
-    padding: 14px;
+    padding: 5mm 1mm 5mm 8mm;
     outline: 1px solid rgb(197, 197, 197);
     border-radius: 5px;
 }
