@@ -25,7 +25,10 @@ import checkDiskSpace from 'check-disk-space'
 import {join} from 'path'
 import log from 'electron-log/main';
 import childProcess from 'child_process'
-import { execSync } from 'child_process';
+
+import { print } from "unix-print";
+import { printWin } from "pdf-to-printer";
+
 
 class IpcHandler {
     constructor () {
@@ -134,10 +137,24 @@ class IpcHandler {
         })
 
 
+
+
+        /**
+         * get system printers
+         */
+        ipcMain.handle('getprinters', async (event, arg) => {
+            const printers = await this.WindowHandler.mainwindow.webContents.getPrintersAsync();
+            const printerNames = printers.map(printer => printer.name);
+            printerNames.push('dummy')
+            return printerNames
+        })
+
+
+
         /**
          * print pdf (or image) in new browserwindow process detached from the current exam view
          */
-        ipcMain.handle('printpdf', async (event, pdfurl, defaultPrinter) => {
+        ipcMain.handle('printpdf-withoutoptions', async (event, pdfurl, defaultPrinter) => {
             log.info(`ipchandler: printpdf: ${pdfurl} defaultprinter: ${defaultPrinter}`)
             
             if (process.platform === "linux"){  //there is a problem on ubuntu and mint with the window.print() function  https://github.com/electron/electron/issues/31151
@@ -219,9 +236,54 @@ class IpcHandler {
 
                 win.webContents.executeJavaScript(jscode, true, () => {  // Code executed, now close the window
                     win.close();
+                }).catch(err => {
+                    log.error(err);
+                    win.show()
+                    win.webContents.openDevTools()
                 });
             });
         })
+
+
+
+
+        ipcMain.handle('printpdf', async (event, pdfurl, defaultPrinter) => {
+            log.info(`ipchandler: printpdf: ${pdfurl} defaultprinter: ${defaultPrinter}`)
+            
+            let printOptions = {}
+            let printer = undefined
+            if (defaultPrinter){   // we do not use printoptions YET but if we can chose the default printer via dashboard ui then do not ask again here
+                printOptions = {
+                    printDialog: true,
+                    printer: defaultPrinter // Setzen des gewählten Druckers
+                  };
+                printer = defaultPrinter
+            }
+
+            if (process.platform === "linux" || process.platform === "darwin"){
+                print(pdfurl, printer).then(console.log);
+            }
+            else {
+                printWin(pdfurl, printOptions).then(console.log);
+            }
+            
+        })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

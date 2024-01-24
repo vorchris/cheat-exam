@@ -13,10 +13,11 @@
     </span>
 
     <span class="fs-4 align-middle ms-3" style="float: right">Dashboard</span>
-     <div class="btn btn-sm btn-danger m-0 mt-1" @click="stopserver()" style="float: right">{{$t('dashboard.stopserver')}}</div>
+    <div class="btn btn-sm btn-danger m-0 mt-1" @click="stopserver()" style="float: right">{{$t('dashboard.stopserver')}}&nbsp; <img src="/src/assets/img/svg/stock_exit.svg" style="vertical-align:text-top;" class="" width="20" height="20" ></div>
+    <div class="btn btn-sm btn-dark me-2 mt-1" style="float: right;" @click="setupDefaultPrinter()" :title="$t('dashboard.defaultprinter')"><img src="/src/assets/img/svg/settings-symbolic.svg" class="white" width="20" height="20" > </div>
+
 </div>
  <!-- Header END -->
-
 
 
 <div id="wrapper" class="w-100 h-100 d-flex" >
@@ -81,7 +82,7 @@
     <!-- pdf preview start -->
     <div id="pdfpreview" class="fadeinslow p-4">
         <div class="btn btn-danger me-2  shadow" style="float: right;" @click="hidepreview()" :title="$t('dashboard.close')"><img src="/src/assets/img/svg/dialog-cancel.svg" class="" width="22" height="32" > </div>
-        <div class="btn btn-dark me-2 shadow" style="float: right;" id="printPDF" @click="print()"  :title="$t('dashboard.print')"><img src="/src/assets/img/svg/print.svg" class="" width="22" height="32" > </div>
+        <div class="btn btn-warning me-2 shadow" style="float: right;" id="printPDF" @click="print()"  :title="$t('dashboard.print')"><img src="/src/assets/img/svg/print.svg" class="white" width="22" height="32" > </div>
         <div class="btn btn-dark me-2 shadow" style="float: right;" @click="downloadFile('current')" :title="$t('dashboard.download')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="32" > </div>
         <iframe src="" id="pdfembed"></iframe>
     </div>
@@ -169,6 +170,15 @@
        
     </div>
     <!-- SIDEBAR end -->
+
+
+
+    <div id="availablePrinters">
+        <button v-for="printer in availablePrinters" :key="printer" @click="selectPrinter(printer)" :class="(defaultPrinter == printer)? 'btn-success':'' " class="btn btn-secondary m-1">
+            <img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" >  {{ printer }}
+        </button>
+        <button id="availablePrintersExit"  type="button" class=" btn-close  btn-close pt-5 "></button> 
+    </div>
 
 
    
@@ -292,6 +302,7 @@ export default {
             showDesc: false,
             currentDescription: '',
             defaultPrinter: false,
+            availablePrinters: [],
             serverstatus:{   // this object contains all neccessary information for students about the current exam settings
                 exammode: false,
                 examtype: 'math',
@@ -808,7 +819,27 @@ export default {
             .then( res => res.json())
             .then( response => { console.log(response.message)})
             .catch(err => { console.warn(err) })
+        },
+
+        async setupDefaultPrinter(){
+            this.availablePrinters = await ipcRenderer.invoke("getprinters")
+            if (document.getElementById("availablePrinters").style.display == "flex"){
+                document.querySelector("#availablePrinters").style.display = "none";
+            }
+            else {
+                document.getElementById("availablePrinters").style.display = "flex"
+            }
+            
+
+           
+        },
+        selectPrinter(printer){
+            this.defaultPrinter = printer
+            console.log(`dashboard: selected default printer: ${this.defaultPrinter}`)
         }
+
+
+
 
     },
     mounted() {  // when ready
@@ -818,12 +849,14 @@ export default {
             this.fadeOut(statusDiv);
 
             this.getPreviousServerStatus()
+          //  this.setupDefaultPrinter()
             this.fetchInfo()
             this.initializeStudentwidgets()
             this.fetchinterval = setInterval(() => { this.fetchInfo() }, 4000)
 
             // Add event listener to #closefilebrowser  (only once - do not accumulate event listeners)
             document.querySelector("#closefilebrowser").addEventListener("click", function() { document.querySelector("#preview").style.display = "none"; });
+            document.querySelector("#availablePrintersExit").addEventListener("click", function() { document.querySelector("#availablePrinters").style.display = "none"; });
             // Prevent event propagation for clicks on #workfolder
             document.querySelector('#workfolder').addEventListener("click", function(e) { e.stopPropagation(); });
             // Set the event listener for #pdfpreview click to hide pdfpreview
@@ -865,6 +898,33 @@ export default {
 
 
 <style scoped>
+
+#availablePrinters {
+    position: fixed;        /* Fixiert den div über allem anderen */
+    top: 50%;               /* Zentriert vertikal */
+    left: 50%;              /* Zentriert horizontal */
+    transform: translate(-50%, -50%); /* Ermöglicht genaue Zentrierung */
+    display: none;          /* Flex-Container für die Buttons */
+    flex-direction: column; /* Buttons vertikal anordnen */
+    align-items: center;    /* Zentriert die Buttons im Container */
+    padding: 20px;          /* Innenabstand */
+    border-radius: 10px;    /* Abgerundete Ecken */
+    background-color: white; /* Hintergrundfarbe */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Leichter Schatten */
+    width: 240px;
+    min-height: 200px;
+    z-index: 100000;          /* Stellt sicher, dass der div über anderen Elementen liegt */
+}
+
+#availablePrinters button {
+    display: block;
+    width: 200px; /* oder eine gewünschte feste Breite */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: 10px; /* Abstand zwischen den Buttons */
+}
+
 
 .studentwidget {
     width: 194px;
