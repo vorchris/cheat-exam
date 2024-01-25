@@ -24,10 +24,8 @@ import {  ipcMain, dialog, BrowserWindow } from 'electron'
 import checkDiskSpace from 'check-disk-space'
 import {join} from 'path'
 import log from 'electron-log/main';
-import childProcess from 'child_process'
-
 import { print } from "unix-print";
-import { printWin } from "pdf-to-printer";
+import { print as printWin } from "pdf-to-printer";
 
 
 class IpcHandler {
@@ -255,17 +253,17 @@ class IpcHandler {
 
             if (defaultPrinter){   // we do not use printoptions YET but if we can chose the default printer via dashboard ui then do not ask again here
                 printOptions = {
-                    printDialog: true,
+                    printDialog: false,
                     printer: defaultPrinter // Setzen des gewählten Druckers
                   };
                 printer = defaultPrinter
             }
 
             if (process.platform === "linux" || process.platform === "darwin"){
-                print(pdfurl, printer).then(console.log);
+                print(pdfurl, printer).then( ()=>{ log.info('ipchandler: printpdf: file sent to printer')} );
             }
             else {
-                printWin(pdfurl, printOptions).then(console.log);
+                printWin(pdfurl, printOptions).then( ()=>{ log.info('ipchandler: printpdf: file sent to printer')} );
             }
             
         })
