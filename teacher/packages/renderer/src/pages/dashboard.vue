@@ -14,7 +14,7 @@
 
     <span class="fs-4 align-middle ms-3" style="float: right">Dashboard</span>
     <div class="btn btn-sm btn-danger m-0 mt-1" @click="stopserver()" style="float: right">{{$t('dashboard.stopserver')}}&nbsp; <img src="/src/assets/img/svg/stock_exit.svg" style="vertical-align:text-top;" class="" width="20" height="20" ></div>
-    <div class="btn btn-sm btn-dark me-2 mt-1" style="float: right;" @click="setupDefaultPrinter()" :title="$t('dashboard.defaultprinter')"><img src="/src/assets/img/svg/settings-symbolic.svg" class="white" width="20" height="20" > </div>
+    <div class="btn btn-sm btn-dark me-1 mt-1" style="float: right;" @click="setupDefaultPrinter()" :title="$t('dashboard.defaultprinter')"><img src="/src/assets/img/svg/settings-symbolic.svg" class="white" width="20" height="20" > </div>
 
 </div>
  <!-- Header END -->
@@ -90,15 +90,12 @@
    
 
 
-
     <!-- SIDEBAR start -->
     <div class="p-3 text-white bg-dark h-100 " style="width: 240px; min-width: 240px;">
         <div class="btn btn-light m-1 mt-0 text-start infobutton" @click="showinfo()">{{$t('dashboard.name')}} <br><b> {{$route.params.servername}}</b> </div><br>
         <div class="btn btn-light m-1 text-start infobutton" @click="showinfo()">{{$t('dashboard.server')}} <br><b>{{serverip}}</b> </div><br>
         <div class="btn btn-light m-1 mb-3 text-start infobutton" @click="showinfo()">{{$t('dashboard.pin')}}<br><b> {{ serverstatus.pin }} </b>  </div><br>
         
-      
-
         <div style="font-size:0.9em">
             <!-- geogebra -->
             <div class="form-check m-1 mb-1"  :class="(serverstatus.exammode)? 'disabledexam':''">
@@ -142,8 +139,6 @@
                 </button>
             </div>
 
-
-
             <!-- other options -->
             <div class="form-check form-switch  m-1 mb-2" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledexam':''">
                 <input  @click="setAbgabeInterval()" v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
@@ -159,7 +154,6 @@
         </div>
         <br>
 
-        
         <div id="description" class="btn m-1"  v-if="showDesc">{{ currentDescription }}</div>
         <div id="statusdiv" class="btn btn-warning m-1"> {{$t('dashboard.connected')}}  </div>
 
@@ -173,13 +167,31 @@
 
 
 
-    <div id="availablePrinters">
-        <button v-for="printer in availablePrinters" :key="printer" @click="selectPrinter(printer)" :class="(defaultPrinter == printer)? 'btn-success':'' " class="btn btn-secondary m-1">
-            <img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" >  {{ printer }}
-        </button>
-        <button id="availablePrintersExit"  type="button" class=" btn-close  btn-close pt-5 "></button> 
-    </div>
 
+    <!-- PRINT Setup START -->
+    <div id="availablePrinters">
+        <span>
+             <h5 style="display: inline">{{ $t('dashboard.defaultprinter') }}</h5>
+             <div id="availablePrintersExit"  type="button" class=" btn-close-white btn-close p-0"></div> 
+        </span>
+        <div v-if="(availablePrinters.length < 1)">
+            <button class="btn btn-secondary mt-1 mb-0">
+                <img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" >  no printer found
+            </button>
+           
+        </div>
+        <div v-for="printer in availablePrinters">
+            <button  :key="printer" @click="selectPrinter(printer)" :class="(defaultPrinter == printer)? 'btn-success':'' " class="btn btn-secondary mt-1 mb-0">
+                <img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" >  {{ printer }} 
+            </button>
+            <img v-if="(printer == defaultPrinter)" src="/src/assets/img/svg/games-solve.svg" class="printercheck" width="22" height="22" >
+        </div>
+        <div class="form-check mt-2">
+            <input class="form-check-input" type="checkbox" id="directPrintCheckbox" v-model="directPrintAllowed">
+            <label class="form-check-label" for="directPrintCheckbox">{{ $t('dashboard.allowdirectprint') }}</label>
+        </div>
+    </div>
+  <!-- PRINT Setup END -->
 
    
     <div id="content" class="fadeinslow p-3">
@@ -303,6 +315,7 @@ export default {
             currentDescription: '',
             defaultPrinter: false,
             availablePrinters: [],
+            directPrintAllowed: false,
             serverstatus:{   // this object contains all neccessary information for students about the current exam settings
                 exammode: false,
                 examtype: 'math',
@@ -352,17 +365,17 @@ export default {
         /**
          * Dashboard Explorer (Filemanager)
          */
-        loadFilelist:loadFilelist,
-        print:print, 
-        getLatest:getLatest, 
-        getLatestFromStudent:getLatestFromStudent, 
-        loadImage:loadImage, 
-        loadPDF:loadPDF, 
-        dashboardExplorerSendFile:dashboardExplorerSendFile, 
-        downloadFile:downloadFile, 
-        showWorkfolder:showWorkfolder, 
-        fdelete:fdelete,  
-        openLatestFolder:openLatestFolder,
+        loadFilelist:loadFilelist,                  // load all files in a specific folder
+        print:print,                                // check for default printer and trigger print operation
+        getLatest:getLatest,                        // get latest files from all students and concatenate all pdf files
+        getLatestFromStudent:getLatestFromStudent,  // handles a print request and first fetches the latest version from a specific student
+        loadImage:loadImage,                        // displays an image in the preview panel
+        loadPDF:loadPDF,                            // displays a pdf in the preview panel
+        dashboardExplorerSendFile:dashboardExplorerSendFile,        // sends a given file to the selected student
+        downloadFile:downloadFile,                                  // store the selected file to a local folder
+        showWorkfolder:showWorkfolder,                              // makes the dashboard explorer visible
+        fdelete:fdelete,                                            // deletes a file
+        openLatestFolder:openLatestFolder,                          // opens the newest folder that belongs to the current visible student
 
 
         /**
@@ -455,6 +468,11 @@ export default {
                 }
             }).catch( err => {console.log(err)});
         }, 
+
+
+
+
+
 
 
         async showDescription(description) {
@@ -828,14 +846,12 @@ export default {
             }
             else {
                 document.getElementById("availablePrinters").style.display = "flex"
-            }
-            
-
-           
+            } 
         },
         selectPrinter(printer){
             this.defaultPrinter = printer
             console.log(`dashboard: selected default printer: ${this.defaultPrinter}`)
+            console.log(`dashboard: allow direct print: ${this.directPrintAllowed}`)
         }
 
 
@@ -906,24 +922,41 @@ export default {
     transform: translate(-50%, -50%); /* Ermöglicht genaue Zentrierung */
     display: none;          /* Flex-Container für die Buttons */
     flex-direction: column; /* Buttons vertikal anordnen */
-    align-items: center;    /* Zentriert die Buttons im Container */
+    align-items: flex-start;    /* Zentriert die Buttons im Container */
     padding: 20px;          /* Innenabstand */
     border-radius: 10px;    /* Abgerundete Ecken */
-    background-color: white; /* Hintergrundfarbe */
+    background-color:rgb(33,37,41); /* Hintergrundfarbe */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Leichter Schatten */
-    width: 240px;
+    width: 340px;
     min-height: 200px;
+    color: white;
     z-index: 100000;          /* Stellt sicher, dass der div über anderen Elementen liegt */
 }
 
 #availablePrinters button {
-    display: block;
+    display: inline-block;
     width: 200px; /* oder eine gewünschte feste Breite */
     overflow: hidden;
     text-overflow: ellipsis;
+    text-align: left;
     white-space: nowrap;
     margin-bottom: 10px; /* Abstand zwischen den Buttons */
 }
+
+#availablePrinters #availablePrintersExit {
+    float: right;
+    width:20px;
+    height: 20px;
+    margin-top:2px;
+}
+#availablePrinters span {
+    width: 100%;
+    margin-bottom:6px;
+}
+#availablePrinters .printercheck {
+    margin-left:4px;
+}
+
 
 
 .studentwidget {

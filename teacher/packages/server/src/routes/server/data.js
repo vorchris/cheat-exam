@@ -209,9 +209,9 @@ import log from 'electron-log/main';
 
             //check if the newest directory is older than 5 minutes..  warn the teacher!
             const now = Date.now(); // Current time in milliseconds since the UNIX epoch
-            const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
+            const minute =  60 * 1000; // 1 minute in milliseconds
             const folderStats = fs.statSync(latestfolderPath)
-            if (now - folderStats.mtime.getTime() > fiveMinutes) { warning = true;} 
+            if (now - folderStats.mtime.getTime() > minute) { warning = true;} 
 
             const latestPDFpath = path.join(latestfolderPath, `${studentname}.pdf`);
             const latestXlsxPDFpath = path.join(latestfolderPath, `${studentname}.xlsx.pdf`);

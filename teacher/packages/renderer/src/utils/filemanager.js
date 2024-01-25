@@ -191,8 +191,38 @@ async function getLatest(){
 // introduce printlock variable that blocks additional popups
 async function getLatestFromStudent(student){
 
-    if (this.printrequest){ 
-        // inform student that request was denied
+    if (this.directPrintAllowed){
+        log.info(`filemanager.js: direct print from ${student.clientname} accepted`)
+
+        this.getFiles(student.token, false, true)
+        log.info("requesting latest file from student") 
+        await this.sleep(5000);  // give it some time
+    
+        fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getLatestFromStudent/${this.servername}/${this.servertoken}/${student.clientname}`, { 
+            method: 'POST',
+            headers: {'Content-Type': 'application/json' },
+        })
+        .then( response => response.json() )
+        .then( async(responseObj) => {
+            if (!responseObj.pdfPath ){
+                log.info("nothing found")
+                this.visualfeedback(this.$t("dashboard.nopdf"))
+                return
+            }
+
+            if (responseObj.warning){  // if the file is older than 1minute the getFiles() function failed to deliver.. do not print
+                this.$swal.close();
+                this.visualfeedback(this.$t("dashboard.oldpdfwarningsingle",2000))
+                return
+            }
+            this.currentpreviewPath = responseObj.pdfPath 
+            this.print()
+        }).catch(err => { log.error(err)});
+        return
+    }
+
+    /** If there already is an ongoing printrequest - denie */
+    if (this.printrequest){  // inform student that request was denied
         fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/setstudentstatus/${this.servername}/${this.servertoken}/${student.token}`, { 
             method: 'POST',
             headers: {'Content-Type': 'application/json' },
@@ -206,16 +236,14 @@ async function getLatestFromStudent(student){
 
 
     this.printrequest = student.clientname // we allow it and block others for the time beeing (we store student name to compare in dashboard)
-    log.info("print request accepted")
+    log.info("filemanager.js: print request accepted")
     
     // this informs the student that an exam upload is requested. 
-    // this needs 4sek minimum for the student to react because of the current update interval  
-    // so if the teacher is faster than that it could happen that no pdf file is found
+    // this could need 4sek for the student to react because of the current update interval  
+    // so if the teacher is faster than that it could happen that no pdf file is found or an old one - a warning will be displayed
     this.getFiles(student.token, false, true)
     log.info("requesting current file from student") 
     await this.sleep(4000);  // give it some time
-
-
 
     this.$swal.fire({
         title: this.$t("dashboard.printrequest"),
@@ -242,7 +270,7 @@ async function getLatestFromStudent(student){
                 const blob = new Blob([new Uint8Array(responseObj.pdfBuffer.data).buffer], { type: 'application/pdf' });
                 const url = URL.createObjectURL(blob);
         
-                if (responseObj.warning){
+                if (responseObj.warning){  // warn if getFiles() failed an file is older than 60 seconds
                     this.$swal.close();
                     this.visualfeedback(this.$t("dashboard.oldpdfwarningsingle",2000))
                     await sleep(2000)
@@ -290,6 +318,11 @@ function sleep(ms) {
 
 //print pdf in focus - depends on system print dialog
 function print(){
+    if (!this.defaultPrinter){
+        this.setupDefaultPrinter()
+        return
+    }
+
     ipcRenderer.invoke("printpdf", this.currentpreviewPath, this.defaultPrinter)  //default printer could be set upfront and students may print directly
 }
 

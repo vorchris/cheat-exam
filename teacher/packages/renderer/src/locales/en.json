@@ -132,7 +132,9 @@
         "allowspellcheck":"Activate spellcheck for specific student",
         "linespacing": "Linespacing",
         "fontfamily": "Fontfamily",
-        "defaultprinter": "select default printer"
+        "defaultprinter": "select default printer",
+        "allowdirectprint": "allow direct print for students",
+        "noprinter": "no printer found"
     },
     "control": {
         "tokennotvalid": "token is not valid",
