@@ -126,7 +126,7 @@ class IpcHandler {
         ipcMain.on('printpdf', (event, args) => { 
             if (this.WindowHandler.examwindow){
                 var options = {
-                    margins: {top:0.5, right:0.5, bottom:0.5, left:0.5 },
+                    margins: {top:0.5, right:0, bottom:0.5, left:0 },
                     pageSize: 'A4',
                     printBackground: false,
                     printSelectionOnly: false,
@@ -171,7 +171,8 @@ class IpcHandler {
             const dictionaryPath = path.join( __dirname,'../../public/dictionaries');
             let language = "de"
             if (spellchecklang){ language = spellchecklang }
-    
+            if (spellchecklang == "none"){return}  // "other" language selected 
+            
             let affix = null;
             let dictionary = null;
 

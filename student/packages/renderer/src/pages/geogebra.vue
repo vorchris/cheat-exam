@@ -56,7 +56,8 @@
     <div id="toolbar" class="d-inline p-1 pb-0">  
         <button title="backup" @click="saveContent(true); " class="btn  d-inline btn-success p-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/document-save.svg" class="white" width="22" height="22" ></button>
         <button title="delete" @click="clearAll(); " class="btn  d-inline btn-danger p-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-delete.svg" class="white" width="22" height="22" ></button>
-        
+        <button title="paste" @click="showClipboard(); " class="btn  d-inline btn-secondary p-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-paste-style.svg" class="white" width="22" height="22" ></button>
+
         
         <div v-for="file in localfiles" class="d-inline">
             <div v-if="(file.type == 'pdf')" class="btn btn-secondary ms-2 mb-1 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file.name}} </div>
@@ -89,9 +90,22 @@
         <!-- focuswarning end  -->
         <iframe id="geogebraframe" src="./geogebra/classic.html"></iframe>
     </div>
+
+
+    <div v-if="isClipboardVisible" class="customClipboard">
+      <button class="btn btn-sm btn-outline-success m-1" style="display: block; width:132px" v-for="(item, index) in customClipboard" :key="index" @click="insertFromClipboar(item)">
+        <img src="/src/assets/img/svg/edit-paste-style.svg" class="white" width="16" height="16" >{{ item }}
+      </button>
+    </div>
+
+
 </template>
 
 <script>
+
+
+
+
 export default {
     data() {
         return {
@@ -118,11 +132,16 @@ export default {
             timesinceentry: 0,
             now : new Date().getTime(),
             localfiles: null,
-            battery: null
+            battery: null,
+            customClipboard: [],
+            isClipboardVisible: false
         }
     }, 
     components: {  },  
     mounted() {
+
+        this.redefineConsole()  // overwrite console log to grep specific outputs and store as clipboard entry
+
         this.currentFile = this.clientname
         this.entrytime = new Date().getTime()  
          
@@ -144,8 +163,26 @@ export default {
         })
     },
     methods: { 
+        redefineConsole(){
+            const ggbIframe = document.getElementById('geogebraframe');
+            const iframeWindow = ggbIframe.contentWindow;  // Zugriff auf den Kontext des iframe
+            const originalIframeConsoleLog = iframeWindow.console.log;  // Speichern der originalen console.log Funktion des iframe
 
-     reconnect(){
+            iframeWindow.console.log = (message) => {
+                // Prüfen, ob die Nachricht ein GeoGebra-spezifisches Muster enthält
+                if (typeof message === "string" && message.includes("existing")) {
+                    const partAfterExistingGeo = message.split("existing geo:")[1].trim();
+                    const extractedText = partAfterExistingGeo.split("=")[1].trim();
+                    this.customClipboard.push( extractedText )
+                    if (this.customClipboard.length > 10) {    this.customClipboard.shift();     }   //customclipboard länge begrenzen
+                } 
+                else {
+                    // geogebra spammed jede aktion in die console daher unterdrücken wir das erstmal
+                    //originalIframeConsoleLog.apply(iframeWindow.console, arguments);      // Aufrufen der ursprünglichen Funktion für alle anderen Nachrichten
+                }
+            };
+        },
+        reconnect(){
             this.$swal.fire({
                 title: this.$t("editor.reconnect"),
                 text:  this.$t("editor.info"),
@@ -215,6 +252,7 @@ export default {
             if (source === "suite")   { iFrame.src = `./geogebra/suite.html`  }
             if (source === "classic") { iFrame.src = `./geogebra/classic.html`}
             iFrame.parentNode.replaceChild(iFrame.cloneNode(), iFrame);
+            this.redefineConsole()
         },  
         clock(){
             this.now = new Date().getTime()
@@ -240,6 +278,15 @@ export default {
 
 
         }, 
+        showClipboard() {
+            this.isClipboardVisible = this.isClipboardVisible ? false: true;
+        },
+        insertFromClipboar(value){
+            const ggbIframe = document.getElementById('geogebraframe');
+            const ggbApplet = ggbIframe.contentWindow.ggbApplet;   // get the geogebra applet and all of its methods
+            
+            ggbApplet.evalCommand(value);
+        },
 
         clearAll(){
             const ggbIframe = document.getElementById('geogebraframe');
@@ -344,12 +391,29 @@ export default {
         clearInterval( this.loadfilelistinterval )
     },
 }
+
 </script>
 
 <style scoped>
 
+.customClipboard {
+    z-index: 1000000;
+    width: 160px;
+    height: 380px;
+    position: absolute;
+    top: 100px;
+    left: 50%;
+    margin-left: -100px;
+    background-color: rgb(33,37,41);
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.8);
+
+}
+
+
 #suiteAppPicker {
-visibility: visible !important;
+    visibility: visible !important;
 }
 
 @media print{

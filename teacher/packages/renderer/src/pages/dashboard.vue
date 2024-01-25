@@ -13,10 +13,11 @@
     </span>
 
     <span class="fs-4 align-middle ms-3" style="float: right">Dashboard</span>
-     <div class="btn btn-sm btn-danger m-0 mt-1" @click="stopserver()" style="float: right">{{$t('dashboard.stopserver')}}</div>
+    <div class="btn btn-sm btn-danger m-0 mt-1" @click="stopserver()" style="float: right">{{$t('dashboard.stopserver')}}&nbsp; <img src="/src/assets/img/svg/stock_exit.svg" style="vertical-align:text-top;" class="" width="20" height="20" ></div>
+    <div class="btn btn-sm btn-dark me-1 mt-1" style="float: right;" @click="setupDefaultPrinter()" :title="$t('dashboard.defaultprinter')"><img src="/src/assets/img/svg/settings-symbolic.svg" class="white" width="20" height="20" > </div>
+
 </div>
  <!-- Header END -->
-
 
 
 <div id="wrapper" class="w-100 h-100 d-flex" >
@@ -81,13 +82,12 @@
     <!-- pdf preview start -->
     <div id="pdfpreview" class="fadeinslow p-4">
         <div class="btn btn-danger me-2  shadow" style="float: right;" @click="hidepreview()" :title="$t('dashboard.close')"><img src="/src/assets/img/svg/dialog-cancel.svg" class="" width="22" height="32" > </div>
-        <div class="btn btn-dark me-2 shadow" style="float: right;" id="printPDF" @click="print()"  :title="$t('dashboard.print')"><img src="/src/assets/img/svg/print.svg" class="" width="22" height="32" > </div>
+        <div class="btn btn-warning me-2 shadow" style="float: right;" id="printPDF" @click="print()"  :title="$t('dashboard.print')"><img src="/src/assets/img/svg/print.svg" class="white" width="22" height="32" > </div>
         <div class="btn btn-dark me-2 shadow" style="float: right;" @click="downloadFile('current')" :title="$t('dashboard.download')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="32" > </div>
         <iframe src="" id="pdfembed"></iframe>
     </div>
     <!-- pdf preview end -->
    
-
 
 
     <!-- SIDEBAR start -->
@@ -96,8 +96,6 @@
         <div class="btn btn-light m-1 text-start infobutton" @click="showinfo()">{{$t('dashboard.server')}} <br><b>{{serverip}}</b> </div><br>
         <div class="btn btn-light m-1 mb-3 text-start infobutton" @click="showinfo()">{{$t('dashboard.pin')}}<br><b> {{ serverstatus.pin }} </b>  </div><br>
         
-      
-
         <div style="font-size:0.9em">
             <!-- geogebra -->
             <div class="form-check m-1 mb-1"  :class="(serverstatus.exammode)? 'disabledexam':''">
@@ -141,8 +139,6 @@
                 </button>
             </div>
 
-
-
             <!-- other options -->
             <div class="form-check form-switch  m-1 mb-2" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledexam':''">
                 <input  @click="setAbgabeInterval()" v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
@@ -158,7 +154,6 @@
         </div>
         <br>
 
-        
         <div id="description" class="btn m-1"  v-if="showDesc">{{ currentDescription }}</div>
         <div id="statusdiv" class="btn btn-warning m-1"> {{$t('dashboard.connected')}}  </div>
 
@@ -170,6 +165,33 @@
     </div>
     <!-- SIDEBAR end -->
 
+
+
+
+    <!-- PRINT Setup START -->
+    <div id="availablePrinters">
+        <span>
+             <h5 style="display: inline">{{ $t('dashboard.defaultprinter') }}</h5>
+             <div id="availablePrintersExit"  type="button" class=" btn-close-white btn-close p-0"></div> 
+        </span>
+        <div v-if="(availablePrinters.length < 1)">
+            <button class="btn btn-secondary mt-1 mb-0">
+                <img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" >  no printer found
+            </button>
+           
+        </div>
+        <div v-for="printer in availablePrinters">
+            <button  :key="printer" @click="selectPrinter(printer)" :class="(defaultPrinter == printer)? 'btn-success':'' " class="btn btn-secondary mt-1 mb-0">
+                <img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" >  {{ printer }} 
+            </button>
+            <img v-if="(printer == defaultPrinter)" src="/src/assets/img/svg/games-solve.svg" class="printercheck" width="22" height="22" >
+        </div>
+        <div class="form-check mt-2">
+            <input class="form-check-input" type="checkbox" id="directPrintCheckbox" v-model="directPrintAllowed">
+            <label class="form-check-label" for="directPrintCheckbox">{{ $t('dashboard.allowdirectprint') }}</label>
+        </div>
+    </div>
+  <!-- PRINT Setup END -->
 
    
     <div id="content" class="fadeinslow p-3">
@@ -196,7 +218,7 @@
                 <div v-for="student in studentwidgets" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':''" class="studentwidget btn rounded-3 btn-block ">
                     <div v-if="student.clientname">
                         <div class="studentimage rounded" style="position: relative; height:132px;">  
-                            <button v-if="serverstatus.examtype === 'editor' && !this.serverstatus.spellcheck" @mouseover="showDescription($t('dashboard.allowspellcheck'))" @mouseout="hideDescription" @click='activateSpellcheckForStudent(student.token,student.clientname)' type="button" class="btn btn-sm pt-1 mt-2 pe-1 float-end" style="z-index:1000; position:relative;"><img src="/src/assets/img/svg/autocorrection.svg" class="widgetbutton" width="22" height="22" ></button> 
+                            <button v-if="serverstatus.examtype === 'editor' && !this.serverstatus.spellcheck && this.serverstatus.spellchecklang !== 'none'" @mouseover="showDescription($t('dashboard.allowspellcheck'))" @mouseout="hideDescription" @click='activateSpellcheckForStudent(student.token,student.clientname)' type="button" class="btn btn-sm pt-1 mt-2 pe-1 float-end" style="z-index:1000; position:relative;"><img src="/src/assets/img/svg/autocorrection.svg" class="widgetbutton" width="22" height="22" ></button> 
 
                             <div v-cloak :id="student.token" style="position: relative;background-size: cover; height: 132px;" v-bind:style="(student.imageurl && now - 20000 < student.timestamp)? `background-image: url('${student.imageurl}')`:'background-image: url(user-red.svg)'"></div>
                             <div v-if="student.virtualized" class="virtualizedinfo" >{{$t("dashboard.virtualized")}}</div>
@@ -292,6 +314,8 @@ export default {
             showDesc: false,
             currentDescription: '',
             defaultPrinter: false,
+            availablePrinters: [],
+            directPrintAllowed: false,
             serverstatus:{   // this object contains all neccessary information for students about the current exam settings
                 exammode: false,
                 examtype: 'math',
@@ -341,17 +365,17 @@ export default {
         /**
          * Dashboard Explorer (Filemanager)
          */
-        loadFilelist:loadFilelist,
-        print:print, 
-        getLatest:getLatest, 
-        getLatestFromStudent:getLatestFromStudent, 
-        loadImage:loadImage, 
-        loadPDF:loadPDF, 
-        dashboardExplorerSendFile:dashboardExplorerSendFile, 
-        downloadFile:downloadFile, 
-        showWorkfolder:showWorkfolder, 
-        fdelete:fdelete,  
-        openLatestFolder:openLatestFolder,
+        loadFilelist:loadFilelist,                  // load all files in a specific folder
+        print:print,                                // check for default printer and trigger print operation
+        getLatest:getLatest,                        // get latest files from all students and concatenate all pdf files
+        getLatestFromStudent:getLatestFromStudent,  // handles a print request and first fetches the latest version from a specific student
+        loadImage:loadImage,                        // displays an image in the preview panel
+        loadPDF:loadPDF,                            // displays a pdf in the preview panel
+        dashboardExplorerSendFile:dashboardExplorerSendFile,        // sends a given file to the selected student
+        downloadFile:downloadFile,                                  // store the selected file to a local folder
+        showWorkfolder:showWorkfolder,                              // makes the dashboard explorer visible
+        fdelete:fdelete,                                            // deletes a file
+        openLatestFolder:openLatestFolder,                          // opens the newest folder that belongs to the current visible student
 
 
         /**
@@ -444,6 +468,11 @@ export default {
                 }
             }).catch( err => {console.log(err)});
         }, 
+
+
+
+
+
 
 
         async showDescription(description) {
@@ -586,7 +615,8 @@ export default {
                     popup: 'my-popup',
                     title: 'my-title',
                     content: 'my-content',
-                    input: 'my-custom-input'
+                    input: 'my-custom-input',
+                    actions: 'my-swal2-actions'
                 },
                 title: this.$t("dashboard.texteditor"),
                 html: `
@@ -594,7 +624,7 @@ export default {
                     <div>
                         <label >
                             <h6>${this.$t("dashboard.cmargin-value")}</h6>
-                            <input style="width:100px" type="range" id="marginValue" name="margin_value" min="2" max="5" step="0.5" />
+                            <input style="width:100px" type="range" id="marginValue" name="margin_value" min="2" max="5" step="0.5" value="${this.serverstatus.cmargin.size}" />
                             <div style="width:32px; display: inline-block"  id="marginValueDisplay">${this.serverstatus.cmargin.size}</div>(cm)
                         </label>
                         <br>
@@ -675,8 +705,9 @@ export default {
                     if (marginValue && selectedMargin) {
                         this.serverstatus.cmargin = {
                             side: selectedMargin,
-                            size: parseInt(marginValue)
+                            size: parseFloat(marginValue)
                         }
+                        console.log( this.serverstatus.cmargin)
                     }
 
                     this.serverstatus.linespacing = selectedSpacing
@@ -806,7 +837,25 @@ export default {
             .then( res => res.json())
             .then( response => { console.log(response.message)})
             .catch(err => { console.warn(err) })
+        },
+
+        async setupDefaultPrinter(){
+            this.availablePrinters = await ipcRenderer.invoke("getprinters")
+            if (document.getElementById("availablePrinters").style.display == "flex"){
+                document.querySelector("#availablePrinters").style.display = "none";
+            }
+            else {
+                document.getElementById("availablePrinters").style.display = "flex"
+            } 
+        },
+        selectPrinter(printer){
+            this.defaultPrinter = printer
+            console.log(`dashboard: selected default printer: ${this.defaultPrinter}`)
+            console.log(`dashboard: allow direct print: ${this.directPrintAllowed}`)
         }
+
+
+
 
     },
     mounted() {  // when ready
@@ -816,12 +865,14 @@ export default {
             this.fadeOut(statusDiv);
 
             this.getPreviousServerStatus()
+          //  this.setupDefaultPrinter()
             this.fetchInfo()
             this.initializeStudentwidgets()
             this.fetchinterval = setInterval(() => { this.fetchInfo() }, 4000)
 
             // Add event listener to #closefilebrowser  (only once - do not accumulate event listeners)
             document.querySelector("#closefilebrowser").addEventListener("click", function() { document.querySelector("#preview").style.display = "none"; });
+            document.querySelector("#availablePrintersExit").addEventListener("click", function() { document.querySelector("#availablePrinters").style.display = "none"; });
             // Prevent event propagation for clicks on #workfolder
             document.querySelector('#workfolder').addEventListener("click", function(e) { e.stopPropagation(); });
             // Set the event listener for #pdfpreview click to hide pdfpreview
@@ -863,6 +914,50 @@ export default {
 
 
 <style scoped>
+
+#availablePrinters {
+    position: fixed;        /* Fixiert den div über allem anderen */
+    top: 50%;               /* Zentriert vertikal */
+    left: 50%;              /* Zentriert horizontal */
+    transform: translate(-50%, -50%); /* Ermöglicht genaue Zentrierung */
+    display: none;          /* Flex-Container für die Buttons */
+    flex-direction: column; /* Buttons vertikal anordnen */
+    align-items: flex-start;    /* Zentriert die Buttons im Container */
+    padding: 20px;          /* Innenabstand */
+    border-radius: 10px;    /* Abgerundete Ecken */
+    background-color:rgb(33,37,41); /* Hintergrundfarbe */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Leichter Schatten */
+    width: 340px;
+    min-height: 200px;
+    color: white;
+    z-index: 100000;          /* Stellt sicher, dass der div über anderen Elementen liegt */
+}
+
+#availablePrinters button {
+    display: inline-block;
+    width: 200px; /* oder eine gewünschte feste Breite */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+    white-space: nowrap;
+    margin-bottom: 10px; /* Abstand zwischen den Buttons */
+}
+
+#availablePrinters #availablePrintersExit {
+    float: right;
+    width:20px;
+    height: 20px;
+    margin-top:2px;
+}
+#availablePrinters span {
+    width: 100%;
+    margin-bottom:6px;
+}
+#availablePrinters .printercheck {
+    margin-left:4px;
+}
+
+
 
 .studentwidget {
     width: 194px;
@@ -1148,7 +1243,7 @@ hr {
 } 
 
 .my-popup {
- 
+   
 }
 
 .my-title {
@@ -1168,5 +1263,11 @@ hr {
 .my-custom-input {
     margin-top: 0px;
 }  
+
+.my-swal2-actions {
+    width: 100%;
+    margin-left: 1.9em;
+  justify-content: flex-start !important; /* Richtet die Buttons linksbündig aus */
+}
 
 </style>

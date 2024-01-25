@@ -95,7 +95,7 @@
         "spellcheckactivate": "Rechtschreibhilfe aktivieren",
         "spellcheckchoose": "Bitte wählen sie eine Sprache für das Examen",
         "suggest":"Vorschläge zeigen",
-        "none": "Rechtschreibhilfe deaktiviert",
+        "none": "andere",
         "cmargin": "Korrekturrand Position",
         "cmargin-left": "links",
         "cmargin-right": "rechts",
@@ -131,7 +131,10 @@
         "msoWarn": "Bevor die Schüler:innen die Verbindung wieder aufnehmen können, müssen Sie sich zu ihrer Microsoft Cloud verbinden und die MSODatei erneut auswählen!",
         "allowspellcheck":"Rechtschreibhilfe für Schüler:in aktivieren",
         "linespacing": "Zeilenabstand im PDF",
-        "fontfamily": "Schriftart"
+        "fontfamily": "Schriftart",
+        "defaultprinter": "Standard Drucker wählen",
+        "allowdirectprint": "Schüler:innen Direktdruck erlauben",
+        "noprinter": "Keine Drucker gefunden"
     },
     "control": {
         "tokennotvalid": "Das Token ist ungültig",

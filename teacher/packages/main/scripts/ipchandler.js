@@ -25,7 +25,10 @@ import checkDiskSpace from 'check-disk-space'
 import {join} from 'path'
 import log from 'electron-log/main';
 import childProcess from 'child_process'
-import { execSync } from 'child_process';
+
+import { print } from "unix-print";
+import { printWin } from "pdf-to-printer";
+
 
 class IpcHandler {
     constructor () {
@@ -134,94 +137,154 @@ class IpcHandler {
         })
 
 
+
+
+        /**
+         * get system printers
+         */
+        ipcMain.handle('getprinters', async (event, arg) => {
+            const printers = await this.WindowHandler.mainwindow.webContents.getPrintersAsync();
+            const printerNames = printers.map(printer => printer.name);
+            //printerNames.push('dummy')
+            return printerNames
+        })
+
+
+
         /**
          * print pdf (or image) in new browserwindow process detached from the current exam view
          */
+        // ipcMain.handle('printpdf-withoutoptions', async (event, pdfurl, defaultPrinter) => {
+        //     log.info(`ipchandler: printpdf: ${pdfurl} defaultprinter: ${defaultPrinter}`)
+            
+        //     if (process.platform === "linux"){  //there is a problem on ubuntu and mint with the window.print() function  https://github.com/electron/electron/issues/31151
+        //         let isKDE = false
+        //         try {  isKDE = childProcess.execSync("echo $XDG_CURRENT_DESKTOP"); } 
+        //         catch (err) { log.error(`Error: ${err.message}`);  }
+
+        //         if (!isKDE.toString().trim().toLowerCase().includes('kde')){
+        //             try { childProcess.exec(`xdg-open ${pdfurl}`)  }
+        //             catch(err){log.error(err)}
+        //             return    //exit here - other operating systems may directly launch the print dialog and do not need external apps
+        //         }
+        //         log.info("ipchandler: printpdf: printing on kde desktop")
+        //     }
+            
+            
+        //     let win = new BrowserWindow({ 
+        //         show: false, 
+        //         webPreferences: {
+        //             webSecurity: false,
+        //             nodeIntegration: false,
+        //             contextIsolation: true,
+        //         }
+        //     });
+
+        //     let printOptions = {}
+        //     if (defaultPrinter){   // we do not use printoptions YET but if we can chose the default printer via dashboard ui then do not ask again here
+        //         printOptions = {
+        //             silent: true,
+        //             printBackground: true,
+        //             deviceName: defaultPrinter // Setzen des gewählten Druckers
+        //           };
+        //     }
+        
+        //     // Lesen Sie die PDF-Datei und konvertieren Sie sie in Base64
+        //     let fBase64 = ""
+        //     try {
+        //         const fBuffer = fs.readFileSync(pdfurl);
+        //         fBase64 = fBuffer.toString('base64');
+        //     }
+        //     catch (err) {
+        //         log.info(`ipchandler: printpdf: ${err}`)
+        //         win.show()
+        //     }
+           
+
+        //     let framesource =  `<img src="data:image/png;base64,${fBase64}" alt="PNG or JPG" style="width:100%;" ">`;
+        //     if (this.isPdfUrl(pdfurl)){
+        //         framesource = `<iframe id="pdfFrame" src="data:application/pdf;base64,${fBase64}" style="width:100%; height:100vh;""></iframe>`
+        //     }
+           
+        //     const htmlContent = `
+        //         <!DOCTYPE html>
+        //         <html>
+        //         <head>
+        //             <title>PDF Viewer</title>
+        //             <script>
+        //                 function printPdf() {
+        //                     const iframe = document.getElementById('pdfFrame');
+        //                     iframe.contentWindow.print();
+        //                 }
+        //                 function printPage() {
+        //                     window.print(); // Diese Zeile druckt die gesamte Seite, einschließlich des iframes
+        //                 }
+        //             </script>
+        //         </head>
+        //         <body>
+        //             ${framesource}  
+        //         </body>
+        //         </html>
+        //     `;
+        //     const dataUrl = `data:text/html;charset=UTF-8,${encodeURIComponent(htmlContent)}`;
+        //     win.loadURL(dataUrl);
+
+        //     win.webContents.on('did-finish-load', () => {
+        //         log.info("ipchandler: printpdf: finished loading content preview window - opening print dialog")
+        //         let jscode = `printPage()`
+        //         if (this.isPdfUrl(pdfurl)){ jscode = `printPdf()` }
+
+        //         win.webContents.executeJavaScript(jscode, true, () => {  // Code executed, now close the window
+        //             win.close();
+        //         }).catch(err => {
+        //             log.error(err);
+        //             win.show()
+        //             win.webContents.openDevTools()
+        //         });
+        //     });
+        // })
+
+
+
+
         ipcMain.handle('printpdf', async (event, pdfurl, defaultPrinter) => {
             log.info(`ipchandler: printpdf: ${pdfurl} defaultprinter: ${defaultPrinter}`)
             
-            if (process.platform === "linux"){  //there is a problem on ubuntu and mint with the window.print() function  https://github.com/electron/electron/issues/31151
-                let isKDE = false
-                try {  isKDE = childProcess.execSync("echo $XDG_CURRENT_DESKTOP"); } 
-                catch (err) { log.error(`Error: ${err.message}`);  }
-
-                if (!isKDE.toString().trim().toLowerCase().includes('kde')){
-                    try { childProcess.exec(`xdg-open ${pdfurl}`)  }
-                    catch(err){log.error(err)}
-                    return    //exit here - other operating systems may directly launch the print dialog and do not need external apps
-                }
-                log.info("ipchandler: printpdf: printing on kde desktop")
-            }
-            
-            
-            let win = new BrowserWindow({ 
-                show: false, 
-                webPreferences: {
-                    webSecurity: false,
-                    nodeIntegration: false,
-                    contextIsolation: true,
-                }
-            });
-
             let printOptions = {}
+            let printer = undefined
+
             if (defaultPrinter){   // we do not use printoptions YET but if we can chose the default printer via dashboard ui then do not ask again here
                 printOptions = {
-                    silent: true,
-                    printBackground: true,
-                    deviceName: defaultPrinter // Setzen des gewählten Druckers
+                    printDialog: true,
+                    printer: defaultPrinter // Setzen des gewählten Druckers
                   };
+                printer = defaultPrinter
             }
-        
-            // Lesen Sie die PDF-Datei und konvertieren Sie sie in Base64
-            let fBase64 = ""
-            try {
-                const fBuffer = fs.readFileSync(pdfurl);
-                fBase64 = fBuffer.toString('base64');
-            }
-            catch (err) {
-                log.info(`ipchandler: printpdf: ${err}`)
-                win.show()
-            }
-           
 
-            let framesource =  `<img src="data:image/png;base64,${fBase64}" alt="PNG or JPG" style="width:100%;" ">`;
-            if (this.isPdfUrl(pdfurl)){
-                framesource = `<iframe id="pdfFrame" src="data:application/pdf;base64,${fBase64}" style="width:100%; height:100vh;""></iframe>`
+            if (process.platform === "linux" || process.platform === "darwin"){
+                print(pdfurl, printer).then(console.log);
             }
-           
-            const htmlContent = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>PDF Viewer</title>
-                    <script>
-                        function printPdf() {
-                            const iframe = document.getElementById('pdfFrame');
-                            iframe.contentWindow.print();
-                        }
-                        function printPage() {
-                            window.print(); // Diese Zeile druckt die gesamte Seite, einschließlich des iframes
-                        }
-                    </script>
-                </head>
-                <body>
-                    ${framesource}  
-                </body>
-                </html>
-            `;
-            const dataUrl = `data:text/html;charset=UTF-8,${encodeURIComponent(htmlContent)}`;
-            win.loadURL(dataUrl);
-
-            win.webContents.on('did-finish-load', () => {
-                log.info("ipchandler: printpdf: finished loading content preview window - opening print dialog")
-                let jscode = `printPage()`
-                if (this.isPdfUrl(pdfurl)){ jscode = `printPdf()` }
-
-                win.webContents.executeJavaScript(jscode, true, () => {  // Code executed, now close the window
-                    win.close();
-                });
-            });
+            else {
+                printWin(pdfurl, printOptions).then(console.log);
+            }
+            
         })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -38,7 +38,7 @@ export default defineConfig({
     outDir: '../../dist/renderer',
     emptyOutDir: true,
     minify: true,
-    chunkSizeWarningLimit:5000
+    chunkSizeWarningLimit:5000,
   },
   css: {   // this covers bootstrap css warnings when minifying the css code
     postcss: {
@@ -51,6 +51,17 @@ export default defineConfig({
                 atRule.remove();
               }
             }
+          }
+        },
+        // New plugin to remove source map URL
+        {
+          postcssPlugin: 'remove-source-map-url',
+          Once(css) {
+            css.walkComments(comment => {
+              if (comment.text.includes('sourceMappingURL')) {
+                comment.remove();
+              }
+            });
           }
         }
       ]

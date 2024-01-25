@@ -441,7 +441,7 @@ class WindowHandler {
          * HANDLE SPELLCHECK 
          */ 
       
-        if (serverstatus.spellcheck){  
+        if (serverstatus.spellcheck && serverstatus.spellchecklang){  
             const dictionaryPath = join( __dirname,'../../public/dictionaries');
             let language = serverstatus.spellchecklang
             let affix = null;

@@ -169,19 +169,22 @@ app.whenReady()
     globalShortcut.register('CommandOrControl+L', () => {});  //lockscreen
     globalShortcut.register('CommandOrControl+P', () => {});  //change screen layout
  
-    //if (process.platform === 'darwin') {
+    
     if (!config.development){
         globalShortcut.register('CommandOrControl+V', () => {console.log('no clipboard')});
         globalShortcut.register('CommandOrControl+Shift+V', () => {console.log('no clipboard')});
     }
-   // }
+    else {
+        globalShortcut.register('CommandOrControl+Shift+D', () => {
+        const win = BrowserWindow.getFocusedWindow()
+        if (win) {
+            win.webContents.toggleDevTools()
+        }
+    })
+    }
+   
 
-    // globalShortcut.register('CommandOrControl+Shift+D', () => {
-    //     const win = BrowserWindow.getFocusedWindow()
-    //     if (win) {
-    //         win.webContents.toggleDevTools()
-    //     }
-    // })
+
 
 })
 

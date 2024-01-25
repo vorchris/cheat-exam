@@ -131,7 +131,10 @@
         "msoWarn": "You need to reconnect and select an MSOFile before reconnecting all students",
         "allowspellcheck":"Activate spellcheck for specific student",
         "linespacing": "Linespacing",
-        "fontfamily": "Fontfamily"
+        "fontfamily": "Fontfamily",
+        "defaultprinter": "select default printer",
+        "allowdirectprint": "allow direct print for students",
+        "noprinter": "no printer found"
     },
     "control": {
         "tokennotvalid": "token is not valid",

@@ -259,7 +259,7 @@ import log from 'electron-log/main';
                 log.info("[processUpdatedServerstatus] restoring focus state for student")
                 this.multicastClient.clientinfo.focus = true
             }
-            if (studentstatus.allowspellcheck && studentstatus.allowspellcheck.spellchecklang){
+            if (studentstatus.allowspellcheck && studentstatus.allowspellcheck !== "deactivate"){
                 log.info("[processUpdatedServerstatus] activating spellcheck for student")
                 this.multicastClient.clientinfo.allowspellcheck = studentstatus.allowspellcheck  // object with {spellchecklang, suggestions}
             }
