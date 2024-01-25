@@ -13,8 +13,8 @@
     </span>
 
     <span class="fs-4 align-middle ms-3" style="float: right">Dashboard</span>
-    <div class="btn btn-sm btn-danger m-0 mt-1" @click="stopserver()" style="float: right">{{$t('dashboard.stopserver')}}&nbsp; <img src="/src/assets/img/svg/stock_exit.svg" style="vertical-align:text-top;" class="" width="20" height="20" ></div>
-    <div class="btn btn-sm btn-dark me-1 mt-1" style="float: right;" @click="setupDefaultPrinter()" :title="$t('dashboard.defaultprinter')"><img src="/src/assets/img/svg/settings-symbolic.svg" class="white" width="20" height="20" > </div>
+    <div class="btn btn-sm btn-danger m-0 mt-1" @click="stopserver()" @mouseover="showDescription($t('dashboard.exitexam'))" @mouseout="hideDescription"  style="float: right">{{$t('dashboard.stopserver')}}&nbsp; <img src="/src/assets/img/svg/stock_exit.svg" style="vertical-align:text-top;" class="" width="20" height="20" ></div>
+    <div class="btn btn-sm btn-dark me-1 mt-1" style="float: right;" @click="setupDefaultPrinter()"  @mouseover="showDescription($t('dashboard.defaultprinter'))" @mouseout="hideDescription" ><img src="/src/assets/img/svg/settings-symbolic.svg" class="white" width="20" height="20" > </div>
 
 </div>
  <!-- Header END -->
@@ -839,7 +839,7 @@ export default {
             .catch(err => { console.warn(err) })
         },
 
-        async setupDefaultPrinter(){
+        async setupDefaultPrinter1(){
             this.availablePrinters = await ipcRenderer.invoke("getprinters")
             if (document.getElementById("availablePrinters").style.display == "flex"){
                 document.querySelector("#availablePrinters").style.display = "none";
@@ -852,7 +852,87 @@ export default {
             this.defaultPrinter = printer
             console.log(`dashboard: selected default printer: ${this.defaultPrinter}`)
             console.log(`dashboard: allow direct print: ${this.directPrintAllowed}`)
+        },
+
+
+        async setupDefaultPrinter() {
+            this.availablePrinters = await ipcRenderer.invoke("getprinters")
+            const self = this; // Referenz auf die Vue-Instanz
+            const swalContent = this.generateSwalContent(); // Generiert den HTML-Inhalt für SweetAlert2
+
+            this.$swal({
+                customClass: {
+                    popup: 'my-popup',
+                    title: 'my-title',
+                    content: 'my-content',
+                    input: 'my-custom-input',
+                    actions: 'my-swal2-actions'
+                },
+                title: 'Wählen Sie einen Standarddrucker',
+                html: swalContent,
+                showCancelButton: false,
+                confirmButtonText: 'Ok',
+               
+                didOpen: () => {
+                    // Event Listener für die Druckerbuttons
+                    document.querySelectorAll('.printer-select-button').forEach(button => {
+                        button.addEventListener('click', (e) => {
+                            self.selectPrinter(e.target.dataset.printer);
+                            self.updatePrinterIcon(e.target);
+                        });
+                    });
+
+                    // Event Listener für die Checkbox
+                    const checkbox = document.getElementById('directPrintCheckbox');
+                    checkbox.checked = self.directPrintAllowed;
+                    checkbox.addEventListener('change', (e) => {
+                        self.directPrintAllowed = e.target.checked;
+                    });
+                }
+            });
+        },
+        updatePrinterIcon(button) {
+            // Aktualisiert das Bildchen des angeklickten Buttons
+            const imgElement = button.querySelector('img');
+            imgElement.src = "/src/assets/img/svg/games-solve.svg";
+            imgElement.classList.add('printercheck');
+
+            button.classList.remove('btn-secondary');
+            button.classList.add('btn-success');
+        },
+        generateSwalContent() {
+            let htmlContent = '<div style="text-align:left; margin-left: 6px">';
+
+            // Druckerbuttons
+            if (this.availablePrinters.length < 1) {
+                htmlContent += `
+                    <button class="btn btn-secondary mt-1 mb-0">
+                        <img src="/src/assets/img/svg/print.svg" width="22" height="22"> no printer found
+                    </button>
+                `;
+            }
+            this.availablePrinters.forEach(printer => {
+                htmlContent += `
+                    <button class="btn btn-secondary mt-1 mb-0 printer-select-button" data-printer="${printer}">
+                        <img src="/src/assets/img/svg/print.svg" width="22" height="22"> ${printer}
+                    </button>
+                    ${printer === this.defaultPrinter ? '<img src="/src/assets/img/svg/games-solve.svg" class="printercheck" width="22" height="22">' : ''}
+                `;
+            });
+
+            // Checkbox für direkten Druck
+            htmlContent += `
+                <div class="form-check mt-2">
+                    <input class="form-check-input" type="checkbox" id="directPrintCheckbox">
+                    <label class="form-check-label" for="directPrintCheckbox">Direkten Druck erlauben</label>
+                </div>
+            `;
+
+            htmlContent += '</div>';
+            return htmlContent;
         }
+
+
 
 
 
