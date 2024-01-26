@@ -134,7 +134,8 @@
         "fontfamily": "Schriftart",
         "defaultprinter": "Standard Drucker wählen",
         "allowdirectprint": "Schüler:innen Direktdruck erlauben",
-        "noprinter": "Keine Drucker gefunden"
+        "noprinter": "Keine Drucker gefunden",
+        "directprint": "Direkdruck"
     },
     "control": {
         "tokennotvalid": "Das Token ist ungültig",

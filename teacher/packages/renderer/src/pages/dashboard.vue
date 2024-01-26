@@ -14,7 +14,7 @@
 
     <span class="fs-4 align-middle ms-3" style="float: right">Dashboard</span>
     <div class="btn btn-sm btn-danger m-0 mt-1" @click="stopserver()" @mouseover="showDescription($t('dashboard.exitexam'))" @mouseout="hideDescription"  style="float: right">{{$t('dashboard.stopserver')}}&nbsp; <img src="/src/assets/img/svg/stock_exit.svg" style="vertical-align:text-top;" class="" width="20" height="20" ></div>
-    <div class="btn btn-sm btn-dark me-1 mt-1" style="float: right;" @click="setupDefaultPrinter()"  @mouseover="showDescription($t('dashboard.defaultprinter'))" @mouseout="hideDescription" ><img src="/src/assets/img/svg/settings-symbolic.svg" class="white" width="20" height="20" > </div>
+    <div class="btn btn-sm btn-secondary me-1 mt-1" style="float: right; padding:3px;" @click="setupDefaultPrinter()"  @mouseover="showDescription($t('dashboard.defaultprinter'))" @mouseout="hideDescription" ><img src="/src/assets/img/svg/settings-symbolic.svg" class="white" width="22" height="22" > </div>
 
 </div>
  <!-- Header END -->
@@ -143,13 +143,18 @@
             <div class="form-check form-switch  m-1 mb-2" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledexam':''">
                 <input  @click="setAbgabeInterval()" v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
                 <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
-                <span v-if="autoabgabe" > ({{ abgabeintervalPause }}min)</span>
+                <span v-if="autoabgabe" class="text-white-50"> ({{ abgabeintervalPause }}min)</span>
             </div>
             <div class="form-check form-switch  m-1 mb-2">
                 <input v-if="serverstatus.screenshotinterval > 0" @change="toggleScreenshot()" @click="setScreenshotInterval()" checked class="form-check-input" type="checkbox" id="screenshotinterval">
                 <input v-if="serverstatus.screenshotinterval == 0" @change="toggleScreenshot()" @click="setScreenshotInterval()" class="form-check-input" type="checkbox" id="screenshotinterval">
                 <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.screenshot')}}</label>
-                <span v-if="serverstatus.screenshotinterval > 0" > ({{ serverstatus.screenshotinterval }}s)</span>
+                <span v-if="serverstatus.screenshotinterval > 0" class="text-white-50"> ({{ serverstatus.screenshotinterval }}s)</span>
+            </div>
+            <div class="form-check form-switch  m-1 mb-2">
+                <input v-model=directPrintAllowed @click="checkforDefaultprinter()" @mouseover="showDescription( $t('dashboard.allowdirectprint') )" @mouseout="hideDescription" checked=false class="form-check-input" type="checkbox" id="directprint">
+                <label class="form-check-label">{{$t('dashboard.directprint')}}   </label>
+                <div v-if="defaultPrinter" class="ellipsis text-white-50"> {{ defaultPrinter }}</div>
             </div>
         </div>
         <br>
@@ -169,26 +174,21 @@
 
 
     <!-- PRINT Setup START -->
-    <div id="availablePrinters">
-        <span>
-             <h5 style="display: inline">{{ $t('dashboard.defaultprinter') }}</h5>
-             <div id="availablePrintersExit"  type="button" class=" btn-close-white btn-close p-0"></div> 
-        </span>
-        <div v-if="(availablePrinters.length < 1)">
-            <button class="btn btn-secondary mt-1 mb-0">
-                <img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" >  no printer found
-            </button>
-           
-        </div>
-        <div v-for="printer in availablePrinters">
-            <button  :key="printer" @click="selectPrinter(printer)" :class="(defaultPrinter == printer)? 'btn-success':'' " class="btn btn-secondary mt-1 mb-0">
-                <img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" >  {{ printer }} 
-            </button>
-            <img v-if="(printer == defaultPrinter)" src="/src/assets/img/svg/games-solve.svg" class="printercheck" width="22" height="22" >
-        </div>
-        <div class="form-check mt-2">
-            <input class="form-check-input" type="checkbox" id="directPrintCheckbox" v-model="directPrintAllowed">
-            <label class="form-check-label" for="directPrintCheckbox">{{ $t('dashboard.allowdirectprint') }}</label>
+    <div id="printselectoverlay" class="fadeinslow" @click="setupDefaultPrinter()">
+        <div id="availablePrinters">
+            <!-- <div class="swal2-icon swal2-question swal2-icon-show" style="display: flex;"><div class="swal2-icon-content">?</div></div> -->
+            <span><h5 style="display: inline">{{ $t('dashboard.defaultprinter') }}</h5></span>
+            <div v-if="(availablePrinters.length < 1)">
+                <button class="btn btn-secondary mt-1 mb-0"><img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" >  no printer found </button>
+            </div>
+            <div v-for="printer in availablePrinters">
+                <button  :key="printer" @click="selectPrinter(printer)" :class="(defaultPrinter == printer)? 'btn-cyan':'' " class="btn btn-secondary mt-1 mb-0">
+                    <img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" >  {{ printer }} 
+                </button>
+                <img v-if="(printer == defaultPrinter)" src="/src/assets/img/svg/games-solve.svg" class="printercheck" width="22" height="22" >
+            </div>
+            <div id="okButton" class="btn mt-3 btn-success" @click="setupDefaultPrinter()">OK</div>
+
         </div>
     </div>
   <!-- PRINT Setup END -->
@@ -199,7 +199,6 @@
         <!-- control buttons start -->        
         <div v-if="(serverstatus.exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:128px; height:62px;" @click="endExam();hideDescription();"  @mouseover="showDescription($t('dashboard.exitkiosk'))" @mouseout="hideDescription"  >                                                                                                                                         <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" width="28" height="28" style="vertical-align: top;"> <div style="display:inline-block; margin-top:4px; margin-left:4px; width:60px; font-size:0.8em;"> {{numberOfConnections}} {{$t('dashboard.stopexam')}} </div></div>
         <div v-if="(!serverstatus.exammode)" class="btn btn-teal m-1 mt-0 text-start ms-0"  @click="startExam();hideDescription();"  @mouseover="showDescription($t('dashboard.startexamdesc'))" @mouseout="hideDescription" :class="(serverstatus.examtype === 'microsoft365' && (!this.config.accessToken || !serverstatus.msOfficeFile))? 'disabledgreen':''" style="width:128px; height:62px;">  <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" width="28" height="28" style="vertical-align: top;"> <div style="display:inline-block; margin-top:4px; margin-left:4px; width:60px; font-size:0.8em;"> {{numberOfConnections}} {{$t('dashboard.startexam')}}</div></div>
-     
         <div class="btn btn-cyan m-1 mt-0 text-start ms-0" @click="sendFiles('all');hideDescription();"   @mouseover="showDescription($t('dashboard.sendfile'))" @mouseout="hideDescription"  style="width:62px; height:62px;"><img src="/src/assets/img/svg/document-send.svg" class="mt-2" width="32" height="32"></div>
         <div class="btn btn-cyan m-1 mt-0 text-start ms-0" @click="getFiles('all', true);hideDescription();"  @mouseover="showDescription($t('dashboard.getfile'))" @mouseout="hideDescription"  :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledblue':''"  style="width:62px; height:62px;" ><img src="/src/assets/img/svg/edit-download.svg" class="mt-2" width="32" height="32"></div>
         <div class="btn btn-cyan m-1 mt-0 text-start ms-0" @click="loadFilelist(workdirectory);hideDescription();"  @mouseover="showDescription($t('dashboard.showworkfolder'))" @mouseout="hideDescription"  style="width: 62px; height:62px;"><img src="/src/assets/img/svg/folder-open.svg" class="mt-2" width="32" height="32" ></div>
@@ -209,22 +208,17 @@
         <!-- control buttons end -->
 
 
-
-
         <!-- studentlist start -->
         <div id="studentslist" class="pt-1">        
             <draggable v-model="studentwidgets" :move="handleMoveItem" @end="handleDragEndItem" ghost-class="ghost">
-    
                 <div v-for="student in studentwidgets" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':''" class="studentwidget btn rounded-3 btn-block ">
                     <div v-if="student.clientname">
                         <div class="studentimage rounded" style="position: relative; height:132px;">  
                             <button v-if="serverstatus.examtype === 'editor' && !this.serverstatus.spellcheck && this.serverstatus.spellchecklang !== 'none'" @mouseover="showDescription($t('dashboard.allowspellcheck'))" @mouseout="hideDescription" @click='activateSpellcheckForStudent(student.token,student.clientname)' type="button" class="btn btn-sm pt-1 mt-2 pe-1 float-end" style="z-index:1000; position:relative;"><img src="/src/assets/img/svg/autocorrection.svg" class="widgetbutton" width="22" height="22" ></button> 
-
                             <div v-cloak :id="student.token" style="position: relative;background-size: cover; height: 132px;" v-bind:style="(student.imageurl && now - 20000 < student.timestamp)? `background-image: url('${student.imageurl}')`:'background-image: url(user-red.svg)'"></div>
                             <div v-if="student.virtualized" class="virtualizedinfo" >{{$t("dashboard.virtualized")}}</div>
                             <div v-if="!student.focus" class="kioskwarning" >{{$t("dashboard.leftkiosk")}}</div>
                             <div v-if="student.status.sendexam" class="examrequest" >{{$t("dashboard.examrequest")}}</div>
-                           
                             <span>   
                                 <div style="display:inline;" v-bind:title="(student.files) ? 'Documents: '+student.files : ''"> 
                                     <img v-for="file in student.files" style="width:22px; margin-left:-4px; position: relative; filter: sepia(10%) hue-rotate(306deg) brightness(0.3) saturate(75);" class="" src="/src/assets/img/svg/document.svg"><br>
@@ -233,7 +227,6 @@
                                 <button  @click='kick(student.token,student.clientip)'  @mouseover="showDescription($t('dashboard.kick'))" @mouseout="hideDescription" type="button" class=" btn-close  btn-close-white pt-1 pe-2 float-end"></button> 
                             </span>
                         </div>
-
                         <div class="btn-group pt-0" role="group">
                             <button v-if="(now - 20000 < student.timestamp)" @click="showStudentview(student)" type="button" class="btn btn-outline-success btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">{{$t('dashboard.online')}} </button>
                             <button v-if="(now - 20000 > student.timestamp)" type="button" class="btn btn-outline-danger btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">{{$t('dashboard.offline')}} </button>
@@ -242,7 +235,6 @@
                         </div>
                     </div>
                 </div> 
-               
             </draggable>  
         </div>
         <!-- studentlist end -->
@@ -251,7 +243,6 @@
     <div style="position: fixed; bottom:20px; right: 20px; filter:opacity(50%)" class="col d-inlineblock btn " @click="sortStudentWidgets()">
         <img src="/src/assets/img/svg/view-sort-ascending-name.svg" class="white" title="sort" width="24" height="24" >  
     </div>
-
 
 </div>
 </template>
@@ -510,7 +501,6 @@ export default {
                 allowEnterKey: false,
             });
         },
-
 
         /**
          * Google Forms
@@ -839,23 +829,33 @@ export default {
             .catch(err => { console.warn(err) })
         },
 
-        async setupDefaultPrinter1(){
+        async setupDefaultPrinter(){
             this.availablePrinters = await ipcRenderer.invoke("getprinters")
-            if (document.getElementById("availablePrinters").style.display == "flex"){
-                document.querySelector("#availablePrinters").style.display = "none";
+            if (document.getElementById("printselectoverlay").style.display == "flex"){
+                document.querySelector("#printselectoverlay").style.opacity = 0;
+                await this.sleep(300)  //the transition setting is set to .3s
+                document.querySelector("#printselectoverlay").style.display = "none";
             }
-            else {
-                document.getElementById("availablePrinters").style.display = "flex"
+            else { 
+                document.getElementById("printselectoverlay").style.display = "flex";
+                document.querySelector("#printselectoverlay").style.opacity = 1;
             } 
         },
+
+
+
         selectPrinter(printer){
             this.defaultPrinter = printer
             console.log(`dashboard: selected default printer: ${this.defaultPrinter}`)
             console.log(`dashboard: allow direct print: ${this.directPrintAllowed}`)
         },
+        checkforDefaultprinter(){
+            if (!this.defaultPrinter){ this.setupDefaultPrinter()}
+        },
 
 
-        async setupDefaultPrinter() {
+
+        async setupDefaultPrinter1() {
             this.availablePrinters = await ipcRenderer.invoke("getprinters")
             const self = this; // Referenz auf die Vue-Instanz
             const swalContent = this.generateSwalContent(); // Generiert den HTML-Inhalt für SweetAlert2
@@ -868,7 +868,7 @@ export default {
                     input: 'my-custom-input',
                     actions: 'my-swal2-actions'
                 },
-                title: 'Wählen Sie einen Standarddrucker',
+                title: this.$t("dashboard.defaultprinter"),
                 html: swalContent,
                 showCancelButton: false,
                 confirmButtonText: 'Ok',
@@ -924,7 +924,7 @@ export default {
             htmlContent += `
                 <div class="form-check mt-2">
                     <input class="form-check-input" type="checkbox" id="directPrintCheckbox">
-                    <label class="form-check-label" for="directPrintCheckbox">Direkten Druck erlauben</label>
+                    <label class="form-check-label" for="directPrintCheckbox">${this.$t("dashboard.allowdirectprint")}</label>
                 </div>
             `;
 
@@ -952,9 +952,10 @@ export default {
 
             // Add event listener to #closefilebrowser  (only once - do not accumulate event listeners)
             document.querySelector("#closefilebrowser").addEventListener("click", function() { document.querySelector("#preview").style.display = "none"; });
-            document.querySelector("#availablePrintersExit").addEventListener("click", function() { document.querySelector("#availablePrinters").style.display = "none"; });
             // Prevent event propagation for clicks on #workfolder
             document.querySelector('#workfolder').addEventListener("click", function(e) { e.stopPropagation(); });
+            document.getElementById('availablePrinters').addEventListener('click', function(e) { e.stopPropagation();});
+           
             // Set the event listener for #pdfpreview click to hide pdfpreview
             document.querySelector("#pdfpreview").addEventListener("click", function() { this.style.display = 'none'; });
 
@@ -996,22 +997,36 @@ export default {
 <style scoped>
 
 #availablePrinters {
-    position: fixed;        /* Fixiert den div über allem anderen */
+    position: absolute;        /* Fixiert den div über allem anderen */
     top: 50%;               /* Zentriert vertikal */
     left: 50%;              /* Zentriert horizontal */
-    transform: translate(-50%, -50%); /* Ermöglicht genaue Zentrierung */
-    display: none;          /* Flex-Container für die Buttons */
+    display: flex;          /* Flex-Container für die Buttons */
     flex-direction: column; /* Buttons vertikal anordnen */
     align-items: flex-start;    /* Zentriert die Buttons im Container */
     padding: 20px;          /* Innenabstand */
-    border-radius: 10px;    /* Abgerundete Ecken */
-    background-color:rgb(33,37,41); /* Hintergrundfarbe */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Leichter Schatten */
+    border-radius: 5px;    /* Abgerundete Ecken */
+    background-color: white;
+    box-shadow: 0 0 1em rgba(0, 0, 0, 0.5);
     width: 340px;
-    min-height: 200px;
-    color: white;
-    z-index: 100000;          /* Stellt sicher, dass der div über anderen Elementen liegt */
+    /* margin-left: -170px; */
+
+    transform: translate(-50%, -50%);
+    transform-origin: center;
+    animation: swalIn 0.2s; 
 }
+
+
+@keyframes swalIn {
+    from {
+        transform: translate(-50%, -50%) scale(0.3);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+}
+
 
 #availablePrinters button {
     display: inline-block;
@@ -1021,21 +1036,41 @@ export default {
     text-align: left;
     white-space: nowrap;
     margin-bottom: 10px; /* Abstand zwischen den Buttons */
+    border:0;
 }
 
-#availablePrinters #availablePrintersExit {
-    float: right;
-    width:20px;
-    height: 20px;
-    margin-top:2px;
-}
+
 #availablePrinters span {
     width: 100%;
     margin-bottom:6px;
+    margin-top: 10px;
 }
+
 #availablePrinters .printercheck {
     margin-left:4px;
+    filter: brightness(0) saturate(100%) hue-rotate(90deg) brightness(1.2) contrast(0.2);
+
 }
+
+
+
+
+#printselectoverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.4); /* Abdunkeln des Hintergrunds */
+    backdrop-filter: blur(2px); /* Unscharf-Effekt */
+    z-index: 10999; /* Unter dem Dialog */
+    display: none; /* Standardmäßig nicht angezeigt */
+   transition: 0.3s;
+}
+
+
+
+
 
 
 
@@ -1204,16 +1239,11 @@ export default {
 
 
 #description {
-   
-    /* position: absolute;  */
-    
     font-size: 0.8em;
     border-bottom-left-radius:5px;
     border-bottom-right-radius:5px;
-     width: 200px  ;
-    /* height:52px; */
+    width: 200px  ;
     border-radius: 5px;
-  
 }
 
 
@@ -1308,6 +1338,17 @@ hr {
     from { opacity: 1; }
     to { opacity: 0; visibility: hidden; }
 }
+
+.ellipsis {
+    display: inline-block;
+    white-space: nowrap; /* Verhindert Zeilenumbrüche */
+    overflow: hidden;    /* Versteckt überlaufenden Text */
+    text-overflow: ellipsis; /* Fügt "..." am Ende des überlaufenden Texts hinzu */
+    max-width: 170px;    /* Maximale Breite, anpassbar nach Ihren Bedürfnissen */
+}
+
+
+
 
 </style>
 

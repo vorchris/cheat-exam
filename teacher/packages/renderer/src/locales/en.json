@@ -134,7 +134,8 @@
         "fontfamily": "Fontfamily",
         "defaultprinter": "select default printer",
         "allowdirectprint": "allow direct print for students",
-        "noprinter": "no printer found"
+        "noprinter": "no printer found",
+        "directprint": "direct  print"
     },
     "control": {
         "tokennotvalid": "token is not valid",
