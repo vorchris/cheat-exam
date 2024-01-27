@@ -172,7 +172,6 @@
 
 
 
-
     <!-- PRINT Setup START -->
     <div id="printselectoverlay" class="fadeinslow" @click="setupDefaultPrinter()">
         <div id="availablePrinters">
@@ -195,7 +194,6 @@
 
    
     <div id="content" class="fadeinslow p-3">
-
         <!-- control buttons start -->        
         <div v-if="(serverstatus.exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:128px; height:62px;" @click="endExam();hideDescription();"  @mouseover="showDescription($t('dashboard.exitkiosk'))" @mouseout="hideDescription"  >                                                                                                                                         <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" width="28" height="28" style="vertical-align: top;"> <div style="display:inline-block; margin-top:4px; margin-left:4px; width:60px; font-size:0.8em;"> {{numberOfConnections}} {{$t('dashboard.stopexam')}} </div></div>
         <div v-if="(!serverstatus.exammode)" class="btn btn-teal m-1 mt-0 text-start ms-0"  @click="startExam();hideDescription();"  @mouseover="showDescription($t('dashboard.startexamdesc'))" @mouseout="hideDescription" :class="(serverstatus.examtype === 'microsoft365' && (!this.config.accessToken || !serverstatus.msOfficeFile))? 'disabledgreen':''" style="width:128px; height:62px;">  <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" width="28" height="28" style="vertical-align: top;"> <div style="display:inline-block; margin-top:4px; margin-left:4px; width:60px; font-size:0.8em;"> {{numberOfConnections}} {{$t('dashboard.startexam')}}</div></div>
@@ -832,18 +830,22 @@ export default {
         async setupDefaultPrinter(){
             this.availablePrinters = await ipcRenderer.invoke("getprinters")
             if (document.getElementById("printselectoverlay").style.display == "flex"){
+                if (!this.defaultPrinter){
+                    document.getElementById('directprint').checked = false
+                }
                 document.querySelector("#printselectoverlay").style.opacity = 0;
-                await this.sleep(300)  //the transition setting is set to .3s
+                document.getElementById('availablePrinters').classList.remove('scaleIn');
+                document.getElementById('availablePrinters').classList.add('scaleOut');
+                await this.sleep(200)  //the transition setting is set to .3s
                 document.querySelector("#printselectoverlay").style.display = "none";
             }
             else { 
                 document.getElementById("printselectoverlay").style.display = "flex";
                 document.querySelector("#printselectoverlay").style.opacity = 1;
+                document.getElementById('availablePrinters').classList.remove('scaleOut');
+                document.getElementById('availablePrinters').classList.add('scaleIn');  
             } 
         },
-
-
-
         selectPrinter(printer){
             this.defaultPrinter = printer
             console.log(`dashboard: selected default printer: ${this.defaultPrinter}`)
@@ -853,88 +855,7 @@ export default {
             if (!this.defaultPrinter){ this.setupDefaultPrinter()}
         },
 
-
-
-        async setupDefaultPrinter1() {
-            this.availablePrinters = await ipcRenderer.invoke("getprinters")
-            const self = this; // Referenz auf die Vue-Instanz
-            const swalContent = this.generateSwalContent(); // Generiert den HTML-Inhalt für SweetAlert2
-
-            this.$swal({
-                customClass: {
-                    popup: 'my-popup',
-                    title: 'my-title',
-                    content: 'my-content',
-                    input: 'my-custom-input',
-                    actions: 'my-swal2-actions'
-                },
-                title: this.$t("dashboard.defaultprinter"),
-                html: swalContent,
-                showCancelButton: false,
-                confirmButtonText: 'Ok',
-               
-                didOpen: () => {
-                    // Event Listener für die Druckerbuttons
-                    document.querySelectorAll('.printer-select-button').forEach(button => {
-                        button.addEventListener('click', (e) => {
-                            self.selectPrinter(e.target.dataset.printer);
-                            self.updatePrinterIcon(e.target);
-                        });
-                    });
-
-                    // Event Listener für die Checkbox
-                    const checkbox = document.getElementById('directPrintCheckbox');
-                    checkbox.checked = self.directPrintAllowed;
-                    checkbox.addEventListener('change', (e) => {
-                        self.directPrintAllowed = e.target.checked;
-                    });
-                }
-            });
-        },
-        updatePrinterIcon(button) {
-            // Aktualisiert das Bildchen des angeklickten Buttons
-            const imgElement = button.querySelector('img');
-            imgElement.src = "/src/assets/img/svg/games-solve.svg";
-            imgElement.classList.add('printercheck');
-
-            button.classList.remove('btn-secondary');
-            button.classList.add('btn-success');
-        },
-        generateSwalContent() {
-            let htmlContent = '<div style="text-align:left; margin-left: 6px">';
-
-            // Druckerbuttons
-            if (this.availablePrinters.length < 1) {
-                htmlContent += `
-                    <button class="btn btn-secondary mt-1 mb-0">
-                        <img src="/src/assets/img/svg/print.svg" width="22" height="22"> no printer found
-                    </button>
-                `;
-            }
-            this.availablePrinters.forEach(printer => {
-                htmlContent += `
-                    <button class="btn btn-secondary mt-1 mb-0 printer-select-button" data-printer="${printer}">
-                        <img src="/src/assets/img/svg/print.svg" width="22" height="22"> ${printer}
-                    </button>
-                    ${printer === this.defaultPrinter ? '<img src="/src/assets/img/svg/games-solve.svg" class="printercheck" width="22" height="22">' : ''}
-                `;
-            });
-
-            // Checkbox für direkten Druck
-            htmlContent += `
-                <div class="form-check mt-2">
-                    <input class="form-check-input" type="checkbox" id="directPrintCheckbox">
-                    <label class="form-check-label" for="directPrintCheckbox">${this.$t("dashboard.allowdirectprint")}</label>
-                </div>
-            `;
-
-            htmlContent += '</div>';
-            return htmlContent;
-        }
-
-
-
-
+  
 
 
     },
@@ -1008,11 +929,6 @@ export default {
     background-color: white;
     box-shadow: 0 0 1em rgba(0, 0, 0, 0.5);
     width: 340px;
-    /* margin-left: -170px; */
-
-    transform: translate(-50%, -50%);
-    transform-origin: center;
-    animation: swalIn 0.2s; 
 }
 
 
@@ -1026,7 +942,26 @@ export default {
         opacity: 1;
     }
 }
-
+@keyframes swalOut {
+    from {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: translate(-50%, -50%) scale(0.3);
+        opacity: 0;
+    }
+}
+.scaleOut {
+    transform: translate(-50%, -50%);
+    transform-origin: center;
+    animation: swalOut 0.2s; 
+}
+.scaleIn {
+    transform: translate(-50%, -50%);
+    transform-origin: center;
+    animation: swalIn 0.2s; 
+}
 
 #availablePrinters button {
     display: inline-block;
@@ -1039,21 +974,16 @@ export default {
     border:0;
 }
 
-
 #availablePrinters span {
     width: 100%;
     margin-bottom:6px;
     margin-top: 10px;
 }
-
 #availablePrinters .printercheck {
     margin-left:4px;
     filter: brightness(0) saturate(100%) hue-rotate(90deg) brightness(1.2) contrast(0.2);
 
 }
-
-
-
 
 #printselectoverlay {
     position: fixed;

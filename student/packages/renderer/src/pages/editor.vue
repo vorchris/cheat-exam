@@ -195,13 +195,17 @@ import TableCell from '@tiptap/extension-table-cell'
 import TableRow from '@tiptap/extension-table-row'
 import TableHeader from '@tiptap/extension-table-header'
 import { SmilieReplacer } from '../components/SmilieReplacer'
+import { CharReplacer } from '../components/CharReplacer'
 import { lowlight } from "lowlight/lib/common.js";
 import { Color } from '@tiptap/extension-color'
 import TextStyle from '@tiptap/extension-text-style'
 import { Node, mergeAttributes } from '@tiptap/core'   //we need this for our custom editor extension that allows to insert span elements
 import SpellChecker from '../utils/spellcheck'
 
-// in order to insert <span> elemnts (used for highlighting misspelled words) we need our own tiptap extenison
+
+
+
+// in order to insert <span> elements (used for highlighting misspelled words) we need our own tiptap extenison
 const CustomSpan = Node.create({
     name: 'customSpan',
     addOptions: { HTMLAttributes: {},    },
@@ -598,50 +602,6 @@ export default {
             this.editor.commands.insertContent(this.selectedText)         
         },
         
-        // replace every occurence of a " (quote) on the beginning of a line or after a whitespace with the german „
-        replaceQuotes(event) {
-            if (event.target.getAttribute('contenteditable') === 'true') {
-                try {
-                    const selection = window.getSelection();  // hol dir die position des cursors
-                    const node = selection.anchorNode;  // hol dir die node die ihn umgibt
-                    const caretPos = selection.anchorOffset;  //merk dir wo sich der cursor befindet
-                    
-                    // Check if within <code> tags - do not change quotes here
-                    let nodecheck = selection.anchorNode;
-                    while (nodecheck !== null && nodecheck !== document.body) {
-                        if (nodecheck.tagName === 'CODE') {
-                            console.log("[replaceQuotes] Cursor is inside <code> element.");
-                            return;
-                        }
-                        nodecheck = nodecheck.parentNode;
-                    }
-
-                    
-                    if (node.nodeType === 3) { // Text node - auf keinen fall in anderen nodetypes arbeiten
-                        
-                        const textContent = node.textContent;  //hole den plaintext der node - wir verändern keinen html code
-                        const newText = textContent.replace(/(^|\s)"/g, function(match, p1) { return p1 === ' ' ? ' „' : '„'; });  //tausche engl gegen deu wenn am anfang oder alleinstehend
-                        
-                        if (textContent !== newText) {  // sollten wir was verändert haben (komma-tausch) ersetze den text
-                            event.stopImmediatePropagation()  //erlaube keine anderen eventhandler für dieses event mehr, weder am selben noch auf irgendeinem parent element
-                            node.textContent = newText; // füge den neuen text mit deutschen hochkomma ,, wieder in die node ein
-                            // Reset cursor position
-                            const newRange = document.createRange();  // Erstellt ein neues Range-Objekt
-                            newRange.setStart(node, Math.min(newText.length, caretPos));  // Setzt den Startpunkt der Range im Textknoten
-                            newRange.collapse(true);  // Kollabiert die Range auf den Startpunkt, sodass sie keine Zeichen enthält
-                            selection.removeAllRanges();  // Entfernt alle bestehenden Ranges aus der Selection
-                            selection.addRange(newRange);  // Fügt die neu erstellte Range zur Selection hinzu, um die Cursorposition zu setzen
-                        }
-                    }
-                } catch (e) { console.log(e)}
-            }
-        },
-        containsCSSCode(str) {   // just another safty measure (unused right now)
-            // Regex für grundlegende CSS-Eigenschaften und Werte
-            const cssRegex = /([a-zA-Z-]+)\s*:\s*([^;]+);/;
-            return cssRegex.test(str);
-        },
-
         // returns a uuid 
         uuidv4() {
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -707,6 +667,7 @@ export default {
                     CustomSpan,
                     Typography,
                     SmilieReplacer,
+                    this.charReplacerExtension,
                     Table.configure({
                         resizable: true,
                     }), 
@@ -780,6 +741,10 @@ export default {
         this.setCSSVariable('--js-editorWidth', `${this.editorWidth}`);     
         this.setCSSVariable('--js-linespacing', `${this.linespacing}`); 
         this.setCSSVariable('--js-fontfamily', `${this.fontfamily}`); 
+
+
+        this.charReplacerExtension = CharReplacer({ language: this.serverstatus.spellchecklang });
+
         this.createEditor(); // this initializes the editor
 
        
@@ -836,11 +801,7 @@ export default {
         // show spellchecking context menu
         this.editorcontentcontainer = document.getElementById('editorcontent');        
         this.editorcontentcontainer.addEventListener('mouseup',  this.getSelectedTextInfo );   // show amount of words and characters
-        if (this.serverstatus.spellchecklang == "de") { this.editorcontentcontainer.addEventListener('input', this.replaceQuotes); }// replace every occurence of a " (quote) on the beginning of a line or after a whitespace with the german „
-        this.editorcontentcontainer.addEventListener('keydown', this.insertSpaceInsteadOfTab)   //this changes the tab behaviour and allows tabstops
-
-        // this.activateSpellcheck()  // set all eventlisteners for spellchecking
-    
+        this.editorcontentcontainer.addEventListener('keydown', this.insertSpaceInsteadOfTab)   //this changes the tab behaviour and allows tabstops    
     },
     beforeMount(){ },
     beforeUnmount() {
@@ -853,7 +814,7 @@ export default {
  
         document.removeEventListener('click', this.hideSpellcheckMenu);
         this.editorcontentcontainer.removeEventListener('mouseup',  this.getSelectedTextInfo );
-        this.editorcontentcontainer.removeEventListener('input', this.replaceQuotes);
+        
         
         this.editor.destroy()
 
@@ -1177,6 +1138,12 @@ Other Styles
     background-color: rgba(#616161, 0.1);
     color: #616161;
   }
+  .code-block {
+    width: 95% !important;
+
+  }
+
+
 
   pre {
     background: #0D0D0D;
