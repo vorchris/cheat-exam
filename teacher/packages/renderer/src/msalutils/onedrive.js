@@ -211,8 +211,9 @@ async function fileExistsInAppFolder(fileName) {
     .then( data => { 
         if (data.value && data.value.length > 0) {  return data.value[0].id;  } 
         else {
-           //log.info(data.error)
-            return data.error.code;   // it's either "accessDenied" or "  "
+           // log.info(data)
+            if (data.error) { return data.error.code;}   // it's either "accessDenied" or "  " 
+            if (data.value) { return "notFound"}  
         }
      })
     .catch(err => { 
@@ -221,7 +222,7 @@ async function fileExistsInAppFolder(fileName) {
 
     //check if folderID was received correctly
     if (folderID === "accessDenied") { return 403}
-    if (folderID === "notFound")     { log.warn("appfolder does not exist") }
+    if (folderID === "notFound" || folderID === "")     { log.warn("appfolder does not exist"); return null}
    
 
  
