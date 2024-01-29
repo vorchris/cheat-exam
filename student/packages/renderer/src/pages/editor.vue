@@ -109,7 +109,7 @@
                 <div v-if="(file.type == 'bak')" class="btn btn-success p-0  pe-2 ps-1 me-1 mb-0 btn-sm"   @click="selectedFile=file.name; loadHTML(file.name)"><img src="/src/assets/img/svg/games-solve.svg" class="" width="22" height="22" style="vertical-align: top;"> {{file.name}}     ({{ new Date(this.now - file.mod).toISOString().substr(11, 5) }})</div>
                 <div v-if="(file.type == 'pdf')" class="btn btn-info p-0 pe-2 ps-1 me-1 mb-0 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" style="vertical-align: top;"> {{file.name}} </div>
                 <div v-if="(file.type == 'audio')" class="btn btn-info p-0 pe-2 ps-1 me-1 mb-0 btn-sm" @click="playAudio(file.name)"><img src="/src/assets/img/svg/im-google-talk.svg" class="" width="22" height="22" style="vertical-align: top;"> {{file.name}} </div>
-
+                <div v-if="(file.type == 'image')" class="btn btn-info p-0 pe-2 ps-1 me-1 mb-0 btn-sm" @click="loadImage(file.name)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" style="vertical-align: top;"> {{file.name}} </div>
             </div>
         
         </div>
@@ -482,9 +482,34 @@ export default {
         loadPDF(file){
             let data = ipcRenderer.sendSync('getpdf', file )
             let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
+
+
+            const pdfEmbed = document.querySelector("#pdfembed");
+            pdfEmbed.style.backgroundImage = '';
+            pdfEmbed.style.height = "96vh";
+            pdfEmbed.style.marginTop = "-48vh";
+
             document.querySelector("#pdfembed").setAttribute("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`);
             document.querySelector("#preview").style.display = 'block';
         },
+
+
+        // fetch file from disc - show preview
+        async loadImage(file){
+            let data = await ipcRenderer.invoke('getpdfasync', file )
+            let url =  URL.createObjectURL(new Blob([data], {type: "image/jpeg"})) 
+            const pdfEmbed = document.querySelector("#pdfembed");
+            pdfEmbed.style.backgroundImage = `url(${url})`;
+            pdfEmbed.style.backgroundSize = 'contain'
+            pdfEmbed.style.backgroundRepeat = 'no-repeat'
+           
+            pdfEmbed.style.height = "80vh";
+            pdfEmbed.style.marginTop = "-40vh";
+            pdfEmbed.setAttribute("src", '');
+            document.querySelector("#preview").style.display = 'block';     
+        },
+
+
         // display the table part of the toolbar
         showMore(){
             const moreOptions= document.getElementById('moreoptions')

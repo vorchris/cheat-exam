@@ -122,8 +122,6 @@ function loadPDF(filepath, filename){
         document.querySelector("#pdfembed").setAttribute("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`);
         document.querySelector("#pdfpreview").style.display = 'block';
 
-
-
     }).catch(err => { log.error(err)});     
 }
 

@@ -228,7 +228,7 @@ function sendFiles(who) {
             id: "swalFile",
             class:"form-control",
             multiple:"multiple",
-            accept: ".pdf, .bak, .ogg, .wav, .mp3"
+            accept: ".pdf, .bak, .ogg, .wav, .mp3, .jpg"
         }
     })
     .then((input) => {

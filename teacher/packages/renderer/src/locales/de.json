@@ -49,7 +49,7 @@
         "autoget": "Abgabeintervall",
         "startexam": "Geräte absichern",
         "startexamdesc": "Startet den abgesicherten Exam Modus auf den Geräten der Schüler:innen",
-        "sendfile": "Dateien an alle Schüler:innen senden",
+        "sendfile": "Dateien an alle Schüler:innen senden (pdf, jpg, mp3, bak, ggb, png, gif, wav, ogg)",
         "sendfileSingle": "Datei senden",
         "getfile": "Alle Abgaben holen",
         "getfileSingle": "Abgabe holen",

@@ -459,7 +459,7 @@ class IpcHandler {
                     let filelist =  fs.readdirSync(workdir, { withFileTypes: true })
                         .filter(dirent => dirent.isFile())
                         .map(dirent => dirent.name)
-                        .filter( file => path.extname(file).toLowerCase() === ".pdf" || path.extname(file).toLowerCase() === ".ogg" || path.extname(file).toLowerCase() === ".wav"|| path.extname(file).toLowerCase() === ".mp3" || path.extname(file).toLowerCase() === ".bak" || path.extname(file).toLowerCase() === ".ggb")
+                     
                     
                     let files = []
                     filelist.forEach( file => {
@@ -467,8 +467,9 @@ class IpcHandler {
                         let mod = modified.getTime()
                         if  (path.extname(file).toLowerCase() === ".pdf"){ files.push( {name: file, type: "pdf", mod: mod})   }         //pdf
                         else if  (path.extname(file).toLowerCase() === ".bak"){ files.push( {name: file, type: "bak", mod: mod})   }   // editor backup
-                        else if  (path.extname(file).toLowerCase() === ".ggb"){ files.push( {name: file, type: "ggb", mod: mod})   }  // gogebra
+                        else if  (path.extname(file).toLowerCase() === ".ggb"){ files.push( {name: file, type: "ggb", mod: mod})   }  // geogebra
                         else if  (path.extname(file).toLowerCase() === ".mp3" || path.extname(file).toLowerCase() === ".ogg" || path.extname(file).toLowerCase() === ".wav" ){ files.push( {name: file, type: "audio", mod: mod})   }  // audio
+                        else if  (path.extname(file).toLowerCase() === ".jpg" || path.extname(file).toLowerCase() === ".png" || path.extname(file).toLowerCase() === ".gif" ){ files.push( {name: file, type: "image", mod: mod})   }  // images
                     })
                     this.multicastClient.clientinfo.numberOfFiles = filelist.length
                     return files
