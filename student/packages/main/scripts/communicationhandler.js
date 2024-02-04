@@ -91,7 +91,7 @@ import log from 'electron-log/main';
     async sendHeartbeat(){
         // CONNECTION LOST - UNLOCK SCREEN
         if (this.multicastClient.beaconsLost >= 5 ){ // no serversignal for 20 seconds
-            log.warn("Connection to Teacher lost! Removing registration.") //remove server registration locally (same as 'kick')
+            log.warn("communicationhandler @ sendHeartbeat: Connection to Teacher lost! Removing registration.") //remove server registration locally (same as 'kick')
             this.multicastClient.beaconsLost = 0
             this.resetConnection()   // this also resets serverip therefore no api calls are made afterwards
             this.killScreenlock()       // just in case screens are blocked.. let students work
@@ -105,13 +105,13 @@ import log from 'electron-log/main';
                 headers: {'Content-Type': 'application/json' }
             }).then( response => {
                 if (response.data && response.data.status === "error") { 
-                     if      (response.data.message === "notavailable"){ log.warn('Exam Instance not found!');        this.multicastClient.beaconsLost = 5} //server responded but exam is not available anymore 
-                     else if (response.data.message === "removed"){      log.warn('Student registration not found!'); this.multicastClient.beaconsLost = 5} //server responded but student is no registered anymore (kicked)
-                     else { this.multicastClient.beaconsLost += 1;       log.warn("heartbeat lost..") }  // other error
+                     if      (response.data.message === "notavailable"){ log.warn('communicationhandler @ sendHeartbeat: Exam Instance not found!');        this.multicastClient.beaconsLost = 5} //server responded but exam is not available anymore 
+                     else if (response.data.message === "removed"){      log.warn('communicationhandler @ sendHeartbeat: Student registration not found!'); this.multicastClient.beaconsLost = 5} //server responded but student is no registered anymore (kicked)
+                     else { this.multicastClient.beaconsLost += 1;       log.warn("communicationhandler @ sendHeartbeat: heartbeat lost..") }  // other error
                 }
                 else if (response.data && response.data.status === "success") {  this.multicastClient.beaconsLost = 0  }
             })
-            .catch(error => { log.error(`SendHeartbeat Axios: ${error}`); this.multicastClient.beaconsLost += 1; log.error("heartbeat lost..") });
+            .catch(error => { log.error(`communicationhandler @ sendHeartbeat: ${error}`); this.multicastClient.beaconsLost += 1; });
         }
         else {
             // no focus warning block if no connection 
@@ -247,7 +247,7 @@ import log from 'electron-log/main';
             }
 
             if (studentstatus.delfolder === true){
-                log.info("[processUpdatedServerstatus] cleaning exam workfolder")
+                log.info("communicationhandler @ processUpdatedServerstatus: cleaning exam workfolder")
                 try {
                     if (fs.existsSync(this.config.workdirectory)){   // set by server.js (desktop path + examdir)
                         fs.rmSync(this.config.workdirectory, { recursive: true });
@@ -256,15 +256,15 @@ import log from 'electron-log/main';
                 } catch (error) { console.error(error); }
             }
             if (studentstatus.restorefocusstate === true){
-                log.info("[processUpdatedServerstatus] restoring focus state for student")
+                log.info("communicationhandler @ processUpdatedServerstatus: restoring focus state for student")
                 this.multicastClient.clientinfo.focus = true
             }
             if (studentstatus.allowspellcheck && studentstatus.allowspellcheck !== "deactivate"){
-                log.info("[processUpdatedServerstatus] activating spellcheck for student")
+                log.info("communicationhandler @ processUpdatedServerstatus: activating spellcheck for student")
                 this.multicastClient.clientinfo.allowspellcheck = studentstatus.allowspellcheck  // object with {spellchecklang, suggestions}
             }
             if (studentstatus.allowspellcheck === "deactivate") {
-                log.info("[processUpdatedServerstatus] de-activating spellcheck for student")
+                log.info("communicationhandler @ processUpdatedServerstatus: de-activating spellcheck for student")
                 this.multicastClient.clientinfo.allowspellcheck = false
             }
 
@@ -343,7 +343,7 @@ import log from 'electron-log/main';
             }
         } catch (e) { 
             WindowHandler.screenlockwindows = []
-            console.error("communicationhandler: no functional screenlockwindow to handle")
+            console.error("communicationhandler @ killScreenlock: no functional screenlockwindow to handle")
         } 
         WindowHandler.screenlockwindows = []
         this.multicastClient.clientinfo.screenlock = false
@@ -381,7 +381,7 @@ import log from 'electron-log/main';
         this.multicastClient.clientinfo.linespacing = serverstatus.linespacing // we try to double linespacing on demand in pdf creation
 
         if (!WindowHandler.examwindow){  // why do we check? because exammode is left if the server connection gets lost but students could reconnect while the exam window is still open and we don't want to create a second one
-            log.info("creating exam window")
+            log.info("communicationhandler @ startExam: creating exam window")
             this.multicastClient.clientinfo.examtype = serverstatus.examtype
             WindowHandler.createExamWindow(serverstatus.examtype, this.multicastClient.clientinfo.token, serverstatus, primary);
         }
@@ -440,7 +440,7 @@ import log from 'electron-log/main';
         log.info(serverstatus)
         // delete students work on students pc (makes sense if exam is written on school property)
         if (serverstatus.delfolderonexit === true){
-            log.info("cleaning exam workfolder on exit")
+            log.info("communicationhandler @ endExam: cleaning exam workfolder on exit")
             try {
                 if (fs.existsSync(this.config.workdirectory)){   // set by server.js (desktop path + examdir)
                     fs.rmSync(this.config.workdirectory, { recursive: true });
@@ -472,7 +472,7 @@ import log from 'electron-log/main';
                 }
             } catch (e) { 
                 WindowHandler.blockwindows = []
-                console.error("communicationhandler: no functional blockwindow to handle")
+                console.error("communicationhandler @ endExam: no functional blockwindow to handle")
             } 
             WindowHandler.blockwindows = []
         }
@@ -482,10 +482,10 @@ import log from 'electron-log/main';
     }
 
 
-    // this is triggered if connection is lost during exam - we allow the student to get out of the kiosk mode but keep his work in the editor
+    // this is manually  triggered if connection is lost during exam - we allow the student to get out of the kiosk mode but keep his work in the editor
     gracefullyEndExam(){
         if (WindowHandler.examwindow){ 
-            log.warn("Unlocking Workstation")
+            log.warn("communicationhandler @ gracefullyEndExam: Manually Unlocking Workstation")
             try {
                 // remove listener
                 WindowHandler.removeBlurListener();
@@ -497,7 +497,7 @@ import log from 'electron-log/main';
               
             } catch (e) { 
                 WindowHandler.examwindow = null
-                console.error("communicationhandler: no functional examwindow to handle")
+                console.error("communicationhandler @ gracefullyEndExam: no functional examwindow to handle")
             }
           
             try {
@@ -508,7 +508,7 @@ import log from 'electron-log/main';
                 }
             } catch (e) { 
                 WindowHandler.blockwindows = []
-                console.error("communicationhandler: no functional blockwindow to handle")
+                console.error("communicationhandler @ gracefullyEndExam: no functional blockwindow to handle")
             } 
             WindowHandler.blockwindows = []
 
