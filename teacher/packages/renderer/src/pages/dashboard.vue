@@ -267,7 +267,7 @@ export default {
             title: document.title,
             fetchinterval: null,
             abgabeinterval: null,
-            abgabeintervalPause:5,
+            abgabeintervalPause:6,
             studentlist: [],
             workdirectory: `${this.$route.params.workdirectory}/${this.$route.params.servername}`,
             currentdirectory: this.$route.params.workdirectory,
@@ -282,7 +282,7 @@ export default {
             config :this.$route.params.config,
             now : null,
             files: null,
-            autoabgabe: false,
+            autoabgabe: true,
             activestudent: null,
             localfiles: null,
             currentpreview: null,
@@ -870,6 +870,7 @@ export default {
             this.fetchInfo()
             this.initializeStudentwidgets()
             this.fetchinterval = setInterval(() => { this.fetchInfo() }, 4000)
+            this.abgabeinterval = setInterval(() => { this.getFiles('all') }, 60000 * 6) //trigger getFiles('all') every 6 minutes
 
             // Add event listener to #closefilebrowser  (only once - do not accumulate event listeners)
             document.querySelector("#closefilebrowser").addEventListener("click", function() { document.querySelector("#preview").style.display = "none"; });

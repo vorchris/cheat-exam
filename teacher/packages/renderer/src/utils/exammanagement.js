@@ -129,6 +129,7 @@ function setAbgabeInterval(){
                 log.warn("something wrong with interval frequency - setting to default")
                 this.abgabeintervalPause = 5
             }   
+            clearInterval( this.abgabeinterval); 
             log.info("starting submission intervall", this.abgabeintervalPause)
             this.abgabeinterval = setInterval(() => { this.getFiles('all') }, 60000 * this.abgabeintervalPause) //trigger getFiles('all') every other minute
         })
