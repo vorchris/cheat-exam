@@ -295,11 +295,18 @@ class IpcHandler {
          */
         ipcMain.on('storeHTML', (event, args) => {   
             const htmlContent = args.editorcontent
-            const htmlfilename = `${this.multicastClient.clientinfo.name}.bak`
+            const filename = args.filename
+            let htmlfilename = `${this.multicastClient.clientinfo.name}.bak`
+            
+            if (filename){
+                htmlfilename = `${filename}.bak`
+                log.info(`ipchandler: storeHTML: creating manual backup as ${htmlfilename}`)
+            }
+
             const htmlfile = path.join(this.config.workdirectory, htmlfilename);
 
             if (htmlContent) { 
-                log.info("saving students work to disk...")
+                // log.info("ipchandler: storeHTML: saving students work to disk...")
                 try {
                     fs.writeFile(htmlfile, htmlContent, (err) => {
                         if (err) {
@@ -325,7 +332,7 @@ class IpcHandler {
             const filename = args.filename
             const ggbFilePath = path.join(this.config.workdirectory, filename);
             if (content) { 
-                log.info("saving students work to disk...")
+                log.info("ipchandler @ saveGGB: saving students work to disk...")
                 const fileData = Buffer.from(content, 'base64');
 
                 try {

@@ -522,18 +522,32 @@ export default {
         },
         /** Converts the Editor View into a multipage PDF */
         async saveContent(backup, why) {     
-            // inform mainprocess to save webcontent as pdf (see @media css query for adjustments for pdf)
-            let filename = this.currentFile.replace(/\.[^/.]+$/, "")  // we dont need the extension
-            ipcRenderer.send('printpdf', {clientname:this.clientname, filename: `${filename}.pdf`, servername: this.servername })
+    
+            ipcRenderer.send('printpdf', {filename: `${this.clientname}.pdf`, landscape: false })  // inform mainprocess to save webcontent as pdf (see @media css query for adjustments for pdf)
+
+            let filename = false  // this is set manually... otherwise use clientname
 
             if (why === "manual"){
-                this.$swal.fire({
-                    title: this.$t("editor.saved"),
-                    icon: "info",
-                    timer: 1000,
-                    showCancelButton: false,
-                    didOpen: () => { this.$swal.showLoading(); },
-                })
+                await this.$swal({
+                    title: this.$t("math.filename") ,
+                    input: 'text',
+                    inputPlaceholder: 'Type here...',
+                    showCancelButton: true,
+                    inputAttributes: {
+                        maxlength: 20,
+                    },
+                    confirmButtonText: 'Ok',
+                    cancelButtonText: this.$t("editor.cancel"),
+                    inputValidator: (value) => {
+                        const regex = /^[A-Za-z0-9]+$/;
+                        if (!value.match(regex)) {
+                            return  this.$t("math.nospecial") ;
+                        }                   
+                    },
+                }).then((result) => {
+                    if (result.isConfirmed) { filename = `${result.value}`}
+                    else {return; }
+                });
             }
             if (why === "exitexam") { 
                 // stop clipboard clear interval
@@ -550,17 +564,15 @@ export default {
 
                 let text = this.editor.getText(); 
                 navigator.clipboard.writeText(text).then(function() {
-                    console.log('Text erfolgreich kopiert');
+                    console.log('editor @ savecontent: Text erfolgreich kopiert');
                 }).catch(function(err) {
-                    console.log('Fehler beim Kopieren des Textes: ', err);
+                    console.log('editor @ savecontent: Fehler beim Kopieren des Textes: ', err);
                 });
-                
-
             }
             if (backup){
                 //also save editorcontent as *html file - used to re-populate the editor window in case something went completely wrong
                 let editorcontent = this.editor.getHTML(); 
-                ipcRenderer.send('storeHTML', {clientname:this.clientname, editorcontent: editorcontent })
+                ipcRenderer.send('storeHTML', {filename: filename, editorcontent: editorcontent })
             }
             this.loadFilelist()
         },
@@ -568,7 +580,7 @@ export default {
         print(){
            //make sure to post print request to teacher for the latest work
            ipcRenderer.sendSync('sendPrintRequest') 
-           console.log("[print] sending printrequest")
+           console.log("editor @ print: sending printrequest")
            this.$swal.fire({
                 title: this.$t("editor.requestsent"),
                 icon: "info",
@@ -579,7 +591,7 @@ export default {
         },
         // display print denied message and reason
         printdenied(why){
-            console.log("[printdenied] Print request denied")
+            console.log("editor @ printdenied: Print request denied")
             this.$swal.fire({
                 title: `${this.$t("editor.requestdenied")}`,
                 icon: "info",
@@ -774,22 +786,22 @@ export default {
 
        
         ipcRenderer.on('save', (event, why) => {  //trigger document save by signal "save" sent from sendExamtoteacher in communication handler
-            console.log("Save event received")
+            console.log("editor @ save: Teacher saverequest received")
             this.saveContent(true, why) 
         }); 
         ipcRenderer.on('denied', (event, why) => {  //print request was denied by teacher because he can not handle so much requests at once
             this.printdenied(why)
         }); 
         ipcRenderer.on('backup', (event, filename) => {  
-            console.log("Replace event received ")
+            console.log("editor @ backup: Replace event received ")
             this.loadHTML(filename) 
         }); 
         ipcRenderer.on('loadfilelist', () => {  
-            console.log("Reload Files event received ")
+            console.log("editor @ loadfilelist: Reload Files event received ")
             this.loadFilelist() 
         });
         ipcRenderer.on('fileerror', (event, msg) => {
-            console.log('writing file error received');
+            console.log('editor @ fileerror: writing file error received');
             this.$swal.fire({
                     title: "Error",
                     text: msg.message,
@@ -805,7 +817,7 @@ export default {
 
         document.querySelector("#audioclose").addEventListener("click", function(e) {
             audioPlayer.pause();
-            console.log('Playback stopped');
+            console.log('editor @ audioclose: Playback stopped');
             document.querySelector("#aplayer").style.display = 'none';
         });
 
@@ -814,7 +826,7 @@ export default {
 
         this.currentFile = this.clientname
         this.entrytime = new Date().getTime()
-        this.saveinterval = setInterval(() => { this.saveContent() }, 20000)    // speichert content als datei
+        this.saveinterval = setInterval(() => { this.saveContent(true, 'auto') }, 20000)    // speichert content als datei
         this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 5000)      //holt client info (exam status, connection, token)
         this.clockinterval = setInterval(() => { this.clock() }, 1000)   // uhrzeit (jede sekunde)
         this.loadFilelist()
