@@ -796,7 +796,7 @@ class WindowHandler {
     }
     //student fogus went to another window
     blurevent(winhandler) { 
-        log.info("blur-exam")
+        log.info("windowhandler @ blurevent: student tried to leave exam window")
         if (winhandler.screenlockwindows.length > 0) { return }// do nothing if screenlockwindow stole focus // do not trigger an infinite loop between exam window and screenlock window (stealing each others focus)
             
         winhandler.multicastClient.clientinfo.focus = false

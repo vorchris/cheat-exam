@@ -51,7 +51,7 @@ class IpcHandler {
          */
 
         ipcMain.on('loginBiP', (event) => {
-            log.info("opening bip window")
+            log.info("ipchandler @ loginBiP: opening bip window")
             this.WindowHandler.createBiPLoginWin()
             event.returnValue = "hello from bip logon"
         })
@@ -73,7 +73,10 @@ class IpcHandler {
         /**
         * Unlock Computer
         */ 
-        ipcMain.on('gracefullyexit', () => {  this.CommunicationHandler.gracefullyEndExam() } )
+        ipcMain.on('gracefullyexit', () => {  
+            log.info(`ipchandler @ gracefullyexit: gracefully leaving locked exam mode`)
+            this.CommunicationHandler.gracefullyEndExam() 
+        } )
 
         /**
         * stop restrictions
@@ -90,7 +93,7 @@ class IpcHandler {
         ipcMain.on('checkhostip', (event) => { 
             let address = false
             try { address = this.multicastClient.client.address() }
-            catch (e) { log.error("ipcHandler: multicastclient not running") }
+            catch (e) { log.error("ipcHandler @ checkhostip: multicastclient not running") }
             if (address) { event.returnValue = this.config.hostip }
 
 
@@ -107,7 +110,7 @@ class IpcHandler {
             if (!this.config.hostip) {
                 try {this.config.hostip = ip.address() }  //this delivers an ip even if gateway is not set
                 catch (e) {
-                    log.error("ipcHandler: Unable to determine ip address")
+                    log.error("ipcHandler @ checkhostip: Unable to determine ip address")
                     this.config.hostip = false
                     this.config.gateway = false
                 }
@@ -141,8 +144,8 @@ class IpcHandler {
                 this.WindowHandler.examwindow.webContents.printToPDF(options).then(data => {
                     fs.writeFile(pdffilepath, data, (err) => { 
                         if (err) {
-                            log.error(err.message); 
-                            if (err.message.includes("permission denied")){
+                            log.error(`ipchandler @ printpdf: ${err.message}`); 
+                            if (err.message.includes("permission denied") || err.message.includes("permitted")  ){
                                 log.error("writing under different name")
                                 let alternatepath = `${pdffilepath}-${this.multicastClient.clientinfo.token}.pdf`
                                 fs.writeFile(alternatepath, data, function (err) { 
@@ -157,7 +160,7 @@ class IpcHandler {
                         }  
                     } ); 
                 }).catch(error => { 
-                    log.error(error)
+                    log.error(`ipchandler @ printpdf: ${error}`)
                     event.reply("fileerror", { sender: "client", message:error , status:"error" } )
                 });
             }
@@ -175,6 +178,8 @@ class IpcHandler {
             
             let affix = null;
             let dictionary = null;
+
+            log.info(`ipchandler @ activatespellcheck: activating for lang: ${language}`)
 
             try {
                 if (language === "en-GB") {
@@ -276,12 +281,13 @@ class IpcHandler {
                     this.multicastClient.clientinfo.token = response.data.token // we need to store the client token in order to check against it before processing critical api calls
                     this.multicastClient.clientinfo.focus = true
                     this.multicastClient.clientinfo.pin = pin
+                    log.info(`ipchandler @ register: successfully registered at ${serverip} as ${clientname} `)
                 }
                 event.returnValue = response.data
             
             }).catch(err => {
                 //we return the servers error message to the ui
-                log.error(err.message)
+                log.error(`ipchandler @ register: ${err.message}`)
                 if (err.message.includes("timeout")){err.message = t("student.timeout") }
                 event.returnValue = { sender: "client", message:err.message , status:"error" } 
             })
