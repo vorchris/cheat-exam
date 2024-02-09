@@ -69,6 +69,7 @@ const gnomeDashToDockKeybindings = ['app-ctrl-hotkey-1','app-ctrl-hotkey-10','ap
     'app-shift-hotkey-1','app-shift-hotkey-10','app-shift-hotkey-2','app-shift-hotkey-3','app-shift-hotkey-4','app-shift-hotkey-5',
     'app-shift-hotkey-6','app-shift-hotkey-7','app-shift-hotkey-8','app-shift-hotkey-9','shortcut']
 
+const gnomeWaylandKeybindings = ['switch-to-session-1','switch-to-session-2','switch-to-session-3','switch-to-session-4','switch-to-session-5','switch-to-session-6','switch-to-session-7','switch-to-session-8','switch-to-session-9','switch-to-session-10','switch-to-session-11','switch-to-session-12' ]
 
 let clipboardInterval;
 
@@ -136,23 +137,6 @@ function enableRestrictions(win){
         //but it seems there is no convenient way to kill gnome-shell without all applications started on top of it 
         
 
-        // test on gnome... disable ttys  !!!!!
-
-        //childProcess.execFile('dconf', ['write' ,'/org/gnome/mutter/wayland/keybindings/switch-to-session-1', `['']`])
-
-        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-1 "['']"
-        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-2 "['']"
-        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-3 "['']"
-        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-4 "['']"
-        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-5 "['']"
-        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-6 "['']"
-        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-7 "['']"
-        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-8 "['']"
-        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-9 "['']"
-        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-10 "['']"
-        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-11 "['']"
-        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-12 "['']"
-
 
 
         // for gnome3 we need to set every key individually => reset will obviously set defaults (so we may mess up customized shortcuts here)
@@ -160,6 +144,12 @@ function enableRestrictions(win){
         for (let binding of gnomeKeybindings){
             childProcess.execFile('gsettings', ['set' ,'org.gnome.desktop.wm.keybindings', `${binding}`, `['']`])
         }
+
+        //disable ttys ? 
+        for (let binding of gnomeWaylandKeybindings){
+            childProcess.execFile('gsettings', ['set' ,'org.gnome.mutter.wayland.keybindings', `${binding}`, `['']`])
+        }
+
 
         for (let binding of gnomeShellKeybindings){
             childProcess.execFile('gsettings', ['set' ,'org.gnome.shell.keybindings', `${binding}`, `['']`])
