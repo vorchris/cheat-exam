@@ -157,6 +157,9 @@ class IpcHandler {
                                     else { event.returnValue = { sender: "client", message:t("data.filestored") , status:"success" }  }
                                 }); 
                             }
+                            else {
+                                event.reply("fileerror", { sender: "client", message:err , status:"error" } )
+                            }
                         }  
                     } ); 
                 }).catch(error => { 
