@@ -65,7 +65,7 @@ class MulticastClient {
         this.client = dgram.createSocket('udp4')  // moving this here will allow to respawn it if binding fails
 
         this.client.on('error', (err) => {
-            console.error(`UDP MC Client error:\n${err.stack}`);
+            log.error(`multicastclient @ init: UDP MC Client error:\n${err.stack}`);
             this.client.close();
         });
 
@@ -75,10 +75,12 @@ class MulticastClient {
                 this.client.setMulticastTTL(128); 
                 if (this.gateway) {this.client.addMembership(this.MULTICAST_ADDR)} // es ist für ein verlässliches multicast sinnvoll der gruppe beizutreten
                 if (!this.gateway) {log.warn("mcclient: No Gateway! Starting MulticastClient without adding group membership")}
-                log.info(`UDP MC Client listening on http://${config.hostip}:${this.client.address().port}`)
+                log.info(`multicastclient @ init: UDP MC Client listening on http://${config.hostip}:${this.client.address().port}`)
             })
         }
-        catch (e){log.error(e)}
+        catch (e){ 
+            log.error(`mulitcastclient @ init: ${e}`) 
+        }
             
         this.client.on('message', (message, rinfo) => { this.messageReceived(message, rinfo) })
         //start loops
@@ -95,7 +97,7 @@ class MulticastClient {
         serverInfo.reachable = true
         
         if (this.isNewExamInstance(serverInfo)) {
-            log.info(`Adding new Exam Instance "${serverInfo.servername}" to Serverlist`)
+            log.info(`multicastclient @ messageReceived: Adding new Exam Instance "${serverInfo.servername}" to Serverlist`)
             this.examServerList.push(serverInfo)
         }
     }
@@ -121,7 +123,7 @@ class MulticastClient {
         for (let i = 0; i < this.examServerList.length; i++) {
             const now = new Date().getTime()
             if (now - 16000 > this.examServerList[i].timestamp) {
-                log.warn('Removing inactive server from list')
+                log.warn(`multicastclient @ isDeprecatedInstance: Removing inactive server from list`)
                 this.examServerList.splice(i, 1)
             }
         }

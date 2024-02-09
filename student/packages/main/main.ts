@@ -83,8 +83,9 @@ log.transports.file.resolvePathFn = (config) => { return logfile  }
 log.eventLogger.startLogging();
 log.errorHandler.startCatching();
 log.warn(`-------------------`)
-log.info(`Logfile: ${logfile}`)
-log.info('Next-Exam Logger initialized...');
+log.warn(`main: starting Next-Exam "${config.version}  ${config.info}"`)
+log.info(`main: Logfile: ${logfile}`)
+log.info('main: Next-Exam Logger initialized...');
 
 
 
@@ -163,27 +164,14 @@ app.whenReady()
     globalShortcut.register('F5', () => {});  //reload page
     globalShortcut.register('CommandOrControl+Shift+R', () => {});
     globalShortcut.register('Alt+F4', () => {console.log("Alt+F4")});  //exit app
-   
-    globalShortcut.register('Alt+CommandOrControl+F1', () => { informTeacher() });  
-    globalShortcut.register('Alt+CommandOrControl+F2', () => { informTeacher() });  
-    globalShortcut.register('Alt+CommandOrControl+F3', () => { informTeacher() });  
-    globalShortcut.register('Alt+CommandOrControl+F4', () => { informTeacher() });  
-    globalShortcut.register('Alt+CommandOrControl+F5', () => { informTeacher() });
-    globalShortcut.register('Alt+CommandOrControl+F6', () => { informTeacher() });
-    globalShortcut.register('Alt+CommandOrControl+F7', () => { informTeacher() });
-    globalShortcut.register('Alt+CommandOrControl+F8', () => { informTeacher() });
-    globalShortcut.register('Alt+CommandOrControl+F9', () => { informTeacher() });
-    globalShortcut.register('Alt+CommandOrControl+F10', () => { informTeacher() });
-    globalShortcut.register('Alt+CommandOrControl+F11', () => { informTeacher() });
-    globalShortcut.register('Alt+CommandOrControl+F12', () => { informTeacher() });
-   
+      
     globalShortcut.register('CommandOrControl+W', () => {});
     globalShortcut.register('CommandOrControl+Q', () => {});  //quit
     globalShortcut.register('CommandOrControl+D', () => {});  //show desktop
     globalShortcut.register('CommandOrControl+L', () => {});  //lockscreen
     globalShortcut.register('CommandOrControl+P', () => {});  //change screen layout
  
-    
+  
     if (!config.development){
         globalShortcut.register('CommandOrControl+V', () => {console.log('no clipboard')});
         globalShortcut.register('CommandOrControl+Shift+V', () => {console.log('no clipboard')});
@@ -204,10 +192,6 @@ app.whenReady()
 
 //capture global keyboard shortcuts like alt+tab and send a signal to the frontend that a key combination has been detected 
     
-function informTeacher(){
-    log.warn(`main @ informTeacher: student tried to switch tty`)
-    WindowHandler.multicastClient.clientinfo.focus = false
-}
 
 
   ////////////////////////////////

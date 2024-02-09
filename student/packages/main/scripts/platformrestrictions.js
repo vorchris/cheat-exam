@@ -136,6 +136,25 @@ function enableRestrictions(win){
         //but it seems there is no convenient way to kill gnome-shell without all applications started on top of it 
         
 
+        // test on gnome... disable ttys  !!!!!
+
+        //childProcess.execFile('dconf', ['write' ,'/org/gnome/mutter/wayland/keybindings/switch-to-session-1', `['']`])
+
+        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-1 "['']"
+        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-2 "['']"
+        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-3 "['']"
+        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-4 "['']"
+        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-5 "['']"
+        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-6 "['']"
+        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-7 "['']"
+        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-8 "['']"
+        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-9 "['']"
+        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-10 "['']"
+        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-11 "['']"
+        // dconf write /org/gnome/mutter/wayland/keybindings/switch-to-session-12 "['']"
+
+
+
         // for gnome3 we need to set every key individually => reset will obviously set defaults (so we may mess up customized shortcuts here)
         // possible fix: instead of set > reset we could use get - set - set.. first get the current bindings and store them - then set to nothing - then set to previous setting
         for (let binding of gnomeKeybindings){
@@ -180,7 +199,7 @@ function enableRestrictions(win){
            // if (stderr) {  log.info(stderr)  }
           //  if (error)  {  log.info(error)   }
         })
-        log.info("shortcuts disabled")
+        log.info("platformrestrictions @ enableRestrictions: windows shortcuts disabled")
 
         //clear clipboard - stop copy before and paste after examstart
         let executable0 = join(__dirname, '../../public/clear-clipboard.bat')
