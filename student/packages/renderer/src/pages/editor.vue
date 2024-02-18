@@ -2,41 +2,45 @@
 
 
     <!-- HEADER START -->
-    <div id="editorheader" class="w-100 p-3 text-white bg-dark  text-center" style=" z-index: 10000 !important">
-        <div v-if="online" class="text-white m-1">
+    <div id="editorheader" class="bg-dark">
+        <div v-if="online" class="header-item">
             <img @click="reloadAll()" src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style="float: left; cursor:pointer;" />
-            <span class="fs-4 align-middle me-1" style="float: left;">{{clientname}}</span>
-            <span class="fs-4 align-middle me-4 green" style="float: left;" >| {{$t('student.connected')}}</span> 
+            <span class="fs-5 align-middle me-1" style="float: left;">{{clientname}}</span>
+            <span class="fs-5 align-middle me-4 green" style="float: left;" >| {{$t('student.connected')}}</span> 
         </div>
-        
-        <div v-if="!online" class="text-white m-1">
+        <div v-if="!online" class="header-item">
             <img @click="reloadAll()" src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style=" float: left; cursor:pointer;" />
-            <span class="fs-4 align-middle me-1" style=" float: left;"> {{clientname}} </span>
-            <span class="fs-4 align-middle me-4 red" style="float: left;"> | {{ $t("student.disconnected") }} </span>  
+            <span class="fs-5 align-middle me-1" style=" float: left;"> {{clientname}} </span>
+            <span class="fs-5 align-middle me-4 red" style="float: left;"> | {{ $t("student.disconnected") }} </span>  
         </div>
 
-        <div v-if="!online && exammode" class="btn btn-success p-1 me-1 mb-1 btn-sm"  style="float: left;"  @click="reconnect()"><img src="/src/assets/img/svg/gtk-convert.svg" class="" width="22" height="22"> {{ $t("editor.reconnect")}}</div>
-        <div v-if="!online && exammode" class="btn btn-danger p-1 me-1 mb-1 btn-sm"  style="float: left;"  @click="gracefullyexit()"><img src="/src/assets/img/svg/dialog-cancel.svg" class="" width="22" height="22"> {{ $t("editor.unlock")}} </div>
-        <span v-if="servername" class="fs-4 align-middle" style="margin: auto auto;">{{servername}}|{{pincode}}</span>
+        <div v-if="!online && exammode" class="header-item btn btn-success p-1 me-1 btn-sm" @click="reconnect()"><img src="/src/assets/img/svg/gtk-convert.svg" class="" width="22" height="20"> {{ $t("editor.reconnect")}}</div>
+        <div v-if="!online && exammode" class="header-item btn btn-danger p-1 me-1 btn-sm"  @click="gracefullyexit()"><img src="/src/assets/img/svg/dialog-cancel.svg" class="" width="22" height="20"> {{ $t("editor.unlock")}} </div>
+        
+        <div class="header-item fs-5" v-if="servername" style="margin: auto auto;">{{servername}}|{{pincode}}</div>
 
-        <span class="fs-4 align-middle" style="float: right">Writer</span>
-        <span class="fs-4 align-middle me-2" style="float: right; width: 120px;">{{timesinceentry}}</span>
-        <span v-if="battery && battery.level" class="fs-4 me-3"  style="float: right;">
-            <img v-if="battery && battery.level > 0.9" src="/src/assets/img/svg/battery-100.svg"  :title="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
-            <img v-if="battery && battery.level > 0.8 && battery.level < 0.9 " src="/src/assets/img/svg/battery-090.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
-            <img v-if="battery && battery.level > 0.7 && battery.level < 0.8 " src="/src/assets/img/svg/battery-080.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
-            <img v-if="battery && battery.level > 0.6 && battery.level < 0.7 " src="/src/assets/img/svg/battery-070.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
-            <img v-if="battery && battery.level > 0.5 && battery.level < 0.6 " src="/src/assets/img/svg/battery-060.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
-            <img v-if="battery && battery.level > 0.4 && battery.level < 0.5 " src="/src/assets/img/svg/battery-050.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
-            <img v-if="battery && battery.level > 0.3 && battery.level < 0.4 " src="/src/assets/img/svg/battery-040.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
-            <img v-if="battery && battery.level > 0.2 && battery.level < 0.3 " src="/src/assets/img/svg/battery-030.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
-            <img v-if="battery && battery.level > 0.1 && battery.level < 0.2 " src="/src/assets/img/svg/battery-020.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
-            <img v-if="battery && battery.level < 0.1" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" src="/src/assets/img/svg/battery-010.svg" class=" align-middle me-0" width="32" height="32" style="margin-bottom:3px;" />
-        </span>
-
+        <div class="header-item">
+            <div v-if="battery && battery.level" style="font-size: 0.8rem;"> {{ battery.level*100}}%  </div>
+            <div v-if="battery && battery.level" class="me-2">
+                <img v-if="battery && battery.level > 0.9" src="/src/assets/img/svg/battery-100.svg"  :title="battery.level*100+'%'" class="white" width="32" height="32" />
+                <img v-if="battery && battery.level > 0.8 && battery.level < 0.9 " src="/src/assets/img/svg/battery-090.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white" width="32" height="32" />
+                <img v-if="battery && battery.level > 0.7 && battery.level < 0.8 " src="/src/assets/img/svg/battery-080.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white" width="32" height="32" />
+                <img v-if="battery && battery.level > 0.6 && battery.level < 0.7 " src="/src/assets/img/svg/battery-070.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white" width="32" height="32" />
+                <img v-if="battery && battery.level > 0.5 && battery.level < 0.6 " src="/src/assets/img/svg/battery-060.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white" width="32" height="32" />
+                <img v-if="battery && battery.level > 0.4 && battery.level < 0.5 " src="/src/assets/img/svg/battery-050.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white" width="32" height="32" />
+                <img v-if="battery && battery.level > 0.3 && battery.level < 0.4 " src="/src/assets/img/svg/battery-040.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white" width="32" height="32" />
+                <img v-if="battery && battery.level > 0.2 && battery.level < 0.3 " src="/src/assets/img/svg/battery-030.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white" width="32" height="32" />
+                <img v-if="battery && battery.level > 0.1 && battery.level < 0.2 " src="/src/assets/img/svg/battery-020.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white" width="32" height="32" />
+                <img v-if="battery && battery.level < 0.1" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" src="/src/assets/img/svg/battery-010.svg" width="32" height="32" >
+            </div>
+            <div class="fs-5" style="width:90px;" :title="'Exam: '+timesinceentry" >{{currenttime}}</div>
+            <div class="fs-5" >Writer</div>
+        </div>
 
     </div>
      <!-- HEADER END -->
+
+
     <div id="suggestion-menu" style="display:none; position:fixed;"></div>
 
     <div class="w-100 p-0 m-0 text-white shadow-sm text-center" style=" top: 66px; z-index: 10001 !important; background-color: white;">
@@ -201,7 +205,7 @@ import { Color } from '@tiptap/extension-color'
 import TextStyle from '@tiptap/extension-text-style'
 import { Node, mergeAttributes } from '@tiptap/core'   //we need this for our custom editor extension that allows to insert span elements
 import SpellChecker from '../utils/spellcheck'
-
+import moment from 'moment-timezone';
 
 
 
@@ -261,6 +265,7 @@ export default {
             clientinfo: null,
             entrytime: 0,
             timesinceentry: 0,
+            currenttime: 0,
             charcount : 0,
             wordcount : 0,
             now : 0,
@@ -375,6 +380,7 @@ export default {
             this.wordcount = this.editor.storage.characterCount.words()
             this.now = new Date().getTime()
             this.timesinceentry =  new Date(this.now - this.entrytime).toISOString().substr(11, 8)
+            this.currenttime = moment().tz('Europe/Vienna').format('HH:mm:ss');
         },
         async fetchInfo() {
             let getinfo = await ipcRenderer.invoke('getinfoasync')  // we need to fetch the updated version of the systemconfig from express api (server.js)
@@ -523,7 +529,7 @@ export default {
         /** Converts the Editor View into a multipage PDF */
         async saveContent(backup, why) {     
     
-            ipcRenderer.send('printpdf', {filename: `${this.clientname}.pdf`, landscape: false })  // inform mainprocess to save webcontent as pdf (see @media css query for adjustments for pdf)
+            ipcRenderer.send('printpdf', {filename: `${this.clientname}.pdf`, landscape: false, servername: this.servername, clientname: this.clientname })  // inform mainprocess to save webcontent as pdf (see @media css query for adjustments for pdf)
 
             let filename = false  // this is set manually... otherwise use clientname
 
@@ -966,6 +972,40 @@ export default {
 
 
 }
+
+#editorheader {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    
+    align-items: center;
+    align-content: flex-start;
+    z-index:10000 !important;
+    color: #fff;
+    padding: 10px;
+}
+
+.header-item {
+    display: flex;
+    flex-grow: 0;
+    flex-shrink: 1;
+    flex-basis: auto;
+    align-self: auto;
+    order: 0;
+    align-items: center;
+}
+
+
+
+
+
+
+
+
+
+
+
 
 #aplayer{
     display:none;
