@@ -324,8 +324,8 @@ class IpcHandler {
                         }
                     }); 
                 }
-                catch(e){
-                    log.error(e)
+                catch(err){
+                    log.error(err)
                     event.returnValue = { sender: "client", message:err , status:"error" }
                 }
             }
@@ -341,15 +341,17 @@ class IpcHandler {
             const filename = args.filename
             const ggbFilePath = path.join(this.config.workdirectory, filename);
             if (content) { 
-                log.info("ipchandler @ saveGGB: saving students work to disk...")
+                //log.info("ipchandler @ saveGGB: saving students work to disk...")
                 const fileData = Buffer.from(content, 'base64');
 
                 try {
                     fs.writeFileSync(ggbFilePath, fileData);
                     return  { sender: "client", message:t("data.filestored") , status:"success" }
                 }
-                catch(e){
-                    log.error(e)
+                catch(err){
+                    this.WindowHandler.examwindow.webContents.send('fileerror', err)  
+                 
+                    log.error(`ipchandler @ saveGGB: ${err}`)
                     return { sender: "client", message:err , status:"error" }
                 }
             }
@@ -413,39 +415,7 @@ class IpcHandler {
 
 
 
-        /**
-         * GET FILE-LIST from workdirectory
-         * @param filename if set the content of the file is returned
-         */ 
-         ipcMain.on('getfiles', (event, filename) => {   
-            const workdir = path.join(config.workdirectory,"/")
-
-            if (filename) { //return content of specific file as string (html) to replace in editor)
-                let filepath = path.join(workdir,filename)
-                let data = fs.readFileSync(filepath, 'utf8')
-                event.returnValue = data
-            }
-            else {  // return file list of exam directory
-                if (!fs.existsSync(workdir)){ fs.mkdirSync(workdir, { recursive: true });  } //do not crash if the directory is deleted after the app is started ^^
-                let filelist =  fs.readdirSync(workdir, { withFileTypes: true })
-                    .filter(dirent => dirent.isFile())
-                    .map(dirent => dirent.name)
-                    .filter( file => path.extname(file).toLowerCase() === ".pdf" || path.extname(file).toLowerCase() === ".bak" || path.extname(file).toLowerCase() === ".ggb")
-                
-                let files = []
-                filelist.forEach( file => {
-                    let modified = fs.statSync(   path.join(workdir,file)  ).mtime
-                    let mod = modified.getTime()
-                    if  (path.extname(file).toLowerCase() === ".pdf"){ files.push( {name: file, type: "pdf", mod: mod})   }         //pdf
-                    else if  (path.extname(file).toLowerCase() === ".bak"){ files.push( {name: file, type: "bak", mod: mod})   }   // editor backup
-                    else if  (path.extname(file).toLowerCase() === ".ggb"){ files.push( {name: file, type: "ggb", mod: mod})   }  // gogebra
-                    
-                })
-                this.multicastClient.clientinfo.numberOfFiles = filelist.length
-                event.returnValue = files
-            }
-        })
-
+ 
 
         /**
          * ASYNC GET FILE-LIST from workdirectory
@@ -456,7 +426,7 @@ class IpcHandler {
 
             if (filename) { //return content of specific file as string (html) to replace in editor)
                 let filepath = path.join(workdir,filename)
-                log.info(filepath)
+                //log.info(filepath)
                 if (audio){
                     const audioData = fs.readFileSync(filepath);
                     return audioData.toString('base64');
@@ -466,7 +436,10 @@ class IpcHandler {
                         let data = fs.readFileSync(filepath, 'utf8')
                         return data
                     }
-                    catch (e) {log.error(e); return false}
+                    catch (err) {
+                        log.error(`ipchandler @ getfilesasync: ${err}`); 
+                        return false
+                    }
                 }
             }
             else {  // return file list of exam directory
@@ -490,7 +463,10 @@ class IpcHandler {
                     this.multicastClient.clientinfo.numberOfFiles = filelist.length
                     return files
                 }
-                catch (e) { log.error(e);return false; }
+                catch (err) { 
+                    log.error(`ipchandler @ getfilesasync: ${err}`); 
+                    return false; 
+                }
             }
         })
 

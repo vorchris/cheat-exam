@@ -330,31 +330,6 @@ export default {
     min-width: 840px;
 }
 
-#apphead {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    
-    align-items: center;
-    align-content: flex-start;
-    z-index:10000 !important;
-    color: #fff;
-    padding: 10px;
-}
-
-.header-item {
-    display: flex;
-    flex-grow: 0;
-    flex-shrink: 1;
-    flex-basis: auto;
-    align-self: auto;
-    order: 0;
-    align-items: center;
-}
-
-
-
 
 
 #localfiles {

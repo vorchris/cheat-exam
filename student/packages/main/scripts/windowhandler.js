@@ -645,7 +645,8 @@ class WindowHandler {
         if (this.config.showdevtools) { this.mainwindow.webContents.openDevTools()  } // you don't want this in the final build
 
         this.mainwindow.webContents.session.setCertificateVerifyProc((request, callback) => {
-            var { hostname, certificate, validatedCertificate, verificationResult, errorCode } = request;
+           // var { hostname, certificate, validatedCertificate, verificationResult, errorCode } = request;
+           // console.log('Custom certificate verification:', request.hostname);
             callback(0);
         });
 
@@ -771,7 +772,7 @@ class WindowHandler {
 
     //adds blur listener when entering exammode
     addBlurListener(window = "examwindow"){
-        log.info("adding blur listener")
+        log.info("windowhandler @ addBlurListener: adding blur listener")
         log.info(window)
         if (window === "examwindow"){ 
             log.info(`Setting Blur Event for ${window}`)
@@ -787,7 +788,7 @@ class WindowHandler {
     }
     //removes blur listener when leaving exam mode
     removeBlurListener(){
-        log.info("removing blur listener")
+        log.info("windowhandler @ removeBlurListener: removing blur listener")
         this.examwindow.removeAllListeners('blur')
     }
     // implementing a sleep (wait) function

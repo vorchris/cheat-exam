@@ -135,6 +135,18 @@ export default {
                 console.log("EVENT RECEIVERD")
                 this.saveContent() 
             }); 
+
+            ipcRenderer.on('fileerror', (event, msg) => {
+                console.log('geogebra @ fileerror: writing/deleting file error received');
+                this.$swal.fire({
+                        title: "Error",
+                        text: msg.message,
+                        icon: "error",
+                        //timer: 30000,
+                        showCancelButton: false,
+                        didOpen: () => { this.$swal.showLoading(); },
+                })
+            });
         }
         this.$nextTick(function () { // Code that will run only after the entire view has been rendered
             this.fetchinterval = setInterval(() => { this.saveContent() }, 20000)   
@@ -426,29 +438,6 @@ export default {
 }
 
 
-
-#apphead {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    
-    align-items: center;
-    align-content: flex-start;
-    z-index:10000 !important;
-    color: #fff;
-    padding: 10px;
-}
-
-.header-item {
-    display: flex;
-    flex-grow: 0;
-    flex-shrink: 1;
-    flex-basis: auto;
-    align-self: auto;
-    order: 0;
-    align-items: center;
-}
 
 
 

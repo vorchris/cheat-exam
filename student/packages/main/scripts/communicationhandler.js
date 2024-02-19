@@ -253,7 +253,10 @@ import log from 'electron-log/main';
                         fs.rmSync(this.config.workdirectory, { recursive: true });
                         fs.mkdirSync(this.config.workdirectory);
                     }
-                } catch (error) { console.error(error); }
+                } catch (error) { 
+                    WindowHandler.examwindow.webContents.send('fileerror', error)  
+                    log.error(`communicationhandler @ processUpdatedServerstatus: ${error} `)
+                }
             }
             if (studentstatus.restorefocusstate === true){
                 log.info("communicationhandler @ processUpdatedServerstatus: restoring focus state for student")

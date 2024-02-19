@@ -786,12 +786,12 @@ export default {
             this.loadFilelist() 
         });
         ipcRenderer.on('fileerror', (event, msg) => {
-            console.log('editor @ fileerror: writing file error received');
+            console.log('editor @ fileerror: writing/deleting file error received');
             this.$swal.fire({
                     title: "Error",
                     text: msg.message,
                     icon: "error",
-                    timer: 3000,
+                    //timer: 30000,
                     showCancelButton: false,
                     didOpen: () => { this.$swal.showLoading(); },
             })
