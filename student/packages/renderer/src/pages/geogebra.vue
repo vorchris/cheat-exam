@@ -11,64 +11,40 @@
  
  
  <template> 
-    <div id="apphead" class="ps-2  bg-dark">
-
-     
-        <div v-if="online" class="header-item">
-            <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style="float: left;" />
-            <span class="fs-5 align-middle me-1" style="float: left;">{{clientname}}</span>
-            <span class="fs-5 align-middle me-4 green" style="float: left;" >| {{$t('student.connected')}}</span> 
-        </div>
-        <div v-if="!online" class="header-item">
-            <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style=" float: left;" />
-            <span class="fs-5 align-middle me-1" style=" float: left;"> {{clientname}} </span>
-            <span class="fs-5 align-middle me-4 red" style="float: left;"> | {{ $t("student.disconnected") }} </span>  
-        </div>
 
 
-        <div v-if="!online && exammode" class="header-item btn btn-success me-1 btn-sm" @click="reconnect()"><img src="/src/assets/img/svg/gtk-convert.svg" class="" width="22" height="20"> {{ $t("editor.reconnect")}}</div>
-        <div v-if="!online && exammode" class="header-item btn btn-danger  me-1 btn-sm"  @click="gracefullyexit()"><img src="/src/assets/img/svg/dialog-cancel.svg" class="" width="22" height="20"> {{ $t("editor.unlock")}} </div>
-        
-        <div class="header-item btn-group me-2" role="group">
-            <div class="btn btn-outline-info btn-sm" @click="setsource('suite')"> suite</div>
-            <div class="btn btn-outline-info btn-sm" @click="setsource('classic')"> classic</div>
-        </div>
-        
-        <div class="header-item fs-5" v-if="servername" style="margin: auto auto;">{{servername}}|{{pincode}}</div>
-
-        <div class="header-item">
-            <div v-if="battery && battery.level" style="font-size: 0.8rem;"> {{ battery.level*100}}%  </div>
-            <div v-if="battery && battery.level" class="me-2">
-                <img v-if="battery && battery.level > 0.9" src="/src/assets/img/svg/battery-100.svg"  :title="battery.level*100+'%'" class="white" width="32" height="32" />
-                <img v-if="battery && battery.level > 0.8 && battery.level < 0.9 " src="/src/assets/img/svg/battery-090.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white" width="32" height="32" />
-                <img v-if="battery && battery.level > 0.7 && battery.level < 0.8 " src="/src/assets/img/svg/battery-080.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white" width="32" height="32" />
-                <img v-if="battery && battery.level > 0.6 && battery.level < 0.7 " src="/src/assets/img/svg/battery-070.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white" width="32" height="32" />
-                <img v-if="battery && battery.level > 0.5 && battery.level < 0.6 " src="/src/assets/img/svg/battery-060.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white" width="32" height="32" />
-                <img v-if="battery && battery.level > 0.4 && battery.level < 0.5 " src="/src/assets/img/svg/battery-050.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white" width="32" height="32" />
-                <img v-if="battery && battery.level > 0.3 && battery.level < 0.4 " src="/src/assets/img/svg/battery-040.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white" width="32" height="32" />
-                <img v-if="battery && battery.level > 0.2 && battery.level < 0.3 " src="/src/assets/img/svg/battery-030.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white" width="32" height="32" />
-                <img v-if="battery && battery.level > 0.1 && battery.level < 0.2 " src="/src/assets/img/svg/battery-020.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white" width="32" height="32" />
-                <img v-if="battery && battery.level < 0.1" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" src="/src/assets/img/svg/battery-010.svg" width="32" height="32" >
-            </div>
-            <div class="fs-5" style="width:90px;" :title="'Exam: '+timesinceentry" >{{currenttime}}</div>
-            <div class="fs-5" >GeoGebra</div>
-        </div>
+    <!-- HEADER START -->
+    <exam-header
+      :online="online"
+      :clientname="clientname"
+      :exammode="exammode"
+      :servername="servername"
+      :pincode="pincode"
+      :battery="battery"
+      :currenttime="currenttime"
+      :timesinceentry="timesinceentry"
+      :componentName="componentName"
+      @reconnect="reconnect"
+      @gracefullyexit="gracefullyexit"
+    ></exam-header>
+     <!-- HEADER END -->
 
 
-
-    </div>
 
 
     <!-- filelist start - show local files from workfolder (pdf and gbb only)-->
     <div id="toolbar" class="d-inline p-1 pb-0">  
-        <button title="backup" @click="saveContent(true); " class="btn  d-inline btn-success p-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/document-save.svg" class="white" width="22" height="22" ></button>
-        <button title="delete" @click="clearAll(); " class="btn  d-inline btn-danger p-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-delete.svg" class="white" width="22" height="22" ></button>
-        <button title="paste" @click="showClipboard(); " class="btn  d-inline btn-secondary p-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-paste-style.svg" class="white" width="22" height="22" ></button>
-
+        <button title="backup" @click="saveContent(true); " class="btn  d-inline btn-success p-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/document-save.svg" class="white" width="20" height="20" ></button>
+        <button title="delete" @click="clearAll(); " class="btn  d-inline btn-danger p-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-delete.svg" class="white" width="20" height="20" ></button>
+        <button title="paste" @click="showClipboard(); " class="btn  d-inline btn-secondary p-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-paste-style.svg" class="white" width="20" height="20" ></button>
+        <div class="btn-group  ms-2 " role="group">
+            <div class="btn btn-outline-info btn-sm  mb-1" @click="setsource('suite')"> <img src="/src/assets/img/svg/formula.svg" class="" width="20" height="20" >suite</div>
+            <div class="btn btn-outline-info btn-sm  mb-1" @click="setsource('classic')"> <img src="/src/assets/img/svg/formula.svg" class="" width="20" height="20" >classic</div>
+        </div>
         
         <div v-for="file in localfiles" class="d-inline">
-            <div v-if="(file.type == 'pdf')" class="btn btn-secondary ms-2 mb-1 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file.name}} </div>
-            <div v-if="(file.type == 'ggb')" class="btn btn-info ms-2 mb-1  btn-sm" @click="selectedFile=file.name; loadGGB(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file.name}} </div>
+            <div v-if="(file.type == 'pdf')" class="btn btn-secondary ms-2 mb-1 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="20" height="20" > {{file.name}} </div>
+            <div v-if="(file.type == 'ggb')" class="btn btn-info ms-2 mb-1  btn-sm" @click="selectedFile=file.name; loadGGB(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="20" height="20" > {{file.name}} </div>
         </div>
     </div>
     <!-- filelist end -->
@@ -111,10 +87,12 @@
 <script>
 
 import moment from 'moment-timezone';
+import ExamHeader from '../components/ExamHeader.vue';
 
 export default {
     data() {
         return {
+            componentName: 'GeoGebra',
             online: true,
             focus: true,
             exammode: false,
@@ -144,7 +122,7 @@ export default {
             isClipboardVisible: false
         }
     }, 
-    components: {  },  
+    components: { ExamHeader  },  
     mounted() {
 
         this.redefineConsole()  // overwrite console log to grep specific outputs and store as clipboard entry
