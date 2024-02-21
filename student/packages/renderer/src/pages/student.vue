@@ -122,6 +122,7 @@ export default {
             pincode: config.development ? "1337":"",
             clientinfo: {},
             serverlist: [],
+            serverlistAdvanced: [],
             fetchinterval: null,
             serverApiPort: this.$route.params.serverApiPort,
             clientApiPort: this.$route.params.clientApiPort,
@@ -177,24 +178,50 @@ export default {
             this.clientinfo = getinfo.clientinfo;
             this.token = this.clientinfo.token;
 
-            if (getinfo.serverlist.length  === 0) {
+
+
+            if (this.advanced) {
                 if (validator.isIP(this.serverip) || validator.isFQDN(this.serverip)){
-                        //console.log("student.vue: fetching exams from server")
-                        //give some userfeedback here
-                        if (this.serverlist.length == 0){
-                            this.status("Suche Prüfungen...")
-                        }
-                    
-                        axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/serverlist`)
-                        .then( response => { if (response.data && response.data.status == "success") {  this.serverlist = response.data.serverlist} }) 
-                        .catch(err => { 
-                            log.error(`student.vue: ${err.message}`); 
-                            this.networkerror = true
-                        }) 
+                    //give some userfeedback here
+                    if (this.serverlist.length == 0){
+                        this.status("Suche Prüfungen...")
+                    }
+                
+                    axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/serverlist`)
+                    .then( response => { 
+                        if (response.data && response.data.status == "success") {  
+                            
+                            this.serverlistAdvanced = response.data.serverlist
+                        } 
+                    }) 
+                    .catch(err => { 
+                        log.error(`student.vue @ fetchInfo: ${err.message}`); 
+                        this.networkerror = true
+                    }) 
                 }
-                else { this.serverlist = getinfo.serverlist;  }
             }
-            else { this.serverlist = getinfo.serverlist;   }
+
+
+            if (getinfo.serverlist.length  !== 0 ) {
+                this.serverlist = getinfo.serverlist; 
+                if (this.serverlistAdvanced.length !== 0){
+                    this.serverlist = [...this.serverlist, ...this.serverlistAdvanced];
+            
+                    this.serverlist = this.serverlist.reduce((unique, server) => {
+                        if (!unique.some(u => u.serverip === server.serverip && u.servername === server.servername)) {  // Prüfen, ob der Server bereits im Array basierend auf serverip und servername existiert
+                            unique.push(server); // Fügt den Server hinzu, wenn er nicht existiert
+                        }
+                        return unique;
+                    }, []);
+                } 
+            }
+          
+
+
+
+
+
+
 
             // check im networkconnection is still alive - otherwise exit here
             this.hostip = ipcRenderer.sendSync('checkhostip')

@@ -666,6 +666,9 @@ class WindowHandler {
                     app.quit()
                 }
             }
+            if (this.config.development){
+                app.quit() 
+            }
         });
 
         this.mainwindow.once('ready-to-show', () => {
