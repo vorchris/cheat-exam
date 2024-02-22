@@ -412,7 +412,7 @@ async function concatPages(pdfsToMerge) {
                     try {
                         if (!fs.existsSync(studentdirectory)){ fs.mkdirSync(studentdirectory, { recursive: true });  }
                         if (!fs.existsSync(studentarchivedir)){ fs.mkdirSync(studentarchivedir, { recursive: true }); }
-                    }catch (e) {log.error(e)}
+                    }catch (err) {log.error("data @ receive: ",err)}
             
 
                     // extract zip file to archive
@@ -423,7 +423,7 @@ async function concatPages(pdfsToMerge) {
                                 fs.unlink(absoluteFilepath, (err) => { if (err) log.error(err); }); // remove zip file after extracting
                                 log.info("data @ receive: ZIP file received!")
                                 res.json({ status:"success", sender: "server", message:t("data.filereceived"), errors: errors  })
-                            }).catch( err => log.error(err))
+                            }).catch( err => log.error("data @ receive: ",err))
                         }                     
                     });
                 }

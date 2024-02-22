@@ -138,13 +138,13 @@ import log from 'electron-log/main';
                 headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
             })
             .then( response => {
-                if (response.data && response.data.status === "error") { log.error("requestUpdate Axios: status error - try again in 5 seconds") }
+                if (response.data && response.data.status === "error") { log.error("communicationhandler @ requestUpdate: status error - try again in 5 seconds") }
                 else if (response.data && response.data.status === "success") { 
                     this.multicastClient.beaconsLost = 0 // this also counts as successful heartbeat - keep connection
                     this.processUpdatedServerstatus(response.data.serverstatus, response.data.studentstatus)
                 }
             })
-            .catch(error => { log.error(`requestUpdate Axios: ${error}`); log.error("requestUpdate Axios: failed - try again in 5 seconds")});
+            .catch(error => { log.error(`communicationhandler @ requestUpdate: ${error}`); log.error("communicationhandler @ requestUpdate: failed - try again in 5 seconds")});
         }
     }
 
@@ -175,7 +175,7 @@ import log from 'electron-log/main';
                         const imageBuffer = image.toPNG();// Convert the nativeImage to a Buffer (PNG format)
                         return imageBuffer
                       })
-                    .catch((err) => {log.error(`requestUpdate Screenshot: ${err}`)   });
+                    .catch((err) => {log.error(`communicationhandler @ sendScreenshot: ${err}`)   });
                 }
             }
 
