@@ -721,7 +721,7 @@ router.post('/updatescreenshot', function (req, res, next) {
         if (hash === req.body.screenshothash) {
             student.imageurl = 'data:image/png;base64,' + file.data.toString('base64') //prepare file data buffer for direct use as css background
             if (!student.focus){  // archive screenshot if student out of focus for investigation
-                log.info("Server Control: Student out of focus - securing screenshots")
+                log.info("control @ updatescreenshot: Student out of focus - securing screenshots")
                 let time = new Date(new Date().getTime()).toISOString().substr(11, 8);
                 let filepath =path.join(config.workdirectory, mcServer.serverinfo.servername, student.clientname, "focuslost");
                 let absoluteFilename = path.join(filepath,`${time}-${file.name}`)

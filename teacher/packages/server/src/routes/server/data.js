@@ -86,7 +86,7 @@ import log from 'electron-log/main';
             studentfolders.push({ path: filepath, name : file })
         }
     }, []);
-    log.info(studentfolders)
+    log.info(`data @ getlatest: `,studentfolders)
 
     // get latest directory of every student (add to array)
     let latestfolders = []
@@ -111,7 +111,7 @@ import log from 'electron-log/main';
         const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
         if (now - latest.time > fiveMinutes) {
             warning = true
-            log.info('The file is older than 5 minutes.');
+            log.info(`data @ getlatest: The file is older than 5 minutes: ${path.join(studentdir.path, latest.path)}`);
         } 
   
 
@@ -145,11 +145,11 @@ import log from 'electron-log/main';
         try {
             fs.writeFile(pdfPath, pdfBuffer, (err) => {
                 if (err) throw err;
-                console.log('PDF saved successfully!');
+                log.info('data @ getlatest: PDF saved successfully!');
             });
 
         }
-        catch(err){log.error("data.js:",err)}
+        catch(err){log.error("data @ getlatest:",err)}
   
 
         return res.json({warning: warning, pdfBuffer:pdfBuffer, pdfPath:pdfPath });
@@ -402,7 +402,7 @@ async function concatPages(pdfsToMerge) {
                 let absoluteFilepath = path.join(config.workdirectory, mcServer.serverinfo.servername, file.name);
                 if (file.name.includes(".zip")){  //ABGABE as ZIP
 
-                    log.info("Server: Receiving File(s)...")
+                    log.info("data @ receive: Receiving File(s)...")
 
                     let studentdirectory =  path.join(config.workdirectory, mcServer.serverinfo.servername, student.clientname)
                     let tstring = String(time).replace(/:/g, "_");
@@ -421,7 +421,7 @@ async function concatPages(pdfsToMerge) {
                         else {
                             extract(absoluteFilepath, { dir: studentarchivedir }).then( () => {
                                 fs.unlink(absoluteFilepath, (err) => { if (err) log.error(err); }); // remove zip file after extracting
-                                log.info("ZIP file received!")
+                                log.info("data @ receive: ZIP file received!")
                                 res.json({ status:"success", sender: "server", message:t("data.filereceived"), errors: errors  })
                             }).catch( err => log.error(err))
                         }                     
@@ -431,7 +431,7 @@ async function concatPages(pdfsToMerge) {
                     file.mv(absoluteFilepath, (err) => {  
                         if (err) { errors++; log.error( t("data.couldnotstore") ) }
                         else {
-                            log.info("Single file received")
+                            log.info("data @ receive: Single file received")
                             res.json({ status:"success", sender: "server", message:t("data.filereceived"), errors: errors  })
                         }
                     });
@@ -519,7 +519,7 @@ export default router
  */
 function checkToken(token, mcserver){
     let tokenexists = false
-    log.info("checking if student is registered on this server")
+    log.info("data @ checkToken: checking if student is registered on this server")
     try {
         mcserver.studentList.forEach( (student) => {
             if (token === student.token) {

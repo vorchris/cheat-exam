@@ -109,8 +109,9 @@ function loadPDF(filepath, filename){
     fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getpdf/${this.servername}/${this.servertoken}`, { method: 'POST', body: form })
     .then( response => response.arrayBuffer())
     .then( data => {
-        let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
-        this.currentpreview = url   //needed for preview buttons
+        URL.revokeObjectURL(this.currentpreview);  //speicher freigeben
+
+        this.currentpreview = URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
         this.currentpreviewname = filename   //needed for preview buttons
         this.currentpreviewPath = filepath
   
@@ -119,7 +120,7 @@ function loadPDF(filepath, filename){
         pdfEmbed.style.height = "96vh";
         pdfEmbed.style.marginTop = "-48vh";
 
-        document.querySelector("#pdfembed").setAttribute("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`);
+        document.querySelector("#pdfembed").setAttribute("src", `${this.currentpreview}#toolbar=0&navpanes=0&scrollbar=0`);
         document.querySelector("#pdfpreview").style.display = 'block';
 
     }).catch(err => { log.error(err)});     
@@ -161,7 +162,7 @@ async function getLatest(){
     .then( response => response.json() )
     .then( async(responseObj) => {
         if (!responseObj.pdfBuffer ){
-            log.info("nothing found")
+            log.info("filemanager @ getLatest: latest work not found")
             this.visualfeedback(this.$t("dashboard.nopdf"))
             return
         }
@@ -172,15 +173,28 @@ async function getLatest(){
             this.visualfeedback(this.$t("dashboard.oldpdfwarning",2000))
             await sleep(2000)
         }
-        let url =  URL.createObjectURL(new Blob([pdfBuffer], {type: "application/pdf"})) 
-        this.currentpreview = url   //needed for preview buttons
+
+        URL.revokeObjectURL(this.currentpreview);  //speicher freigeben
+        this.currentpreview = URL.createObjectURL(new Blob([pdfBuffer], {type: "application/pdf"})) 
         this.currentpreviewname = "combined"   //needed for preview buttons
         
         this.currentpreviewPath = responseObj.pdfPath  //getlatest also saves the file as combined.pdf and attaches the current path
-        document.querySelector("#pdfembed").setAttribute("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`);
+        document.querySelector("#pdfembed").setAttribute("src", `${this.currentpreview}#toolbar=0&navpanes=0&scrollbar=0`);
         document.querySelector("#pdfpreview").style.display = 'block';
     }).catch(err => { log.error(err)});
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
