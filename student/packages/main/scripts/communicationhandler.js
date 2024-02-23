@@ -211,9 +211,9 @@ import log from 'electron-log/main';
                 headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
             })
             .then( response => {
-                if (response.data && response.data.status === "error") { log.error("sendScreenshot Axios: status error",  response.data.message ) }
+                if (response.data && response.data.status === "error") { log.error("communicationhandler @ sendScreenshot: status error",  response.data.message ) }
             })
-            .catch(error => { log.error(`sendScreenshot Axios: ${error}`); });
+            .catch(error => { log.error(`communicationhandler @ sendScreenshot: ${error}`); });
         }
     }
 

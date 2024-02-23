@@ -870,7 +870,7 @@ export default {
             this.fetchInfo()
             this.initializeStudentwidgets()
             this.fetchinterval = setInterval(() => { this.fetchInfo() }, 4000)
-            this.abgabeinterval = setInterval(() => { this.getFiles('all') }, 60000 * 6) //trigger getFiles('all') every 6 minutes
+            this.abgabeinterval = setInterval(() => { this.getFiles('all') }, 60000 * this.abgabeintervalPause) //trigger getFiles('all') every 6 minutes
 
             // Add event listener to #closefilebrowser  (only once - do not accumulate event listeners)
             document.querySelector("#closefilebrowser").addEventListener("click", function() { document.querySelector("#preview").style.display = "none"; });

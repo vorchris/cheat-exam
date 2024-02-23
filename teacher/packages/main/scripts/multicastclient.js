@@ -61,7 +61,7 @@ class MulticastClient {
         serverInfo.serverport = rinfo.port
         
         if (this.isNewExamInstance(serverInfo)) {
-            log.info(`Adding new Exam Instance "${serverInfo.servername}" to Serverlist`)
+            log.info(`multicastclient @ messageReceived: Adding new Exam Instance "${serverInfo.servername}" to Serverlist`)
             this.examServerList.push(serverInfo)
         }
     }

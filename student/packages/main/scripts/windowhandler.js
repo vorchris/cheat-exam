@@ -582,7 +582,7 @@ class WindowHandler {
                 this.examwindow.focus()
                 this.addBlurListener()
             }
-             this.addBlurListener() // just for dev purposes in order to test blur
+             // this.addBlurListener() // just for dev purposes in order to test blur
         })
 
         this.examwindow.on('close', async  (e) => {   // window should not be closed manually.. ever! but if you do make sure to clean examwindow variable and end exam for the client
@@ -776,13 +776,13 @@ class WindowHandler {
     //adds blur listener when entering exammode
     addBlurListener(window = "examwindow"){
         log.info("windowhandler @ addBlurListener: adding blur listener")
-        log.info(window)
+        
         if (window === "examwindow"){ 
-            log.info(`Setting Blur Event for ${window}`)
+            log.info(`windowhandler @ addBlurListener: Setting Blur Event for ${window}`)
             this.examwindow.addListener('blur', () => this.blurevent(this)) 
         }
         else if (window === "screenlock") {
-            log.info(`Setting Blur Event for ${window}window`)
+            log.info(`windowhandler @ addBlurListener: Setting Blur Event for ${window}window`)
             for (let screenlockwindow of this.screenlockwindows){
                 screenlockwindow.addListener('blur', () => this.blureventScreenlock(this))   
             }

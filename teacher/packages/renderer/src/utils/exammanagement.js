@@ -5,6 +5,11 @@ import log from 'electron-log/renderer';
 
 // enable exam mode 
 function startExam(){
+ 
+    setTimeout(() => {
+        this.getFiles('all'); //  trigger this one immediately to figure out if there are write problems on student pcs 
+    }, 4000); 
+
     this.lockscreens(false, false); // deactivate lockscreen
     this.serverstatus.exammode = true;
     log.info("starting exammode")
