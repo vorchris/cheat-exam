@@ -201,10 +201,9 @@ export default {
                 }
             }
 
-
             if (getinfo.serverlist.length  !== 0 ) {
                 this.serverlist = getinfo.serverlist; 
-                if (this.serverlistAdvanced.length !== 0){
+                if (this.serverlistAdvanced.length !== 0){  // add servers coming from direct ip polling
                     this.serverlist = [...this.serverlist, ...this.serverlistAdvanced];
             
                     this.serverlist = this.serverlist.reduce((unique, server) => {
@@ -215,21 +214,22 @@ export default {
                     }, []);
                 } 
             }
+            else {  // sometimes explicit is easier to read (no servers incoming via multicast)
+                if (this.serverlistAdvanced.length !== 0){ this.serverlist = this.serverlistAdvanced }  // one server coming via direct ip polling
+                else { this.serverlist = [] }  // no servers found
+            }
+
+
+
           
-
-
-
-
-
-
 
             // check im networkconnection is still alive - otherwise exit here
             this.hostip = ipcRenderer.sendSync('checkhostip')
             if (!this.hostip) return;  
             for (let server of this.serverlist){ 
-                    axios({method:'get',url:`https://${server.serverip}:${this.serverApiPort}/server/control/pong`, timeout:2000})
-                    .then( response => { server.reachable=true }) 
-                    .catch(err => { console.log(err.message);server.reachable=false  }) 
+                axios({method:'get',url:`https://${server.serverip}:${this.serverApiPort}/server/control/pong`, timeout:2000})
+                .then( response => { server.reachable=true }) 
+                .catch(err => { console.log(err.message);server.reachable=false  }) 
             }
         },  
         
