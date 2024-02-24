@@ -391,16 +391,21 @@ async function concatPages(pdfsToMerge) {
     const servername = req.params.servername
     const mcServer = config.examServerList[servername] // get the multicastserver object
   
+    const { file, filename } = req.body;
+
+    const fileContent = Buffer.from(file, 'base64');
+
     if ( !checkToken(studenttoken, mcServer ) ) { res.json({ status: t("data.tokennotvalid") }) }
     else {
         let errors = 0
         let time = new Date(new Date().getTime()).toLocaleTimeString();  //convert to locale string otherwise the foldernames will be created in UTC
         let student = mcServer.studentList.find(element => element.token === studenttoken) // get student from token
-        
-        if (req.files){
-            for (const [key, file] of Object.entries( req.files)) {
-                let absoluteFilepath = path.join(config.workdirectory, mcServer.serverinfo.servername, file.name);
-                if (file.name.includes(".zip")){  //ABGABE as ZIP
+        console.log(req.files)
+       
+        if (file){
+           
+                let absoluteFilepath = path.join(config.workdirectory, mcServer.serverinfo.servername, filename);
+                if (filename.includes(".zip")){  //ABGABE as ZIP
 
                     log.info("data @ receive: Receiving File(s)...")
 
@@ -416,7 +421,8 @@ async function concatPages(pdfsToMerge) {
             
 
                     // extract zip file to archive
-                    file.mv(absoluteFilepath, (err) => {  
+               
+                    fs.writeFile(absoluteFilepath, fileContent, (err) => {
                         if (err) { errors++; log.error( t("data.couldnotstore") ) }
                         else {
                             extract(absoluteFilepath, { dir: studentarchivedir }).then( () => {
@@ -428,16 +434,18 @@ async function concatPages(pdfsToMerge) {
                     });
                 }
                 else { // this is another file (most likely a screenshot as we do not yet transfer other files)
-                    file.mv(absoluteFilepath, (err) => {  
+             
+                    fs.writeFile(absoluteFilepath, fileContent, (err) => {
                         if (err) { errors++; log.error( t("data.couldnotstore") ) }
                         else {
                             log.info("data @ receive: Single file received")
                             res.json({ status:"success", sender: "server", message:t("data.filereceived"), errors: errors  })
                         }
                     });
+
                     
                 }
-            }
+            
            
         }
         else {

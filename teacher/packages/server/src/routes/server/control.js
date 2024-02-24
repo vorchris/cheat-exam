@@ -704,7 +704,7 @@ router.post('/setstudentstatus/:servername/:csrfservertoken/:studenttoken', func
  * @param token the students token to search and update the screenshot
  */
 router.post('/updatescreenshot', function (req, res, next) {
-    const clientinfo = JSON.parse(req.body.clientinfo)
+    const clientinfo = req.body.clientinfo
     const studenttoken = clientinfo.token
     const servername = clientinfo.servername
 
@@ -714,31 +714,64 @@ router.post('/updatescreenshot', function (req, res, next) {
     let student = mcServer.studentList.find(element => element.token === studenttoken)
     if ( !student ) {return res.send({ sender: "server", message:"removed", status: "error" }) } //check if the student is registered on this server
   
-    if ( req.files ) {
-        // save the freshly delivered screenshot
-        const file = req.files[req.body.screenshotfilename]
-        let hash = crypto.createHash('md5').update(file.data).digest("hex");
+
+
+    if (req.body.screenshot && req.body.screenshothash) {
+        const screenshotBase64 = req.body.screenshot;   // Der Base64-String muss nicht konvertiert werden, er kann direkt verwendet werden
+        let hash = crypto.createHash('md5').update(Buffer.from(screenshotBase64, 'base64')).digest("hex");  // Berechnen des MD5-Hashs des Base64-Strings
         if (hash === req.body.screenshothash) {
-            student.imageurl = 'data:image/png;base64,' + file.data.toString('base64') //prepare file data buffer for direct use as css background
-            if (!student.focus){  // archive screenshot if student out of focus for investigation
-                log.info("control @ updatescreenshot: Student out of focus - securing screenshots")
-                let time = new Date(new Date().getTime()).toISOString().substr(11, 8);
-                let tstring = String(time).replace(/:/g, "_");
-                let filepath =path.join(config.workdirectory, mcServer.serverinfo.servername, student.clientname, "focuslost");
-                let absoluteFilename = path.join(filepath,`${tstring}-${file.name}`)
+            student.imageurl = 'data:image/jpeg;base64,' + screenshotBase64; // oder 'data:image/png;base64,' je nach tatsächlichem Bildformat  
+            
+            if (!student.focus) { // Archiviere Screenshot, wenn Student nicht fokussiert ist
+                log.info("control @ updatescreenshot: Student out of focus - securing screenshots");
+                let time = new Date().toISOString().substr(11, 8).replace(/:/g, "_");
+                let filepath = path.join(config.workdirectory, mcServer.serverinfo.servername, student.clientname, "focuslost");
+                let absoluteFilename = path.join(filepath, `${time}-${req.body.screenshotfilename}`);
+            
                 try {
-                    if (!fs.existsSync(filepath)){ fs.mkdirSync(filepath, { recursive: true } ); }
-                    file.mv(absoluteFilename, (err) => {  if (err) {  log.error(err)  } });
-                }
-                catch (err) {log.error(err)}
+                    if (!fs.existsSync(filepath)) {fs.mkdirSync(filepath, { recursive: true }); }
+                    let screenshotBuffer = Buffer.from(req.body.screenshot, 'base64');    // Konvertieren des Base64-Strings in einen Buffer und Speichern der Datei
+                    fs.writeFile(absoluteFilename, screenshotBuffer, err => {
+                        if (err) { log.error(err); }
+                    });
+                } catch (err) { log.error(err); }
             }
+        } else {
+            log.error('control @ updatescreenshot: Hash mismatch, screenshot possibly corrupted');
         }
-        else { log.error("md5hash missmatch - do not update file")}
-    }
-    else {
-        //log.error("no screenshot received - probably missing image library (imagemagick)")
+    } else {
+        log.warn('control @ updatescreenshot: Screenshot or hash not provided');
         student.imageurl = "person-lines-fill.svg"
     }
+
+
+
+
+    // if ( req.files ) {
+    //     // save the freshly delivered screenshot
+    //     const file = req.files[req.body.screenshotfilename]
+    //     let hash = crypto.createHash('md5').update(file.data).digest("hex");
+    //     if (hash === req.body.screenshothash) {
+    //         student.imageurl = 'data:image/png;base64,' + file.data.toString('base64') //prepare file data buffer for direct use as css background
+    //         if (!student.focus){  // archive screenshot if student out of focus for investigation
+    //             log.info("control @ updatescreenshot: Student out of focus - securing screenshots")
+    //             let time = new Date(new Date().getTime()).toISOString().substr(11, 8);
+    //             let tstring = String(time).replace(/:/g, "_");
+    //             let filepath =path.join(config.workdirectory, mcServer.serverinfo.servername, student.clientname, "focuslost");
+    //             let absoluteFilename = path.join(filepath,`${tstring}-${file.name}`)
+    //             try {
+    //                 if (!fs.existsSync(filepath)){ fs.mkdirSync(filepath, { recursive: true } ); }
+    //                 file.mv(absoluteFilename, (err) => {  if (err) {  log.error(err)  } });
+    //             }
+    //             catch (err) {log.error(err)}
+    //         }
+    //     }
+    //     else { log.error("md5hash missmatch - do not update file")}
+    // }
+    // else {
+    //     //log.error("no screenshot received - probably missing image library (imagemagick)")
+    //     student.imageurl = "person-lines-fill.svg"
+    // }
     res.send({sender: "server", message:t("control.studentupdate"), status:"success" })
 })
 

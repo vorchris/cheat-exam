@@ -89,15 +89,16 @@ fsExtra.copy(publicPath, `${config.tempdirectory}/`, function (err) {
 
 // init express API
 const api = express()
-api.use(zip())
-api.use(fileUpload())  //When you upload a file, the file will be accessible from req.files (init before routes)
-api.use(cors())
-api.use(express.json())
-api.use("/static",express.static(config.tempdirectory));
+api.use(fileUpload({ limits: { fileSize: 50 * 1024 * 1024 }, }))  //When you upload a file, the file will be accessible from req.files (init before routes)
+api.use(express.json({ limit: '50mb' }))
 api.use(express.urlencoded({extended: true}));
-//api.use(limiter)  //disabled for now because this need a lot of testing to find good parameter
-api.use('/server', serverRouter)
+api.use(zip())
+api.use(cors())
+api.use("/static",express.static(config.tempdirectory));
 api.use(cookieParser());
+
+api.use('/server', serverRouter)
+//api.use(limiter)  //disabled for now because this need a lot of testing to find good parameters
 
 
 let certs = createCACert()  // we can not use self signed certs for web (fallback to let's encrypt!)

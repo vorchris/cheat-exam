@@ -582,7 +582,9 @@ class WindowHandler {
                 this.examwindow.focus()
                 this.addBlurListener()
             }
-             // this.addBlurListener() // just for dev purposes in order to test blur
+            
+            // this.addBlurListener() // just for dev purposes in order to test blur
+
         })
 
         this.examwindow.on('close', async  (e) => {   // window should not be closed manually.. ever! but if you do make sure to clean examwindow variable and end exam for the client

@@ -33,7 +33,6 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
 import log from 'electron-log/main';
 
 
-
  /**
   * Handles information fetching from the server and acts on status updates
   */
@@ -99,17 +98,17 @@ import log from 'electron-log/main';
 
         // ACTIVE SERVER CONNECTION - SEND HEARTBEAT
         if (this.multicastClient.clientinfo.serverip) { 
-            axios({
-                method: "post", 
-                url: `https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/heartbeat/${this.multicastClient.clientinfo.servername}/${this.multicastClient.clientinfo.token}`, 
-                headers: {'Content-Type': 'application/json' }
-            }).then( response => {
-                if (response.data && response.data.status === "error") { 
-                     if      (response.data.message === "notavailable"){ log.warn('communicationhandler @ sendHeartbeat: Exam Instance not found!');        this.multicastClient.beaconsLost = 5} //server responded but exam is not available anymore 
-                     else if (response.data.message === "removed"){      log.warn('communicationhandler @ sendHeartbeat: Student registration not found!'); this.multicastClient.beaconsLost = 5} //server responded but student is no registered anymore (kicked)
-                     else { this.multicastClient.beaconsLost += 1;       log.warn("communicationhandler @ sendHeartbeat: heartbeat lost..") }  // other error
+            fetch(`https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/heartbeat/${this.multicastClient.clientinfo.servername}/${this.multicastClient.clientinfo.token}`, {
+                method: "POST"
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.status === "error") { 
+                    if      (data.message === "notavailable"){ log.warn('communicationhandler @ sendHeartbeat: Exam Instance not found!');        this.multicastClient.beaconsLost = 5} 
+                    else if (data.message === "removed"){      log.warn('communicationhandler @ sendHeartbeat: Student registration not found!'); this.multicastClient.beaconsLost = 5} 
+                    else { this.multicastClient.beaconsLost += 1;       log.warn("communicationhandler @ sendHeartbeat: heartbeat lost..") } 
                 }
-                else if (response.data && response.data.status === "success") {  this.multicastClient.beaconsLost = 0  }
+                else if (data && data.status === "success") {  this.multicastClient.beaconsLost = 0  }
             })
             .catch(error => { log.error(`communicationhandler @ sendHeartbeat: ${error}`); this.multicastClient.beaconsLost += 1; });
         }
@@ -125,26 +124,38 @@ import log from 'electron-log/main';
      */
     async requestUpdate(){
         if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip
-            const formData = new FormData()  //create formdata
-            formData.append('clientinfo', JSON.stringify(this.multicastClient.clientinfo) );   //we send the complete clientinfo object
+            const clientInfo = JSON.stringify(this.multicastClient.clientinfo);
 
-            //some things should only be sent once - so the moment  we added clientinfo to formData we can reset some variables we only want to send once to the teacher
-            this.multicastClient.clientinfo.printrequest = false  //low priority request - always deactivate after sending once to avoid triggering it twice
-
-            axios({    //send update and fetch server status
-                method: "post", 
-                url: `https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/update`, 
-                data: formData, 
-                headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
+            fetch(`https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/update`, {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ clientinfo: clientInfo }),
             })
-            .then( response => {
-                if (response.data && response.data.status === "error") { log.error("communicationhandler @ requestUpdate: status error - try again in 5 seconds") }
-                else if (response.data && response.data.status === "success") { 
-                    this.multicastClient.beaconsLost = 0 // this also counts as successful heartbeat - keep connection
-                    this.processUpdatedServerstatus(response.data.serverstatus, response.data.studentstatus)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === "error") {
+                    log.error("communicationhandler @ requestUpdate: status error - try again in 5 seconds");
+                } else if (data.status === "success") {
+                    this.multicastClient.beaconsLost = 0; // Dies zählt ebenfalls als erfolgreicher Heartbeat - Verbindung halten
+                    
+                    // Verarbeitung der empfangenen Daten
+                    const serverStatusDeepCopy = JSON.parse(JSON.stringify(data.serverstatus));
+                    const studentStatusDeepCopy = JSON.parse(JSON.stringify(data.studentstatus));
+
+                    this.processUpdatedServerstatus(serverStatusDeepCopy, studentStatusDeepCopy);
                 }
             })
-            .catch(error => { log.error(`communicationhandler @ requestUpdate: ${error}`); log.error("communicationhandler @ requestUpdate: failed - try again in 5 seconds")});
+            .catch(error => {
+                log.error(`communicationhandler @ requestUpdate: ${error}`);
+                log.error("communicationhandler @ requestUpdate: failed - try again in 5 seconds");
+            });
         }
     }
 
@@ -155,13 +166,8 @@ import log from 'electron-log/main';
      */
     async sendScreenshot(){
         if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip
-    
             let img = null
-            const formData = new FormData()  //create formdata
-            formData.append('clientinfo', JSON.stringify(this.multicastClient.clientinfo) );   //we send the complete clientinfo object
-
-            //Add screenshot to formData - "imagemagick" has to be installed for linux - wayland is not (yet) supported by imagemagick !!
-            if (this.screenshotAbility){
+            if (this.screenshotAbility){   // "imagemagick" has to be installed for linux - wayland is not (yet) supported by imagemagick !!
                 img = await screenshot()   //grab "screenshot" with screenshot node module
                 .then( (res) => { this.screenshotFails=0; return res} )
                 .catch((err) => { this.screenshotFails+=1; if(this.screenshotFails > 4){ this.screenshotAbility=false;log.error(`requestUpdate Screenshot: switching to PageCapture`) } log.error(`requestUpdate Screenshot: ${err}`) });
@@ -179,41 +185,49 @@ import log from 'electron-log/main';
                 }
             }
 
-            if (Buffer.isBuffer(img)){
-
-                let resized = null
+            if (Buffer.isBuffer(img)) {
                 try {
-                    resized = await sharp(img)
-                        .resize(1440) // Setzen Sie die gewünschte Breite; die Höhe wird proportional skaliert
+                    const resized = await sharp(img)
+                        .resize(1440) // Gewünschte Breite setzen; Höhe wird proportional skaliert
                         .toFormat('jpeg')
-                        .jpeg({ quality: 65, mozjpeg: true }) // Setzen Sie die gewünschte JPEG-Qualität
+                        .jpeg({ quality: 65, mozjpeg: true }) // Gewünschte JPEG-Qualität setzen
                         .toBuffer();
+                    
+                    const screenshotBase64 = resized.toString('base64');
+                    const screenshotfilename = this.multicastClient.clientinfo.token + ".jpg";
+                    const hash = crypto.createHash('md5').update(resized).digest("hex");
+                    
+                    const payload = {
+                        clientinfo: {...this.multicastClient.clientinfo},
+                        screenshot: screenshotBase64,
+                        screenshothash: hash,
+                        screenshotfilename: screenshotfilename
+                    };
+                    
+                    fetch(`https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/updatescreenshot`, {
+                        method: "POST",
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload),
+                    })
+                    .then(response => {
+                        if (!response.ok) { throw new Error('Network response was not ok');  }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data && data.status === "error") { log.error("communicationhandler @ sendScreenshot: status error", data.message); }
+                    })
+                    .catch(error => {
+                        log.error(`communicationhandler @ sendScreenshot: ${error}`);
+                    });
                 } catch (error) {
-                    console.error('Fehler beim Reduzieren des Bildes:', error);
-                    throw error; // Weitergabe des Fehlers für weitere Fehlerbehandlung
+                    console.error('Error resizing image:', error);
+                    throw error; // Fehler weitergeben für weitere Fehlerbehandlung
                 }
-
-
-                    let screenshotfilename = this.multicastClient.clientinfo.token +".jpg"
-                    formData.append(screenshotfilename, resized, screenshotfilename );
-                    let hash = crypto.createHash('md5').update(resized).digest("hex");
-                    formData.append('screenshothash', hash);
-                    formData.append('screenshotfilename', screenshotfilename);
-              
-              
+            } else {
+                log.error("Image is not a buffer:", img);
             }
-            else { log.error("Image is no buffer:", img) }
-
-            axios({    //send screenshot update
-                method: "post", 
-                url: `https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/updatescreenshot`, 
-                data: formData, 
-                headers: { 'Content-Type': `multipart/form-data; boundary=${formData._boundary}` }  
-            })
-            .then( response => {
-                if (response.data && response.data.status === "error") { log.error("communicationhandler @ sendScreenshot: status error",  response.data.message ) }
-            })
-            .catch(error => { log.error(`communicationhandler @ sendScreenshot: ${error}`); });
         }
     }
 
@@ -264,7 +278,7 @@ import log from 'electron-log/main';
             }
             if (studentstatus.allowspellcheck && studentstatus.allowspellcheck !== "deactivate"){
                 log.info("communicationhandler @ processUpdatedServerstatus: activating spellcheck for student")
-                this.multicastClient.clientinfo.allowspellcheck = studentstatus.allowspellcheck  // object with {spellchecklang, suggestions}
+                this.multicastClient.clientinfo.allowspellcheck = {...studentstatus.allowspellcheck}  // object with {spellchecklang, suggestions}  (flat copy)
             }
             if (studentstatus.allowspellcheck === "deactivate") {
                 log.info("communicationhandler @ processUpdatedServerstatus: de-activating spellcheck for student")
@@ -280,7 +294,8 @@ import log from 'electron-log/main';
             // this is an microsoft365 thing. check if exam mode is office, check if this is set - otherwise do not enter exammode - it will fail
             if (studentstatus.msofficeshare){
                 //set or update sharing link - it will be used in "microsoft365" exam mode
-                this.multicastClient.clientinfo.msofficeshare = studentstatus.msofficeshare
+               
+                this.multicastClient.clientinfo.msofficeshare = studentstatus.msofficeshare  
             }
 
         }
@@ -594,27 +609,30 @@ import log from 'electron-log/main';
         let token = this.multicastClient.clientinfo.token
         let zipfilepath = join(this.config.tempdirectory, zipfilename);
      
-        let file = null
+
+        let base64File = null
         try {
             await this.zipDirectory(this.config.workdirectory, zipfilepath)
-            file = fs.readFileSync(zipfilepath);
-        }catch (e){ 
-            log.error(e)
-        }
+            const fileContent = fs.readFileSync(zipfilepath);
+            base64File = fileContent.toString('base64');
+        }catch (e){  log.error(e)  }
 
-        const form = new FormData()
-        form.append(zipfilename, file, {contentType: 'application/zip', filename: zipfilename });   
-     
-        axios({
-            method: "post", 
-            url: `https://${serverip}:${this.config.serverApiPort}/server/data/receive/${servername}/${token}`, 
-            data: form, 
-            headers: { 'Content-Type': `multipart/form-data; boundary=${form._boundary}` }  
+        // sending the whole directory as zip file base64encoded via JSON isn't probably the best method but it works while all formData approaches failed with
+        // fetch() while they worked with axios() - not even chatgpt or stackoverflow could help ^^
+        const url = `https://${serverip}:${this.config.serverApiPort}/server/data/receive/${servername}/${token}`;
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ file: base64File, filename: zipfilename }),
         })
-        .then(response =>{ log.info(`Communication handler @ sendExamToTeacher: ${response.data.message}`)  })
-        .catch( err =>{log.error(`Communication handler @ sendExamToTeacher: ${err}`) })
-     
+        .then(response => response.json())
+        .then(data => { console.log(`Success: ${data.message}`); })
+        .catch(error => {console.error(`Error: ${error}`); });
+
      }
+
+
+
 
 
 
