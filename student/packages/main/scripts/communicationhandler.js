@@ -15,15 +15,14 @@
  * If not, see <http://www.gnu.org/licenses/>
  */
 
-
-import axios from "axios";
+'use strict'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 import fs from 'fs' 
 import crypto from 'crypto';
 import archiver from 'archiver'
 import extract from 'extract-zip'
 import screenshot from 'screenshot-desktop'
-import FormData from 'form-data/lib/form_data.js';     //we need to import the file directly otherwise it will introduce a "window" variable in the backend and fail
+// import FormData from 'form-data/lib/form_data.js';     //we need to import the file directly otherwise it will introduce a "window" variable in the backend and fail
 import { join } from 'path'
 import { screen } from 'electron'
 import WindowHandler from './windowhandler.js'
@@ -95,11 +94,14 @@ import log from 'electron-log/main';
             this.resetConnection()   // this also resets serverip therefore no api calls are made afterwards
             this.killScreenlock()       // just in case screens are blocked.. let students work
         }
+        let heartbeatURL = `https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/heartbeat/${this.multicastClient.clientinfo.servername}/${this.multicastClient.clientinfo.token}`
 
         // ACTIVE SERVER CONNECTION - SEND HEARTBEAT
         if (this.multicastClient.clientinfo.serverip) { 
-            fetch(`https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/heartbeat/${this.multicastClient.clientinfo.servername}/${this.multicastClient.clientinfo.token}`, {
-                method: "POST"
+            fetch(heartbeatURL, {    //probably better to use  https://developer.mozilla.org/en-US/docs/Web/API/Navigator/sendBeacon
+                method: "POST",
+                cache: "no-store",
+                body: ""
             })
             .then(response => response.json())
             .then(data => {
@@ -128,6 +130,7 @@ import log from 'electron-log/main';
 
             fetch(`https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/update`, {
                 method: "POST",
+                cache: "no-store",
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -206,6 +209,7 @@ import log from 'electron-log/main';
                     
                     fetch(`https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/updatescreenshot`, {
                         method: "POST",
+                        cache: "no-store",
                         headers: {
                             'Content-Type': 'application/json',
                         },
@@ -308,10 +312,10 @@ import log from 'electron-log/main';
         if (serverstatus.screenshotinterval || serverstatus.screenshotinterval === 0) { //0 is the same as false or undefined but should be treated as number
             
             if (this.multicastClient.clientinfo.screenshotinterval !== serverstatus.screenshotinterval*1000 ) {
-                log.info("Commhandler: ScreenshotInterval changed to", serverstatus.screenshotinterval*1000)
+                log.info("communicationhandler @ processUpdatedServerstatus: ScreenshotInterval changed to", serverstatus.screenshotinterval*1000)
                 this.multicastClient.clientinfo.screenshotinterval = serverstatus.screenshotinterval*1000
                   if ( serverstatus.screenshotinterval == 0) {
-                    log.info("Commhandler: ScreenshotInterval disabled!")
+                    log.info("communicationhandler @ processUpdatedServerstatus: ScreenshotInterval disabled!")
                 }
                 // clear old interval and start new interval if set to something bigger than zero
                 clearInterval( this.screenshotInterval )
@@ -535,6 +539,12 @@ import log from 'electron-log/main';
         }
     }
 
+
+    /**
+     * diese methode holt sich, die vom teacher zum download bereitgelegten dateien
+     * über das update interval wird der trigger zum download und die filelist erhalten
+     * @param {*} files 
+     */
     requestFileFromServer(files){
         let servername = this.multicastClient.clientinfo.servername
         let serverip = this.multicastClient.clientinfo.serverip
@@ -546,31 +556,41 @@ import log from 'electron-log/main';
             }
         }
         
-        let data = JSON.stringify({ 'files' : files, 'type': 'studentfilerequest'})
-        
-        axios({
-            method: "post", 
-            url: `https://${serverip}:${this.config.serverApiPort}/server/data/download/${servername}/${token}`, 
-            data: data, 
-            responseType: 'arraybuffer',
-            headers: { 'Content-Type': 'application/json' }  
+
+        // Daten für den POST-Request vorbereiten
+        let data = JSON.stringify({ 'files': files, 'type': 'studentfilerequest' });
+
+        // Fetch-Request mit den entsprechenden Optionen
+        fetch(`https://${serverip}:${this.config.serverApiPort}/server/data/download/${servername}/${token}`, {
+            method: "POST",
+            body: data,
+            headers: { 'Content-Type': 'application/json' },
         })
-        .then(response =>{ 
+        .then(response => response.arrayBuffer()) // Antwort als ArrayBuffer erhalten
+        .then(buffer => {
             let absoluteFilepath = join(this.config.tempdirectory, token.concat('.zip'));
-            fs.writeFile(absoluteFilepath, response.data, (err) => {
-                if (err){log.error(err);}
+            fs.writeFile(absoluteFilepath, Buffer.from(buffer), (err) => {
+                if (err) { log.error(err);  } 
                 else {
-                    extract(absoluteFilepath, { dir: this.config.workdirectory }, ()=>{ 
-                        log.info("CommunicationHandler - files extracted")
-                        fs.unlink(absoluteFilepath, (err) => { if (err) log.error(err); }); // remove zip file after extracting
-                    }).then( () => {
-                        if (backupfile) {    if (WindowHandler.examwindow){ WindowHandler.examwindow.webContents.send('backup', backupfile  ); log.error("CommunicationHandler - Trigger Replace Event") } }
-                        if (WindowHandler.examwindow){ WindowHandler.examwindow.webContents.send('loadfilelist')}
+                    extract(absoluteFilepath, { dir: this.config.workdirectory }) 
+                    .then(() => {
+                        log.info("CommunicationHandler @ requestFileFromServer: files received and extracted");
+                        return fs.promises.unlink(absoluteFilepath); // Verwendung der Promise-basierten API von fs
                     })
+                    .then(() => {
+                        if (backupfile && WindowHandler.examwindow) {
+                            WindowHandler.examwindow.webContents.send('backup', backupfile);
+                            log.warn("CommunicationHandler @ requestFileFromServer: Trigger Replace Event");
+                        }
+                        if (WindowHandler.examwindow) {  WindowHandler.examwindow.webContents.send('loadfilelist');   }
+                    })
+                    .catch(err => {
+                        log.error(err);
+                    });
                 }
             });
         })
-        .catch( err =>{log.error(`CommunicationHandler - requestFileFromServer: ${err}`) })   
+        .catch(err => log.error(`CommunicationHandler - requestFileFromServer: ${err}`));
     }
 
 
@@ -618,7 +638,7 @@ import log from 'electron-log/main';
         }catch (e){  log.error(e)  }
 
         // sending the whole directory as zip file base64encoded via JSON isn't probably the best method but it works while all formData approaches failed with
-        // fetch() while they worked with axios() - not even chatgpt or stackoverflow could help ^^
+        // fetch() while they worked with ax ios() - not even chatgpt or stackoverflow could help ^^ i think it is related to the specific formData module that cant be imported without "window error"
         const url = `https://${serverip}:${this.config.serverApiPort}/server/data/receive/${servername}/${token}`;
         fetch(url, {
             method: 'POST',
@@ -626,8 +646,8 @@ import log from 'electron-log/main';
             body: JSON.stringify({ file: base64File, filename: zipfilename }),
         })
         .then(response => response.json())
-        .then(data => { console.log(`Success: ${data.message}`); })
-        .catch(error => {console.error(`Error: ${error}`); });
+        .then(data => { console.log(`communicationhandler @ sendExamToTeacher: teacher response: ${data.message}`); })
+        .catch(error => {console.error(`communicationhandler @ sendExamToTeacher: ${error}`); });
 
      }
 

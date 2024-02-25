@@ -241,6 +241,9 @@ router.get('/serverlist', function (req, res, next) {
 })
 
 
+router.post('/pong', function (req, res, next) {
+    res.send({ status: "success"})
+})
 
 
 
@@ -310,7 +313,7 @@ for (let i = 0; i<16; i++ ){
     const mcServer = config.examServerList[servername] // get the multicastserver object
     const hostname = req.params.hostname
 
-    log.info(version)
+    log.info("control @ registerclient: ",version)
     // this needs to change once we reached v1.0 (featurefreeze for stable version)
     let vteacher = config.version.split('.').slice(0, 2),
     versionteacher = vteacher.join('.'); 
@@ -324,7 +327,7 @@ for (let i = 0; i<16; i++ ){
         let registeredClient = mcServer.studentList.find(element => element.clientname === clientname)
 
         if (!registeredClient) {   // create client object
-            log.info('adding new client')
+            log.info('control @ registerclient: adding new client')
             const client = {    // we have a different representation of the clientobject on the server than on the client - why exactly? we could just send the whole client object via POST (as we already do in /update route )
                 clientname: clientname,
                 hostname: hostname,
@@ -350,7 +353,7 @@ for (let i = 0; i<16; i++ ){
             let now = new Date().getTime()
             if (now - 20000 > registeredClient.timestamp) { // student probably went offline (teacher connection loss) but is coming back now
                 registeredClient.timestamp = now
-                log.info("student reconnected")
+                log.info("control @ registerclient: student reconnected")
                 return res.json({sender: "server", message:t("control.registered"), status: "success", token: registeredClient.token})  //send back old token
             }
             else {
@@ -743,35 +746,6 @@ router.post('/updatescreenshot', function (req, res, next) {
         log.warn('control @ updatescreenshot: Screenshot or hash not provided');
         student.imageurl = "person-lines-fill.svg"
     }
-
-
-
-
-    // if ( req.files ) {
-    //     // save the freshly delivered screenshot
-    //     const file = req.files[req.body.screenshotfilename]
-    //     let hash = crypto.createHash('md5').update(file.data).digest("hex");
-    //     if (hash === req.body.screenshothash) {
-    //         student.imageurl = 'data:image/png;base64,' + file.data.toString('base64') //prepare file data buffer for direct use as css background
-    //         if (!student.focus){  // archive screenshot if student out of focus for investigation
-    //             log.info("control @ updatescreenshot: Student out of focus - securing screenshots")
-    //             let time = new Date(new Date().getTime()).toISOString().substr(11, 8);
-    //             let tstring = String(time).replace(/:/g, "_");
-    //             let filepath =path.join(config.workdirectory, mcServer.serverinfo.servername, student.clientname, "focuslost");
-    //             let absoluteFilename = path.join(filepath,`${tstring}-${file.name}`)
-    //             try {
-    //                 if (!fs.existsSync(filepath)){ fs.mkdirSync(filepath, { recursive: true } ); }
-    //                 file.mv(absoluteFilename, (err) => {  if (err) {  log.error(err)  } });
-    //             }
-    //             catch (err) {log.error(err)}
-    //         }
-    //     }
-    //     else { log.error("md5hash missmatch - do not update file")}
-    // }
-    // else {
-    //     //log.error("no screenshot received - probably missing image library (imagemagick)")
-    //     student.imageurl = "person-lines-fill.svg"
-    // }
     res.send({sender: "server", message:t("control.studentupdate"), status:"success" })
 })
 

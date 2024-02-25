@@ -170,6 +170,7 @@
         "couldnotstore": "student could not store file",
         "filereceived": "files received",
         "nofilereceived": "no files received",
-        "fdeleted": "deleted"
+        "fdeleted": "deleted",
+        "fileerror": "reading file failed"
     }
 }

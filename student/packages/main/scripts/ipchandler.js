@@ -19,9 +19,8 @@
 import path from 'path'
 import fs from 'fs'
 import ip from 'ip'
-import axios from 'axios'
-import i18n from '../../renderer/src/locales/locales.js'
-const {t} = i18n.global
+// import i18n from '../../renderer/src/locales/locales.js'
+// const {t} = i18n.global
 import{ipcMain} from 'electron'
 import defaultGateway from'default-gateway';
 import os from 'os'
@@ -271,29 +270,39 @@ class IpcHandler {
                 event.returnValue = { sender: "client", message: t("control.alreadyregistered"), status:"error" }
             }
 
-            axios({ method:'get', 
-                    url:`https://${serverip}:${this.config.serverApiPort}/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}/${hostname}/${version}`,
-                    timeout: 8000})
-            .then(response => {
-                if (response.data && response.data.status == "success") { // registration successfull otherwise data would be "false"
-                    this.multicastClient.clientinfo.name = clientname
-                    this.multicastClient.clientinfo.serverip = serverip
-                    this.multicastClient.clientinfo.servername = servername
-                    this.multicastClient.clientinfo.ip = clientip
-                    this.multicastClient.clientinfo.hostname = hostname
-                    this.multicastClient.clientinfo.token = response.data.token // we need to store the client token in order to check against it before processing critical api calls
-                    this.multicastClient.clientinfo.focus = true
-                    this.multicastClient.clientinfo.pin = pin
-                    log.info(`ipchandler @ register: successfully registered at ${serverip} as ${clientname} `)
+
+         
+            const url = `https://${serverip}:${this.config.serverApiPort}/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}/${hostname}/${version}`;
+            const signal = AbortSignal.timeout(8000); // 8000 Millisekunden = 8 Sekunden AbortSignal mit einem Timeout
+
+
+            fetch(url, { method: 'GET', signal })
+            .then(response => response.json()) 
+            .then(data => {
+                if (data && data.status == "success") {  // registration successfull otherwise data would be "false"
+                    // Erfolgreiche Registrierung
+                    this.multicastClient.clientinfo.name = clientname;
+                    this.multicastClient.clientinfo.serverip = serverip;
+                    this.multicastClient.clientinfo.servername = servername;
+                    this.multicastClient.clientinfo.ip = clientip;
+                    this.multicastClient.clientinfo.hostname = hostname;
+                    this.multicastClient.clientinfo.token = data.token; // we need to store the client token in order to check against it before processing critical api calls
+                    this.multicastClient.clientinfo.focus = true;
+                    this.multicastClient.clientinfo.pin = pin;
+                    log.info(`ipchandler @ register: successfully registered at ${serverip} as ${clientname}`);
+                    event.returnValue = data;
+                } 
+                else {
+                    event.returnValue = { status: "error", message: "Registration failed" };
                 }
-                event.returnValue = response.data
-            
-            }).catch(err => {
-                //we return the servers error message to the ui
-                log.error(`ipchandler @ register: ${err.message}`)
-                if (err.message.includes("timeout")){err.message = t("student.timeout") }
-                event.returnValue = { sender: "client", message:err.message , status:"error" } 
             })
+            .catch(error => {
+                // Fehlerbehandlung
+                let errorMessage = error.message;
+                if (error.name === 'AbortError') { errorMessage = "The request timed out";   } // Timeout-Nachricht anpassen 
+                log.error(`ipchandler @ register: ${errorMessage}`);
+                event.returnValue = { sender: "client", message: errorMessage, status: "error" };
+            });
         })
 
 

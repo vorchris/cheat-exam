@@ -170,6 +170,7 @@
         "couldnotstore": "Schüler:in konnte die Datei nicht speichern",
         "filereceived": "Daten erhalten",
         "nofilereceived": "Keine Dateien erhalten",
-        "fdeleted": "gelöscht"
+        "fdeleted": "gelöscht",
+        "fileerror": "lesen der Datei fehlgeschlagen"
     }
 }

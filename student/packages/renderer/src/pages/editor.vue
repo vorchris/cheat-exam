@@ -129,7 +129,6 @@
     <!-- AUDIO Player end -->
 
 
-
     <!-- EDITOR START -->
     <div id="editormaincontainer" style="position: relative; height: 100%; overflow-x:auto; overflow-y: scroll; background-color: #eeeefa;">
         <div id="editorcontainer" class="shadow" style="">
@@ -138,9 +137,12 @@
 
     </div>
     <div id="statusbar">
-             <span> {{ $t("editor.chars") }}: {{charcount}}</span> | <span> {{ $t("editor.words") }}: {{wordcount}}</span>  <span id="editselected">| {{ $t("editor.selected") }}: {{selectedWordCount}}/{{selectedCharCount}}</span> 
-             <img @click="zoomin()" src="/src/assets/img/svg/zoom-in.svg" class="zoombutton">  
-             <img @click="zoomout()" src="/src/assets/img/svg/zoom-out.svg" class="zoombutton">
+        <!-- Statischer Text mit v-once, um das Neurendern zu verhindern da $t offenbar jedesmal performance measures durchführt die zu memory bloat führen -->
+            <span v-once>{{ $t("editor.chars") }}:</span> <span>{{ charcount }}</span> | <span v-once>{{ $t("editor.words") }}:</span> <span>{{ wordcount }}</span>
+            &nbsp;
+            <span v-once> {{ $t("editor.selected") }}: </span> <span id="editselected"> {{ selectedWordCount }}/{{ selectedCharCount }}</span>
+            <img @click="zoomin()" src="/src/assets/img/svg/zoom-in.svg" class="zoombutton">  
+            <img @click="zoomout()" src="/src/assets/img/svg/zoom-out.svg" class="zoombutton">
         </div>
     <!-- EDITOR END -->
 </template>

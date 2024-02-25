@@ -99,7 +99,6 @@
 
 
 <script>
-import axios from "axios"
 import validator from 'validator'
 import log from 'electron-log/renderer'
 
@@ -187,17 +186,18 @@ export default {
                         this.status("Suche Prüfungen...")
                     }
                 
-                    axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/serverlist`)
-                    .then( response => { 
-                        if (response.data && response.data.status == "success") {  
-                            
-                            this.serverlistAdvanced = response.data.serverlist
-                        } 
-                    }) 
-                    .catch(err => { 
-                        log.error(`student.vue @ fetchInfo: ${err.message}`); 
-                        this.networkerror = true
-                    }) 
+                    fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/serverlist`)
+                    .then(response => response.json()) // Parse JSON response
+                    .then(data => {
+                        if (data && data.status === "success") {
+                            this.serverlistAdvanced = data.serverlist;
+                        }
+                    })
+                    .catch(err => {
+                        log.error(`student.vue @ fetchInfo: ${err.message}`);
+                        this.networkerror = true;
+                    });
+
                 }
             }
 
@@ -227,9 +227,20 @@ export default {
             this.hostip = ipcRenderer.sendSync('checkhostip')
             if (!this.hostip) return;  
             for (let server of this.serverlist){ 
-                axios({method:'get',url:`https://${server.serverip}:${this.serverApiPort}/server/control/pong`, timeout:2000})
-                .then( response => { server.reachable=true }) 
-                .catch(err => { console.log(err.message);server.reachable=false  }) 
+                       
+                const signal = AbortSignal.timeout(2000); // 2000 Millisekunden = 2 Sekunden
+
+                fetch(`https://${server.serverip}:${this.serverApiPort}/server/control/pong`, { method: 'GET', signal })
+                .then(response => {
+                    if (!response.ok) throw new Error('Response not OK');
+                    server.reachable = true; // Markieren als erreichbar, wenn erfolgreich
+                })
+                .catch(err => {
+                    if (err.name === 'AbortError') {   console.log('student @ fetchinfo: Fetch request was aborted due to timeout'); } 
+                    else {  console.log("student @ fetchinfo:", err.message);  }
+                    server.reachable = false; // Markieren als nicht erreichbar bei Fehlern
+                });
+
             }
         },  
         
@@ -359,12 +370,12 @@ export default {
         fadeOut(element) {
             element.classList.add('fade-out');
             element.classList.remove('fade-in');
-        }
-
+        },
     },
     mounted() {  
-       
-        const statusDiv = document.querySelector("#statusdiv").style.visibility = "hidden";
+ 
+
+        document.querySelector("#statusdiv").style.visibility = "hidden";
      
         this.fetchInfo();
         this.fetchinterval = setInterval(() => { this.fetchInfo() }, 4000)

@@ -45,17 +45,29 @@ import log from 'electron-log/main';
     
     const omitExtensions = ['.json'];   // these filetypes are not part of the filelist sent to the frontend (used to display the user directories in the fileexplorer part of the dashboard)
     
-    fs.readdirSync(dir).reduce(function (list, file) {
-        const filepath = path.join(dir, file);
-        let ext = path.extname(file).toLowerCase()
 
-        if (fs.statSync(filepath).isDirectory()) {
-            folders.push( { path: filepath, name : file, type : "dir", ext: "", parent: dir })
-        }
-        else if(fs.statSync(filepath).isFile() && !omitExtensions.includes(ext) ){
-            folders.push({  path: filepath, name : file, type : "file", ext: ext, parent: '' })
-        }
-    }, []);
+    try {
+        fs.readdirSync(dir).reduce(function (list, file) {
+            const filepath = path.join(dir, file);
+            let ext = path.extname(file).toLowerCase();
+            
+            try {
+                if (fs.statSync(filepath).isDirectory()) {
+                    folders.push({ path: filepath, name: file, type: "dir", ext: "", parent: dir });
+                }
+                else if (fs.statSync(filepath).isFile() && !omitExtensions.includes(ext)) {
+                    folders.push({ path: filepath, name: file, type: "file", ext: ext, parent: dir }); // Korrigiert `parent: ''` zu `parent: dir` für Konsistenz
+                }
+            } catch (innerErr) {
+                // Behandeln Sie Fehler, die von fs.statSync geworfen werden
+                console.error("data @ getfiles: Fehler beim Zugriff auf Datei oder Verzeichnis: ", innerErr);
+            }
+            
+        }, []);
+    } catch (err) {
+        // Behandeln Sie Fehler, die von fs.readdirSync geworfen werden
+        console.error("data @ getfiles: Fehler beim Lesen des Verzeichnisses: ", err);
+    }
     return res.send( folders )
 })
 
@@ -317,17 +329,32 @@ async function concatPages(pdfsToMerge) {
  * GET PDF from EXAM directory
  * @param filename if set the content of the file is returned
  */ 
- router.post('/getpdf/:servername/:token', function (req, res, next) {
-    const token = req.params.token
-    const servername = req.params.servername
-    const mcServer = config.examServerList[servername] // get the multicastserver object
-    if ( token !== mcServer.serverinfo.servertoken ) { return res.json({ status: t("data.tokennotvalid") }) }
 
-    const filename = req.body.filename
-    if (filename) { //return specific file
-        res.sendFile(filename); 
+router.post('/getpdf/:servername/:token', function (req, res, next) {
+    const { token, servername } = req.params;
+    const mcServer = config.examServerList[servername];
+
+    // Prüfen, ob mcServer existiert und der Token übereinstimmt
+    if (!mcServer || token !== mcServer.serverinfo?.servertoken) {
+        return res.json({ status: t("data.tokennotvalid") });
     }
-})
+
+    const { filename } = req.body;
+    if (filename) {
+        res.sendFile(filename, (err) => {
+            if (err) {
+                log.error(err);
+                res.status(404).json({ status: t("data.fileerror") });
+            }
+        });
+    } else {
+        // Antwort, falls kein Dateiname angegeben wurde
+        res.status(400).json({ status: t("data.fileerror") });
+    }
+});
+
+
+
 
 
 
@@ -400,7 +427,7 @@ async function concatPages(pdfsToMerge) {
         let errors = 0
         let time = new Date(new Date().getTime()).toLocaleTimeString();  //convert to locale string otherwise the foldernames will be created in UTC
         let student = mcServer.studentList.find(element => element.token === studenttoken) // get student from token
-        console.log(req.files)
+        
        
         if (file){
            

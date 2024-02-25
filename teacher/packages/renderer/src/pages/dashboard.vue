@@ -248,8 +248,6 @@
 
 
 <script >
-import axios from "axios"
-
 import { VueDraggableNext } from 'vue-draggable-next'
 import { uploadselect, onedriveUpload, onedriveUploadSingle, uploadAndShareFile, createSharingLink, fileExistsInAppFolder, downloadFilesFromOneDrive} from '../msalutils/onedrive'
 import { handleDragEndItem, handleMoveItem, sortStudentWidgets, initializeStudentwidgets} from '../utils/dragndrop'
@@ -397,9 +395,15 @@ export default {
                 this.config = await ipcRenderer.invoke('getconfigasync')  // this is only needed in order to get the accesstoken from the backend for MSAuthentication
             }
             this.now = new Date().getTime()
-            axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/studentlist/${this.servername}/${this.servertoken}`)
-            .then( response => {
-                this.studentlist = response.data.studentlist;
+
+            fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/studentlist/${this.servername}/${this.servertoken}`)
+            .then(response => {
+                if (!response.ok) { throw new Error('Network response was not ok');  }
+                return response.json(); // Antwort als JSON umwandeln
+            })
+            .then(data => {
+                // Studentenliste aus der Antwort zuweisen
+                this.studentlist = data.studentlist;
                 this.numberOfConnections = this.studentlist.length
 
                 if (this.numberOfConnections >= this.studentwidgets.length){ this.studentwidgets.push(this.emptyWidget); this.studentwidgets.push(this.emptyWidget)} //check if there are more students connected than empty widgets available. 
@@ -412,7 +416,7 @@ export default {
                         // if the chosen exam mode is OFFICE and everything is Setup already check if students already got their share link (re-connect, late-connect)
                         if (this.serverstatus.examtype === "microsoft365" && this.config.accessToken && this.serverstatus.msOfficeFile){
                             if (!student.status.msofficeshare) {  // this one is late to the party
-                                console.log("this student has no sharing link yet")
+                                console.log("dashboard @ fetchInfo: this student has no sharing link yet")
                                 this.onedriveUploadSingle(student, this.serverstatus.msOfficeFile)   // trigger upload of this.serverstatus.msOfficeFile, create sharelink and set student.status.msofficeshare to sharelink
                             }
                         }

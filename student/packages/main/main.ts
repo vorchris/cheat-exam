@@ -140,13 +140,11 @@ app.whenReady()
 .then(()=>{
     nativeTheme.themeSource = 'light'
 
-
     if (config.hostip == "127.0.0.1") { config.hostip = false }
     if (config.hostip) {
         log.info(`main:  HOSTIP: ${config.hostip}`)
         multicastClient.init(config.gateway) 
     }
-
 
     powerSaveBlocker.start('prevent-display-sleep')
     if (process.platform === 'win32') {
@@ -171,6 +169,8 @@ app.whenReady()
     globalShortcut.register('CommandOrControl+P', () => {});  //change screen layout
  
   
+    globalShortcut.register('CommandOrControl+Shift+G', () => {  console.log("triggering scavenge GC"); if (global){ global.gc({type:'minor',execution: 'async'}); }});
+
     if (!config.development){
         globalShortcut.register('CommandOrControl+V', () => {console.log('no clipboard')});
         globalShortcut.register('CommandOrControl+Shift+V', () => {console.log('no clipboard')});

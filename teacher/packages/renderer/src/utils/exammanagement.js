@@ -12,7 +12,7 @@ function startExam(){
 
     this.lockscreens(false, false); // deactivate lockscreen
     this.serverstatus.exammode = true;
-    log.info("starting exammode")
+    log.info("exammanagment @ startExam: starting exammode")
     this.visualfeedback(this.$t("dashboard.startexam"))
     this.setServerStatus()
 }
@@ -131,44 +131,52 @@ function setAbgabeInterval(){
             const inputInteger = parseInt(result.value, 10); // Convert to integer
             this.abgabeintervalPause = inputInteger
             if (!this.abgabeintervalPause || !Number.isInteger(this.abgabeintervalPause) ){  // make sure it is set otherwise we well fetch the exams X times per second
-                log.warn("something wrong with interval frequency - setting to default")
+                log.warn("exammanagment @ setAbgabeInterval: something wrong with interval frequency - setting to default")
                 this.abgabeintervalPause = 5
             }   
             clearInterval( this.abgabeinterval); 
-            log.info("starting submission intervall", this.abgabeintervalPause)
+            log.info("exammanagment @ setAbgabeInterval: starting submission intervall", this.abgabeintervalPause)
             this.abgabeinterval = setInterval(() => { this.getFiles('all') }, 60000 * this.abgabeintervalPause) //trigger getFiles('all') every other minute
         })
     }
     else {
-        log.info(this.abgabeinterval)
-        log.info("stopping submission interval")
+        log.info("exammanagment @ setAbgabeInterval: stopping submission interval")
         clearInterval( this.abgabeinterval); 
     }
 }
 
 
 // get finished exams (ABGABE) from students
-function getFiles(who, feedfack=false, quiet=false){
+function getFiles(who, feedback=false, quiet=false){
     this.checkDiscspace()
     if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); log.warn("no clients connected"); return; }
 
     if (this.serverstatus.examtype === "microsoft365"){ //fetch files from onedrive
         this.downloadFilesFromOneDrive()
-        if (feedfack){ this.visualfeedback(this.$t("dashboard.examrequest"), 2000) }
+        if (feedback){ this.visualfeedback(this.$t("dashboard.examrequest"), 2000) }
         else { 
             if (quiet) {return}  //completely quiet
             this.status(this.$t("dashboard.examrequest")); 
         }
     }
-    else { // fetch files from clients
-        axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/fetch/${this.servername}/${this.servertoken}/${who}`)  //who is either all or token
-        .then( async (response) => { 
-            if (feedfack){ this.visualfeedback(response.data.message, 2000) } // we do not want intrusive feedback on automated tasks })
-            else { 
-                if (quiet) {return}  //completely quiet
-                this.status(response.data.message); 
-            } })  
-        .catch( err => {log.error(err)});
+    else { 
+        // fetch files from clients - this basically just sets studentstatus (we have setstudentstatus/ for that now) to inform the client(s) to send their exam
+        fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/fetch/${this.servername}/${this.servertoken}/${who}`)  // who is either all or token
+        .then(response => {
+            if (!response.ok) {  throw new Error('Network response was not ok');  }
+            return response.json(); 
+        })
+        .then(data => {
+            
+            if (feedback) { this.visualfeedback(data.message, 2000);  } // Visuelles Feedback, wenn erwünscht
+            else {
+                if (!quiet) {this.status(data.message);   }// Statusnachricht anzeigen, wenn nicht im "quiet"-Modus
+            }
+        })
+        .catch(error => {  log.error(error);   });
+
+
+
     }
 }
 
