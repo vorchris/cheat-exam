@@ -39,6 +39,9 @@ import childProcess from 'child_process'   //needed to run bash commands on linu
 import { TouchBar, clipboard } from 'electron'
 import config from '../config.js';
 import log from 'electron-log/main';
+import {SchedulerService} from './schedulerservice.ts'
+
+
 
 // unfortunately there is no convenient way for gnome-shell to un-set ALL shortcuts at once
 const gnomeKeybindings = [  
@@ -77,10 +80,11 @@ function enableRestrictions(win){
     if (config.development) {return}
     log.info("enabling platform restrictions")
 
-
     clipboard.clear()  //this should clean the clipboard for the electron app
-    clipboardInterval = setInterval( ()=> { clipboard.clear()  },1000)
-   
+  
+    clipboardInterval = new SchedulerService( ()=> { clipboard.clear()  }  , 1000)
+    clipboardInterval.start()
+
 
     // list of apps we do not want to run in background
     // const appsToClose = [ 'zoom.us', 'Google Chrome', 'Microsoft Edge', 'Microsoft Teams','firefox', 'discord', 'zoom', 'chrome', 'msedge', 'teams', 'teamviewer', 'google-chrome','skypeforlinux','skype','brave','opera','anydesk','safari'];
@@ -276,7 +280,7 @@ function disableRestrictions(win){
 
     log.info("removing restrictions...")
     
-    clearInterval(clipboardInterval);
+    clipboardInterval.stop()
     
     // disable global keyboardshortcuts on PLASMA/KDE
     if (process.platform === 'linux') {

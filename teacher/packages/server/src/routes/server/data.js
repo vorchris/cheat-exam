@@ -434,7 +434,7 @@ router.post('/getpdf/:servername/:token', function (req, res, next) {
                 let absoluteFilepath = path.join(config.workdirectory, mcServer.serverinfo.servername, filename);
                 if (filename.includes(".zip")){  //ABGABE as ZIP
 
-                    log.info("data @ receive: Receiving File(s)...")
+                    log.info("data @ receive: Receiving File(s) from: ", student.clientname)
 
                     let studentdirectory =  path.join(config.workdirectory, mcServer.serverinfo.servername, student.clientname)
                     let tstring = String(time).replace(/:/g, "_");
@@ -454,7 +454,7 @@ router.post('/getpdf/:servername/:token', function (req, res, next) {
                         else {
                             extract(absoluteFilepath, { dir: studentarchivedir }).then( () => {
                                 fs.unlink(absoluteFilepath, (err) => { if (err) log.error(err); }); // remove zip file after extracting
-                                log.info("data @ receive: ZIP file received!")
+                                // log.info("data @ receive: ZIP file received!")
                                 res.json({ status:"success", sender: "server", message:t("data.filereceived"), errors: errors  })
                             }).catch( err => log.error("data @ receive: ",err))
                         }                     
@@ -554,7 +554,7 @@ export default router
  */
 function checkToken(token, mcserver){
     let tokenexists = false
-    log.info("data @ checkToken: checking if student is registered on this server")
+    // log.info("data @ checkToken: checking if student is registered on this server")
     try {
         mcserver.studentList.forEach( (student) => {
             if (token === student.token) {

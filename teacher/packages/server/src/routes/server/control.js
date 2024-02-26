@@ -181,7 +181,9 @@ router.get('/msauth', async (req, res) => {
     const mcServer = config.examServerList[servername]
 
     if (mcServer && req.params.csrfservertoken === mcServer.serverinfo.servertoken) {
-        clearInterval(mcServer.broadcastInterval)
+      
+        mcServer.broadcastInterval.stop()
+
         mcServer.server.close();
         //delete mcServer
         delete config.examServerList[servername]
@@ -517,6 +519,7 @@ router.post('/sharelink/:servername/:csrfservertoken/:studenttoken', function (r
 
 /**
  * FETCH EXAMS from connected clients (set student.status - students will then send their workdirectory to /data/receive)
+ * attention!!  move to setStudentStatus eventually.. because its redundant
  * @param servename the server that wants to kick the client
  * @param csrfservertoken the servers token to authenticate
  * @param studenttoken the students token who should send the exam (false means everybody)

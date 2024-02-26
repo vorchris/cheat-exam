@@ -19,6 +19,8 @@ import { createSocket } from 'dgram'
 import config from '../config.js'
 import crypto from 'crypto';
 import log from 'electron-log/main';
+import {SchedulerService} from './schedulerservice.ts'
+
 
 /**
  * Starts a dgram (udp) socket that broadcasts information about this server
@@ -59,7 +61,13 @@ class MulticastServer {
             this.server.setMulticastTTL(128)
             this.server.setTTL(128)
             this.server.addMembership(this.MULTICAST_ADDR); 
-            this.broadcastInterval = setInterval(() => { this.sendMulticastMessage() }, 2000)
+            
+
+            //check for deprecated instance in a loop
+            this.broadcastInterval = new SchedulerService(this.sendMulticastMessage.bind(this), 2000)
+            this.broadcastInterval.start()
+
+
             log.info(`UDP MC Server listening on http://${config.hostip}:${this.server.address().port}`)
         })
     }

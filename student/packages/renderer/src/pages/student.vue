@@ -101,6 +101,8 @@
 <script>
 import validator from 'validator'
 import log from 'electron-log/renderer'
+import {SchedulerService} from '../utils/schedulerservice.js'
+
 
 // Erfassen von unhandled promise rejections
 window.addEventListener('unhandledrejection', event => {
@@ -108,7 +110,6 @@ window.addEventListener('unhandledrejection', event => {
 });
 
 Object.assign(console, log.functions);  //alle console logs durch logger ersetzen
-
 
 
 export default {
@@ -373,12 +374,14 @@ export default {
         },
     },
     mounted() {  
- 
-
         document.querySelector("#statusdiv").style.visibility = "hidden";
      
         this.fetchInfo();
-        this.fetchinterval = setInterval(() => { this.fetchInfo() }, 4000)
+
+        this.fetchinterval = new SchedulerService(4000);
+        this.fetchinterval.addEventListener('action',  this.fetchInfo);  // Event-Listener hinzufügen, der auf das 'action'-Event reagiert
+        this.fetchinterval.start();
+
 
         // add event listener to user input field to supress all special chars 
         document.getElementById("user").addEventListener("keypress", function(e) {
@@ -395,7 +398,8 @@ export default {
 
     },
     beforeUnmount() {
-        clearInterval( this.fetchinterval )
+        this.fetchinterval.removeEventListener('action', this.fetchInfo);
+        this.fetchinterval.stop() 
     }
 }
 </script>

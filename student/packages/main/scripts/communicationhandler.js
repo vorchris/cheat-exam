@@ -31,6 +31,7 @@ import { execSync } from 'child_process';
 const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
 import log from 'electron-log/main';
 
+import {SchedulerService} from './schedulerservice.ts'
 
  /**
   * Handles information fetching from the server and acts on status updates
@@ -49,9 +50,17 @@ import log from 'electron-log/main';
     init (mc, config) {
         this.multicastClient = mc
         this.config = config
-        this.updateStudentIntervall = setInterval(() => { this.requestUpdate() }, 5000)
-        this.heartbeatInterval = setInterval(() => { this.sendHeartbeat() }, 4000)
-        this.screenshotInterval = setInterval( () => { this.sendScreenshot() }, this.multicastClient.clientinfo.screenshotinterval )
+
+        this.heardbeatScheduler = new SchedulerService(this.sendHeartbeat.bind(this), 4000)
+        this.heardbeatScheduler.start()
+
+        this.updateScheduler = new SchedulerService(this.requestUpdate.bind(this), 5000)
+        this.updateScheduler.start()
+
+        this.screenshotScheduler = new SchedulerService(this.sendScreenshot.bind(this), this.multicastClient.clientinfo.screenshotinterval)
+        this.screenshotScheduler.start()
+
+   
         if (process.platform !== 'linux' || (  !this.isWayland() && this.imagemagickAvailable()  )){ this.screenshotAbility = true } // only on linux we need to check for wayland or the absence of imagemagick - other os have other problems ^^
     }
  
@@ -318,9 +327,12 @@ import log from 'electron-log/main';
                     log.info("communicationhandler @ processUpdatedServerstatus: ScreenshotInterval disabled!")
                 }
                 // clear old interval and start new interval if set to something bigger than zero
-                clearInterval( this.screenshotInterval )
+                this.screenshotScheduler.stop()
+                
                 if (this.multicastClient.clientinfo.screenshotinterval > 0){
-                    this.screenshotInterval = setInterval( () => { this.sendScreenshot() }, this.multicastClient.clientinfo.screenshotinterval )
+                    this.screenshotScheduler.interval = this.multicastClient.clientinfo.screenshotinterval
+                    this.screenshotScheduler.start()
+                   
                 }
             }
         }

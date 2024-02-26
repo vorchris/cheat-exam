@@ -187,6 +187,9 @@ import SpellChecker from '../utils/spellcheck'
 import moment from 'moment-timezone';
 
 import ExamHeader from '../components/ExamHeader.vue';
+import {SchedulerService} from '../utils/schedulerservice.js'
+
+
 
 // in order to insert <span> elements (used for highlighting misspelled words) we need our own tiptap extenison
 const CustomSpan = Node.create({
@@ -813,9 +816,22 @@ export default {
 
         this.currentFile = this.clientname
         this.entrytime = new Date().getTime()
-        this.saveinterval = setInterval(() => { this.saveContent(true, 'auto') }, 20000)    // speichert content als datei
-        this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 5000)      //holt client info (exam status, connection, token)
-        this.clockinterval = setInterval(() => { this.clock() }, 1000)   // uhrzeit (jede sekunde)
+   
+        // intervalle nicht mit setInterval() da dies sämtliche objekte der callbacks inklusive fetch() antworten im speicher behält bis das interval gestoppt wird
+        this.fetchinfointerval = new SchedulerService(5000);
+        this.fetchinfointerval.addEventListener('action',  this.fetchInfo);  // Event-Listener hinzufügen, der auf das 'action'-Event reagiert (reagiert nur auf 'action' von dieser instanz und interferiert nicht)
+        this.fetchinfointerval.start();
+
+        this.saveContentCallback = () => this.saveContent(true, 'auto');  // wegs 2 parameter muss dieser umweg genommen werden sonst kann ich den eventlistener nicht mehr entfernen
+        this.saveinterval = new SchedulerService(20000);
+        this.saveinterval.addEventListener('action', this.saveContentCallback );  // Event-Listener hinzufügen, der auf das 'action'-Event reagiert (reagiert nur auf 'action' von dieser instanz und interferiert nicht)
+        this.saveinterval.start();
+
+        this.clockinterval = new SchedulerService(1000);
+        this.clockinterval.addEventListener('action', this.clock);  // Event-Listener hinzufügen, der auf das 'action'-Event reagiert (reagiert nur auf 'action' von dieser instanz und interferiert nicht)
+        this.clockinterval.start();
+        
+        
         this.loadFilelist()
         this.fetchInfo()
 
@@ -839,12 +855,17 @@ export default {
         document.removeEventListener('click', this.hideSpellcheckMenu);
         this.editorcontentcontainer.removeEventListener('mouseup',  this.getSelectedTextInfo );
         
-        
         this.editor.destroy()
 
-        clearInterval( this.saveinterval )
-        clearInterval( this.fetchinfointerval )
-        clearInterval( this.clockinterval )
+        
+        this.saveinterval.removeEventListener('action', this.saveContentCallback);
+        this.saveinterval.stop() 
+
+        this.fetchinfointerval.removeEventListener('action', this.fetchInfo);
+        this.fetchinfointerval.stop() 
+
+        this.clockinterval.removeEventListener('action', this.clock);
+        this.clockinterval.stop() 
     },
 }
 </script>

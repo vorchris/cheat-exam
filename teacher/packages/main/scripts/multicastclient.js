@@ -18,6 +18,9 @@
 import dgram from 'dgram';
 import config from '../config.js';  // node not vue (relative path needed)
 import log from 'electron-log/main';
+import {SchedulerService} from './schedulerservice.ts'
+
+
 /**
  * Starts a dgram (udp) socket that listens for mulitcast messages
  */
@@ -48,8 +51,12 @@ class MulticastClient {
         catch (err){log.error(err)}
 
         this.client.on('message', (message, rinfo) => { this.messageReceived(message, rinfo) })
-        //start loops
-        this.refreshExamsIntervall = setInterval(() => {  this.isDeprecatedInstance()  }, 5000)
+
+        //check for deprecated instance in a loop
+        this.refreshExamsScheduler = new SchedulerService(this.isDeprecatedInstance.bind(this), 5000)
+        this.refreshExamsScheduler.start()
+
+
     }
 
     /**

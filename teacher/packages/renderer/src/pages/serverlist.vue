@@ -66,6 +66,7 @@
 
 <script>
 import axios from "axios";
+import {SchedulerService} from '../utils/schedulerservice.js'
 
 export default {
     data() {
@@ -153,7 +154,10 @@ export default {
 
         this.$nextTick(function () { // Code that will run only after the entire view has been rendered
             this.fetchInfo();
-            this.fetchinterval = setInterval(() => { this.fetchInfo() }, 20000)
+       
+            this.fetchinterval = new SchedulerService(4000);
+            this.fetchinterval.addEventListener('action',  this.fetchInfo);  // Event-Listener hinzufügen, der auf das 'action'-Event reagiert
+            this.fetchinterval.start();
         })
         
         if (this.electron){
@@ -161,7 +165,8 @@ export default {
         }
     },
     beforeUnmount() {
-         clearInterval( this.fetchinterval )
+        this.fetchinterval.removeEventListener('action', this.fetchInfo);
+        this.fetchinterval.stop() 
     },
 }
 

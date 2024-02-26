@@ -254,6 +254,8 @@ import { handleDragEndItem, handleMoveItem, sortStudentWidgets, initializeStuden
 import { loadFilelist, print, getLatest, getLatestFromStudent,  loadImage, loadPDF, dashboardExplorerSendFile, downloadFile, showWorkfolder, fdelete,  openLatestFolder } from '../utils/filemanager'
 import { activateSpellcheckForStudent, delfolderquestion, stopserver, toggleScreenshot, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, setAbgabeInterval } from '../utils/exammanagement.js'
 
+import {SchedulerService} from '../utils/schedulerservice.js'
+
 export default {
     components: {
         draggable: VueDraggableNext,
@@ -873,8 +875,19 @@ export default {
           //  this.setupDefaultPrinter()
             this.fetchInfo()
             this.initializeStudentwidgets()
-            this.fetchinterval = setInterval(() => { this.fetchInfo() }, 4000)
-            this.abgabeinterval = setInterval(() => { this.getFiles('all') }, 60000 * this.abgabeintervalPause) //trigger getFiles('all') every 6 minutes
+
+
+            // intervalle nicht mit setInterval() da dies sämtliche objekte der callbacks inklusive fetch() antworten im speicher behält bis das interval gestoppt wird
+            this.fetchinterval = new SchedulerService(4000);
+            this.fetchinterval.addEventListener('action',  this.fetchInfo);  // Event-Listener hinzufügen, der auf das 'action'-Event reagiert (reagiert nur auf 'action' von dieser instanz und interferiert nicht)
+            this.fetchinterval.start();
+
+            this.abgabeCallback = () => this.getFiles('all');  //selbst wenn 'all' default ist.. über den eventlistener wird das erste attribut zu "event"
+            this.abgabeinterval = new SchedulerService(60000 * this.abgabeintervalPause);
+            this.abgabeinterval.addEventListener('action',  this.abgabeCallback);  // Event-Listener hinzufügen, der auf das 'action'-Event reagiert (reagiert nur auf 'action' von dieser instanz und interferiert nicht)
+            this.abgabeinterval.start();
+
+
 
             // Add event listener to #closefilebrowser  (only once - do not accumulate event listeners)
             document.querySelector("#closefilebrowser").addEventListener("click", function() { document.querySelector("#preview").style.display = "none"; });
@@ -893,8 +906,10 @@ export default {
         }
     },
     beforeUnmount() {  //when leaving
-        clearInterval( this.fetchinterval )
-        clearInterval( this.abgabeinterval )
+        this.fetchinterval.removeEventListener('action', this.fetchInfo);
+        this.fetchinterval.stop() 
+        this.abgabeinterval.removeEventListener('action', this.abgabeCallback);
+        this.abgabeinterval.stop() 
     }
 
 }
