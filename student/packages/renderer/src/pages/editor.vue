@@ -269,6 +269,7 @@ export default {
             linespacing: this.$route.params.serverstatus.linespacing ? this.$route.params.serverstatus.linespacing : '2',
             fontfamily:  this.$route.params.serverstatus.fontfamily  ? this.$route.params.serverstatus.fontfamily : "sans-serif", 
             allowspellcheck: false, // this is a per student override (for students with legasthenie)
+            individualSpellcheckActivated: false,
             audioSource: null,
         }
     },
@@ -295,8 +296,7 @@ export default {
         removeElementsByClassFromString:SpellChecker.removeElementsByClassFromString,  // this removes html elements from a string that contains html elements
         hideSpellcheckMenu:SpellChecker.hideSpellcheckMenu, // hides the spellcheck context menu
         checkAllWordsOnSpacebar:SpellChecker.checkAllWordsOnSpacebar,  //does a complete spellcheck after hitting spacebar while writing
-
-
+   
         async playAudio(file) {
        
             document.querySelector("#aplayer").style.display = 'block';
@@ -384,14 +384,26 @@ export default {
             this.battery = await navigator.getBattery().then(battery => { return battery })
             .catch(error => { console.error("Error accessing the Battery API:", error);  });
 
-            if (this.allowspellcheck) {  //this handles individual spellcheck (independend of global spellcheck)
-                let ipcResponse = await ipcRenderer.invoke('activatespellcheck', this.serverstatus.spellchecklang )  // this.allowspellcheck contains an object with spell config
-                if (ipcResponse == false) { this.allowspellcheck = false}  // something went wrong on the backend - do not show spellchecker button
+
+            if (this.serverstatus.spellcheck === false) {  //handle individual spellcheck (only if not globally activated anyways)
+                
+                if (!this.individualSpellcheckActivated){ // nur wenn nicht eh schon aktiv
+                    if (this.allowspellcheck) {  //this handles individual spellcheck (independend of global spellcheck)
+                        let ipcResponse = await ipcRenderer.invoke('activatespellcheck', this.serverstatus.spellchecklang )  // this.allowspellcheck contains an object with spell config
+                        if (ipcResponse == false) { this.allowspellcheck = false}  // something went wrong on the backend - do not show spellchecker button
+                        if (ipcResponse == true) {this.individualSpellcheckActivated = true}  // setz auf aktiviert (wurde im backend aktiviert 1x reicht)
+                    }
+                }
+                else {
+                    if (!this.allowspellcheck) {
+                        this.deactivateSpellcheck() 
+                        this.individualSpellcheckActivated = false
+                    }
+                }
+                
             }
-            else {
-                if (this.serverstatus.spellcheck === false) {  this.deactivateSpellcheck() }  //only deactivate if NOT globally allowed
-              
-            }
+
+       
         }, 
         reconnect(){
             this.$swal.fire({
@@ -512,7 +524,8 @@ export default {
         },
         /** Converts the Editor View into a multipage PDF */
         async saveContent(backup, why) {     
-    
+           
+            this.$forceUpdate();
             ipcRenderer.send('printpdf', {filename: `${this.clientname}.pdf`, landscape: false, servername: this.servername, clientname: this.clientname })  // inform mainprocess to save webcontent as pdf (see @media css query for adjustments for pdf)
 
             let filename = false  // this is set manually... otherwise use clientname
