@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid'
 
 function handleDragEndItem() {
     this.movingItem = this.studentwidgets[this.originalIndex];
@@ -27,11 +28,22 @@ function sortStudentWidgets() {
         return 0;
     })
 }
+
+class EmptyWidget {
+    constructor() {
+        this.clientname = false
+        this.token = uuidv4()
+        this.imageurl="user-black.svg"    
+    }
+}
+
+
+
 // create 10 empty widgets for whole class (should be sufficient)
 function initializeStudentwidgets(){
     let widgets = []
     for (let i = 0; i<30; i++ ){
-        widgets.push(this.emptyWidget)
+        widgets.push(new EmptyWidget)
     }
     this.studentwidgets = widgets;
 }

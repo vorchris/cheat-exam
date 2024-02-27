@@ -209,7 +209,7 @@
         <!-- studentlist start -->
         <div id="studentslist" class="pt-1">        
             <draggable v-model="studentwidgets" :move="handleMoveItem" @end="handleDragEndItem" ghost-class="ghost">
-                <div v-for="student in studentwidgets" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':''" class="studentwidget btn rounded-3 btn-block ">
+                <div v-for="student in studentwidgets" key:student.token style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':''" class="studentwidget btn rounded-3 btn-block ">
                     <div v-if="student.clientname">
                         <div class="studentimage rounded" style="position: relative; height:132px;">  
                             <button v-if="serverstatus.examtype === 'editor' && !this.serverstatus.spellcheck && this.serverstatus.spellchecklang !== 'none'" @mouseover="showDescription($t('dashboard.allowspellcheck'))" @mouseout="hideDescription" @click='activateSpellcheckForStudent(student.token,student.clientname)' type="button" class="btn btn-sm pt-1 mt-2 pe-1 float-end" style="z-index:1000; position:relative;"><img src="/src/assets/img/svg/autocorrection.svg" class="widgetbutton" width="22" height="22" ></button> 
@@ -256,6 +256,15 @@ import { activateSpellcheckForStudent, delfolderquestion, stopserver, toggleScre
 import { v4 as uuidv4 } from 'uuid'
 import {SchedulerService} from '../utils/schedulerservice.js'
 
+class EmptyWidget {
+    constructor() {
+        this.clientname = false
+        this.token = uuidv4()
+        this.imageurl="user-black.svg"    
+    }
+}
+
+
 export default {
     components: {
         draggable: VueDraggableNext,
@@ -290,11 +299,6 @@ export default {
             currencpreviewPath: null,
             numberOfConnections: 0,
             studentwidgets: [],
-            emptyWidget: {
-                clientname: false,
-                token: `${Math.random()}`,
-                imageurl:"user-black.svg"
-            },
             originalIndex: 20,
             futureIndex: 20,
             freeDiscspace: 1000,
@@ -408,12 +412,10 @@ export default {
                 this.studentlist = data.studentlist;
                 this.numberOfConnections = this.studentlist.length
 
-                if (this.numberOfConnections >= this.studentwidgets.length){ 
-                    this.emptyWidget.token = uuid()
-                    this.studentwidgets.push(this.emptyWidget); 
-                    this.emptyWidget.token = uuid()
-                    this.studentwidgets.push(this.emptyWidget)
-                } //check if there are more students connected than empty widgets available. 
+                if (this.numberOfConnections >= this.studentwidgets.length){ //check if there are more students connected than empty widgets available. 
+                    this.studentwidgets.push(new EmptyWidget); 
+                    this.studentwidgets.push(new EmptyWidget); 
+                } 
 
                 if (this.studentlist && this.studentlist.length > 0){
                     this.studentlist.forEach( student => { 
@@ -460,10 +462,7 @@ export default {
                     if (!studentExists && widget.token.includes('csrf')){ //if the student the widget belongs to does not exist (and the widget actually represents a student - token starting with csrf)
                         for (let i = 0; i < this.studentwidgets.length; i++){  // we cant use (for .. of) or forEach because it creates a workingcopy of the original object
                              if (widget.token == this.studentwidgets[i].token){ 
-     
-                                this.studentwidgets[i] = {...this.emptyWidget} // replace studentwidget with emptywidget
-                                this.studentwidgets[i].token = uuidv4()
-
+                                this.studentwidgets[i] = new EmptyWidget // replace studentwidget with emptywidget
                             } 
                         }
                     } 
