@@ -253,7 +253,7 @@ import { uploadselect, onedriveUpload, onedriveUploadSingle, uploadAndShareFile,
 import { handleDragEndItem, handleMoveItem, sortStudentWidgets, initializeStudentwidgets} from '../utils/dragndrop'
 import { loadFilelist, print, getLatest, getLatestFromStudent,  loadImage, loadPDF, dashboardExplorerSendFile, downloadFile, showWorkfolder, fdelete,  openLatestFolder } from '../utils/filemanager'
 import { activateSpellcheckForStudent, delfolderquestion, stopserver, toggleScreenshot, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, setAbgabeInterval } from '../utils/exammanagement.js'
-
+import { v4 as uuidv4 } from 'uuid'
 import {SchedulerService} from '../utils/schedulerservice.js'
 
 export default {
@@ -408,7 +408,12 @@ export default {
                 this.studentlist = data.studentlist;
                 this.numberOfConnections = this.studentlist.length
 
-                if (this.numberOfConnections >= this.studentwidgets.length){ this.studentwidgets.push(this.emptyWidget); this.studentwidgets.push(this.emptyWidget)} //check if there are more students connected than empty widgets available. 
+                if (this.numberOfConnections >= this.studentwidgets.length){ 
+                    this.emptyWidget.token = uuid()
+                    this.studentwidgets.push(this.emptyWidget); 
+                    this.emptyWidget.token = uuid()
+                    this.studentwidgets.push(this.emptyWidget)
+                } //check if there are more students connected than empty widgets available. 
 
                 if (this.studentlist && this.studentlist.length > 0){
                     this.studentlist.forEach( student => { 
@@ -425,8 +430,7 @@ export default {
                         if (student.printrequest){  // student sent a printrequest to the teacher
                             if (student.clientname !== this.printrequest)  {  //this.printrequest contains the name of the student who requested
                                 this.getLatestFromStudent(student) //do not trigger twice from same student
-                            }
-                            
+                            } 
                         }   
                     });
 
@@ -456,17 +460,16 @@ export default {
                     if (!studentExists && widget.token.includes('csrf')){ //if the student the widget belongs to does not exist (and the widget actually represents a student - token starting with csrf)
                         for (let i = 0; i < this.studentwidgets.length; i++){  // we cant use (for .. of) or forEach because it creates a workingcopy of the original object
                              if (widget.token == this.studentwidgets[i].token){ 
-                                this.studentwidgets[i] = this.emptyWidget; // replace studentwidget with emptywidget
+     
+                                this.studentwidgets[i] = {...this.emptyWidget} // replace studentwidget with emptywidget
+                                this.studentwidgets[i].token = uuidv4()
+
                             } 
                         }
                     } 
                 }
             }).catch( err => {console.log(err)});
         }, 
-
-
-
-
 
 
 

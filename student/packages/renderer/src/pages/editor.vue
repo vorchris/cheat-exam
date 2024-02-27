@@ -86,7 +86,7 @@
 
 
             <br>
-           <div v-for="file in localfiles" class="d-inline" style="text-align:left">
+           <div v-for="file in localfiles" :key="file.name" class="d-inline" style="text-align:left">
                 <div v-if="(file.type == 'bak')" class="btn btn-success p-0  pe-2 ps-1 me-1 mb-0 btn-sm"   @click="selectedFile=file.name; loadHTML(file.name)"><img src="/src/assets/img/svg/games-solve.svg" class="" width="22" height="22" style="vertical-align: top;"> {{file.name}}     ({{ new Date(this.now - file.mod).toISOString().substr(11, 5) }})</div>
                 <div v-if="(file.type == 'pdf')" class="btn btn-info p-0 pe-2 ps-1 me-1 mb-0 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" style="vertical-align: top;"> {{file.name}} </div>
                 <div v-if="(file.type == 'audio')" class="btn btn-info p-0 pe-2 ps-1 me-1 mb-0 btn-sm" @click="playAudio(file.name)"><img src="/src/assets/img/svg/im-google-talk.svg" class="" width="22" height="22" style="vertical-align: top;"> {{file.name}} </div>
@@ -400,7 +400,7 @@ export default {
                         this.individualSpellcheckActivated = false
                     }
                 }
-                
+
             }
 
        
@@ -525,7 +525,6 @@ export default {
         /** Converts the Editor View into a multipage PDF */
         async saveContent(backup, why) {     
            
-            this.$forceUpdate();
             ipcRenderer.send('printpdf', {filename: `${this.clientname}.pdf`, landscape: false, servername: this.servername, clientname: this.clientname })  // inform mainprocess to save webcontent as pdf (see @media css query for adjustments for pdf)
 
             let filename = false  // this is set manually... otherwise use clientname
