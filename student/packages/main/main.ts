@@ -175,7 +175,7 @@ app.whenReady()
         globalShortcut.register('CommandOrControl+Shift+V', () => {console.log('no clipboard')});
     }
     else { 
-        globalShortcut.register('CommandOrControl+Shift+G', () => {  console.log("triggering scavenge GC"); if (global){ global.gc({type:'minor',execution: 'async'}); }});
+        globalShortcut.register('CommandOrControl+Shift+G', () => {  console.log("triggering scavenge GC"); if (global && global.gc){ global.gc({type:'mayor',execution: 'async'}); global.gc({type:'minor',execution: 'async'});  }});
         globalShortcut.register('CommandOrControl+Shift+D', () => {
         const win = BrowserWindow.getFocusedWindow()
         if (win) {
