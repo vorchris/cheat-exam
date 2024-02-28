@@ -264,7 +264,6 @@ import { loadFilelist, print, getLatest, getLatestFromStudent,  loadImage, loadP
 import { activateSpellcheckForStudent, delfolderquestion, stopserver, toggleScreenshot, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, setAbgabeInterval } from '../utils/exammanagement.js'
 import { v4 as uuidv4 } from 'uuid'
 import {SchedulerService} from '../utils/schedulerservice.js'
-import { msalInstance } from '../msalutils/authConfig';
 
 class EmptyWidget {
     constructor() {
@@ -440,6 +439,8 @@ export default {
                             }
                         }
                         if (student.printrequest){  // student sent a printrequest to the teacher
+                            //printrequest sollte am client auch sofort auf false gesetzt werden sobald abgeschickt jedoch könnte der client genau hier ja disconnecten
+                            this.setStudentStatus({removeprintrequest:true})  //request received.. remove it from the servers student object
                             if (student.clientname !== this.printrequest)  {  //this.printrequest contains the name of the student who requested
                                 this.getLatestFromStudent(student) //do not trigger twice from same student
                             } 
@@ -865,6 +866,24 @@ export default {
             .then( response => { console.log(response.message)})
             .catch(err => { console.warn(err) })
         },
+
+        /**
+         * set student.studentstatus or student attributes serverside
+         * @param {*} bodyobject an object that contains the studentstatus or student attibute that needs to be set in the servers student representation
+         */
+        setStudentStatus(bodyobject){
+            fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/setstudentstatus/${this.servername}/${this.servertoken}/${student.token}`, { 
+                method: 'POST',
+                headers: {'Content-Type': 'application/json' },
+                body: JSON.stringify(bodyobject )
+            })
+            .then( res => res.json() )
+            .then( result => { log.info(result)})
+            .catch(err => { log.error(err)});
+
+
+        },
+
 
         async setupDefaultPrinter(){
             this.availablePrinters = await ipcRenderer.invoke("getprinters")

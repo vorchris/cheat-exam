@@ -625,7 +625,7 @@ router.post('/setstudentstatus/:servername/:csrfservertoken/:studenttoken', func
     const printdenied = req.body.printdenied
     const delfolder = req.body.delfolder
     const allowspellcheck = req.body.allowspellcheck
-    const removeprintrequest = req.body.allowspellcheck
+    const removeprintrequest = req.body.removeprintrequest
 
     if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {  //first check if csrf token is valid and server is allowed to trigger this api request
         
@@ -638,15 +638,15 @@ router.post('/setstudentstatus/:servername/:csrfservertoken/:studenttoken', func
             let student = mcServer.studentList.find(element => element.token === studenttoken)
             if (student) {  
                 // here we handle different forms of information that needs to be set on studentstatus (dont forget to reset those values in /update/route)
-                if (printdenied){ // set student.status so that the student can act on it on the next update
-                    student.status.printdenied = true 
-                    student.printrequest = false
+                if (printdenied){ 
+                    student.status.printdenied = true // set student.status so that the student can act on it on the next update
+                    student.printrequest = false  // unset printrequest so that dashboard fetchInfo (which fetches the studentlist) doesnt trigger it again
                 } 
                 if (delfolder)  { student.status.delfolder = true   } // on the next update cycle the student gets informed to delete workfolder
                 if (allowspellcheck) {student.status.allowspellcheck = { suggestions: req.body.suggestions } } // allow spellcheck for this specific student (special cases)
                 if (allowspellcheck == false) { student.status.allowspellcheck = "deactivate" }
-                if (removeprintrequest == true){ student.printrequest = false }  //delete printrequest here
-
+                if (removeprintrequest == true){ student.printrequest = false }  // unset printrequest so that dashboard fetchInfo (which fetches the studentlist) doesnt trigger it again
+                
 
               
             }
