@@ -40,8 +40,8 @@ log.transports.file.resolvePathFn = (config) => { return logfile  }
 log.eventLogger.startLogging();
 log.errorHandler.startCatching();
 log.warn(`-------------------`)
-log.info(`Logfile: ${logfile}`)
-log.info('Next-Exam Logger initialized...');
+log.info(`main: Logfilelocation at ${logfile}`)
+log.info('main: Next-Exam Logger initialized...');
 
 
 
@@ -94,7 +94,7 @@ app.on('activate', () => {
 app.whenReady().then(()=>{
     nativeTheme.themeSource = 'light'  // make sure it does't apply dark system themes (we have dark icons in editor)
     server.listen(config.serverApiPort, () => {  // start express API
-        log.info(`Express listening on https://${config.hostip}:${config.serverApiPort}`)
+        log.info(`main: Express listening on https://${config.hostip}:${config.serverApiPort}`)
     }) 
 })
 .then(()=>{

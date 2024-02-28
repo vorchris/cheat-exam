@@ -79,7 +79,7 @@ const publicPath = app.isPackaged
 // Kopieren Sie den Inhalt von `public/` in das `config.tempdirectory`.
 fsExtra.copy(publicPath, `${config.tempdirectory}/`, function (err) {
   if (err) return console.error(err);
-  log.info('copied public directory to temp...');
+  log.info('server: copied public directory to temp...');
 });
 
 
@@ -115,7 +115,7 @@ const server = https.createServer(options, api);
 
 if (config.buildforWEB){  // the api is started by the electron main process - for web we do it here
     server.listen(config.serverApiPort, () => {  
-        log.info(`Express listening on https://${config.hostip}:${config.serverApiPort}`)
+        log.info(`server: Express listening on https://${config.hostip}:${config.serverApiPort}`)
     })
     if (config.hostip) {
         multicastClient.init()

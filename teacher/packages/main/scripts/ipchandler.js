@@ -50,14 +50,28 @@ class IpcHandler {
             return this.copyConfig(config)
         })  
 
-        ipcMain.handle('resetToken', (event) => {  
+        ipcMain.handle('resetToken', async (event) => { 
+            
+            const win = this.WindowHandler.mainwindow; // Oder wie auch immer Sie auf Ihr BrowserWindow-Objekt zugreifen
+            if (!win) return;
+
+            
+            await win.webContents.session.clearCache();
+            await win.webContents.session.clearStorageData({
+                storages: ['cookies']
+              });
+
             config.accessToken = false
+
+            log.info("ipchandler @ resetToken: Logged out of Office365")
             return this.copyConfig(config);  // we cant just copy the config because it contains examServerList which contains confic (circular structure)
         })  
 
 
+        /**
+         * öffnet datei in externem programm - plattform abhängig
+         */
         ipcMain.handle('openfile', (event, filepath) => {  
-
             const cmd = process.platform === 'win32' ? `start ${filepath}` :
             process.platform === 'darwin' ? `open ${filepath}` :
             `xdg-open ${filepath}`;
@@ -67,10 +81,8 @@ class IpcHandler {
                     if (error) {
                         log.error('ipchandler @ openfile: Fehler beim Öffnen des PDF:', err);
                         return false
-                        
                     }
                     log.info('ipchandler @ openfile: Datei in expernem Reader geöffnet');
-                    console.log('PDF erfolgreich geöffnet');
                     return true
                 });
             }
@@ -78,9 +90,8 @@ class IpcHandler {
                 log.error('ipchandler @ openfile: Fehler beim Öffnen des PDF:', err);
                 return false
             }
-
-
         })  
+
 
         ipcMain.on('getCurrentWorkdir', (event) => {   event.returnValue = config.workdirectory  })
 

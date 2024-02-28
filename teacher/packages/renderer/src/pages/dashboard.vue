@@ -130,15 +130,22 @@
                     <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Verbinden </span>
                 </button>
 
-                <button v-if="(serverstatus.examtype === 'microsoft365' && this.config.accessToken && !serverstatus.msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-info mt-1  ">
+                <button v-if="(serverstatus.examtype === 'microsoft365' && this.config.accessToken && !serverstatus.msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-info mt-1" style=" white-space: nowrap;  width: 170px;overflow: hidden; text-overflow: ellipsis; ">
                     <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
                     <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Datei wählen </span>
                 </button>
 
-                <button v-if="(serverstatus.examtype === 'microsoft365' && this.config.accessToken && serverstatus.msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-success mt-1  " style=" white-space: nowrap;  width: 170px;overflow: hidden; text-overflow: ellipsis; ">
+                <button v-if="(serverstatus.examtype === 'microsoft365' && this.config.accessToken && serverstatus.msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-success mt-1" style=" white-space: nowrap;  width: 170px;overflow: hidden; text-overflow: ellipsis; ">
                     <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
                     <span style="padding: 0 6px 0 4px; vertical-align:middle;">{{serverstatus.msOfficeFile.name}} </span>
                 </button>
+
+
+                <button v-if="(serverstatus.examtype === 'microsoft365' && this.config.accessToken )"  @click="logout365()" class="btn btn-sm btn-warning mt-1" style=" white-space: nowrap;  width: 170px;overflow: hidden; text-overflow: ellipsis; ">
+                    <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
+                    <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Logout </span>
+                </button>
+
             </div>
 
             <!-- other options -->
@@ -257,6 +264,7 @@ import { loadFilelist, print, getLatest, getLatestFromStudent,  loadImage, loadP
 import { activateSpellcheckForStudent, delfolderquestion, stopserver, toggleScreenshot, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, setAbgabeInterval } from '../utils/exammanagement.js'
 import { v4 as uuidv4 } from 'uuid'
 import {SchedulerService} from '../utils/schedulerservice.js'
+import { msalInstance } from '../msalutils/authConfig';
 
 class EmptyWidget {
     constructor() {
@@ -788,6 +796,20 @@ export default {
             
         },
 
+        async logout365(){
+            this.$swal.fire({
+                title: "Logout",
+                icon: 'question',
+                text: 'Wollen sie sich ausloggen?',
+                showCancelButton: true,
+                cancelButtonText: this.$t("dashboard.cancel"),
+                reverseButtons: true,
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    this.config = await ipcRenderer.invoke('resetToken')   //reset and update config
+                }
+            })    
+        },
 
         truncatedClientName(value, len=18) {
             if (!value) return
