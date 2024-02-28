@@ -44,8 +44,8 @@ class MulticastClient {
                 this.client.setBroadcast(true)
                 this.client.setMulticastTTL(128); 
                 if (this.gateway) { this.client.addMembership(this.MULTICAST_ADDR) }
-                if (!this.gateway) {log.warn("mcclient: No Gateway! Starting MulticastClient without adding group membership")}
-                log.info(`multicastclient @ inti: UDP MC Client listening on http://${config.hostip}:${this.client.address().port}`)
+                if (!this.gateway) {log.warn("multicastclient @ init: No Gateway! Starting MulticastClient without adding group membership")}
+                log.info(`multicastclient @ init: UDP MC Client listening on http://${config.hostip}:${this.client.address().port}`)
             })
         }
         catch (err){log.error(err)}

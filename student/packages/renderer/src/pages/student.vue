@@ -178,8 +178,6 @@ export default {
             this.clientinfo = getinfo.clientinfo;
             this.token = this.clientinfo.token;
 
-
-
             if (this.advanced) {
                 if (validator.isIP(this.serverip) || validator.isFQDN(this.serverip)){
                     //give some userfeedback here
@@ -192,6 +190,7 @@ export default {
                     .then(data => {
                         if (data && data.status === "success") {
                             this.serverlistAdvanced = data.serverlist;
+                            this.networkerror = false;
                         }
                     })
                     .catch(err => {
@@ -254,7 +253,9 @@ export default {
         //show status message
         async status(text){  
             const statusDiv = document.querySelector("#statusdiv");
+
             statusDiv.textContent = text;
+            statusDiv.style.visibility = "visible";
             this.fadeIn(statusDiv);
             await this.sleep(2000);
             this.fadeOut(statusDiv)

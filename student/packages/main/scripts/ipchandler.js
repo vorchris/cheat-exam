@@ -19,8 +19,8 @@
 import path from 'path'
 import fs from 'fs'
 import ip from 'ip'
-// import i18n from '../../renderer/src/locales/locales.js'
-// const {t} = i18n.global
+import i18n from '../../renderer/src/locales/locales.js'
+const {t} = i18n.global
 import{ipcMain} from 'electron'
 import defaultGateway from'default-gateway';
 import os from 'os'

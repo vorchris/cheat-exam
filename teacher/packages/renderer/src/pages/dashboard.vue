@@ -130,15 +130,22 @@
                     <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Verbinden </span>
                 </button>
 
-                <button v-if="(serverstatus.examtype === 'microsoft365' && this.config.accessToken && !serverstatus.msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-info mt-1  ">
+                <button v-if="(serverstatus.examtype === 'microsoft365' && this.config.accessToken && !serverstatus.msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-info mt-1" style=" white-space: nowrap;  width: 170px;overflow: hidden; text-overflow: ellipsis; ">
                     <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
                     <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Datei wählen </span>
                 </button>
 
-                <button v-if="(serverstatus.examtype === 'microsoft365' && this.config.accessToken && serverstatus.msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-success mt-1  " style=" white-space: nowrap;  width: 170px;overflow: hidden; text-overflow: ellipsis; ">
+                <button v-if="(serverstatus.examtype === 'microsoft365' && this.config.accessToken && serverstatus.msOfficeFile)"  @click="onedriveUploadselect()" class="btn btn-sm btn-success mt-1" style=" white-space: nowrap;  width: 170px;overflow: hidden; text-overflow: ellipsis; ">
                     <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
                     <span style="padding: 0 6px 0 4px; vertical-align:middle;">{{serverstatus.msOfficeFile.name}} </span>
                 </button>
+
+
+                <button v-if="(serverstatus.examtype === 'microsoft365' && this.config.accessToken )"  @click="logout365()" class="btn btn-sm btn-warning mt-1" style=" white-space: nowrap;  width: 170px;overflow: hidden; text-overflow: ellipsis; ">
+                    <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
+                    <span style="padding: 0 6px 0 4px; vertical-align:middle;"> Logout </span>
+                </button>
+
             </div>
 
             <!-- other options -->
@@ -432,6 +439,8 @@ export default {
                             }
                         }
                         if (student.printrequest){  // student sent a printrequest to the teacher
+                            //printrequest sollte am client auch sofort auf false gesetzt werden sobald abgeschickt jedoch könnte der client genau hier ja disconnecten
+                            this.setStudentStatus({removeprintrequest:true}, student.token)  //request received.. remove it from the servers student object
                             if (student.clientname !== this.printrequest)  {  //this.printrequest contains the name of the student who requested
                                 this.getLatestFromStudent(student) //do not trigger twice from same student
                             } 
@@ -788,6 +797,20 @@ export default {
             
         },
 
+        async logout365(){
+            this.$swal.fire({
+                title: "Logout",
+                icon: 'question',
+                text: 'Wollen sie sich ausloggen?',
+                showCancelButton: true,
+                cancelButtonText: this.$t("dashboard.cancel"),
+                reverseButtons: true,
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    this.config = await ipcRenderer.invoke('resetToken')   //reset and update config
+                }
+            })    
+        },
 
         truncatedClientName(value, len=18) {
             if (!value) return
@@ -843,6 +866,23 @@ export default {
             .then( response => { console.log(response.message)})
             .catch(err => { console.warn(err) })
         },
+
+        /**
+         * set student.studentstatus or student attributes serverside
+         * @param {*} bodyobject an object that contains the studentstatus or student attibute that needs to be set in the servers student representation
+         * @param studenttoken  the unique token to identify a student
+         */
+        setStudentStatus(bodyobject, studenttoken){
+            fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/setstudentstatus/${this.servername}/${this.servertoken}/${studenttoken}`, { 
+                method: 'POST',
+                headers: {'Content-Type': 'application/json' },
+                body: JSON.stringify(bodyobject )
+            })
+            .then( res => res.json() )
+            .then( result => { console.log("dashboard @ setStudentStatus:", result.message)})
+            .catch(err => { console.error(err)});
+        },
+
 
         async setupDefaultPrinter(){
             this.availablePrinters = await ipcRenderer.invoke("getprinters")
@@ -900,7 +940,7 @@ export default {
 
 
 
-            this.pdfPreviewEventlisterenCallback = () => { document.querySelector("#pdfpreview").style.display = 'none';  document.querySelector("#pdfembed").setAttribute("src", "about:blank");} //unload pdf
+            this.pdfPreviewEventlisterenCallback = () => { document.querySelector("#pdfpreview").style.display = 'none';  document.querySelector("#pdfembed").setAttribute("src", "about:blank"); URL.revokeObjectURL(this.currentpreview);} //unload pdf
             this.fileBrowserEventlistenerCallback = () => { document.querySelector("#preview").style.display = "none"; }
 
             // Add event listener to #closefilebrowser  (only once - do not accumulate event listeners)

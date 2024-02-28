@@ -33,18 +33,20 @@
 
 
     <!-- filelist start - show local files from workfolder (pdf and gbb only)-->
-    <div id="toolbar" class="d-inline p-1 pb-0">  
-        <button title="backup" @click="saveContent(true); " class="btn  d-inline btn-success p-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/document-save.svg" class="white" width="20" height="20" ></button>
-        <button title="delete" @click="clearAll(); " class="btn  d-inline btn-danger p-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-delete.svg" class="white" width="20" height="20" ></button>
-        <button title="paste" @click="showClipboard(); " class="btn  d-inline btn-secondary p-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-paste-style.svg" class="white" width="20" height="20" ></button>
-        <div class="btn-group  ms-2 " role="group">
-            <div class="btn btn-outline-info btn-sm  mb-1" @click="setsource('suite')"> <img src="/src/assets/img/svg/formula.svg" class="" width="20" height="20" >suite</div>
-            <div class="btn btn-outline-info btn-sm  mb-1" @click="setsource('classic')"> <img src="/src/assets/img/svg/formula.svg" class="" width="20" height="20" >classic</div>
+    <div id="toolbar" class="d-inline p-1">  
+        <button title="backup" @click="saveContent(null, 'manual'); " class="btn d-inline btn-success p-0 pe-2 ps-1 ms-1 mb-1 btn-sm"><img src="/src/assets/img/svg/document-save.svg" class="white" width="20" height="20" ></button>
+        <button title="delete" @click="clearAll(); " class=" btn  d-inline btn-danger p-0 pe-2 ps-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-delete.svg" class="white" width="20" height="20" ></button>
+        <button title="paste" @click="showClipboard(); " class="btn  d-inline btn-secondary p-0 pe-2 ps-1 ms-2 mb-1 btn-sm"><img src="/src/assets/img/svg/edit-paste-style.svg" class="white" width="20" height="20" ></button>
+        <div class="btn-group  ms-2 me-1 mb-1 " role="group">
+            <div class="btn btn-outline-info btn-sm p-0 pe-2 ps-1  mb-0" @click="setsource('suite')"> <img src="/src/assets/img/svg/formula.svg" class="" width="20" height="20" >suite</div>
+            <div class="btn btn-outline-info btn-sm p-0 pe-2 ps-1  mb-0" @click="setsource('classic')"> <img src="/src/assets/img/svg/formula.svg" class="" width="20" height="20" >classic</div>
         </div>
         
         <div v-for="file in localfiles" class="d-inline">
-            <div v-if="(file.type == 'pdf')" class="btn btn-secondary ms-2 mb-1 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="20" height="20" > {{file.name}} </div>
-            <div v-if="(file.type == 'ggb')" class="btn btn-info ms-2 mb-1  btn-sm" @click="selectedFile=file.name; loadGGB(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="20" height="20" > {{file.name}} </div>
+            <div v-if="(file.type == 'pdf')"   class="btn btn-info p-0 pe-2 ps-1 ms-1 mb-1 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="20" height="20" > {{file.name}} </div>
+            <div v-if="(file.type == 'ggb')"   class="btn btn-info p-0 pe-2 ps-1 ms-1 mb-1 btn-sm" @click="selectedFile=file.name; loadGGB(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="20" height="20" > {{file.name}} </div>
+            <div v-if="(file.type == 'image')" class="btn btn-info p-0 pe-2 ps-1 ms-1 mb-1 btn-sm" @click="loadImage(file.name)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" style="vertical-align: top;"> {{file.name}} </div>
+
         </div>
     </div>
     <!-- filelist end -->
@@ -88,6 +90,8 @@
 
 import moment from 'moment-timezone';
 import ExamHeader from '../components/ExamHeader.vue';
+import {SchedulerService} from '../utils/schedulerservice.js'
+
 
 export default {
     data() {
@@ -97,7 +101,7 @@ export default {
             focus: true,
             exammode: false,
             currentFile:null,
-            fetchinterval: null,
+            saveinterval: null,
             fetchinfointerval: null,
             loadfilelistinterval: null,
             clockinterval: null,
@@ -119,7 +123,8 @@ export default {
             localfiles: null,
             battery: null,
             customClipboard: [],
-            isClipboardVisible: false
+            isClipboardVisible: false,
+            currentpreview: null
         }
     }, 
     components: { ExamHeader  },  
@@ -131,10 +136,7 @@ export default {
         this.entrytime = new Date().getTime()  
          
         if (this.electron){
-            this.saveEvent = ipcRenderer.on('save', () => {  //trigger document save by signal "save" sent from data.js
-                console.log("EVENT RECEIVERD")
-                this.saveContent() 
-            }); 
+            this.saveEvent = ipcRenderer.on('save', this.saveContent ); 
 
             ipcRenderer.on('fileerror', (event, msg) => {
                 console.log('geogebra @ fileerror: writing/deleting file error received');
@@ -149,14 +151,29 @@ export default {
             });
         }
         this.$nextTick(function () { // Code that will run only after the entire view has been rendered
-            this.fetchinterval = setInterval(() => { this.saveContent() }, 20000)   
-            this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 5000)  
-            this.clockinterval = setInterval(() => { this.clock() }, 1000)  
-            this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 10000)   // zeigt html dateien (angaben, eigene arbeit) im header
+           
+            // intervalle nicht mit setInterval() da dies sämtliche objekte der callbacks inklusive fetch() antworten im speicher behält bis das interval gestoppt wird
+            this.fetchinfointerval = new SchedulerService(5000);
+            this.fetchinfointerval.addEventListener('action',  this.fetchInfo);  // Event-Listener hinzufügen, der auf das 'action'-Event reagiert (reagiert nur auf 'action' von dieser instanz und interferiert nicht)
+            this.fetchinfointerval.start();
+
+            this.clockinterval = new SchedulerService(1000);
+            this.clockinterval.addEventListener('action', this.clock);  // Event-Listener hinzufügen, der auf das 'action'-Event reagiert (reagiert nur auf 'action' von dieser instanz und interferiert nicht)
+            this.clockinterval.start();          
+
+            this.saveinterval = new SchedulerService(20000);
+            this.saveinterval.addEventListener('action', this.saveContent );  // Event-Listener hinzufügen, der auf das 'action'-Event reagiert (reagiert nur auf 'action' von dieser instanz und interferiert nicht)
+            this.saveinterval.start();
+            
             this.loadFilelist()
 
-            //add eventlisteners only once
-            document.querySelector("#preview").addEventListener("click", function() { this.style.display = 'none';  });
+
+            // add some eventlisteners once
+            document.querySelector("#preview").addEventListener("click", function() {  
+                this.style.display = 'none';
+                this.setAttribute("src", "about:blank");
+                URL.revokeObjectURL(this.currentpreview);
+            });
         })
     },
     methods: { 
@@ -230,16 +247,41 @@ export default {
                 } 
             }); 
         },
-
         // fetch file from disc - show preview
         async loadPDF(file){
             let data = await ipcRenderer.invoke('getpdfasync', file )
-            let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
+            this.currentpreview =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
 
-            document.querySelector("#pdfembed").setAttribute("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`);
+            const pdfEmbed = document.querySelector("#pdfembed");
+            pdfEmbed.style.backgroundImage = '';
+            pdfEmbed.style.height = "96vh";
+            pdfEmbed.style.marginTop = "-48vh";
+
+            document.querySelector("#pdfembed").setAttribute("src", `${this.currentpreview}#toolbar=0&navpanes=0&scrollbar=0`);
             document.querySelector("#preview").style.display = 'block';
-
         },
+
+
+        // fetch file from disc - show preview
+        async loadImage(file){
+            let data = await ipcRenderer.invoke('getpdfasync', file )
+            this.currentpreview =  URL.createObjectURL(new Blob([data], {type: "image/jpeg"})) 
+            const pdfEmbed = document.querySelector("#pdfembed");
+            pdfEmbed.style.backgroundImage = `url(${this.currentpreview})`;
+            pdfEmbed.style.backgroundSize = 'contain'
+            pdfEmbed.style.backgroundRepeat = 'no-repeat'
+           
+            pdfEmbed.style.height = "80vh";
+            pdfEmbed.style.marginTop = "-40vh";
+            pdfEmbed.setAttribute("src", '');
+            document.querySelector("#preview").style.display = 'block';     
+        },
+
+
+
+
+
+
         async loadFilelist(){
             let filelist = await ipcRenderer.invoke('getfilesasync', null)
             this.localfiles = filelist;
@@ -309,11 +351,11 @@ export default {
         },
 
          /** Saves Content as GGB */
-        async saveContent(manual) {  
+        async saveContent(event=false, reason=false) { 
             const ggbIframe = document.getElementById('geogebraframe');
             const ggbApplet = ggbIframe.contentWindow.ggbApplet;   // get the geogebra applet and all of its methods
             let filename = `${this.clientname}.ggb`
-            if (manual){ 
+            if (reason == "manual" ){ 
                 await this.$swal({
                     title: this.$t("math.filename") ,
                     input: 'text',
@@ -331,22 +373,39 @@ export default {
                         }                   
                      },
                  }).then((result) => {
-                    if (result.isConfirmed) { filename = `${result.value}-bak.ggb`}
+                    if (result.isConfirmed) { 
+                        filename = `${result.value}-bak.ggb`
+                        ggbApplet.getBase64( async (base64GgbFile) => {
+                            let response = await ipcRenderer.invoke('saveGGB', {filename: filename, content: base64GgbFile})   // send base64 string to backend for saving
+                            if (response.status === "success" && reason == "manual" ){  // we wait for a response - only show feed back if manually saved
+                                this.loadFilelist()
+                                this.$swal.fire({
+                                    title: this.$t("editor.saved"),
+                                    text: filename,
+                                    icon: "info"
+                                })
+                            }
+                        })
+                    }
                     else {return; }
                 });
             }
-            
-            ggbApplet.getBase64( async (base64GgbFile) => {
-                let response = await ipcRenderer.invoke('saveGGB', {filename: filename, content: base64GgbFile})   // send base64 string to backend for saving
-                if (response.status === "success" && manual){  // we wait for a response - only show feed back if manually saved
-                    this.loadFilelist()
-                    this.$swal.fire({
-                        title: this.$t("editor.saved"),
-                        text: filename,
-                        icon: "info"
-                    })
-                }
-            })
+            else {
+                ggbApplet.getBase64( async (base64GgbFile) => {
+                    let response = await ipcRenderer.invoke('saveGGB', {filename: filename, content: base64GgbFile})   // send base64 string to backend for saving
+                    if (response.status === "success" && reason == "manual" ){  // we wait for a response - only show feed back if manually saved
+                        this.loadFilelist()
+                        this.$swal.fire({
+                            title: this.$t("editor.saved"),
+                            text: filename,
+                            icon: "info"
+                        })
+                    }
+                })
+            }
+ 
+            this.loadFilelist()
+
         },
 
 
@@ -376,17 +435,18 @@ export default {
                 } 
             }); 
         },
-
-
-
-
-       
     },
     beforeUnmount() {
-        clearInterval( this.fetchinterval )
-        clearInterval( this.fetchinfointerval )
-        clearInterval( this.clockinterval )
-        clearInterval( this.loadfilelistinterval )
+        this.saveinterval.removeEventListener('action', this.saveContent);
+        this.saveinterval.stop() 
+
+        this.fetchinfointerval.removeEventListener('action', this.fetchInfo);
+        this.fetchinfointerval.stop() 
+
+        this.clockinterval.removeEventListener('action', this.clock);
+        this.clockinterval.stop() 
+
+        this.saveEvent = null
     },
 }
 

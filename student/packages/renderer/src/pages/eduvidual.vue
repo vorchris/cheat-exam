@@ -18,9 +18,10 @@
 
 
     <!-- filelist start - show local files from workfolder (pdf and gbb only)-->
-    <div id="toolbar" class="d-inline p-1 pb-0">  
+    <div id="toolbar" class="d-inline p-1 pt-0">  
         <div v-for="file in localfiles" class="d-inline">
-            <div v-if="(file.type == 'pdf')" class="btn btn-secondary ms-2 mb-1 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="22" > {{file.name}} </div>
+            <div v-if="(file.type == 'pdf')" class="btn btn-secondary  p-0 pe-2 ps-1 me-1 mb-0 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/document-replace.svg" class="" width="22" height="20" > {{file.name}} </div>
+            <div v-if="(file.type == 'image')" class="btn btn-info p-0 pe-2 ps-1 me-1 mb-0 btn-sm" @click="loadImage(file.name)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" style="vertical-align: top;"> {{file.name}} </div>
         </div>
     </div>
     <!-- filelist end -->
@@ -52,6 +53,8 @@
 <script>
 import moment from 'moment-timezone';
 import ExamHeader from '../components/ExamHeader.vue';
+import {SchedulerService} from '../utils/schedulerservice.js'
+
 
 
 export default {
@@ -83,7 +86,8 @@ export default {
             now : new Date().getTime(),
             localfiles: null,
             battery: null,
-            url: null
+            url: null,
+            currentpreview: null
         }
     }, 
     components: { ExamHeader },  
@@ -100,9 +104,27 @@ export default {
         this.entrytime = new Date().getTime()  
          
         this.$nextTick(() => { // Code that will run only after the entire view has been rendered
-            this.fetchinfointerval = setInterval(() => { this.fetchInfo() }, 5000)  
-            this.clockinterval = setInterval(() => { this.clock() }, 1000)  
-            this.loadfilelistinterval = setInterval(() => { this.loadFilelist() }, 10000)   // zeigt html dateien (angaben, eigene arbeit) im header
+            
+            
+            // intervalle nicht mit setInterval() da dies sämtliche objekte der callbacks inklusive fetch() antworten im speicher behält bis das interval gestoppt wird
+            this.fetchinfointerval = new SchedulerService(5000);
+            this.fetchinfointerval.addEventListener('action',  this.fetchInfo);  // Event-Listener hinzufügen, der auf das 'action'-Event reagiert (reagiert nur auf 'action' von dieser instanz und interferiert nicht)
+            this.fetchinfointerval.start();
+                
+      
+            this.loadfilelistinterval = new SchedulerService(20000);
+            this.loadfilelistinterval.addEventListener('action',  this.loadFilelist);
+            this.loadfilelistinterval.start();
+            
+
+
+            this.clockinterval = new SchedulerService(1000);
+            this.clockinterval.addEventListener('action', this.clock);  // Event-Listener hinzufügen, der auf das 'action'-Event reagiert (reagiert nur auf 'action' von dieser instanz und interferiert nicht)
+            this.clockinterval.start();
+                
+                
+            
+            
             this.loadFilelist()
      
             const webview = document.getElementById('webview');
@@ -110,10 +132,16 @@ export default {
             const iframe = shadowRoot.querySelector('iframe');
             if (iframe) { iframe.style.height = '100%'; } 
 
-            //add eventlisteners only once
-            document.querySelector("#preview").addEventListener("click", function() {
+   
+
+            // add some eventlisteners once
+            document.querySelector("#preview").addEventListener("click", function() {  
                 this.style.display = 'none';
+                this.setAttribute("src", "about:blank");
+                URL.revokeObjectURL(this.currentpreview);
             });
+
+
 
             webview.addEventListener('dom-ready', () => {
                 if (config.showdevtools){ webview.openDevTools();   }
@@ -217,14 +245,42 @@ export default {
             }); 
         },
 
+
+
         // fetch file from disc - show preview
-        loadPDF(file){
-            let data = ipcRenderer.sendSync('getpdf', file )
-            let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
-   
-            document.querySelector("#pdfembed").setAttribute("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`);
+        async loadPDF(file){
+            let data = await ipcRenderer.invoke('getpdfasync', file )
+            this.currentpreview =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
+
+            const pdfEmbed = document.querySelector("#pdfembed");
+            pdfEmbed.style.backgroundImage = '';
+            pdfEmbed.style.height = "96vh";
+            pdfEmbed.style.marginTop = "-48vh";
+
+            document.querySelector("#pdfembed").setAttribute("src", `${this.currentpreview}#toolbar=0&navpanes=0&scrollbar=0`);
             document.querySelector("#preview").style.display = 'block';
         },
+
+
+        // fetch file from disc - show preview
+        async loadImage(file){
+            let data = await ipcRenderer.invoke('getpdfasync', file )
+            this.currentpreview =  URL.createObjectURL(new Blob([data], {type: "image/jpeg"})) 
+            const pdfEmbed = document.querySelector("#pdfembed");
+            pdfEmbed.style.backgroundImage = `url(${this.currentpreview})`;
+            pdfEmbed.style.backgroundSize = 'contain'
+            pdfEmbed.style.backgroundRepeat = 'no-repeat'
+           
+            pdfEmbed.style.height = "80vh";
+            pdfEmbed.style.marginTop = "-40vh";
+            pdfEmbed.setAttribute("src", '');
+            document.querySelector("#preview").style.display = 'block';     
+        },
+
+
+
+
+
         async loadFilelist(){
             let filelist = await ipcRenderer.invoke('getfilesasync', null)
             this.localfiles = filelist;
@@ -254,9 +310,14 @@ export default {
        
     },
     beforeUnmount() {
-        clearInterval( this.fetchinfointerval )
-        clearInterval( this.clockinterval )
-        clearInterval( this.loadfilelistinterval )
+        this.fetchinfointerval.removeEventListener('action', this.fetchInfo);
+        this.fetchinfointerval.stop() 
+
+        this.clockinterval.removeEventListener('action', this.clock);
+        this.clockinterval.stop() 
+
+        this.loadfilelistinterval.removeEventListener('action', this.loadFilelist);
+        this.loadfilelistinterval.stop() 
     },
 }
 </script>

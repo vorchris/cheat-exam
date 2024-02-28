@@ -109,7 +109,7 @@ function dashboardExplorerSendFile(file){
 function loadPDF(filepath, filename){
     const form = new FormData()
     form.append("filename", filepath)
-    console.log(filepath)
+    //console.log(filepath)
     fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getpdf/${this.servername}/${this.servertoken}`, { method: 'POST', body: form })
     .then( response => response.arrayBuffer())
     .then( data => {
@@ -158,10 +158,10 @@ function loadImage(file){
         .then( data => {
             this.currentpreviewPath = file
 
-            let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
+            this.currentpreview =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
             // wanted to save code here but images need to be presented in a different way than pdf.. so...
             const pdfEmbed = document.querySelector("#pdfembed");
-            pdfEmbed.style.backgroundImage = `url(${url})`;
+            pdfEmbed.style.backgroundImage = `url(${this.currentpreview})`;
             pdfEmbed.style.height = "60vh";
             pdfEmbed.style.marginTop = "-30vh";
             pdfEmbed.setAttribute("src", '');
@@ -225,10 +225,10 @@ async function getLatest(){
 async function getLatestFromStudent(student){
 
     if (this.directPrintAllowed){
-        log.info(`filemanager.js: direct print from ${student.clientname} accepted`)
+        log.info(`filemanager @ managePrintrequest: direct print from ${student.clientname} accepted`)
 
         this.getFiles(student.token, false, true)
-        log.info("requesting latest file from student") 
+        log.info("filemanager @ managePrintrequest: requesting latest file from student") 
         await this.sleep(5000);  // give it some time
     
         fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getLatestFromStudent/${this.servername}/${this.servertoken}/${student.clientname}`, { 
@@ -238,7 +238,7 @@ async function getLatestFromStudent(student){
         .then( response => response.json() )
         .then( async(responseObj) => {
             if (!responseObj.pdfPath ){
-                log.info("nothing found")
+                log.info("filemanager @ managePrintrequest: nothing found")
                 this.visualfeedback(this.$t("dashboard.nopdf"))
                 return
             }
@@ -256,27 +256,21 @@ async function getLatestFromStudent(student){
 
     /** If there already is an ongoing printrequest - denie */
     if (this.printrequest){  // inform student that request was denied
-        fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/setstudentstatus/${this.servername}/${this.servertoken}/${student.token}`, { 
-            method: 'POST',
-            headers: {'Content-Type': 'application/json' },
-            body: JSON.stringify({ printdenied : true } )
-        })
-        .then( res => res.json() )
-        .then( result => { log.info(result)})
-        .catch(err => { log.error(err)});
+        log.info("filemanager @ managePrintrequest: decline ")
+        this.setStudentStatus({printdenied:true}, student.token)
         return
     }
 
 
     this.printrequest = student.clientname // we allow it and block others for the time beeing (we store student name to compare in dashboard)
-    log.info("filemanager.js: print request accepted")
+    log.info("filemanager @ managePrintrequest: print request accepted")
     
     // this informs the student that an exam upload is requested. 
     // this could need 4sek for the student to react because of the current update interval  
     // so if the teacher is faster than that it could happen that no pdf file is found or an old one - a warning will be displayed
     this.getFiles(student.token, false, true)
-    log.info("requesting current file from student") 
-    await this.sleep(4000);  // give it some time
+    log.info("filemanager @ managePrintrequest: requesting current file from student", student.clientname) 
+    await this.sleep(5000);  // give it some time
 
     this.$swal.fire({
         title: this.$t("dashboard.printrequest"),
@@ -296,29 +290,30 @@ async function getLatestFromStudent(student){
             .then( response => response.json() )
             .then( async(responseObj) => {
                 if (!responseObj.pdfBuffer ){
-                    log.info("nothing found")
+                    log.info("filemanager @ managePrintrequest: nothing found")
                     this.visualfeedback(this.$t("dashboard.nopdf"))
                     return
                 }
-                const blob = new Blob([new Uint8Array(responseObj.pdfBuffer.data).buffer], { type: 'application/pdf' });
-                const url = URL.createObjectURL(blob);
-        
+              
                 if (responseObj.warning){  // warn if getFiles() failed an file is older than 60 seconds
                     this.$swal.close();
                     this.visualfeedback(this.$t("dashboard.oldpdfwarningsingle",2000))
                     await sleep(2000)
                 }
-        
-                //let url =  URL.createObjectURL(new Blob([pdfBuffer], {type: "application/pdf"})) 
-                this.currentpreview = url   //needed for preview buttons
+
+                const blob = new Blob([new Uint8Array(responseObj.pdfBuffer.data).buffer], { type: 'application/pdf' });
+                this.currentpreview = URL.createObjectURL(blob);
                 this.currentpreviewname = student.clientname //needed for preview buttons
                 this.currentpreviewPath = responseObj.pdfPath 
-                log.info( "filemanager.js, print, pdfPath:", responseObj.pdfPath )
+                log.info( "filemanager @ managePrintrequest: pdfPath:", responseObj.pdfPath )
 
-                document.querySelector("#pdfembed").setAttribute("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`);
+                document.querySelector("#pdfembed").setAttribute("src", `${this.currentpreview}#toolbar=0&navpanes=0&scrollbar=0`);
                 document.querySelector("#pdfpreview").style.display = 'block';
                 
             }).catch(err => { log.error(err)});
+        }
+        else {
+            this.setStudentStatus({printdenied:true}, student.token)
         }
     }).catch(err => { log.error(err)});
 }

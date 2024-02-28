@@ -51,8 +51,8 @@ import {SchedulerService} from './schedulerservice.ts'
         this.multicastClient = mc
         this.config = config
 
-        this.heardbeatScheduler = new SchedulerService(this.sendHeartbeat.bind(this), 4000)
-        this.heardbeatScheduler.start()
+        this.heartbeatScheduler = new SchedulerService(this.sendHeartbeat.bind(this), 4000)
+        this.heartbeatScheduler.start()
 
         this.updateScheduler = new SchedulerService(this.requestUpdate.bind(this), 5000)
         this.updateScheduler.start()
@@ -156,7 +156,9 @@ import {SchedulerService} from './schedulerservice.ts'
                     log.error("communicationhandler @ requestUpdate: status error - try again in 5 seconds");
                 } else if (data.status === "success") {
                     this.multicastClient.beaconsLost = 0; // Dies zählt ebenfalls als erfolgreicher Heartbeat - Verbindung halten
-                    
+                    this.multicastClient.clientinfo.printrequest = false  //set this to false after the request left the client to prevent double triggering
+
+
                     // Verarbeitung der empfangenen Daten
                     const serverStatusDeepCopy = JSON.parse(JSON.stringify(data.serverstatus));
                     const studentStatusDeepCopy = JSON.parse(JSON.stringify(data.studentstatus));

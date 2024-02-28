@@ -185,7 +185,6 @@ import TextStyle from '@tiptap/extension-text-style'
 import { Node, mergeAttributes } from '@tiptap/core'   //we need this for our custom editor extension that allows to insert span elements
 import SpellChecker from '../utils/spellcheck'
 import moment from 'moment-timezone';
-
 import ExamHeader from '../components/ExamHeader.vue';
 import {SchedulerService} from '../utils/schedulerservice.js'
 
@@ -271,6 +270,7 @@ export default {
             allowspellcheck: false, // this is a per student override (for students with legasthenie)
             individualSpellcheckActivated: false,
             audioSource: null,
+            currentpreview: null
         }
     },
     computed: {
@@ -481,9 +481,9 @@ export default {
             }); 
         },
         // fetch file from disc - show preview
-        loadPDF(file){
-            let data = ipcRenderer.sendSync('getpdf', file )
-            let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
+        async loadPDF(file){
+            let data = await ipcRenderer.invoke('getpdfasync', file )
+            this.currentpreview =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
 
 
             const pdfEmbed = document.querySelector("#pdfembed");
@@ -491,7 +491,7 @@ export default {
             pdfEmbed.style.height = "96vh";
             pdfEmbed.style.marginTop = "-48vh";
 
-            document.querySelector("#pdfembed").setAttribute("src", `${url}#toolbar=0&navpanes=0&scrollbar=0`);
+            document.querySelector("#pdfembed").setAttribute("src", `${this.currentpreview}#toolbar=0&navpanes=0&scrollbar=0`);
             document.querySelector("#preview").style.display = 'block';
         },
 
@@ -499,9 +499,9 @@ export default {
         // fetch file from disc - show preview
         async loadImage(file){
             let data = await ipcRenderer.invoke('getpdfasync', file )
-            let url =  URL.createObjectURL(new Blob([data], {type: "image/jpeg"})) 
+            this.currentpreview =  URL.createObjectURL(new Blob([data], {type: "image/jpeg"})) 
             const pdfEmbed = document.querySelector("#pdfembed");
-            pdfEmbed.style.backgroundImage = `url(${url})`;
+            pdfEmbed.style.backgroundImage = `url(${this.currentpreview})`;
             pdfEmbed.style.backgroundSize = 'contain'
             pdfEmbed.style.backgroundRepeat = 'no-repeat'
            
@@ -815,7 +815,11 @@ export default {
         });
 
         // add some eventlisteners once
-        document.querySelector("#preview").addEventListener("click", function() {  this.style.display = 'none';});
+        document.querySelector("#preview").addEventListener("click", function() {  
+            this.style.display = 'none';
+            this.setAttribute("src", "about:blank");
+            URL.revokeObjectURL(this.currentpreview);
+        });
 
         document.querySelector("#audioclose").addEventListener("click", function(e) {
             audioPlayer.pause();
