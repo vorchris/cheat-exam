@@ -272,7 +272,17 @@ async function downloadFilesFromOneDrive() {
         if (data.value && data.value.length > 0) {  return data.value[0].id;  } 
         else { log.error('Folder not found'); return null; }
      })
-    .catch(err => { log.error(err) });
+    .catch(err => { 
+        log.error(err) 
+
+        // DO SOMETHING on UNauthorized
+        //INFORM RELOGIN
+        //  onedrive.js:263 
+        //  GET https://graph.microsoft.com/v1.0/me/drive/special/approot/children?$filter=name%20eq%20%27Deutsch-5C%27 401 (Unauthorized)
+            
+    
+    
+    });
 
     const appFolderEndpoint = `https://graph.microsoft.com/v1.0/me/drive/items/${folderID}/children`
 

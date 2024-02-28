@@ -51,8 +51,8 @@ import {SchedulerService} from './schedulerservice.ts'
         this.multicastClient = mc
         this.config = config
 
-        this.heardbeatScheduler = new SchedulerService(this.sendHeartbeat.bind(this), 4000)
-        this.heardbeatScheduler.start()
+        this.heartbeatScheduler = new SchedulerService(this.sendHeartbeat.bind(this), 4000)
+        this.heartbeatScheduler.start()
 
         this.updateScheduler = new SchedulerService(this.requestUpdate.bind(this), 5000)
         this.updateScheduler.start()

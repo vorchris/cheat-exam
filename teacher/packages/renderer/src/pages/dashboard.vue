@@ -922,7 +922,7 @@ export default {
 
 
 
-            this.pdfPreviewEventlisterenCallback = () => { document.querySelector("#pdfpreview").style.display = 'none';  document.querySelector("#pdfembed").setAttribute("src", "about:blank");} //unload pdf
+            this.pdfPreviewEventlisterenCallback = () => { document.querySelector("#pdfpreview").style.display = 'none';  document.querySelector("#pdfembed").setAttribute("src", "about:blank"); URL.revokeObjectURL(this.currentpreview);} //unload pdf
             this.fileBrowserEventlistenerCallback = () => { document.querySelector("#preview").style.display = "none"; }
 
             // Add event listener to #closefilebrowser  (only once - do not accumulate event listeners)

@@ -109,7 +109,7 @@ function dashboardExplorerSendFile(file){
 function loadPDF(filepath, filename){
     const form = new FormData()
     form.append("filename", filepath)
-    console.log(filepath)
+    //console.log(filepath)
     fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getpdf/${this.servername}/${this.servertoken}`, { method: 'POST', body: form })
     .then( response => response.arrayBuffer())
     .then( data => {
@@ -158,10 +158,10 @@ function loadImage(file){
         .then( data => {
             this.currentpreviewPath = file
 
-            let url =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
+            this.currentpreview =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
             // wanted to save code here but images need to be presented in a different way than pdf.. so...
             const pdfEmbed = document.querySelector("#pdfembed");
-            pdfEmbed.style.backgroundImage = `url(${url})`;
+            pdfEmbed.style.backgroundImage = `url(${this.currentpreview})`;
             pdfEmbed.style.height = "60vh";
             pdfEmbed.style.marginTop = "-30vh";
             pdfEmbed.setAttribute("src", '');
@@ -276,7 +276,7 @@ async function getLatestFromStudent(student){
     // so if the teacher is faster than that it could happen that no pdf file is found or an old one - a warning will be displayed
     this.getFiles(student.token, false, true)
     log.info("requesting current file from student") 
-    await this.sleep(4000);  // give it some time
+    await this.sleep(5000);  // give it some time
 
     this.$swal.fire({
         title: this.$t("dashboard.printrequest"),

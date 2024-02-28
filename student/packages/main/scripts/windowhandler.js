@@ -25,6 +25,7 @@ import {disableRestrictions, enableRestrictions} from './platformrestrictions.js
 import fs from 'fs' 
 import Nodehun from 'nodehun'   // npm rebuild nodehun --update-binary  on mac after build to run in dev mode
 import log from 'electron-log/main'
+import {SchedulerService} from './schedulerservice.ts'
 
   ////////////////////////////////////////////////////////////
  // Window handling (ipcRenderer Process - Frontend) START
@@ -505,48 +506,55 @@ class WindowHandler {
      
             // if a new window should open triggered by target="_blank"
             browserView.webContents.setWindowOpenHandler(({ url }) => { return { action: 'deny' };   }); // Prevent the new window from opening
-                 
+            
+            
+            let executeCode =  `
+                    function lock(){
+
+                        // 'WACDialogOuterContainer','WACDialogInnerContainer','WACDialogPanel',
+                        const hideusByID = ['ShowHideEquationToolsPane','LinkGroup','GraphicsEditor','InsertTableOfContentsInInsertTab','InsertOnlinevideo','Picture','Ribbon-PictureMenuMLRDropdown','InsertAddInFlyout','Designer','Editor','FarPane','Help','InsertAppsForOffice','FileMenuLauncherContainer','Help-wrapper','Review-wrapper','Header','FarPeripheralControlsContainer','BusinessBar']
+                        for (entry of hideusByID) {
+                            let element = document.getElementById(entry)
+                            if (element) { element.style.display = "none" }
+                        }
+
+                        let buttonAppsOverflow = document.getElementsByName('Add-Ins')[0];  // this button is redrawn on resize (doesn't happen in exam mode but still there must be a cleaner way - inserting css before it appears is not working)
+                        if (buttonAppsOverflow){ buttonAppsOverflow.style.display = "none" }
+
+                        let elements = document.querySelectorAll('[aria-label="Suchen"]');
+                        elements.forEach(element => { element.style.display = 'none';});
+                        elements = document.querySelectorAll('[aria-label="Übersetzen"]');
+                        elements.forEach(element => { element.style.display = 'none';});
+                        elements = document.querySelectorAll('[aria-label="Copilot"]');
+                        elements.forEach(element => { element.style.display = 'none'; });
+                        elements = document.querySelectorAll('[aria-label="Add-Ins"]');
+                        elements.forEach(element => { element.style.display = 'none'; });
+                        elements = document.querySelectorAll('[data-unique-id="ContextMenu-SmartLookupContextMenu"]');
+                        elements.forEach(element => {element.style.display = 'none';});
+                        elements = document.querySelectorAll('[data-unique-id="ContextMenu-SmartLookupSynonyms"]');
+                        elements.forEach(element => {element.style.display = 'none'; });
+                        elements = document.querySelectorAll('[data-unique-id="Ribbon-ReferencesSmartLookUp"]');
+                        elements.forEach(element => {element.style.display = 'none';});
+                        elements = document.querySelectorAll('[data-unique-id="Dictation"]');
+                        elements.forEach(element => { element.style.display = 'none'; });
+                        elements = document.querySelectorAll('[data-unique-id="GetAddins"]');
+                        elements.forEach(element => { element.style.display = 'none'; });
+                        elements = document.querySelectorAll('[data-unique-id="Pictures_MLR"]');
+                        elements.forEach(element => { element.style.display = 'none'; });
+                        
+                    }
+                  
+                    lock()  //for some reason excel delays that call.. doesnt happen on page finish load
+                    `
+
+            this.lockCallback = () => this.lock365(browserView, executeCode); 
+
+            this.lockScheduler = new SchedulerService(this.lockCallback, 400)
+            this.lockScheduler.start()
+
             // Wait until the webContents is fully loaded
             browserView.webContents.on('did-finish-load', async () => {
                 browserView.webContents.mainFrame.frames.filter((frame) => {
-                    let executeCode =  `
-                            function lock(){
-
-                                // 'WACDialogOuterContainer','WACDialogInnerContainer','WACDialogPanel',
-                                const hideusByID = ['Ribbon-PictureMenuMLRDropdown','InsertAddInFlyout','Designer','Editor','FarPane','Help','InsertAppsForOffice','FileMenuLauncherContainer','Help-wrapper','Review-wrapper','Header','FarPeripheralControlsContainer','BusinessBar']
-                                for (entry of hideusByID) {
-                                    let element = document.getElementById(entry)
-                                    if (element) { element.style.display = "none" }
-                                }
-
-                                let buttonAppsOverflow = document.getElementsByName('Add-Ins')[0];  // this button is redrawn on resize (doesn't happen in exam mode but still there must be a cleaner way - inserting css before it appears is not working)
-                                if (buttonAppsOverflow){ buttonAppsOverflow.style.display = "none" }
-
-                                let elements = document.querySelectorAll('[aria-label="Suchen"]');
-                                elements.forEach(element => { element.style.display = 'none';});
-                                elements = document.querySelectorAll('[aria-label="Übersetzen"]');
-                                elements.forEach(element => { element.style.display = 'none';});
-                                elements = document.querySelectorAll('[aria-label="Copilot"]');
-                                elements.forEach(element => { element.style.display = 'none'; });
-                                elements = document.querySelectorAll('[aria-label="Add-Ins"]');
-                                elements.forEach(element => { element.style.display = 'none'; });
-                                elements = document.querySelectorAll('[data-unique-id="ContextMenu-SmartLookupContextMenu"]');
-                                elements.forEach(element => {element.style.display = 'none';});
-                                elements = document.querySelectorAll('[data-unique-id="ContextMenu-SmartLookupSynonyms"]');
-                                elements.forEach(element => {element.style.display = 'none'; });
-                                elements = document.querySelectorAll('[data-unique-id="Ribbon-ReferencesSmartLookUp"]');
-                                elements.forEach(element => {element.style.display = 'none';});
-                                elements = document.querySelectorAll('[data-unique-id="Dictation"]');
-                                elements.forEach(element => { element.style.display = 'none'; });
-                                elements = document.querySelectorAll('[data-unique-id="GetAddins"]');
-                                elements.forEach(element => { element.style.display = 'none'; });
-                                elements = document.querySelectorAll('[data-unique-id="Pictures_MLR"]');
-                                elements.forEach(element => { element.style.display = 'none'; });
-                                
-                            }
-                            const intervalId = setInterval(lock, 400);
-                            lock()  //for some reason excel delays that call.. doesnt happen on page finish load
-                            `
                     if (frame && frame.name === 'WebApplicationFrame') {
                         frame.executeJavaScript(executeCode); 
                     }
@@ -604,7 +612,26 @@ class WindowHandler {
 
 
 
+    async lock365(browserView, executeCode){
+        if (browserView.webContents && browserView.webContents.mainFrame){
+            browserView.webContents.mainFrame.frames.filter((frame) => {
+                //log.info("found frame", frame.name)
+                if (frame && frame.name === 'WebApplicationFrame' || frame.name === 'WacFrame_Word_0') {
+                    log.info("found frame")
+                    frame.executeJavaScript(executeCode); 
+                }
+            })
+        }
+        else {
+            log.info("windowhandler @ lock365: stopping lockScheduler")
+            this.lockScheduler.stop()
+        }
+        
 
+ 
+
+
+    }
 
 
 
