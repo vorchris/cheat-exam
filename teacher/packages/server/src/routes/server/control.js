@@ -140,7 +140,7 @@ router.get('/msauth', async (req, res) => {
     const servername = req.params.servername 
     const mcServer = config.examServerList[servername]
 
-    log.info(req.body) // optional: we could store the current workdirectory for every mcserver on mcserver.serverinfo in the future
+    // log.info(req.body) // holds workdir: we could store the current workdirectory for every mcserver on mcserver.serverinfo in the future
     
     //generate random pin
     let pin = String(Math.floor(Math.random()*9000) + 1000)  // 4 digits is enough  Math.floor(Math.random() * 9000) + 1000;
@@ -157,11 +157,11 @@ router.get('/msauth', async (req, res) => {
         }
      }
     
-    log.info('Initializing new Exam Server')
+    log.info('control @ start: Initializing new Exam Server:', servername)
     let mcs = new multiCastserver();
     mcs.init(servername, pin, req.params.passwd)
     config.examServerList[servername]=mcs
-     log.info(config.workdirectory)
+    // log.info(config.workdirectory)
     let serverinstancedir = path.join(config.workdirectory, servername)
 
     if (!fs.existsSync(serverinstancedir)){ fs.mkdirSync(serverinstancedir, { recursive: true }); }

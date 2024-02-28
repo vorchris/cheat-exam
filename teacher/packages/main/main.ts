@@ -58,6 +58,15 @@ if (!app.requestSingleInstanceLock()) {
     process.exit(0)
 }
 
+
+// hide certificate warnings in console.. we know we use a self signed cert and do not validate it
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
+const originalEmitWarning = process.emitWarning
+process.emitWarning = (warning, options) => {
+    if (warning && warning.includes && warning.includes('NODE_TLS_REJECT_UNAUTHORIZED')) {  return }
+    return originalEmitWarning.call(process, warning, options)
+}
+
 app.on('certificate-error', (event, webContents, url, error, certificate, callback) => { // SSL/TSL: this is the self signed certificate support
     event.preventDefault(); // On certificate error we disable default behaviour (stop loading the page)
     callback(true);  // and we then say "it is all fine - true" to the callback

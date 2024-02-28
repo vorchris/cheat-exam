@@ -135,7 +135,8 @@
         "defaultprinter": "Standard Drucker wählen",
         "allowdirectprint": "Schüler:innen Direktdruck erlauben",
         "noprinter": "Keine Drucker gefunden",
-        "directprint": "Direkdruck"
+        "directprint": "Direkdruck",
+        "open": "Datei in externem Betrachter öffnen"
     },
     "control": {
         "tokennotvalid": "Das Token ist ungültig",

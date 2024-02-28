@@ -2,7 +2,7 @@
 
 
 <!-- Header  -->
-<div class="w-100 p-3 text-white bg-dark shadow text-right">
+<div :key="0" class="w-100 p-3 text-white bg-dark shadow text-right">
     <router-link v-if="!electron" to="/" class="text-white m-1">
         <img src="/src/assets/img/svg/speedometer.svg" class="white me-2  " width="32" height="32" >
         <span class="fs-4 align-middle me-1 ">Next-Exam</span>
@@ -23,7 +23,7 @@
 <div id="wrapper" class="w-100 h-100 d-flex" >
     
     <!-- single student view  -->
-    <div id="studentinfocontainer" class="fadeinslow p-4">
+    <div :key="1" id="studentinfocontainer" class="fadeinslow p-4">
         <div v-if="activestudent!= null" id="studentinfodiv">
             <div v-cloak><img style="position: absolute; height: 100%" :src="(activestudent.imageurl && now - 20000 < activestudent.timestamp)? `${activestudent.imageurl}`:'user-red.svg'"></div>
 
@@ -45,15 +45,15 @@
 
 
     <!-- dashboard EXPLORER start -->
-    <div id=preview class="fadeinslow ">
+    <div :key="2" id=preview class="fadeinslow ">
         <div id=workfolder style="overflow-y:hidden">
             <button id="closefilebrowser" type="button" class=" btn-close pt-2 pe-2 float-end" title="close"></button>
             <h4>{{$t('dashboard.filesfolder')}}: <br> <h6 class="ms-3 mb-3"><strong> {{currentdirectory}}</strong>  </h6></h4>
             <div class="btn btn-dark pe-3 ps-3 me-1 mb-3 btn-sm" @click="loadFilelist(workdirectory) "><img src="/src/assets/img/svg/go-home.svg" class="" width="22" height="22" > </div>
             <div :class="( serverstatus.examtype === 'eduvidual' )? 'disabledblue':''" class="btn btn-primary pe-3 ps-3 me-1 mb-3 btn-sm" style="float: right;" :title="$t('dashboard.summarizepdf')" @click="getLatest() "><img src="/src/assets/img/svg/edit-copy.svg" class="" width="22" height="22" >{{$t('dashboard.summarizepdfshort')}}</div>
             <div  v-if="(currentdirectory !== workdirectory)" class="btn btn-dark pe-3 ps-3 me-1 mb-3 btn-sm" @click="loadFilelist(currentdirectoryparent) "><img src="/src/assets/img/svg/edit-undo.svg" class="" width="22" height="22" >up </div>
-            <div style="height: 76vh; overflow-y:auto;">
-                <div v-for="file in localfiles" class="d-inline">
+            <div :key="3" style="height: 76vh; overflow-y:auto;">
+                <div v-for="file in localfiles" :key="file.path" class="d-inline">
                     <hr v-if="(file.type == 'file' || file.type == 'dir')">
                     <div  v-if="(file.type == 'file' || file.type == 'dir')" class="btn btn-dark me-1 mb-2 btn-sm" style="float: right;" @click="fdelete(file)" :title="$t('dashboard.delete')"><img src="/src/assets/img/svg/edit-delete.svg" class="" width="22" height="22" ></div>
 
@@ -80,10 +80,12 @@
 
 
     <!-- pdf preview start -->
-    <div id="pdfpreview" class="fadeinslow p-4">
+    <div :key="4" id="pdfpreview" class="fadeinslow p-4">
         <div class="btn btn-danger me-2  shadow" style="float: right;" @click="hidepreview()" :title="$t('dashboard.close')"><img src="/src/assets/img/svg/dialog-cancel.svg" class="" width="22" height="32" > </div>
         <div class="btn btn-warning me-2 shadow" style="float: right;" id="printPDF" @click="print()"  :title="$t('dashboard.print')"><img src="/src/assets/img/svg/print.svg" class="white" width="22" height="32" > </div>
         <div class="btn btn-dark me-2 shadow" style="float: right;" @click="downloadFile('current')" :title="$t('dashboard.download')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="32" > </div>
+        <div class="btn btn-dark me-2 shadow" style="float: right;" @click="openFileExternal(currentpreviewPath)" :title="$t('dashboard.open')"><img src="/src/assets/img/svg/stock_exit_up.svg" class="" width="22" height="32" > </div>
+
         <iframe src="" id="pdfembed"></iframe>
     </div>
     <!-- pdf preview end -->
@@ -91,7 +93,7 @@
 
 
     <!-- SIDEBAR start -->
-    <div class="p-3 text-white bg-dark h-100 " style="width: 240px; min-width: 240px;">
+    <div :key="5" class="p-3 text-white bg-dark h-100 " style="width: 240px; min-width: 240px;">
         <div class="btn btn-light m-1 mt-0 text-start infobutton" @click="showinfo()">{{$t('dashboard.name')}} <br><b> {{$route.params.servername}}</b> </div><br>
         <div class="btn btn-light m-1 text-start infobutton" @click="showinfo()">{{$t('dashboard.server')}} <br><b>{{serverip}}</b> </div><br>
         <div class="btn btn-light m-1 mb-3 text-start infobutton" @click="showinfo()">{{$t('dashboard.pin')}}<br><b> {{ serverstatus.pin }} </b>  </div><br>
@@ -173,7 +175,7 @@
 
 
     <!-- PRINT Setup START -->
-    <div id="printselectoverlay" class="fadeinslow" @click="setupDefaultPrinter()">
+    <div :key="6" id="printselectoverlay" class="fadeinslow" @click="setupDefaultPrinter()">
         <div id="availablePrinters">
             <!-- <div class="swal2-icon swal2-question swal2-icon-show" style="display: flex;"><div class="swal2-icon-content">?</div></div> -->
             <span><h5 style="display: inline">{{ $t('dashboard.defaultprinter') }}</h5></span>
@@ -193,7 +195,7 @@
   <!-- PRINT Setup END -->
 
    
-    <div id="content" class="fadeinslow p-3">
+    <div :key="7" id="content" class="fadeinslow p-3">
         <!-- control buttons start -->        
         <div v-if="(serverstatus.exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:128px; height:62px;" @click="endExam();hideDescription();"  @mouseover="showDescription($t('dashboard.exitkiosk'))" @mouseout="hideDescription"  >                                                                                                                                         <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" width="28" height="28" style="vertical-align: top;"> <div style="display:inline-block; margin-top:4px; margin-left:4px; width:60px; font-size:0.8em;"> {{numberOfConnections}} {{$t('dashboard.stopexam')}} </div></div>
         <div v-if="(!serverstatus.exammode)" class="btn btn-teal m-1 mt-0 text-start ms-0"  @click="startExam();hideDescription();"  @mouseover="showDescription($t('dashboard.startexamdesc'))" @mouseout="hideDescription" :class="(serverstatus.examtype === 'microsoft365' && (!this.config.accessToken || !serverstatus.msOfficeFile))? 'disabledgreen':''" style="width:128px; height:62px;">  <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" width="28" height="28" style="vertical-align: top;"> <div style="display:inline-block; margin-top:4px; margin-left:4px; width:60px; font-size:0.8em;"> {{numberOfConnections}} {{$t('dashboard.startexam')}}</div></div>
@@ -209,7 +211,7 @@
         <!-- studentlist start -->
         <div id="studentslist" class="pt-1">        
             <draggable v-model="studentwidgets" :move="handleMoveItem" @end="handleDragEndItem" ghost-class="ghost">
-                <div v-for="student in studentwidgets" key:student.token style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':''" class="studentwidget btn rounded-3 btn-block ">
+                <div v-for="student in studentwidgets" :key="student.token" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':''" class="studentwidget btn rounded-3 btn-block ">
                     <div v-if="student.clientname">
                         <div class="studentimage rounded" style="position: relative; height:132px;">  
                             <button v-if="serverstatus.examtype === 'editor' && !this.serverstatus.spellcheck && this.serverstatus.spellchecklang !== 'none'" @mouseover="showDescription($t('dashboard.allowspellcheck'))" @mouseout="hideDescription" @click='activateSpellcheckForStudent(student.token,student.clientname)' type="button" class="btn btn-sm pt-1 mt-2 pe-1 float-end" style="z-index:1000; position:relative;"><img src="/src/assets/img/svg/autocorrection.svg" class="widgetbutton" width="22" height="22" ></button> 
@@ -259,7 +261,7 @@ import {SchedulerService} from '../utils/schedulerservice.js'
 class EmptyWidget {
     constructor() {
         this.clientname = false
-        this.token = uuidv4()
+        this.token = uuidv4()   //generate new id for every new instance
         this.imageurl="user-black.svg"    
     }
 }
@@ -780,6 +782,13 @@ export default {
                 this.status(this.$t("dashboard.freespacewarning")) 
             }
         }, 
+
+        async openFileExternal(filepath){
+            let result = await ipcRenderer.invoke('openfile', filepath)
+            
+        },
+
+
         truncatedClientName(value, len=18) {
             if (!value) return
             return value.length > len ? value.substr(0, len) + '...' : value;
@@ -891,14 +900,14 @@ export default {
 
 
 
+            this.pdfPreviewEventlisterenCallback = () => { document.querySelector("#pdfpreview").style.display = 'none';  document.querySelector("#pdfembed").setAttribute("src", "about:blank");} //unload pdf
+            this.fileBrowserEventlistenerCallback = () => { document.querySelector("#preview").style.display = "none"; }
+
             // Add event listener to #closefilebrowser  (only once - do not accumulate event listeners)
-            document.querySelector("#closefilebrowser").addEventListener("click", function() { document.querySelector("#preview").style.display = "none"; });
-            // Prevent event propagation for clicks on #workfolder
-            document.querySelector('#workfolder').addEventListener("click", function(e) { e.stopPropagation(); });
+            document.querySelector("#closefilebrowser").addEventListener("click", this.fileBrowserEventlistenerCallback);
+            document.querySelector('#workfolder').addEventListener("click", function(e) { e.stopPropagation(); }); // Prevent event propagation for clicks on #workfolder
             document.getElementById('availablePrinters').addEventListener('click', function(e) { e.stopPropagation();});
-           
-            // Set the event listener for #pdfpreview click to hide pdfpreview
-            document.querySelector("#pdfpreview").addEventListener("click", function() { this.style.display = 'none'; });
+            document.querySelector("#pdfpreview").addEventListener("click", this.pdfPreviewEventlisterenCallback); // Set the event listener for #pdfpreview click to hide pdfpreview
 
         })
         if (this.electron){
@@ -912,6 +921,8 @@ export default {
         this.fetchinterval.stop() 
         this.abgabeinterval.removeEventListener('action', this.abgabeCallback);
         this.abgabeinterval.stop() 
+        document.querySelector("#pdfpreview").removeEventListener("click", this.pdfPreviewEventlisterenCallback);
+        document.querySelector("#closefilebrowser").removeEventListener("click", this.fileBrowserEventlistenerCallback);
     }
 
 }

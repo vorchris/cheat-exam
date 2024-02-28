@@ -50,11 +50,11 @@ async function checkPasswd(to){
         to.params.pin = res.data.pin; 
         to.params.servertoken = res.data.servertoken; 
         to.params.serverip = res.data.serverip; 
-        console.log("password ok"); 
+        console.log("router @ checkPasswd: password ok"); 
         return true 
     }
     else {  
-        console.log("password error"); 
+        console.log("router @ checkPasswd: password error"); 
         return { path: '/startserver'}
     }
 }

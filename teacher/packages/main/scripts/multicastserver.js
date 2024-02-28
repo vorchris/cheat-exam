@@ -68,7 +68,7 @@ class MulticastServer {
             this.broadcastInterval.start()
 
 
-            log.info(`UDP MC Server listening on http://${config.hostip}:${this.server.address().port}`)
+            log.info(`multicastserver @ init: UDP MC Server listening on http://${config.hostip}:${this.server.address().port}`)
         })
     }
 

@@ -135,7 +135,8 @@
         "defaultprinter": "select default printer",
         "allowdirectprint": "allow direct print for students",
         "noprinter": "no printer found",
-        "directprint": "direct  print"
+        "directprint": "direct  print",
+        "open": "open file in external viewer"
     },
     "control": {
         "tokennotvalid": "token is not valid",

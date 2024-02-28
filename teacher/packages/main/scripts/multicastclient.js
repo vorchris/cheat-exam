@@ -45,7 +45,7 @@ class MulticastClient {
                 this.client.setMulticastTTL(128); 
                 if (this.gateway) { this.client.addMembership(this.MULTICAST_ADDR) }
                 if (!this.gateway) {log.warn("mcclient: No Gateway! Starting MulticastClient without adding group membership")}
-                log.info(`UDP MC Client listening on http://${config.hostip}:${this.client.address().port}`)
+                log.info(`multicastclient @ inti: UDP MC Client listening on http://${config.hostip}:${this.client.address().port}`)
             })
         }
         catch (err){log.error(err)}
@@ -93,7 +93,7 @@ class MulticastClient {
         for (let i = 0; i < this.examServerList.length; i++) {
             const now = new Date().getTime()
             if (now - 16000 > this.examServerList[i].timestamp) {
-                log.warn('Removing inactive server from list')
+                log.warn('multicastclient @ isDeprecatedInstance: Removing inactive server from list')
                 this.examServerList.splice(i, 1)
             }
         }

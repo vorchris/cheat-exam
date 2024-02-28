@@ -44,11 +44,8 @@
             </div>
         </div>
 
-
-        
-        <div class="m-2">
-            <br><div id="statusdiv" class="btn btn-warning m-2 hidden">{{$t("startserver.connected")}}</div>
-        </div>
+        <br>
+        <div id="statusdiv" class="btn btn-warning">{{$t("startserver.connected")}}</div>
         <br>
        
         <span @click="showCopyleft()" style="position: absolute; bottom:2px; left: 6px; font-size:0.8em;cursor: pointer;">
@@ -197,6 +194,7 @@ export default {
                 })
                 .then( res => res.json())
                 .then( async response => { 
+                   
                     if (response.status === "success") {  //directly log in
                         this.status(response.message);
                         await this.sleep(1000);
@@ -211,7 +209,9 @@ export default {
                         }
                         else {window.location.href = `#/dashboard/${this.servername}/${this.password}`}
                     }
-                    else { this.status(response.message); }
+                    else { 
+                        this.status(response.message); 
+                    }
                 })
                 .catch(err => { this.status(err); console.warn(err) })
             } 
@@ -269,13 +269,13 @@ export default {
     },
     mounted() {  // when ready
         
-        log.info('Frontend mounted...');
+        log.info('startserver @ mounted: next-exam ready!');
    
   
         const statusDiv = document.querySelector("#statusdiv");
         this.fadeOut(statusDiv);
 
-        console.log(this.$route.params )
+        
         if (this.prod) {  //clear input fields in production mode
             document.querySelector("#servername").value = "";
             document.querySelector("#pin").value = "";
@@ -302,6 +302,12 @@ export default {
 
 
 <style scoped>
+
+#statusdiv {
+    display: block !important;
+    width: 200px  ;
+}
+
 #content {
     background-color: whitesmoke;
     min-width: 680px;

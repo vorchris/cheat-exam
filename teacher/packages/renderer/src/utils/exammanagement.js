@@ -152,7 +152,7 @@ function setAbgabeInterval(){
 // get finished exams (ABGABE) from students
 function getFiles(who='all', feedback=false, quiet=false){
     this.checkDiscspace()
-    if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); log.warn("no clients connected"); return; }
+    if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); log.warn("exammanagement @ getFiles: no clients connected"); return; }
 
     if (this.serverstatus.examtype === "microsoft365"){ //fetch files from onedrive
         this.downloadFilesFromOneDrive()

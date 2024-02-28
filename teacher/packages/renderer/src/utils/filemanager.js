@@ -69,6 +69,9 @@ function downloadFile(file){
 
 
 
+
+
+
 // send a file from dashboard explorer to specific student
 function dashboardExplorerSendFile(file){
     const inputOptions = new Promise((resolve) => {  // prepare input options for radio buttons
@@ -106,10 +109,14 @@ function dashboardExplorerSendFile(file){
 function loadPDF(filepath, filename){
     const form = new FormData()
     form.append("filename", filepath)
+    console.log(filepath)
     fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getpdf/${this.servername}/${this.servertoken}`, { method: 'POST', body: form })
     .then( response => response.arrayBuffer())
     .then( data => {
         URL.revokeObjectURL(this.currentpreview);  //speicher freigeben
+     
+        let isvalid = isValidPdf(data)
+        log.info("filemanager @ loadPDF: pdf is valid: ", isvalid)
 
         this.currentpreview = URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
         this.currentpreviewname = filename   //needed for preview buttons
@@ -123,8 +130,22 @@ function loadPDF(filepath, filename){
         document.querySelector("#pdfembed").setAttribute("src", `${this.currentpreview}#toolbar=0&navpanes=0&scrollbar=0`);
         document.querySelector("#pdfpreview").style.display = 'block';
 
-    }).catch(err => { log.error(err)});     
+    }).catch(err => { log.error(err) });     
 }
+
+function isValidPdf(data) {
+    const header = new Uint8Array(data, 0, 5); // Lese die ersten 5 Bytes für "%PDF-"
+    // Umwandlung der Bytes in Hexadezimalwerte für den Vergleich
+    const pdfHeader = [0x25, 0x50, 0x44, 0x46, 0x2D]; // "%PDF-" in Hex
+    for (let i = 0; i < pdfHeader.length; i++) {
+        if (header[i] !== pdfHeader[i]) {
+            return false; // Früher Abbruch, wenn ein Byte nicht übereinstimmt
+        }
+    }
+    return true; // Alle Bytes stimmen mit dem PDF-Header überein
+}
+
+
 
 
 

@@ -18,15 +18,15 @@
 
 
 import fs from 'fs'
-import i18n from '../../renderer/src/locales/locales.js'
-const { t } = i18n.global
-import {  ipcMain, dialog, BrowserWindow } from 'electron'
-import checkDiskSpace from 'check-disk-space'
+//import i18n from '../../renderer/src/locales/locales.js'
+//const { t } = i18n.global
+import {  ipcMain, dialog } from 'electron'
 import {join} from 'path'
 import log from 'electron-log/main';
 import { print } from "unix-print";
 import { print as printWin } from "pdf-to-printer";
-
+import diskspace from "diskspace"
+import { exec } from 'child_process';
 
 class IpcHandler {
     constructor () {
@@ -55,12 +55,49 @@ class IpcHandler {
             return this.copyConfig(config);  // we cant just copy the config because it contains examServerList which contains confic (circular structure)
         })  
 
+
+        ipcMain.handle('openfile', (event, filepath) => {  
+
+            const cmd = process.platform === 'win32' ? `start ${filepath}` :
+            process.platform === 'darwin' ? `open ${filepath}` :
+            `xdg-open ${filepath}`;
+
+            try {
+                exec(cmd, (error) => {
+                    if (error) {
+                        log.error('ipchandler @ openfile: Fehler beim Öffnen des PDF:', err);
+                        return false
+                        
+                    }
+                    log.info('ipchandler @ openfile: Datei in expernem Reader geöffnet');
+                    console.log('PDF erfolgreich geöffnet');
+                    return true
+                });
+            }
+            catch(err){
+                log.error('ipchandler @ openfile: Fehler beim Öffnen des PDF:', err);
+                return false
+            }
+
+
+        })  
+
         ipcMain.on('getCurrentWorkdir', (event) => {   event.returnValue = config.workdirectory  })
 
+
         ipcMain.handle('checkDiscspace', async () => {
-            let diskSpace = await checkDiskSpace(config.workdirectory);
-            let free = Math.round(diskSpace.free / 1024 / 1024 / 1024 * 1000) / 1000;
-            return free;
+           
+            diskspace.check(config.workdirectory, function (err, result)
+            {
+                let free = Math.round(result.free / 1024 / 1024 / 1024 * 1000) / 1000;
+                //log.warn(free)
+                return free;
+            });
+
+            //let diskSpace = await checkDiskSpace(config.workdirectory);
+            //let free = Math.round(diskSpace.free / 1024 / 1024 / 1024 * 1000) / 1000;
+             //return free;
+           
         });
 
         ipcMain.handle('setworkdir', async (event, arg) => {
