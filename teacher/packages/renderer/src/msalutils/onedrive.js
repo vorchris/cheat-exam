@@ -272,15 +272,20 @@ async function downloadFilesFromOneDrive() {
         if (data.value && data.value.length > 0) {  return data.value[0].id;  } 
         else { log.error('Folder not found'); return null; }
      })
-    .catch(err => { 
-        log.error(err) 
+    .catch( async (err) => { 
+        log.error("onedrive @ downloadFilesFromOneDrive: ",err) 
 
-        // DO SOMETHING on UNauthorized
-        //INFORM RELOGIN
-        //  onedrive.js:263 
-        //  GET https://graph.microsoft.com/v1.0/me/drive/special/approot/children?$filter=name%20eq%20%27Deutsch-5C%27 401 (Unauthorized)
-            
-    
+        this.$swal.fire({
+            title: "Microsoft Onedrive Connection",
+            text: "Verbindung unterbrochen",
+            icon: 'error',
+            timer: 3000,
+            showCancelButton: false,
+            didOpen: () => { this.$swal.showLoading(); },
+        })
+
+        // "Unauthorized" Error in der Regel.. microsoft halt.. einfach neu verbinden und gut is
+        this.config = await ipcRenderer.invoke('resetToken')   //reset and update config
     
     });
 
