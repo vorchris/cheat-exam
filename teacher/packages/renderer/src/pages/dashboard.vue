@@ -440,7 +440,7 @@ export default {
                         }
                         if (student.printrequest){  // student sent a printrequest to the teacher
                             //printrequest sollte am client auch sofort auf false gesetzt werden sobald abgeschickt jedoch könnte der client genau hier ja disconnecten
-                            this.setStudentStatus({removeprintrequest:true})  //request received.. remove it from the servers student object
+                            this.setStudentStatus({removeprintrequest:true}, student.token)  //request received.. remove it from the servers student object
                             if (student.clientname !== this.printrequest)  {  //this.printrequest contains the name of the student who requested
                                 this.getLatestFromStudent(student) //do not trigger twice from same student
                             } 
@@ -871,15 +871,15 @@ export default {
          * set student.studentstatus or student attributes serverside
          * @param {*} bodyobject an object that contains the studentstatus or student attibute that needs to be set in the servers student representation
          */
-        setStudentStatus(bodyobject){
-            fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/setstudentstatus/${this.servername}/${this.servertoken}/${student.token}`, { 
+        setStudentStatus(bodyobject, studenttoken){
+            fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/setstudentstatus/${this.servername}/${this.servertoken}/${studenttoken}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },
                 body: JSON.stringify(bodyobject )
             })
             .then( res => res.json() )
-            .then( result => { log.info(result)})
-            .catch(err => { log.error(err)});
+            .then( result => { console.log(result)})
+            .catch(err => { console.error(err)});
 
 
         },
