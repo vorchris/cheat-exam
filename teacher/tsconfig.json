@@ -9,7 +9,7 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "baseUrl": "./",
-    "strict": false,
+    "strict": true,
     "paths": {},
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true
