@@ -25,8 +25,10 @@ import {join} from 'path'
 import log from 'electron-log/main';
 import { print } from "unix-print";
 import { print as printWin } from "pdf-to-printer";
-import diskspace from "diskspace"
 import { exec } from 'child_process';
+
+
+import { loadCheckDiskSpace } from './checkspace';
 
 class IpcHandler {
     constructor () {
@@ -97,18 +99,12 @@ class IpcHandler {
 
 
         ipcMain.handle('checkDiscspace', async () => {
-           
-            diskspace.check(config.workdirectory, function (err, result)
-            {
-                let free = Math.round(result.free / 1024 / 1024 / 1024 * 1000) / 1000;
-                //log.warn(free)
+            loadCheckDiskSpace().then( async (checkDiskSpace) => {
+                let diskSpace = await checkDiskSpace(config.workdirectory);
+                let free = Math.round(diskSpace.free / 1024 / 1024 / 1024 * 1000) / 1000;
+                log.info("ipchandler @ checkDiskspace:",diskSpace)
                 return free;
-            });
-
-            //let diskSpace = await checkDiskSpace(config.workdirectory);
-            //let free = Math.round(diskSpace.free / 1024 / 1024 / 1024 * 1000) / 1000;
-             //return free;
-           
+              }); 
         });
 
         ipcMain.handle('setworkdir', async (event, arg) => {
