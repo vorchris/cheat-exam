@@ -11,6 +11,7 @@ function watchMain(server) {
    */
   let electronProcess = null
   const address = server.httpServer.address()
+  console.log(address)
   const env = Object.assign(process.env, {
     VITE_DEV_SERVER_HOST: address.address,
     VITE_DEV_SERVER_PORT: address.port,
@@ -64,6 +65,6 @@ function sleep(ms) {
 // bootstrap
 const server = await createServer({ configFile: 'packages/renderer/vite.config.ts' })
 
-await server.listen()
+await server.listen({port: 3001, host: '127.0.0.1' })
 await watchPreload(server)
 await watchMain(server)

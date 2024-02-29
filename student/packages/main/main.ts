@@ -149,7 +149,7 @@ app.whenReady()
     powerSaveBlocker.start('prevent-display-sleep')
     if (process.platform === 'win32') {
         import('node-prevent-sleep').then( preventSleep => {
-            preventSleep.enable();
+           // preventSleep.enable();   //neue vite build server macht auch hier was kaputt..  a.enable() is not a function
         })
     }
    
