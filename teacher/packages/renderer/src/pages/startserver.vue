@@ -50,7 +50,7 @@
        
         <span @click="showCopyleft()" style="position: absolute; bottom:2px; left: 6px; font-size:0.8em;cursor: pointer;">
             <span style=" display:inline-block; transform: scaleX(-1);font-size:1.2em; ">&copy; </span> 
-            <span style="vertical-align: text-bottom;">&nbsp;{{version}}</span>
+            <span style="vertical-align: text-bottom;">&nbsp;{{version}} {{ info }}</span>
         </span>
     </div>
 
