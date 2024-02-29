@@ -54,5 +54,6 @@ export default defineConfig({
   },
   server: {
     port: pkg.env.PORT,
+    host: '127.0.0.1'
   },
 })

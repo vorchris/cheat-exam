@@ -104,7 +104,8 @@ app.whenReady().then(()=>{
     powerSaveBlocker.start('prevent-display-sleep')
     
     if (process.platform === 'win32') {
-        import('node-prevent-sleep').then( preventSleep => {
+        import('node-prevent-sleep').then( module => {
+            const preventSleep = module.default
             preventSleep.enable();
         })
     }
