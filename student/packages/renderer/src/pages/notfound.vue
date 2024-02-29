@@ -1,7 +1,7 @@
 <template>
 
 <div id="wrapper" class="w-100 h-100 d-flex" >
-    <div id="container" class="fadeinslow text-center">
+    <div id="container" class="fadeinfast text-center">
         <div  class=" position-absolute start-50 translate-middle text-center" style="top: 50vh; width: 100% ">
         
                 <div class="exambanner w-100 p-3   shadow text-right">

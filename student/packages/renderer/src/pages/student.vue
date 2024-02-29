@@ -49,7 +49,7 @@
     </div>
 
     <!-- CONTENT -->
-    <div id="content" class="fadeinslow p-3">
+    <div id="content" class="fadeinfast p-3">
 
 
 

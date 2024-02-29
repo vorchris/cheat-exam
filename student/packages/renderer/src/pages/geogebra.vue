@@ -55,7 +55,7 @@
 
     
     <!-- angabe/pdf preview start -->
-    <div id=preview class="fadeinslow p-4">
+    <div id=preview class="fadeinfast p-4">
         <embed src="" id="pdfembed"/>
     </div>
     <!-- angabe/pdf preview end -->
@@ -270,10 +270,10 @@ export default {
             pdfEmbed.style.backgroundImage = `url(${this.currentpreview})`;
             pdfEmbed.style.backgroundSize = 'contain'
             pdfEmbed.style.backgroundRepeat = 'no-repeat'
-           
+            pdfEmbed.style.backgroundPosition =  'center'
             pdfEmbed.style.height = "80vh";
             pdfEmbed.style.marginTop = "-40vh";
-            pdfEmbed.setAttribute("src", '');
+            pdfEmbed.setAttribute("src", "about:blank");
             document.querySelector("#preview").style.display = 'block';     
         },
 

@@ -153,13 +153,12 @@ class IpcHandler {
                                         log.error("giving up"); 
                                         event.reply("fileerror", { sender: "client", message:err , status:"error" } )
                                     }
-                                    else { event.returnValue = { sender: "client", message:t("data.filestored") , status:"success" }  }
                                 }); 
                             }
                             else {
                                 event.reply("fileerror", { sender: "client", message:err , status:"error" } )
                             }
-                        }  
+                        }
                     } ); 
                 }).catch(error => { 
                     log.error(`ipchandler @ printpdf: ${error}`)

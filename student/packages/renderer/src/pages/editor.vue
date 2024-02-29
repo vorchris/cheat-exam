@@ -98,7 +98,7 @@
     </div>
 
     <!-- angabe/pdf preview start -->
-    <div id=preview class="fadeinslow p-4">
+    <div id=preview class="fadeinfast p-4">
         <embed src="" id="pdfembed">
     </div>
     <!-- angabe/pdf preview end -->
@@ -384,9 +384,7 @@ export default {
             this.battery = await navigator.getBattery().then(battery => { return battery })
             .catch(error => { console.error("Error accessing the Battery API:", error);  });
 
-
             if (this.serverstatus.spellcheck === false) {  //handle individual spellcheck (only if not globally activated anyways)
-                
                 if (!this.individualSpellcheckActivated){ // nur wenn nicht eh schon aktiv
                     if (this.allowspellcheck) {  //this handles individual spellcheck (independend of global spellcheck)
                         let ipcResponse = await ipcRenderer.invoke('activatespellcheck', this.serverstatus.spellchecklang )  // this.allowspellcheck contains an object with spell config
@@ -400,10 +398,7 @@ export default {
                         this.individualSpellcheckActivated = false
                     }
                 }
-
             }
-
-       
         }, 
         reconnect(){
             this.$swal.fire({
@@ -482,32 +477,36 @@ export default {
         },
         // fetch file from disc - show preview
         async loadPDF(file){
+            URL.revokeObjectURL(this.currentpreview);
             let data = await ipcRenderer.invoke('getpdfasync', file )
             this.currentpreview =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
-
 
             const pdfEmbed = document.querySelector("#pdfembed");
             pdfEmbed.style.backgroundImage = '';
             pdfEmbed.style.height = "96vh";
             pdfEmbed.style.marginTop = "-48vh";
+            pdfEmbed.setAttribute("src", `${this.currentpreview}#toolbar=0&navpanes=0&scrollbar=0`);
 
-            document.querySelector("#pdfembed").setAttribute("src", `${this.currentpreview}#toolbar=0&navpanes=0&scrollbar=0`);
             document.querySelector("#preview").style.display = 'block';
         },
 
 
         // fetch file from disc - show preview
         async loadImage(file){
+            URL.revokeObjectURL(this.currentpreview);
             let data = await ipcRenderer.invoke('getpdfasync', file )
             this.currentpreview =  URL.createObjectURL(new Blob([data], {type: "image/jpeg"})) 
+
             const pdfEmbed = document.querySelector("#pdfembed");
             pdfEmbed.style.backgroundImage = `url(${this.currentpreview})`;
             pdfEmbed.style.backgroundSize = 'contain'
             pdfEmbed.style.backgroundRepeat = 'no-repeat'
+            pdfEmbed.style.backgroundPosition =  'center'
            
             pdfEmbed.style.height = "80vh";
             pdfEmbed.style.marginTop = "-40vh";
-            pdfEmbed.setAttribute("src", '');
+            pdfEmbed.setAttribute("src", "about:blank");
+
             document.querySelector("#preview").style.display = 'block';     
         },
 
@@ -526,9 +525,8 @@ export default {
         async saveContent(backup, why) {     
            
             ipcRenderer.send('printpdf', {filename: `${this.clientname}.pdf`, landscape: false, servername: this.servername, clientname: this.clientname })  // inform mainprocess to save webcontent as pdf (see @media css query for adjustments for pdf)
-
+            
             let filename = false  // this is set manually... otherwise use clientname
-
             if (why === "manual"){
                 await this.$swal({
                     title: this.$t("math.filename") ,
