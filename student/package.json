@@ -98,7 +98,7 @@
         "typescript": "^4.5.5",
         "vite": "^5.1.4",
         "vite-plugin-resolve": "^2.5.1",
-        "vue": "^3.4.20"
+        "vue": "^3.4.21"
     },
     "env": {
         "//": "Used in build scripts",
@@ -171,6 +171,7 @@
         "validator": "^13.7.0",
         "vue-i18n": "^9.1.9",
         "vue-router": "^4.0.13",
-        "vue-sweetalert2": "^5.0.2"
+        "vue-sweetalert2": "^5.0.2",
+        "vue": "^3.4.21"
     }
 }
