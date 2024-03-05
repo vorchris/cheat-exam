@@ -346,7 +346,7 @@ class IpcHandler {
                     event.returnValue = data;
                 } 
                 else {
-                    event.returnValue = { status: "error", message: "Registration failed" };
+                    event.returnValue = { status: "error", message: data.message };
                 }
             })
             .catch(error => {
