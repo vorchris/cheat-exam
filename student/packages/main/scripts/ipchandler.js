@@ -122,6 +122,56 @@ class IpcHandler {
         })
 
 
+
+
+
+        /**
+         * Store content from editor as html file - as backup - only triggered by the teacher for now (allow manual backup !!)
+         * @param args contains an object with  {clientname:this.clientname, filename:`${filename}.html`, editorcontent: editorcontent }
+         */
+        ipcMain.on('storeHTML', (event, args) => {   
+            const htmlContent = args.editorcontent
+            const filename = args.filename
+            let htmlfilename = `${this.multicastClient.clientinfo.name}.bak`
+            
+            if (filename){
+                htmlfilename = `${filename}.bak`
+                log.info(`ipchandler: storeHTML: creating manual backup as ${htmlfilename}`)
+            }
+
+            const htmlfile = path.join(this.config.workdirectory, htmlfilename);
+
+            if (htmlContent) { 
+                // log.info("ipchandler: storeHTML: saving students work to disk...")
+                try {
+                    fs.writeFile(htmlfile, htmlContent, (err) => { 
+                        if (err) {
+                            log.error(`ipchandler @ storeHTML: ${err.message}`); 
+                        
+                            let alternatepath = `${htmlfile}-${this.multicastClient.clientinfo.token}.bak`
+                            log.warn("ipchandler @ storeHTML: trying to write file as:", alternatepath )
+                            fs.writeFile(alternatepath, htmlContent, function (err) { 
+                                if (err) {
+                                    log.error(err.message);
+                                    log.error("ipchandler @ storeHTML: giving up"); 
+                                    event.reply("fileerror", { sender: "client", message:err , status:"error" } )
+                                }
+                                else {
+                                    log.info("ipchandler @ storeHTML: success!");
+                                }
+                            }); 
+                        }
+                    } ); 
+                }
+                catch(err){
+                    log.error(err)
+                    event.returnValue = { sender: "client", message:err , status:"error" }
+                }
+            }
+        })
+
+
+
         /**
          * Stores the ExamWindow content as PDF
          */ 
@@ -139,25 +189,29 @@ class IpcHandler {
                     preferCSSPageSize: false
                 }
 
-                const pdffilepath = path.join(this.config.workdirectory, args.filename);
+                let pdffilename = `${this.multicastClient.clientinfo.name}.pdf`
+                if (args.filename){
+                    pdffilename = `${args.filename}.pdf`
+                    log.info(`ipchandler @ printpdf: creating manual backup as ${pdffilename}`)
+                }
+                const pdffilepath = path.join(this.config.workdirectory, pdffilename);
                 this.WindowHandler.examwindow.webContents.printToPDF(options).then(data => {
                     fs.writeFile(pdffilepath, data, (err) => { 
                         if (err) {
                             log.error(`ipchandler @ printpdf: ${err.message}`); 
-                            if (err.message.includes("permission denied") || err.message.includes("permitted")  ){
-                                log.error("writing under different name")
-                                let alternatepath = `${pdffilepath}-${this.multicastClient.clientinfo.token}.pdf`
-                                fs.writeFile(alternatepath, data, function (err) { 
-                                    if (err) {
-                                        log.error(err.message);
-                                        log.error("giving up"); 
-                                        event.reply("fileerror", { sender: "client", message:err , status:"error" } )
-                                    }
-                                }); 
-                            }
-                            else {
-                                event.reply("fileerror", { sender: "client", message:err , status:"error" } )
-                            }
+                        
+                            let alternatepath = `${pdffilepath}-${this.multicastClient.clientinfo.token}.pdf`
+                            log.warn("ipchandler @ printpdf: trying to write file as:", alternatepath )
+                            fs.writeFile(alternatepath, data, function (err) { 
+                                if (err) {
+                                    log.error(err.message);
+                                    log.error("ipchandler @ printpdf: giving up"); 
+                                    event.reply("fileerror", { sender: "client", message:err , status:"error" } )
+                                }
+                                else {
+                                    log.info("ipchandler @ printpdf: success!");
+                                }
+                            }); 
                         }
                     } ); 
                 }).catch(error => { 
@@ -306,38 +360,7 @@ class IpcHandler {
 
 
 
-        /**
-         * Store content from editor as html file - as backup - only triggered by the teacher for now (allow manual backup !!)
-         * @param args contains an object with  {clientname:this.clientname, filename:`${filename}.html`, editorcontent: editorcontent }
-         */
-        ipcMain.on('storeHTML', (event, args) => {   
-            const htmlContent = args.editorcontent
-            const filename = args.filename
-            let htmlfilename = `${this.multicastClient.clientinfo.name}.bak`
-            
-            if (filename){
-                htmlfilename = `${filename}.bak`
-                log.info(`ipchandler: storeHTML: creating manual backup as ${htmlfilename}`)
-            }
 
-            const htmlfile = path.join(this.config.workdirectory, htmlfilename);
-
-            if (htmlContent) { 
-                // log.info("ipchandler: storeHTML: saving students work to disk...")
-                try {
-                    fs.writeFile(htmlfile, htmlContent, (err) => {
-                        if (err) {
-                            log.error(err);
-                            event.reply("fileerror", { sender: "client", message:err , status:"error" } )
-                        }
-                    }); 
-                }
-                catch(err){
-                    log.error(err)
-                    event.returnValue = { sender: "client", message:err , status:"error" }
-                }
-            }
-        })
 
 
         /**

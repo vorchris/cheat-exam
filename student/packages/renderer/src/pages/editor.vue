@@ -523,9 +523,8 @@ export default {
         },
         /** Converts the Editor View into a multipage PDF */
         async saveContent(backup, why) {     
-           
-            ipcRenderer.send('printpdf', {filename: `${this.clientname}.pdf`, landscape: false, servername: this.servername, clientname: this.clientname })  // inform mainprocess to save webcontent as pdf (see @media css query for adjustments for pdf)
             
+         
             let filename = false  // this is set manually... otherwise use clientname
             if (why === "manual"){
                 await this.$swal({
@@ -569,11 +568,16 @@ export default {
                     console.log('editor @ savecontent: Fehler beim Kopieren des Textes: ', err);
                 });
             }
-            if (backup){
-                //also save editorcontent as *html file - used to re-populate the editor window in case something went completely wrong
-                let editorcontent = this.editor.getHTML(); 
-                ipcRenderer.send('storeHTML', {filename: filename, editorcontent: editorcontent })
-            }
+           
+
+            // SAVE AS PDF - inform mainprocess to save webcontent as pdf (see @media css query for adjustments for pdf)
+            ipcRenderer.send('printpdf', {filename: filename, landscape: false, servername: this.servername, clientname: this.clientname })  
+            
+            // SAVE AS HTML (bak) - also save editorcontent as *html file - used to re-populate the editor window in case something went completely wrong
+            let editorcontent = this.editor.getHTML(); 
+            ipcRenderer.send('storeHTML', {filename: filename, editorcontent: editorcontent })
+            
+            // Reload Filelist to show new files
             this.loadFilelist()
         },
         //send a printrequest to the teacher

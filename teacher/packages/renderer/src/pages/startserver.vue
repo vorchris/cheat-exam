@@ -233,6 +233,7 @@ export default {
         async status(text){  
             const statusDiv = document.querySelector("#statusdiv");
             statusDiv.textContent = text;
+            statusDiv.style.visibility = "visible";
             this.fadeIn(statusDiv);
             await this.sleep(2000);
             this.fadeOut(statusDiv)
@@ -268,13 +269,8 @@ export default {
 
     },
     mounted() {  // when ready
-        
         log.info('startserver @ mounted: next-exam ready!');
-   
-  
-        const statusDiv = document.querySelector("#statusdiv");
-        this.fadeOut(statusDiv);
-
+        document.querySelector("#statusdiv").style.visibility = "hidden";  //do not show on first mount of ui
         
         if (this.prod) {  //clear input fields in production mode
             document.querySelector("#servername").value = "";

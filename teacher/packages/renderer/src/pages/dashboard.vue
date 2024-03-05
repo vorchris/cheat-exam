@@ -763,6 +763,7 @@ export default {
         async status(text){  
             const statusDiv = document.querySelector("#statusdiv");
             statusDiv.textContent = text;
+            statusDiv.style.visibility = "visible";
             this.fadeIn(statusDiv);
             await this.sleep(2000);
             this.fadeOut(statusDiv)
@@ -919,11 +920,9 @@ export default {
     mounted() {  // when ready
         this.$nextTick(function () { // Code that will run only after the entire view has been rendered
        
-            const statusDiv = document.querySelector("#statusdiv");
-            this.fadeOut(statusDiv);
-
+            document.querySelector("#statusdiv").style.visibility = "hidden";
+           
             this.getPreviousServerStatus()
-          //  this.setupDefaultPrinter()
             this.fetchInfo()
             this.initializeStudentwidgets()
 
