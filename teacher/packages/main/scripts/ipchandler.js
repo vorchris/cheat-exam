@@ -81,7 +81,7 @@ class IpcHandler {
             try {
                 exec(cmd, (error) => {
                     if (error) {
-                        log.error('ipchandler @ openfile: Fehler beim Öffnen des PDF:', err);
+                        log.error('ipchandler @ openfile: Fehler beim Öffnen des PDF in externem Reader:', error);
                         return false
                     }
                     log.info('ipchandler @ openfile: Datei in expernem Reader geöffnet');
