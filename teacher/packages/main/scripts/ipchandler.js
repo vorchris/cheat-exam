@@ -74,9 +74,9 @@ class IpcHandler {
          * öffnet datei in externem programm - plattform abhängig
          */
         ipcMain.handle('openfile', (event, filepath) => {  
-            const cmd = process.platform === 'win32' ? `start ${filepath}` :
-            process.platform === 'darwin' ? `open ${filepath}` :
-            `xdg-open ${filepath}`;
+            const cmd = process.platform === 'win32' ? `start "${filepath}"` :
+            process.platform === 'darwin' ? `open "${filepath}"` :
+            `xdg-open "${filepath}"`;
 
             try {
                 exec(cmd, (error) => {
