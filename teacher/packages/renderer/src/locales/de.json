@@ -135,7 +135,7 @@
         "defaultprinter": "Standard Drucker wählen",
         "allowdirectprint": "Schüler:innen Direktdruck erlauben",
         "noprinter": "Keine Drucker gefunden",
-        "directprint": "Direkdruck",
+        "directprint": "Direktdruck",
         "open": "Datei in externem Betrachter öffnen"
     },
     "control": {

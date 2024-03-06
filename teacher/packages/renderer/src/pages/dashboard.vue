@@ -162,7 +162,7 @@
             </div>
             <div class="form-check form-switch  m-1 mb-2">
                 <input v-model=directPrintAllowed @click="checkforDefaultprinter()" @mouseover="showDescription( $t('dashboard.allowdirectprint') )" @mouseout="hideDescription" checked=false class="form-check-input" type="checkbox" id="directprint">
-                <label class="form-check-label">{{$t('dashboard.directprint')}}   </label>
+                <label class="form-check-label">{{$t('dashboard.directprint')}}   </label><br>
                 <div v-if="defaultPrinter" class="ellipsis text-white-50"> {{ defaultPrinter }}</div>
             </div>
         </div>
