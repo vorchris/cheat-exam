@@ -162,7 +162,7 @@ import {SchedulerService} from './schedulerservice.ts'
                     // Verarbeitung der empfangenen Daten
                     const serverStatusDeepCopy = JSON.parse(JSON.stringify(data.serverstatus));
                     const studentStatusDeepCopy = JSON.parse(JSON.stringify(data.studentstatus));
-
+                    
                     this.processUpdatedServerstatus(serverStatusDeepCopy, studentStatusDeepCopy);
                 }
             })
@@ -277,15 +277,37 @@ import {SchedulerService} from './schedulerservice.ts'
 
             if (studentstatus.delfolder === true){
                 log.info("communicationhandler @ processUpdatedServerstatus: cleaning exam workfolder")
+                let delfolder = true
                 try {
                     if (fs.existsSync(this.config.workdirectory)){   // set by server.js (desktop path + examdir)
                         fs.rmSync(this.config.workdirectory, { recursive: true });
                         fs.mkdirSync(this.config.workdirectory);
                     }
                 } catch (error) { 
+                    delfolder = false
                     WindowHandler.examwindow.webContents.send('fileerror', error)  
-                    log.error(`communicationhandler @ processUpdatedServerstatus: ${error} `)
+                    log.error(`communicationhandler @ processUpdatedServerstatus: Can not delete directory - ${error} `)
                 }
+
+                if (delfolder == false){  //try deleting file by file (the one that causes the problem will stay in the folder)
+                    if (fs.existsSync(this.config.workdirectory)) {
+                        const files = fs.readdirSync(this.config.workdirectory);
+
+                        files.forEach(file => {
+                            const filePath = join(this.config.workdirectory, file);
+                            try {
+                                const stats = fs.statSync(filePath);
+                                if (stats.isDirectory()) { fs.rmSync(filePath, { recursive: true }); }  // Versuche, das Verzeichnis rekursiv zu löschen
+                                else { fs.unlinkSync(filePath);  }// Versuche, die Datei zu löschen 
+                            }
+                            catch (error) {
+                                log.error(`communicationhandler @ processUpdatedServerstatus: (delfolder) Fehler beim Löschen der Datei/Verzeichnis: ${filePath}`, error);
+                            }
+                        });
+                    }
+                }
+
+
             }
             if (studentstatus.restorefocusstate === true){
                 log.info("communicationhandler @ processUpdatedServerstatus: restoring focus state for student")
@@ -482,7 +504,7 @@ import {SchedulerService} from './schedulerservice.ts'
                     fs.rmSync(this.config.workdirectory, { recursive: true });
                     fs.mkdirSync(this.config.workdirectory);
                 }
-            } catch (error) { console.error(error); }
+            } catch (error) { log.error("communicationhandler @ endExam: ",error); }
         }
         WindowHandler.removeBlurListener();
         disableRestrictions(WindowHandler.examwindow)

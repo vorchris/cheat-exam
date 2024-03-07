@@ -98,7 +98,8 @@ import log from 'electron-log/main';
             studentfolders.push({ path: filepath, name : file })
         }
     }, []);
-    log.info(`data @ getlatest: `,studentfolders)
+    // log.info(`data @ getlatest: `,studentfolders)
+
 
     // get latest directory of every student (add to array)
     let latestfolders = []
@@ -130,20 +131,44 @@ import log from 'electron-log/main';
         const filepath = path.join(studentdir.path, latest.path);
         latestfolders.push( { path: filepath, parent : studentdir.name })  // we store studentdir.name here because in the next step we need to make sure only the main.pdf (studentsname) is used
     }
-    //log.info(latestfolders)
+
+
+    log.info(latestfolders)
 
     // get PDFs from latest directories 
     let files = []
     for (let folder of latestfolders) {
-        fs.readdirSync(folder.path).reduce(function (list, file) {
-            const filepath = path.join(folder.path, file);
-            if(fs.statSync(filepath).isFile() ){
-                let ext = path.extname(file).toLowerCase()
-                if (ext === ".pdf" && (file === `${folder.parent}.pdf` || file.includes(folder.parent))){  // folder.parent contains the studentfolder (and main file) name
-                    files.push(filepath)   // we also allow files here that aren't exactly what we want but close (backup plan just in case saving files didn't work for the student and we needed to chose a different name)
-                } 
-            }
-        }, []);
+
+
+        let latestPDFpath = null
+
+        try {
+            const files = fs.readdirSync(folder.path);
+            let selectedFile = '';
+        
+            const csrfFiles = files.filter(file => file.includes('csrf') && file.endsWith('.pdf'));  //if this there are 2 files with csrf token in name it will randomly chose.. but there is no other way since we dont have all the tokens anymore to compare
+            const docxFiles = files.filter(file => file.includes('docx') && file.endsWith('.pdf'));
+            const xlsxFiles = files.filter(file => file.includes('xlsx') && file.endsWith('.pdf'));
+            const exactMatchFile = files.find(file => file === `${folder.parent}.pdf`);  //filename same as folder name.. this would be the "main" pdf
+        
+            if (csrfFiles.length > 0)      { selectedFile = csrfFiles[0];   } 
+            else if (docxFiles.length > 0) { selectedFile = docxFiles[0];   } 
+            else if (xlsxFiles.length > 0) { selectedFile = xlsxFiles[0];   } 
+            else if (exactMatchFile)       { selectedFile = exactMatchFile; }
+        
+            latestPDFpath = selectedFile ? path.join(folder.path, selectedFile) : null;
+            log.info('data @ getlatestfromstudent: Neueste Datei gefunden: ', latestPDFpath);
+        } 
+        catch (error) {
+            log.error('data @ getlatestfromstudent: Fehler beim Lesen des Verzeichnisses:', error);
+            latestPDFpath = null; 
+        }
+
+        if (fs.existsSync(latestPDFpath)) {
+            files.push(latestPDFpath)
+        }
+
+
     }
     // now create one merged pdf out of all files
     if (files.length === 0) {
@@ -152,22 +177,16 @@ import log from 'electron-log/main';
     else {
         let PDF = await concatPages(files)
         let pdfBuffer = Buffer.from(PDF) 
-          
         let pdfPath = path.join(dir,"combined.pdf")
         try {
             fs.writeFile(pdfPath, pdfBuffer, (err) => {
                 if (err) throw err;
                 log.info('data @ getlatest: PDF saved successfully!');
             });
-
         }
         catch(err){log.error("data @ getlatest:",err)}
   
-
         return res.json({warning: warning, pdfBuffer:pdfBuffer, pdfPath:pdfPath });
-
-        //res.set('Content-Type', 'application/pdf');
-        //return res.send( Buffer.from(PDF) )
     }
 })
 
@@ -189,10 +208,11 @@ import log from 'electron-log/main';
 /**
  * GET a latest work from specific Student
  */ 
- router.post('/getLatestFromStudent/:servername/:token/:studentname', async function (req, res, next) {
+ router.post('/getLatestFromStudent/:servername/:token/:studentname/:studenttoken', async function (req, res, next) {
     const token = req.params.token
     const servername = req.params.servername
     const studentname = req.params.studentname
+    const studenttoken = req.params.studenttoken
     const mcServer = config.examServerList[servername] // get the multicastserver object
     let warning = false
     let latestfolder = ""
@@ -225,30 +245,44 @@ import log from 'electron-log/main';
             const folderStats = fs.statSync(latestfolderPath)
             if (now - folderStats.mtime.getTime() > minute) { warning = true;} 
 
-            const latestPDFpath = path.join(latestfolderPath, `${studentname}.pdf`);
-            const latestXlsxPDFpath = path.join(latestfolderPath, `${studentname}.xlsx.pdf`);
-            const latestDocxPDFpath = path.join(latestfolderPath, `${studentname}.docx.pdf`);
-          
+
+            let latestPDFpath = null
+
+           
+            try {
+                const files = fs.readdirSync(latestfolderPath);
+                let selectedFile = '';
+            
+                const csrfFiles = files.filter(file => file.includes(studenttoken) && file.endsWith('.pdf'));
+                const docxFiles = files.filter(file => file.includes('docx') && file.endsWith('.pdf'));
+                const xlsxFiles = files.filter(file => file.includes('xlsx') && file.endsWith('.pdf'));
+                const exactMatchFile = files.find(file => file === `${studentname}.pdf`);
+            
+                if (csrfFiles.length > 0)      { selectedFile = csrfFiles[0];   } 
+                else if (docxFiles.length > 0) { selectedFile = docxFiles[0];   } 
+                else if (xlsxFiles.length > 0) { selectedFile = xlsxFiles[0];   } 
+                else if (exactMatchFile)       { selectedFile = exactMatchFile; }
+            
+                latestPDFpath = selectedFile ? path.join(latestfolderPath, selectedFile) : null;
+                log.info('data @ getlatestfromstudent: Neueste Datei gefunden: ', latestPDFpath);
+            } 
+            catch (error) {
+                log.error('data @ getlatestfromstudent: Fehler beim Lesen des Verzeichnisses:', error);
+                latestPDFpath = null; 
+            }
+
+
+
             if (fs.existsSync(latestPDFpath)) {
                 let PDF = await concatPages([latestPDFpath])
                 let pdfBuffer = Buffer.from(PDF) 
                 return res.json({warning: warning, pdfBuffer:pdfBuffer, latestfolderPath:latestfolderPath, pdfPath:latestPDFpath });
             }
-            else if (fs.existsSync(latestXlsxPDFpath)){
-                let PDF = await concatPages([latestXlsxPDFpath])
-                let pdfBuffer = Buffer.from(PDF) 
-                return res.json({warning: warning, pdfBuffer:pdfBuffer, latestfolderPath:latestfolderPath, pdfPath:latestXlsxPDFpath });
-            } 
-            else if (fs.existsSync(latestDocxPDFpath)){
-                let PDF = await concatPages([latestDocxPDFpath])
-                let pdfBuffer = Buffer.from(PDF) 
-                return res.json({warning: warning, pdfBuffer:pdfBuffer, latestfolderPath:latestfolderPath, pdfPath:latestDocxPDFpath });
-            } 
             else {
-                return res.json({warning: warning, pdfBuffer:false, latestfolderPath:latestfolderPath});
+                return res.json({warning: warning, pdfBuffer:false, latestfolderPath:latestfolderPath});  // we return latestfolderpath because "openLatestFolder" just needs this to work
             }
         } else {
-            log.info('Keine Ordner gefunden.'); 
+            log.info('data @ getlatestfromstudent: Keine Ordner gefunden.'); 
             return res.json({warning: warning, pdfBuffer:false, latestfolderPath:latestfolderPath});
         }
     });

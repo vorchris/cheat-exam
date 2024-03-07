@@ -231,7 +231,7 @@ async function getLatestFromStudent(student){
         log.info("filemanager @ managePrintrequest: requesting latest file from student") 
         await this.sleep(5000);  // give it some time
     
-        fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getLatestFromStudent/${this.servername}/${this.servertoken}/${student.clientname}`, { 
+        fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getLatestFromStudent/${this.servername}/${this.servertoken}/${student.clientname}/${student.token}`, { 
             method: 'POST',
             headers: {'Content-Type': 'application/json' },
         })
@@ -283,7 +283,7 @@ async function getLatestFromStudent(student){
     .then((result) => {
         this.printrequest = false // allow new requests
         if (result.isConfirmed) {
-            fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getLatestFromStudent/${this.servername}/${this.servertoken}/${student.clientname}`, { 
+            fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getLatestFromStudent/${this.servername}/${this.servertoken}/${student.clientname}/${student.token}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },
             })
@@ -320,7 +320,7 @@ async function getLatestFromStudent(student){
 
 
 function openLatestFolder(student){
-    fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getLatestFromStudent/${this.servername}/${this.servertoken}/${student.clientname}`, { 
+    fetch(`https://${this.serverip}:${this.serverApiPort}/server/data/getLatestFromStudent/${this.servername}/${this.servertoken}/${student.clientname}/${student.token}`, { 
         method: 'POST',
         headers: {'Content-Type': 'application/json' },
     })
