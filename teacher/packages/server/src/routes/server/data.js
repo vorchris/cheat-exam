@@ -91,91 +91,107 @@ import log from 'electron-log/main';
     let dir =  path.join( config.workdirectory, mcServer.serverinfo.servername);
 
     // get all studentdirectories from workdirectory
-    let studentfolders = []
-    fs.readdirSync(dir).reduce(function (list, file) {
-        const filepath = path.join(dir, file);
-        if (fs.statSync(filepath).isDirectory()) {
-            studentfolders.push({ path: filepath, name : file })
-        }
-    }, []);
-    // log.info(`data @ getlatest: `,studentfolders)
+    let studentFolders = []
 
+    if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) {
+        console.error('Der angegebene Pfad existiert nicht oder ist kein Verzeichnis.');
+    } 
+    else {
+        const items = fs.readdirSync(dir, { withFileTypes: true });    // Lese den Inhalt des Hauptordners
+        items.forEach(item => {
+            if (item.isDirectory() && item.name.toUpperCase() !== 'UPLOADS') {  // Unterordner, außer 'UPLOADS'
+                studentFolders.push({ path: path.join(dir, item.name), studentName: item.name });  //foldername == studentname
+            }
+        });
+    }
 
-    // get latest directory of every student (add to array)
-    let latestfolders = []
-    for (let studentdir of studentfolders) {
-        let latest = {path:"00_00_00", time:"1000000000000"}  // we need this for reference
-        fs.readdirSync(studentdir.path).reduce(function (list, file) {
-            const filepath = path.join(studentdir.path, file);
-            if (fs.statSync(filepath).isDirectory()) {
-                let filetime = fs.statSync(filepath).mtime.getTime()
-                if ( !file.includes("focus") ){
-                    if (filetime > latest.time ) { // this cycles over all found student directories (16_50_01, 16_50_23, 16_50_44, ..) and compares filedates - returns only the newest directory
-                        latest.time = filetime
-                        latest.path = file
-                    }
+   
+
+    // get latest directory of every student 
+    for (let studentDir of studentFolders) {
+
+        const items = fs.readdirSync(studentDir.path, { withFileTypes: true });
+        let latestModTime = 0;
+        let latestFolder = null;
+
+        items.forEach(item => {
+            if (item.isDirectory() && item.name.toUpperCase() !== 'FOCUSLOST') {  // Überprüfe, ob das Element ein Verzeichnis ist und nicht 'focuslost' heißt
+                const itemPath = path.join(studentDir.path, item.name);
+                const stats = fs.statSync(itemPath);
+                
+                if (stats.mtimeMs > latestModTime) {   // Überprüfe, ob das aktuelle Verzeichnis das neueste ist
+                    latestModTime = stats.mtimeMs;
+                    latestFolder = {
+                        path: itemPath,
+                        name: item.name,
+                        time: latestModTime
+                    };
                 }
             }
-        }, []);
-        if (latest.time === "1000000000000") {continue} 
+          });
 
-        //check if the newest directory is older than 5 minutes..  warn the teacher!
-        const now = Date.now(); // Current time in milliseconds since the UNIX epoch
-        const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
-        if (now - latest.time > fiveMinutes) {
-            warning = true
-            log.info(`data @ getlatest: The file is older than 5 minutes: ${path.join(studentdir.path, latest.path)}`);
+        if (latestFolder) { 
+            studentDir.latestFolder = latestFolder;  
+            //check if the newest directory is older than 5 minutes.. set warning = true this will show a warning to the teacher!
+            const now = Date.now(); // Current time in milliseconds since the UNIX epoch
+            const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
+            if (now - latestFolder.time > fiveMinutes) {
+                warning = true
+                log.info(`data @ getlatest: The file is older than 5 minutes: ${latestFolder.path}`);
+            } 
         } 
-  
-
-        const filepath = path.join(studentdir.path, latest.path);
-        latestfolders.push( { path: filepath, parent : studentdir.name })  // we store studentdir.name here because in the next step we need to make sure only the main.pdf (studentsname) is used
+        else { console.error('Keinen gültigen Unterordner gefunden für:', studentDir.studentName); }
     }
 
-
-    log.info(latestfolders)
 
     // get PDFs from latest directories 
-    let files = []
-    for (let folder of latestfolders) {
-
-
+    for (let studentDir of studentFolders) {
         let latestPDFpath = null
-
-        try {
-            const files = fs.readdirSync(folder.path);
-            let selectedFile = '';
-        
-            const csrfFiles = files.filter(file => file.includes('csrf') && file.endsWith('.pdf'));  //if this there are 2 files with csrf token in name it will randomly chose.. but there is no other way since we dont have all the tokens anymore to compare
-            const docxFiles = files.filter(file => file.includes('docx') && file.endsWith('.pdf'));
-            const xlsxFiles = files.filter(file => file.includes('xlsx') && file.endsWith('.pdf'));
-            const exactMatchFile = files.find(file => file === `${folder.parent}.pdf`);  //filename same as folder name.. this would be the "main" pdf
-        
-            if (csrfFiles.length > 0)      { selectedFile = csrfFiles[0];   } 
-            else if (docxFiles.length > 0) { selectedFile = docxFiles[0];   } 
-            else if (xlsxFiles.length > 0) { selectedFile = xlsxFiles[0];   } 
-            else if (exactMatchFile)       { selectedFile = exactMatchFile; }
-        
-            latestPDFpath = selectedFile ? path.join(folder.path, selectedFile) : null;
-            log.info('data @ getlatestfromstudent: Neueste Datei gefunden: ', latestPDFpath);
-        } 
-        catch (error) {
-            log.error('data @ getlatestfromstudent: Fehler beim Lesen des Verzeichnisses:', error);
-            latestPDFpath = null; 
+        if (studentDir.latestFolder && studentDir.latestFolder.path ){
+            try {
+                const files = fs.readdirSync(studentDir.latestFolder.path);
+                let selectedFile = '';
+            
+                const csrfFiles = files.filter(file => file.includes('csrf') && file.endsWith('.pdf'));  //if this there are 2 files with csrf token in name it will randomly chose.. but there is no other way since we dont have all the tokens anymore to compare
+                const docxFiles = files.filter(file => file.includes('docx') && file.endsWith('.pdf'));
+                const xlsxFiles = files.filter(file => file.includes('xlsx') && file.endsWith('.pdf'));
+                const exactMatchFile = files.find(file => file === `${studentDir.studentName}.pdf`);  //filename same as folder name.. this would be the "main" pdf
+            
+                if (csrfFiles.length > 0)      { selectedFile = csrfFiles[0];   } 
+                else if (docxFiles.length > 0) { selectedFile = docxFiles[0];   } 
+                else if (xlsxFiles.length > 0) { selectedFile = xlsxFiles[0];   } 
+                else if (exactMatchFile)       { selectedFile = exactMatchFile; }
+            
+                latestPDFpath = selectedFile ? path.join(studentDir.latestFolder.path, selectedFile) : null;
+                //log.info('data @ getlatestfromstudent: Neueste Datei gefunden: ', latestPDFpath);
+            } 
+            catch (error) {
+                log.error('data @ getlatestfromstudent: Fehler beim Lesen des Verzeichnisses:', error);
+                latestPDFpath = null; 
+            }
         }
+        if (fs.existsSync(latestPDFpath)) { studentDir.latestFilePath = latestPDFpath   }
+    }
 
-        if (fs.existsSync(latestPDFpath)) {
-            files.push(latestPDFpath)
+    // log.info(`data @ getlatest: `,studentFolders)
+
+    //create array that contains only filepaths
+    let latestFiles = []
+    for (let studentDir of studentFolders) {
+        if (studentDir.latestFilePath ){
+            latestFiles.push(studentDir.latestFilePath)
         }
-
 
     }
+
     // now create one merged pdf out of all files
-    if (files.length === 0) {
+    if (latestFiles.length === 0) {
         return res.json({warning: warning, pdfBuffer: null})
     }
     else {
-        let PDF = await concatPages(files)
+        createIndexPDF(studentFolders)
+
+        let PDF = await concatPages(latestFiles)
         let pdfBuffer = Buffer.from(PDF) 
         let pdfPath = path.join(dir,"combined.pdf")
         try {
@@ -192,7 +208,61 @@ import log from 'electron-log/main';
 
 
 
+import jsPDF from 'jspdf/dist/jspdf.umd.min.js';
+import pdf from 'pdf-parse';
+import moment from 'moment';
 
+
+
+
+async function countCharsOfPDF(pdfPath){
+    const dataBuffer = fs.readFileSync(pdfPath);// Read the PDF file
+    let chars = await pdf(dataBuffer).then( data => {    // Parse the PDF  // data.text contains all the text extracted from the PDF
+        let numberOfCharacters = data.text.length;
+        console.log(`Number of characters in the PDF: ${numberOfCharacters}`);
+        return numberOfCharacters
+    });
+    return chars
+    
+}
+
+async function createIndexPDF(dataArray){
+    
+    const doc = new jsPDF();
+
+    // Convert your data array to the format needed for autoTable
+
+    let tabledata = []
+    for (const item of dataArray){
+        let name = item.studentName
+        let time = "-"
+        let chars = "0"
+        if (item.latestFolder && item.latestFolder.time ) {
+            time = moment(item.latestFolder.time).format('DD.MM.YYYY HH:mm')
+        }
+        if (item.latestFilePath ) {
+           chars = await countCharsOfPDF(item.latestFilePath)
+        }
+        tabledata.push([ name, time, chars ])
+    }
+
+
+  console.log(tabledata)
+
+    const headers = [["Student Name", "File Date", "Character Count"]];
+    
+    // Use autoTable to add the data to the PDF
+    doc.autoTable({
+        head: headers,
+        body: tabledata,
+        startY: 20,
+        theme: 'plain',
+    });
+  
+    doc.save("tableJsPDF.pdf");
+
+
+}
 
 
 
