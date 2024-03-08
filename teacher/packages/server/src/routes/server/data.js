@@ -25,8 +25,10 @@ import extract from 'extract-zip'
 import i18n from '../../../../renderer/src/locales/locales.js'
 const { t } = i18n.global
 import archiver from 'archiver'
-import { PDFDocument } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied version otherwise we get 1000 sourcemap warnings
+import { PDFDocument, rgb } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied version otherwise we get 1000 sourcemap warnings
 import log from 'electron-log/main';
+import pdf from 'pdf-parse';
+import moment from 'moment';
 
 
 /**
@@ -76,6 +78,12 @@ import log from 'electron-log/main';
 
 
 /**
+ * CREATE COMBINED PDF START >>>>>>>>>>>>>>>>>>
+ */
+
+
+
+/**
  * GET a latest work from all students
  * This API Route creates a list of the latest pdf filepaths of all connected students
  * and concats each of the pdfs to one
@@ -87,12 +95,9 @@ import log from 'electron-log/main';
     let warning = false
 
     if ( token !== mcServer.serverinfo.servertoken ) { return res.json({ status: t("data.tokennotvalid") }) }
-    
     let dir =  path.join( config.workdirectory, mcServer.serverinfo.servername);
-
     // get all studentdirectories from workdirectory
     let studentFolders = []
-
     if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) {
         console.error('Der angegebene Pfad existiert nicht oder ist kein Verzeichnis.');
     } 
@@ -105,15 +110,11 @@ import log from 'electron-log/main';
         });
     }
 
-   
-
     // get latest directory of every student 
     for (let studentDir of studentFolders) {
-
         const items = fs.readdirSync(studentDir.path, { withFileTypes: true });
         let latestModTime = 0;
         let latestFolder = null;
-
         items.forEach(item => {
             if (item.isDirectory() && item.name.toUpperCase() !== 'FOCUSLOST') {  // Überprüfe, ob das Element ein Verzeichnis ist und nicht 'focuslost' heißt
                 const itemPath = path.join(studentDir.path, item.name);
@@ -129,7 +130,6 @@ import log from 'electron-log/main';
                 }
             }
           });
-
         if (latestFolder) { 
             studentDir.latestFolder = latestFolder;  
             //check if the newest directory is older than 5 minutes.. set warning = true this will show a warning to the teacher!
@@ -147,10 +147,11 @@ import log from 'electron-log/main';
     // get PDFs from latest directories 
     for (let studentDir of studentFolders) {
         let latestPDFpath = null
+        let selectedFile = '';
         if (studentDir.latestFolder && studentDir.latestFolder.path ){
             try {
                 const files = fs.readdirSync(studentDir.latestFolder.path);
-                let selectedFile = '';
+               
             
                 const csrfFiles = files.filter(file => file.includes('csrf') && file.endsWith('.pdf'));  //if this there are 2 files with csrf token in name it will randomly chose.. but there is no other way since we dont have all the tokens anymore to compare
                 const docxFiles = files.filter(file => file.includes('docx') && file.endsWith('.pdf'));
@@ -170,10 +171,8 @@ import log from 'electron-log/main';
                 latestPDFpath = null; 
             }
         }
-        if (fs.existsSync(latestPDFpath)) { studentDir.latestFilePath = latestPDFpath   }
+        if (fs.existsSync(latestPDFpath)) { studentDir.latestFilePath = latestPDFpath; studentDir.latestFileName = selectedFile   }
     }
-
-    // log.info(`data @ getlatest: `,studentFolders)
 
     //create array that contains only filepaths
     let latestFiles = []
@@ -181,16 +180,26 @@ import log from 'electron-log/main';
         if (studentDir.latestFilePath ){
             latestFiles.push(studentDir.latestFilePath)
         }
-
     }
+
+
+
 
     // now create one merged pdf out of all files
     if (latestFiles.length === 0) {
         return res.json({warning: warning, pdfBuffer: null})
     }
     else {
-        createIndexPDF(studentFolders)
-
+        let indexPDFdata = await createIndexPDF(studentFolders)   //contains the index table pdf as uint8array
+        let indexPDFpath = path.join(dir,"index.pdf")
+        try {
+            fs.writeFileSync(indexPDFpath, indexPDFdata, (err) => {
+                if (err) throw err;
+                log.info('data @ getlatest: Index PDF saved successfully!');
+            });
+        }
+        catch(err){log.error("data @ getlatest:",err)}
+        latestFiles.unshift(indexPDFpath)
         let PDF = await concatPages(latestFiles)
         let pdfBuffer = Buffer.from(PDF) 
         let pdfPath = path.join(dir,"combined.pdf")
@@ -201,18 +210,9 @@ import log from 'electron-log/main';
             });
         }
         catch(err){log.error("data @ getlatest:",err)}
-  
         return res.json({warning: warning, pdfBuffer:pdfBuffer, pdfPath:pdfPath });
     }
 })
-
-
-
-import jsPDF from 'jspdf/dist/jspdf.umd.min.js';
-import pdf from 'pdf-parse';
-import moment from 'moment';
-
-
 
 
 async function countCharsOfPDF(pdfPath){
@@ -222,47 +222,62 @@ async function countCharsOfPDF(pdfPath){
         console.log(`Number of characters in the PDF: ${numberOfCharacters}`);
         return numberOfCharacters
     });
-    return chars
-    
+    return chars 
 }
 
 async function createIndexPDF(dataArray){
-    
-    const doc = new jsPDF();
-
-    // Convert your data array to the format needed for autoTable
-
-    let tabledata = []
+    let tabledata = [["Name", "Datum", "Zeichen", "Dateiname"]]
     for (const item of dataArray){
-        let name = item.studentName
+        let name = item.studentName.length > 20 ? item.studentName.slice(0, 20) + "..." : item.studentName;
         let time = "-"
         let chars = "0"
+        let filename = "-"
         if (item.latestFolder && item.latestFolder.time ) {
             time = moment(item.latestFolder.time).format('DD.MM.YYYY HH:mm')
         }
         if (item.latestFilePath ) {
            chars = await countCharsOfPDF(item.latestFilePath)
         }
-        tabledata.push([ name, time, chars ])
+        if (item.latestFolder && item.latestFolder.path ) {
+            filename =  item.latestFileName.length > 25 ? item.latestFileName .slice(0, 25) + "..." : item.latestFileName ;
+        }
+
+
+        tabledata.push([ name, time, chars, filename ])
     }
-
-
-  console.log(tabledata)
-
-    const headers = [["Student Name", "File Date", "Character Count"]];
     
-    // Use autoTable to add the data to the PDF
-    doc.autoTable({
-        head: headers,
-        body: tabledata,
-        startY: 20,
-        theme: 'plain',
+    const pdfDoc = await PDFDocument.create();// Create a new PDFDocument
+    const page = pdfDoc.addPage(); // Add a page to the document
+
+    // Set up table dimensions and styles
+    const startX = 50; // X-coordinate where the table starts
+    const startY = page.getHeight() - 50; // Y-coordinate where the table starts (from top)
+    const rowHeight = 20; // Height of each row
+    const columnWidths = [140, 120, 60, 170]; // Width of each column
+
+    // Function to draw a cell
+    const drawCell = (x, y, width, height) => { page.drawRectangle({ x, y, width, height, borderColor: rgb(0, 0, 0),  borderWidth: 1,  });  };
+    // Function to add text to a cell
+    const addText = (text, x, y) => {  text = String(text);    page.drawText(text, { x, y, size: 12, color: rgb(0, 0, 0),  });  };
+
+    tabledata.forEach((row, rowIndex) => {
+        const yPos = startY - rowIndex * rowHeight; // Calculate Y position for the current row
+        row.forEach((cellText, columnIndex) => {
+            const xPos = startX + columnWidths.slice(0, columnIndex).reduce((acc, val) => acc + val, 0); // Calculate X position for the current cell
+            drawCell(xPos, yPos - rowHeight, columnWidths[columnIndex], rowHeight);
+            addText(cellText, xPos + 5, yPos - rowHeight + 5); // Adjust text position within the cell
+        });
     });
-  
-    doc.save("tableJsPDF.pdf");
-
-
+    // Serialize the PDFDocument to bytes (a Uint8Array)
+    const pdfBytes = await pdfDoc.save();
+    return pdfBytes 
 }
+
+
+/**
+ * CREATE COMBINED PDF END >>>>>>>>>>>>>>>>>>
+ */
+
 
 
 
