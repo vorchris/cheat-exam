@@ -186,6 +186,7 @@ class SpellChecker {
             let response = ipcRenderer.sendSync('checkword', this.word);
             if (response.suggestions === null) {
                 console.log(`no suggestions for >>${this.word}<<`);
+                this.hideSpellcheckMenu()
                 return;
             }
             this.showSuggestions(event.clientX, event.clientY, response.suggestions, this.word);
