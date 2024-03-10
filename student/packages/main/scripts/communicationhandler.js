@@ -637,18 +637,24 @@ import {SchedulerService} from './schedulerservice.ts'
 
     async sendExamToTeacher(){
         //send save trigger to exam window
-        if (WindowHandler.examwindow){
+        if (WindowHandler.examwindow){  //there is a running exam - save current work first!
             try {
-                WindowHandler.examwindow.webContents.send('save','teacherrequest')   //trigger, why
+                WindowHandler.examwindow.webContents.send('save','teacherrequest')   //trigger, why  (teacherrequest will also trigger sendToTeacher() after saving the pdf)
             }
-            catch(err){ `Communication handler @ sendExamToTeacher: Could not save students work. Is exammode active?`}
+            catch(err){ 
+                log.error(`Communication handler @ sendExamToTeacher: Could not save students work. Is exammode active?`)
+            }
         }
-        // give it some time
-        await this.sleep(1000)  // wait one second before zipping workdirectory (give save some time - unfortunately we have no way to wait for save - we could check the filetime in a "while loop" though)
-     
-        try {
-            //zip config.work directory
-            if (!fs.existsSync(this.config.tempdirectory)){ fs.mkdirSync(this.config.tempdirectory); }
+        else {  // not running exam (probably using next-exam as classroommanagment tool)
+            this.sendToTeacher()   //zip directory and send to teacher api
+        }
+
+     }
+
+
+      //zip config.work directory and send to teacher
+     async sendToTeacher(){
+        try { if (!fs.existsSync(this.config.tempdirectory)){ fs.mkdirSync(this.config.tempdirectory); }
         }catch (e){ log.error(e)}
 
         //fsExtra.emptyDirSync(this.config.tempdirectory)
@@ -677,7 +683,6 @@ import {SchedulerService} from './schedulerservice.ts'
         .then(response => response.json())
         .then(data => { console.log(`communicationhandler @ sendExamToTeacher: teacher response: ${data.message}`); })
         .catch(error => {console.error(`communicationhandler @ sendExamToTeacher: ${error}`); });
-
      }
 
 

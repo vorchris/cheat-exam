@@ -208,13 +208,14 @@ class IpcHandler {
                                     log.error("ipchandler @ printpdf: giving up"); 
                                     event.reply("fileerror", { sender: "client", message:err , status:"error" } )
                                 }
-                                else {
-                                    log.info("ipchandler @ printpdf: success!");
+                                else { // log.info("ipchandler @ printpdf: success!");
+                                    if (args.reason === "teacherrequest") { this.CommunicationHandler.sendToTeacher() }
                                     event.reply("loadfilelist")
                                 }
                             }); 
                         }
-                        else {
+                        else { // log.info("ipchandler @ printpdf: success!");
+                            if (args.reason === "teacherrequest") { this.CommunicationHandler.sendToTeacher() }
                             event.reply("loadfilelist")   //make sure students see the new file immediately
                         }
                     } ); 

@@ -190,7 +190,7 @@ import moment from 'moment';
         return res.json({warning: warning, pdfBuffer: null})
     }
     else {
-        let indexPDFdata = await createIndexPDF(studentFolders)   //contains the index table pdf as uint8array
+        let indexPDFdata = await createIndexPDF(studentFolders, servername)   //contains the index table pdf as uint8array
         let indexPDFpath = path.join(dir,"index.pdf")
         try {
             fs.writeFileSync(indexPDFpath, indexPDFdata, (err) => {
@@ -215,17 +215,22 @@ import moment from 'moment';
 })
 
 
-async function countCharsOfPDF(pdfPath){
+async function countCharsOfPDF(pdfPath, studentname, servername){
     const dataBuffer = fs.readFileSync(pdfPath);// Read the PDF file
     let chars = await pdf(dataBuffer).then( data => {    // Parse the PDF  // data.text contains all the text extracted from the PDF
         let numberOfCharacters = data.text.length;
-        //console.log(`Number of characters in the PDF: ${numberOfCharacters}`);
+        console.log(`Number of characters in the PDF: ${numberOfCharacters}`, studentname, servername);
+        let header = `${servername} | 10.10.24, 10:10`
+        let footer = `Zeichen: 1000 | Wörter: 100     Wörter/Zeichen in Auswahl: `   //approximately
+
+        numberOfCharacters = numberOfCharacters - header.length - studentname.length - footer.length
+
         return numberOfCharacters
     });
     return chars 
 }
 
-async function createIndexPDF(dataArray){
+async function createIndexPDF(dataArray, servername){
     let tabledata = [["Name", "Datum", "Zeichen", "Dateiname"]]
     for (const item of dataArray){
         let name = item.studentName.length > 20 ? item.studentName.slice(0, 20) + "..." : item.studentName;
@@ -236,7 +241,7 @@ async function createIndexPDF(dataArray){
             time = moment(item.latestFolder.time).format('DD.MM.YYYY HH:mm')
         }
         if (item.latestFilePath ) {
-           chars = await countCharsOfPDF(item.latestFilePath)
+           chars = await countCharsOfPDF(item.latestFilePath, item.studentName, servername)
         }
         if (item.latestFolder && item.latestFolder.path ) {
             filename =  item.latestFileName.length > 25 ? item.latestFileName .slice(0, 25) + "..." : item.latestFileName ;

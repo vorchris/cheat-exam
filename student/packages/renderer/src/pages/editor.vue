@@ -571,14 +571,14 @@ export default {
            
 
             // SAVE AS PDF - inform mainprocess to save webcontent as pdf (see @media css query for adjustments for pdf)
-            ipcRenderer.send('printpdf', {filename: filename, landscape: false, servername: this.servername, clientname: this.clientname })  
+            // printPDF will trigger a reload of the filelist if finished and send files to teacher if reason (why) is "teacherrequest"
+            ipcRenderer.send('printpdf', {filename: filename, landscape: false, servername: this.servername, clientname: this.clientname, reason: why })  
             
             // SAVE AS HTML (bak) - also save editorcontent as *html file - used to re-populate the editor window in case something went completely wrong
             let editorcontent = this.editor.getHTML(); 
             ipcRenderer.send('storeHTML', {filename: filename, editorcontent: editorcontent })
             
-            // Reload Filelist to show new files
-            this.loadFilelist()
+      
         },
         //send a printrequest to the teacher
         print(){

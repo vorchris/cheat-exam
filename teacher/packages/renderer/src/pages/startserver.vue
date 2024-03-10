@@ -44,7 +44,7 @@
             </div>
         </div>
 
-        <br>
+        <br> <br>
         <div id="statusdiv" class="btn btn-warning">{{$t("startserver.connected")}}</div>
         <br>
        
