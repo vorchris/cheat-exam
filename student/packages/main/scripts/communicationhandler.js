@@ -306,8 +306,7 @@ import {SchedulerService} from './schedulerservice.ts'
                         });
                     }
                 }
-
-
+                if (WindowHandler.examwindow) {  WindowHandler.examwindow.webContents.send('loadfilelist');   }
             }
             if (studentstatus.restorefocusstate === true){
                 log.info("communicationhandler @ processUpdatedServerstatus: restoring focus state for student")
@@ -321,7 +320,6 @@ import {SchedulerService} from './schedulerservice.ts'
                 log.info("communicationhandler @ processUpdatedServerstatus: de-activating spellcheck for student")
                 this.multicastClient.clientinfo.allowspellcheck = false
             }
-
             if (studentstatus.sendexam === true){
                 this.sendExamToTeacher()
             }
@@ -331,7 +329,6 @@ import {SchedulerService} from './schedulerservice.ts'
             // this is an microsoft365 thing. check if exam mode is office, check if this is set - otherwise do not enter exammode - it will fail
             if (studentstatus.msofficeshare){
                 //set or update sharing link - it will be used in "microsoft365" exam mode
-               
                 this.multicastClient.clientinfo.msofficeshare = studentstatus.msofficeshare  
             }
 
@@ -381,14 +378,10 @@ import {SchedulerService} from './schedulerservice.ts'
        
         if (WindowHandler.screenlockwindows.length == 0){  // why do we check? because exammode is left if the server connection gets lost but students could reconnect while the exam window is still open and we don't want to create a second one
             this.multicastClient.clientinfo.screenlock = true
-            
             for (let display of displays){
                 WindowHandler.createScreenlockWindow(display)  // add blockwindows for additional displays
-            }
-            
-            
+            } 
         }
-
     }
 
     // remove temporary screenlockwindow
