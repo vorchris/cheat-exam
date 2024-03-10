@@ -19,7 +19,7 @@
         <div class="header-item fs-5" v-if="servername" style="margin: auto auto;">{{servername}}|{{pincode}}</div>
 
         <div class="header-item">
-            <div v-if="battery && battery.level" style="font-size: 0.8rem;"> {{ battery.level*100}}%  </div>
+            <div v-if="battery && battery.level" style="font-size: 0.8rem;"> {{ Math.round(battery.level*100)}}%  </div>
             <div v-if="battery && battery.level" class="me-2">
                 <img v-if="battery && battery.level > 0.9" src="/src/assets/img/svg/battery-100.svg"  :title="battery.level*100+'%'" class="white" width="32" height="32" />
                 <img v-if="battery && battery.level > 0.8 && battery.level < 0.9 " src="/src/assets/img/svg/battery-090.svg" :title="battery.level*100+'%'" :alt="battery.level*100+'%'" class="white" width="32" height="32" />
