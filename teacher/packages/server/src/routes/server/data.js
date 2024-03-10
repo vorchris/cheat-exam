@@ -219,7 +219,7 @@ async function countCharsOfPDF(pdfPath){
     const dataBuffer = fs.readFileSync(pdfPath);// Read the PDF file
     let chars = await pdf(dataBuffer).then( data => {    // Parse the PDF  // data.text contains all the text extracted from the PDF
         let numberOfCharacters = data.text.length;
-        console.log(`Number of characters in the PDF: ${numberOfCharacters}`);
+        //console.log(`Number of characters in the PDF: ${numberOfCharacters}`);
         return numberOfCharacters
     });
     return chars 

@@ -210,8 +210,12 @@ class IpcHandler {
                                 }
                                 else {
                                     log.info("ipchandler @ printpdf: success!");
+                                    event.reply("loadfilelist")
                                 }
                             }); 
+                        }
+                        else {
+                            event.reply("loadfilelist")   //make sure students see the new file immediately
                         }
                     } ); 
                 }).catch(error => { 

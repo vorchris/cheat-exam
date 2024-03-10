@@ -642,6 +642,10 @@ export default {
             //paste previously selected html code
             this.editor.commands.insertContent(this.selectedText)         
         },
+        // implementing a sleep (wait) function
+        sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        },
         
         // returns a uuid 
         uuidv4() {
@@ -929,7 +933,7 @@ export default {
         border: 0px !important;
     }
 
-    #editorcontent div {
+    #editorcontent div.tiptap {
         line-height: var(--js-linespacing) !important;
         width: var(--js-editorWidth) !important;
     }
@@ -1090,7 +1094,7 @@ Other Styles
     border:1px solid #c5c5c5;
 }
 
-#editorcontent div {
+#editorcontent div.tiptap {
     overflow-x: auto;
     overflow-y: hidden;
     line-height: var(--js-linespacing) !important;
