@@ -304,10 +304,16 @@ class IpcHandler {
             }
 
             if (process.platform === "linux" || process.platform === "darwin"){
-                print(pdfurl, printer).then( ()=>{ log.info('ipchandler: printpdf: file sent to printer')} );
+                print(pdfurl, printer).then( ()=>{ log.info('ipchandler: printpdf: file sent to printer')} )
+                .catch( (err) =>{
+                    log.error(`ipchandler: printpdf (unix): ${err}`)
+                });
             }
             else {
-                printWin(pdfurl, printOptions).then( ()=>{ log.info('ipchandler: printpdf: file sent to printer')} );
+                printWin(pdfurl, printOptions).then( ()=>{ log.info('ipchandler: printpdf: file sent to printer')} )
+                .catch( (err) =>{
+                    log.error(`ipchandler: printpdf (win): ${err}`)
+                });
             }
             
         })

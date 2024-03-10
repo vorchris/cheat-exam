@@ -226,7 +226,7 @@ async function getLatestFromStudent(student){
 
     if (this.directPrintAllowed){
         log.info(`filemanager @ managePrintrequest: direct print from ${student.clientname} accepted`)
-
+        this.status(`Druckauftrag von ${student.clientname} verarbeitet`)
         this.getFiles(student.token, false, true)
         log.info("filemanager @ managePrintrequest: requesting latest file from student") 
         await this.sleep(5000);  // give it some time
@@ -350,7 +350,7 @@ function print(){
         this.setupDefaultPrinter()
         return
     }
-
+    this.status(`Druckauftrag an Drucker übertragen`)
     ipcRenderer.invoke("printpdf", this.currentpreviewPath, this.defaultPrinter)  //default printer could be set upfront and students may print directly
 }
 
