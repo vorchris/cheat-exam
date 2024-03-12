@@ -36,7 +36,7 @@
 
 import { join } from 'path'
 import childProcess from 'child_process'   //needed to run bash commands on linux 
-import { TouchBar, clipboard } from 'electron'
+import { TouchBar, clipboard, globalShortcut} from 'electron'
 import config from '../config.js';
 import log from 'electron-log/main';
 import {SchedulerService} from './schedulerservice.ts'
@@ -80,6 +80,9 @@ function enableRestrictions(win){
     if (config.development) {return}
     log.info("enabling platform restrictions")
 
+
+    globalShortcut.register('CommandOrControl+V', () => {console.log('no clipboard')});
+    globalShortcut.register('CommandOrControl+Shift+V', () => {console.log('no clipboard')});
     clipboard.clear()  //this should clean the clipboard for the electron app
   
     clipboardInterval = new SchedulerService( ()=> { clipboard.clear()  }  , 1000)
@@ -279,8 +282,10 @@ function disableRestrictions(win){
     if (config.development) {return}
 
     log.info("removing restrictions...")
-    
+
     clipboardInterval.stop()
+    globalShortcut.unregister('CommandOrControl+V', () => {console.log('no clipboard')});
+    globalShortcut.unregister('CommandOrControl+Shift+V', () => {console.log('no clipboard')});
     
     // disable global keyboardshortcuts on PLASMA/KDE
     if (process.platform === 'linux') {
