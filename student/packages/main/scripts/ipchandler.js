@@ -200,7 +200,7 @@ class IpcHandler {
                         if (err) {
                             log.error(`ipchandler @ printpdf: ${err.message}`); 
                         
-                            let alternatepath = `${pdffilepath}-${this.multicastClient.clientinfo.token}.pdf`
+                            let alternatepath = `${pdffilepath}-aux.pdf`
                             log.warn("ipchandler @ printpdf: trying to write file as:", alternatepath )
                             fs.writeFile(alternatepath, data, (err) => { 
                                 if (err) {

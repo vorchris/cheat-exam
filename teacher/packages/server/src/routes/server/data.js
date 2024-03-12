@@ -153,7 +153,7 @@ import moment from 'moment';
                 const files = fs.readdirSync(studentDir.latestFolder.path);
                
             
-                const csrfFiles = files.filter(file => file.includes('csrf') && file.endsWith('.pdf'));  //if this there are 2 files with csrf token in name it will randomly chose.. but there is no other way since we dont have all the tokens anymore to compare
+                const csrfFiles = files.filter(file => file.includes('aux') && file.endsWith('.pdf')); // aux is in the name of the file if the original name is locked for some reason 
                 const docxFiles = files.filter(file => file.includes('docx') && file.endsWith('.pdf'));
                 const xlsxFiles = files.filter(file => file.includes('xlsx') && file.endsWith('.pdf'));
                 const exactMatchFile = files.find(file => file === `${studentDir.studentName}.pdf`);  //filename same as folder name.. this would be the "main" pdf
@@ -364,7 +364,7 @@ async function createIndexPDF(dataArray, servername){
                 const files = fs.readdirSync(latestfolderPath);
                 let selectedFile = '';
             
-                const csrfFiles = files.filter(file => file.includes(studenttoken) && file.endsWith('.pdf'));
+                const csrfFiles = files.filter(file => file.includes('aux') && file.endsWith('.pdf'));
                 const docxFiles = files.filter(file => file.includes('docx') && file.endsWith('.pdf'));
                 const xlsxFiles = files.filter(file => file.includes('xlsx') && file.endsWith('.pdf'));
                 const exactMatchFile = files.find(file => file === `${studentname}.pdf`);

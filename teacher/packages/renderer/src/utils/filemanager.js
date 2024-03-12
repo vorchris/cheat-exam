@@ -274,7 +274,7 @@ async function getLatestFromStudent(student){
 
     this.$swal.fire({
         title: this.$t("dashboard.printrequest"),
-        html:  `${this.$t("dashboard.printrequestshow")} <br> <b> ${student.clientname}.pdf</b>`,
+        html:  `Von:<b> ${student.clientname}</b> <br>${this.$t("dashboard.printrequestshow")}`,
         icon: "question",
         showCancelButton: true,
         cancelButtonText: this.$t("dashboard.cancel"),

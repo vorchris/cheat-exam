@@ -60,7 +60,7 @@ import {SchedulerService} from '../utils/schedulerservice.js'
 export default {
     data() {
         return {
-            componentName: 'Eduvidual',
+            componentName: 'Moodle Test',
             online: true,
             focus: true,
             exammode: false,
@@ -153,6 +153,8 @@ export default {
                     #theme_boost-drawers-courseindex { display: none !important; }
                     #page.drawers {margin-top:0px !important;}
                     #page-wrapper {padding-top:0px !important;}
+                    .navbar, #nav-drawer, #page-header {display: none !important;}
+                    body {margin-left: 0px !important;}
                 `;
                 webview.executeJavaScript(`
                     (() => {  // Anonyme Funktion für eigenen Scope sonst wird beim reload der page (absenden der form ) die variable erneut deklariert und failed
