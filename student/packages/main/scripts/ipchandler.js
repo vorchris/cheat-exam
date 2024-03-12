@@ -375,6 +375,7 @@ class IpcHandler {
         ipcMain.handle('saveGGB', (event, args) => {   
             const content = args.content
             const filename = args.filename
+            const reason = args.reason
             const ggbFilePath = path.join(this.config.workdirectory, filename);
             if (content) { 
                 //log.info("ipchandler @ saveGGB: saving students work to disk...")
@@ -382,6 +383,7 @@ class IpcHandler {
 
                 try {
                     fs.writeFileSync(ggbFilePath, fileData);
+                    if (reason === "teacherrequest") { this.CommunicationHandler.sendToTeacher() }
                     return  { sender: "client", message:t("data.filestored") , status:"success" }
                 }
                 catch(err){

@@ -136,7 +136,12 @@ export default {
         this.entrytime = new Date().getTime()  
          
         if (this.electron){
-            this.saveEvent = ipcRenderer.on('save', this.saveContent ); 
+        
+            this.saveEvent = ipcRenderer.on('save', (event, why) => {  //trigger document save by signal "save" sent from sendExamtoteacher in communication handler
+                console.log("editor @ save: Teacher saverequest received")
+                this.saveContent(true, why) 
+            }); 
+
 
             ipcRenderer.on('fileerror', (event, msg) => {
                 console.log('geogebra @ fileerror: writing/deleting file error received');
@@ -392,7 +397,7 @@ export default {
             }
             else {
                 ggbApplet.getBase64( async (base64GgbFile) => {
-                    let response = await ipcRenderer.invoke('saveGGB', {filename: filename, content: base64GgbFile})   // send base64 string to backend for saving
+                    let response = await ipcRenderer.invoke('saveGGB', {filename: filename, content: base64GgbFile, reason: reason })   // send base64 string to backend for saving
                     if (response.status === "success" && reason == "manual" ){  // we wait for a response - only show feed back if manually saved
                         this.loadFilelist()
                         this.$swal.fire({
