@@ -110,5 +110,9 @@
         "filename": "Dateiname",
         "nospecial": "Bitte geben Sie nur Buchstaben oder Zahlen ein.",
         "clear": "Alle Berechnungen löschen?"
+    },
+    "general":{
+        "error": "Fehler",
+        "nopdf": "Keine gültige PDF Datei"
     }
 }

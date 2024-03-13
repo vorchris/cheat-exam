@@ -110,5 +110,9 @@
         "filename": "Filename",
         "nospecial": "Please enter only letters and numbers without special characters",
         "clear": "clear content?"
+    },
+    "general":{
+        "error": "Error",
+        "nopdf": "No valid PDF File"
     }
 }

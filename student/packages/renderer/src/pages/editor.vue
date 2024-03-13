@@ -475,10 +475,38 @@ export default {
                 } 
             }); 
         },
+
+        //checks if arraybuffer contains a valid pdf file
+        isValidPdf(data) {
+            const header = new Uint8Array(data, 0, 5); // Lese die ersten 5 Bytes für "%PDF-"
+            // Umwandlung der Bytes in Hexadezimalwerte für den Vergleich
+            const pdfHeader = [0x25, 0x50, 0x44, 0x46, 0x2D]; // "%PDF-" in Hex
+            for (let i = 0; i < pdfHeader.length; i++) {
+                if (header[i] !== pdfHeader[i]) {
+                    return false; // Früher Abbruch, wenn ein Byte nicht übereinstimmt
+                }
+            }
+            return true; // Alle Bytes stimmen mit dem PDF-Header überein
+        },
+
         // fetch file from disc - show preview
         async loadPDF(file){
             URL.revokeObjectURL(this.currentpreview);
             let data = await ipcRenderer.invoke('getpdfasync', file )
+        
+            let isvalid = this.isValidPdf(data)
+            if (!isvalid){
+                this.$swal.fire({
+                    title: this.$t("general.error"),
+                    text: this.$t("general.nopdf"),
+                    icon: "error",
+                    timer: 3000,
+                    showCancelButton: false,
+                    didOpen: () => { this.$swal.showLoading(); },
+                })
+                return
+            }
+
             this.currentpreview =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
 
             const pdfEmbed = document.querySelector("#pdfembed");
@@ -562,6 +590,9 @@ export default {
                 })
 
                 let text = this.editor.getText(); 
+                ipcRenderer.send('clipboard', text)
+
+                
                 navigator.clipboard.writeText(text).then(function() {
                     console.log('editor @ savecontent: Text erfolgreich kopiert');
                 }).catch(function(err) {
@@ -805,14 +836,14 @@ export default {
             this.loadHTML(filename) 
         }); 
         ipcRenderer.on('loadfilelist', () => {  
-            console.log("editor @ loadfilelist: Reload Files event received ")
+            //console.log("editor @ loadfilelist: Reload Files event received ")
             this.loadFilelist() 
         });
         ipcRenderer.on('fileerror', (event, msg) => {
             console.log('editor @ fileerror: writing/deleting file error received');
             this.$swal.fire({
                     title: "Error",
-                    text: msg.message,
+                    html:  `<b> ${msg.message}</b> <br> Bitte löschen sie das 'EXAM-STUDENT Verzeichnis und stellen sie sicher, dass es für Next-Exam schreibbar ist.'`,
                     icon: "error",
                     //timer: 30000,
                     showCancelButton: false,

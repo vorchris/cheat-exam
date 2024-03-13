@@ -21,7 +21,7 @@ import fs from 'fs'
 import ip from 'ip'
 import i18n from '../../renderer/src/locales/locales.js'
 const {t} = i18n.global
-import{ipcMain} from 'electron'
+import{ipcMain, clipboard} from 'electron'
 import defaultGateway from'default-gateway';
 import os from 'os'
 import log from 'electron-log/main';
@@ -84,6 +84,15 @@ class IpcHandler {
             //this also stops the clearClipboard interval
             disableRestrictions(this.WindowHandler.examwindow) 
         } )
+
+
+        /**
+        * copy to global clipboard
+        */ 
+        ipcMain.on('clipboard', (event, text) => {  
+            clipboard.writeText(text)
+        } )
+
 
 
         /**
@@ -194,14 +203,34 @@ class IpcHandler {
                     pdffilename = `${args.filename}.pdf`
                     log.info(`ipchandler @ printpdf: creating manual backup as ${pdffilename}`)
                 }
-                const pdffilepath = path.join(this.config.workdirectory, pdffilename);
+                const pdffilepath = path.join(this.config.workdirectory, pdffilename);  //the original file "thomas.pdf"
+                const alternatefilename = `${pdffilename}-aux.pdf`    //thomas.pdf-aux.pdf 
+                const alternatebackupfilename = `${pdffilename}-old.pdf`;   //thomas.pdf-old.pdf
+
+                const alternatepath = path.join(this.config.workdirectory, alternatefilename);
+
+                // aux files are files created if the main pdffilepath is not writeable (opened on windows) and preferred by printrequest and when combining all pdfs. 
+                fs.readdir(this.config.workdirectory, (err, files) => { // rename it if it exists - we don't want old backupfiles to mess up printrequest and combine (if everything is ok and the mainfile is writeable)
+                    if (err) {  return; }
+                    files.forEach(file => {
+                        if (file === alternatefilename) {
+                            const newPath = path.join(this.config.workdirectory, alternatebackupfilename);
+                            fs.rename(alternatepath, newPath, err => {
+                                if (err) { 
+                                    log.error('ipchandler @ printpdf: Error renaming file:', err);
+                                    event.reply("fileerror", { sender: "client", message:err , status:"error" } )
+                                 }
+    
+                            });
+                        }
+                    });
+                });
+
                 this.WindowHandler.examwindow.webContents.printToPDF(options).then(data => {
                     fs.writeFile(pdffilepath, data, (err) => { 
                         if (err) {
-                            log.error(`ipchandler @ printpdf: ${err.message}`); 
-                        
-                            let alternatepath = `${pdffilepath}-aux.pdf`
-                            log.warn("ipchandler @ printpdf: trying to write file as:", alternatepath )
+                            log.error(`ipchandler @ printpdf: ${err.message} - writing file as: ${alternatepath} `); 
+               
                             fs.writeFile(alternatepath, data, (err) => { 
                                 if (err) {
                                     log.error(err.message);

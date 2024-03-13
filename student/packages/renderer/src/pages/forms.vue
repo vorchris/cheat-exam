@@ -215,11 +215,37 @@ export default {
             }); 
         },
 
+        //checks if arraybuffer contains a valid pdf file
+        isValidPdf(data) {
+            const header = new Uint8Array(data, 0, 5); // Lese die ersten 5 Bytes für "%PDF-"
+            // Umwandlung der Bytes in Hexadezimalwerte für den Vergleich
+            const pdfHeader = [0x25, 0x50, 0x44, 0x46, 0x2D]; // "%PDF-" in Hex
+            for (let i = 0; i < pdfHeader.length; i++) {
+                if (header[i] !== pdfHeader[i]) {
+                    return false; // Früher Abbruch, wenn ein Byte nicht übereinstimmt
+                }
+            }
+            return true; // Alle Bytes stimmen mit dem PDF-Header überein
+        },
+
         // fetch file from disc - show preview
         async loadPDF(file){
             let data = await ipcRenderer.invoke('getpdfasync', file )
-            this.currentpreview =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
 
+            let isvalid = this.isValidPdf(data)
+            if (!isvalid){
+                this.$swal.fire({
+                    title: this.$t("general.error"),
+                    text: this.$t("general.nopdf"),
+                    icon: "error",
+                    timer: 3000,
+                    showCancelButton: false,
+                    didOpen: () => { this.$swal.showLoading(); },
+                })
+                return
+            }
+
+            this.currentpreview =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
 
             const pdfEmbed = document.querySelector("#pdfembed");
             pdfEmbed.style.backgroundImage = '';
