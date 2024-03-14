@@ -536,6 +536,7 @@ import {SchedulerService} from './schedulerservice.ts'
     // this is manually  triggered if connection is lost during exam - we allow the student to get out of the kiosk mode but keep his work in the editor
     gracefullyEndExam(){
         if (WindowHandler.examwindow){ 
+            this.multicastClient.clientinfo.exammode = false
             log.warn("communicationhandler @ gracefullyEndExam: Manually Unlocking Workstation")
             try {
                 // remove listener
