@@ -737,6 +737,13 @@ export default {
             }); 
 
         },
+        sendFocuslost(){
+            const editorcontentcontainer = document.getElementById('editorcontent');
+            const editableDiv = editorcontentcontainer.firstElementChild;
+            editableDiv.blur()  // remove text cursor (carret)
+            
+            ipcRenderer.send('focuslost')
+        },
         createEditor(){
             this.editor = new Editor({
                 extensions: [
@@ -894,7 +901,12 @@ export default {
         // show spellchecking context menu
         this.editorcontentcontainer = document.getElementById('editorcontent');        
         this.editorcontentcontainer.addEventListener('mouseup',  this.getSelectedTextInfo );   // show amount of words and characters
-        this.editorcontentcontainer.addEventListener('keydown', this.insertSpaceInsteadOfTab)   //this changes the tab behaviour and allows tabstops    
+        this.editorcontentcontainer.addEventListener('keydown', this.insertSpaceInsteadOfTab)   //this changes the tab behaviour and allows tabstops   
+        
+        
+        document.body.addEventListener('mouseleave', this.sendFocuslost);
+
+
     },
     beforeMount(){ },
     beforeUnmount() {
@@ -904,7 +916,8 @@ export default {
         this.editorcontentcontainer.removeEventListener('keydown', this.insertSpaceInsteadOfTab)
         this.editorcontentcontainer.removeEventListener('contextmenu', this.getWord );
         document.removeEventListener('input', this.checkAllWordsOnSpacebar)
- 
+        document.body.removeEventListener('mouseleave', this.sendFocuslost);
+
         document.removeEventListener('click', this.hideSpellcheckMenu);
         this.editorcontentcontainer.removeEventListener('mouseup',  this.getSelectedTextInfo );
         

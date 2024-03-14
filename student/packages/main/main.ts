@@ -97,7 +97,7 @@ if (release().startsWith('6.1')) app.disableHardwareAcceleration()
 
 // Set application name for Windows 10+ notifications
 if (process.platform === 'win32') {  app.setAppUserModelId(app.getName())}
-if (process.platform ==='darwin') {  app.dock.hide() }  // safer fullscreen
+//if (process.platform ==='darwin') {  app.dock.hide() }  // this bug states that it kinda messes up kiosk mode - https://github.com/electron/electron/issues/18207
 
 
 

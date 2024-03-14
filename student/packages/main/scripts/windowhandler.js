@@ -175,17 +175,6 @@ class WindowHandler {
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
     /**
      * BlockWindow (to cover additional screens)
      * @param display 
@@ -296,6 +285,23 @@ class WindowHandler {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     /**
      * Examwindow
      * @param examtype eduvidual, math, language
@@ -337,6 +343,14 @@ class WindowHandler {
                 webviewTag: true
             }
         });
+
+
+
+
+
+
+
+
 
         this.examwindow.serverstatus = serverstatus //we keep it there to make it accessable via examwindow in ipcHandler
         this.examwindow.menuHeight = 94   // start position for the content view
@@ -799,7 +813,7 @@ class WindowHandler {
      * Additional Functions
      */
 
-    //adds blur listener when entering exammode
+    //adds blur listener when entering exammode   // blur event isnt fired on macos MISSIONCONTROL (which cant be deactivated anymore) - damn you apple!
     addBlurListener(window = "examwindow"){
         log.info("windowhandler @ addBlurListener: adding blur listener")
         
@@ -829,10 +843,12 @@ class WindowHandler {
         log.info("windowhandler @ blurevent: student tried to leave exam window")
         if (winhandler.screenlockwindows.length > 0) { return }// do nothing if screenlockwindow stole focus // do not trigger an infinite loop between exam window and screenlock window (stealing each others focus)
             
-        winhandler.multicastClient.clientinfo.focus = false
-        winhandler.examwindow.show();  // we keep focus on the window.. no matter what
+        winhandler.multicastClient.clientinfo.focus = false   //inform the teacher
+        
         winhandler.examwindow.moveTop();
-        winhandler.examwindow.focus();
+        winhandler.examwindow.setKiosk(true);
+        winhandler.examwindow.show();  
+        winhandler.examwindow.focus();    // we keep focus on the window.. no matter what
 
         //turn volume up ^^
         // if (process.platform === 'win32') { spawn('powershell', ['Set-VolumeLevel -Level 100; Set-VolumeMute -Mute $false']); }

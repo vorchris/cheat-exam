@@ -111,18 +111,15 @@ export default {
             this.fetchinfointerval.addEventListener('action',  this.fetchInfo);  // Event-Listener hinzufügen, der auf das 'action'-Event reagiert (reagiert nur auf 'action' von dieser instanz und interferiert nicht)
             this.fetchinfointerval.start();
                 
-      
             this.loadfilelistinterval = new SchedulerService(20000);
             this.loadfilelistinterval.addEventListener('action',  this.loadFilelist);
             this.loadfilelistinterval.start();
             
-
-
             this.clockinterval = new SchedulerService(1000);
             this.clockinterval.addEventListener('action', this.clock);  // Event-Listener hinzufügen, der auf das 'action'-Event reagiert (reagiert nur auf 'action' von dieser instanz und interferiert nicht)
             this.clockinterval.start();
                 
-                
+            document.body.addEventListener('mouseleave', this.sendFocuslost);
             
             
             this.loadFilelist()
@@ -247,6 +244,10 @@ export default {
             }); 
         },
 
+        sendFocuslost(){
+            ipcRenderer.send('focuslost')
+        },
+
         //checks if arraybuffer contains a valid pdf file
         isValidPdf(data) {
             const header = new Uint8Array(data, 0, 5); // Lese die ersten 5 Bytes für "%PDF-"
@@ -346,6 +347,8 @@ export default {
 
         this.loadfilelistinterval.removeEventListener('action', this.loadFilelist);
         this.loadfilelistinterval.stop() 
+
+        document.body.removeEventListener('mouseleave', this.sendFocuslost);
     },
 }
 </script>

@@ -170,6 +170,8 @@ export default {
             this.saveinterval.addEventListener('action', this.saveContent );  // Event-Listener hinzufügen, der auf das 'action'-Event reagiert (reagiert nur auf 'action' von dieser instanz und interferiert nicht)
             this.saveinterval.start();
             
+            document.body.addEventListener('mouseleave', this.sendFocuslost);
+
             this.loadFilelist()
 
 
@@ -252,7 +254,9 @@ export default {
                 } 
             }); 
         },
-
+        sendFocuslost(){
+            ipcRenderer.send('focuslost')
+        },
         //checks if arraybuffer contains a valid pdf file
         isValidPdf(data) {
             const header = new Uint8Array(data, 0, 5); // Lese die ersten 5 Bytes für "%PDF-"
@@ -479,6 +483,8 @@ export default {
 
         this.clockinterval.removeEventListener('action', this.clock);
         this.clockinterval.stop() 
+        
+        document.body.removeEventListener('mouseleave', this.sendFocuslost);
 
         this.saveEvent = null
     },

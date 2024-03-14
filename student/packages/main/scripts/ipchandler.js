@@ -64,6 +64,22 @@ class IpcHandler {
 
 
         /**
+         * Set FOCUS state to false (mouse left exam window)
+         */ 
+        ipcMain.on('focuslost', () => {  
+            if (this.WindowHandler.screenlockwindows.length > 0) { return }// do nothing if screenlockwindow stole focus // do not trigger an infinite loop between exam window and screenlock window (stealing each others focus)
+            
+            this.WindowHandler.examwindow.moveTop();
+            this.WindowHandler.examwindow.setKiosk(true);
+            this.WindowHandler.examwindow.show();  
+            this.WindowHandler.examwindow.focus();    // we keep focus on the window.. no matter what
+
+            this.multicastClient.clientinfo.focus = false; // block everything and inform teacher  (probably an overkill on mouseleave - needs testing)
+        } )
+
+
+
+        /**
          * Returns the main config object
          */ 
         ipcMain.on('getconfig', (event) => {   event.returnValue = this.config   })
