@@ -36,7 +36,7 @@
 
 import { join } from 'path'
 import childProcess from 'child_process'   //needed to run bash commands on linux 
-import { TouchBar, clipboard, globalShortcut} from 'electron'
+import { app, TouchBar, clipboard, globalShortcut} from 'electron'
 import config from '../config.js';
 import log from 'electron-log/main';
 import {SchedulerService} from './schedulerservice.ts'
