@@ -245,6 +245,7 @@ export default {
             serverApiPort: this.$route.params.serverApiPort,
             clientApiPort: this.$route.params.clientApiPort,
             electron: this.$route.params.electron,
+            config: this.$route.params.config,
             clientinfo: null,
             entrytime: 0,
             timesinceentry: 0,
@@ -741,8 +742,8 @@ export default {
             const editorcontentcontainer = document.getElementById('editorcontent');
             const editableDiv = editorcontentcontainer.firstElementChild;
             editableDiv.blur()  // remove text cursor (carret)
-            
-            ipcRenderer.send('focuslost')
+            if (!this.config.development){ this.focus = false }  //immediately block frontend
+            ipcRenderer.send('focuslost')  // refocus, go back to kiosk, inform teacher
         },
         createEditor(){
             this.editor = new Editor({

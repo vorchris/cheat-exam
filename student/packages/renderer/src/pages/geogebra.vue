@@ -112,7 +112,7 @@ export default {
             clientname: this.$route.params.clientname,
             serverApiPort: this.$route.params.serverApiPort,
             clientApiPort: this.$route.params.clientApiPort,
-            
+            config: this.$route.params.config,
             electron: this.$route.params.electron,
             pincode : this.$route.params.pincode,
             clientinfo: null,
@@ -255,6 +255,7 @@ export default {
             }); 
         },
         sendFocuslost(){
+            if (!this.config.development){ this.focus = false }  //immediately block frontend
             ipcRenderer.send('focuslost')
         },
         //checks if arraybuffer contains a valid pdf file
