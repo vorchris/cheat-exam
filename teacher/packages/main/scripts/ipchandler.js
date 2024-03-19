@@ -28,7 +28,7 @@ import { print as printWin } from "pdf-to-printer";
 import { exec } from 'child_process';
 
 
-import { loadCheckDiskSpace } from './checkspace';
+const checkDiskSpace = require('check-disk-space').default
 
 class IpcHandler {
     constructor () {
@@ -99,12 +99,12 @@ class IpcHandler {
 
 
         ipcMain.handle('checkDiscspace', async () => {
-            loadCheckDiskSpace().then( async (checkDiskSpace) => {
+       
                 let diskSpace = await checkDiskSpace(config.workdirectory);
                 let free = Math.round(diskSpace.free / 1024 / 1024 / 1024 * 1000) / 1000;
                 log.info("ipchandler @ checkDiskspace:",diskSpace)
                 return free;
-              }); 
+              
         });
 
         ipcMain.handle('setworkdir', async (event, arg) => {

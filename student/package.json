@@ -34,6 +34,8 @@
             "output": "../release/${version}"
         },
         "compression": "normal",
+        "nodeGypRebuild": false,
+        "npmRebuild": false,
         "files": [
             "dist",
             "public"
