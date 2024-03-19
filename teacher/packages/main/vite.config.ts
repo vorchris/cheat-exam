@@ -23,6 +23,7 @@ export default defineConfig({
       external: [
         'electron',
         'electron-log',
+        'node-prevent-sleep',
         ...builtinModules,
         ...Object.keys(pkg.dependencies || {}),
       ],
