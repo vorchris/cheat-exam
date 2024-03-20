@@ -32,8 +32,6 @@ import log from 'electron-log/main';
 WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow
 IpcHandler.init(multicastClient, config, WindowHandler)  //controll all Inter Process Communication
 
-const preventSleep = require('node-prevent-sleep')
-
 
 log.initialize(); // initialize the logger for any renderer process
 let logfile = `${WindowHandler.config.workdirectory}/next-exam-teacher.log`
@@ -105,7 +103,8 @@ app.whenReady().then(()=>{
     powerSaveBlocker.start('prevent-display-sleep')
     
     if (process.platform === 'win32') {
-         preventSleep.enable();
+        const preventSleep = require('node-prevent-sleep')
+        preventSleep.enable();
     }
   
     app.commandLine.appendSwitch('allow-file-access-from-files');

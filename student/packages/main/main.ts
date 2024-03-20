@@ -148,10 +148,10 @@ app.whenReady()
 
     powerSaveBlocker.start('prevent-display-sleep')
     if (process.platform === 'win32') {
-        import('node-prevent-sleep').then((module) => {
-            const preventSleep = module.default;
+        if (process.platform === 'win32') {
+            const preventSleep = require('node-prevent-sleep')
             preventSleep.enable();
-         });
+        }
     }
    
     //WindowHandler.createSplashWin()
