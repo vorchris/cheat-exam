@@ -171,7 +171,15 @@ import moment from 'moment';
                 latestPDFpath = null; 
             }
         }
-        if (fs.existsSync(latestPDFpath)) { studentDir.latestFilePath = latestPDFpath; studentDir.latestFileName = selectedFile   }
+      
+        if (fs.existsSync(latestPDFpath)) { 
+            studentDir.latestFilePath = latestPDFpath; 
+            studentDir.latestFileName = selectedFile  
+        }
+        else {
+            studentDir.latestFilePath = null; 
+            studentDir.latestFileName = null  
+        }
     }
 
     //create array that contains only filepaths
@@ -219,35 +227,54 @@ import moment from 'moment';
 
 
 
+function isValidPdf(data) {
+    const header = new Uint8Array(data, 0, 5); // Lese die ersten 5 Bytes für "%PDF-"
+    // Umwandlung der Bytes in Hexadezimalwerte für den Vergleich
+    const pdfHeader = [0x25, 0x50, 0x44, 0x46, 0x2D]; // "%PDF-" in Hex
+    for (let i = 0; i < pdfHeader.length; i++) {
+        if (header[i] !== pdfHeader[i]) {
+            return false; // Früher Abbruch, wenn ein Byte nicht übereinstimmt
+        }
+    }
+    return true; // Alle Bytes stimmen mit dem PDF-Header überein
+}
 
 async function countCharsOfPDF(pdfPath, studentname, servername){
     const dataBuffer = fs.readFileSync(pdfPath);// Read the PDF file
-    let chars = await pdf(dataBuffer).then( data => {    // Parse the PDF  // data.text contains all the text extracted from the PDF
-        if (data && data.text && studentname) {   
-            let numberOfCharacters = data.text.length;
-            //console.log(`Number of characters in the PDF: ${numberOfCharacters}`, studentname, servername);
-            let header = `${servername} | 10.10.24, 10:10`
-            let footer = `Zeichen: 1000 | Wörter: 100     Wörter/Zeichen in Auswahl: `   //approximately
+    let chars = 0 
 
-            numberOfCharacters = numberOfCharacters - header.length - studentname.length - footer.length
+    if (isValidPdf(dataBuffer)){
+        chars = await pdf(dataBuffer).then( data => {    // Parse the PDF  // data.text contains all the text extracted from the PDF
+            if (data && data.text && studentname) {   
+                let numberOfCharacters = data.text.length;
+                //console.log(`Number of characters in the PDF: ${numberOfCharacters}`, studentname, servername);
+                let header = `${servername} | 10.10.24, 10:10`
+                let footer = `Zeichen: 1000 | Wörter: 100     Wörter/Zeichen in Auswahl: `   //approximately
 
+                numberOfCharacters = numberOfCharacters - header.length - studentname.length - footer.length
 
-            const regex = /Zeichen: (\d+)/;
-            const matches = data.text.match(regex);
-            const zeichenAnzahl = matches ? matches[1] : "notfound";
-        
-            if (zeichenAnzahl !== "notfound"){
-                return zeichenAnzahl
+                const regex = /Zeichen: (\d+)/;
+                const matches = data.text.match(regex);
+                const zeichenAnzahl = matches ? matches[1] : "notfound";
+            
+                if (zeichenAnzahl !== "notfound"){
+                    return zeichenAnzahl
+                }
+                else {
+                    return numberOfCharacters
+                }
             }
             else {
-                return numberOfCharacters
+                return 0
             }
-        }
-        else {
-            return 0
-        }
-       
-    });
+    
+        })
+        .catch(err => {log.error(`data @ countCharsOfPDF: ${err}`); return 0  });
+    }
+    else {
+        chars = "invalid pdf"
+    }
+ 
     return chars 
 }
 
@@ -270,10 +297,10 @@ async function createIndexPDF(dataArray, servername){
         if (item.latestFilePath ) {
            chars = await countCharsOfPDF(item.latestFilePath, item.studentName, servername)
         }
-        if (item.latestFolder && item.latestFolder.path ) {
+
+        if (item.latestFolder && item.latestFolder.path && item.latestFileName) {
             filename =  item.latestFileName.length > 25 ? item.latestFileName .slice(0, 25) + "..." : item.latestFileName ;
         }
-
 
         tabledata.push([ name, time, chars, filename ])
     }
@@ -285,7 +312,7 @@ async function createIndexPDF(dataArray, servername){
     const startX = 50; // X-coordinate where the table starts
     const startY = page.getHeight() - 50; // Y-coordinate where the table starts (from top)
     const rowHeight = 20; // Height of each row
-    const columnWidths = [140, 120, 60, 170]; // Width of each column
+    const columnWidths = [140, 120, 64, 170]; // Width of each column
 
     // Function to draw a cell
     const drawCell = (x, y, width, height) => { page.drawRectangle({ x, y, width, height, borderColor: rgb(0, 0, 0),  borderWidth: 1,  });  };
@@ -429,11 +456,15 @@ async function concatPages(pdfsToMerge) {
     const tempPDF = await PDFDocument.create();
     for (const pdfpath of pdfsToMerge) { 
         let pdfBytes = fs.readFileSync(pdfpath);
-        const pdf = await PDFDocument.load(pdfBytes); 
-        const copiedPages = await tempPDF.copyPages(pdf, pdf.getPageIndices());
-        copiedPages.forEach((page) => {
-            tempPDF.addPage(page); 
-        }); 
+        //check if this actually is a pdf
+        if (isValidPdf(pdfBytes)){
+            const pdf = await PDFDocument.load(pdfBytes); 
+            const copiedPages = await tempPDF.copyPages(pdf, pdf.getPageIndices());
+            copiedPages.forEach((page) => {
+                tempPDF.addPage(page); 
+            }); 
+        }
+       
     } 
     // Serialize the PDFDocument to bytes (a Uint8Array)
     const finalPDF = await tempPDF.save()
