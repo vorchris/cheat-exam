@@ -223,24 +223,30 @@ import moment from 'moment';
 async function countCharsOfPDF(pdfPath, studentname, servername){
     const dataBuffer = fs.readFileSync(pdfPath);// Read the PDF file
     let chars = await pdf(dataBuffer).then( data => {    // Parse the PDF  // data.text contains all the text extracted from the PDF
-        let numberOfCharacters = data.text.length;
-        //console.log(`Number of characters in the PDF: ${numberOfCharacters}`, studentname, servername);
-        let header = `${servername} | 10.10.24, 10:10`
-        let footer = `Zeichen: 1000 | Wörter: 100     Wörter/Zeichen in Auswahl: `   //approximately
+        if (data && data.text && studentname) {   
+            let numberOfCharacters = data.text.length;
+            //console.log(`Number of characters in the PDF: ${numberOfCharacters}`, studentname, servername);
+            let header = `${servername} | 10.10.24, 10:10`
+            let footer = `Zeichen: 1000 | Wörter: 100     Wörter/Zeichen in Auswahl: `   //approximately
 
-        numberOfCharacters = numberOfCharacters - header.length - studentname.length - footer.length
+            numberOfCharacters = numberOfCharacters - header.length - studentname.length - footer.length
 
 
-        const regex = /Zeichen: (\d+)/;
-        const matches = data.text.match(regex);
-        const zeichenAnzahl = matches ? matches[1] : "notfound";
-    
-        if (zeichenAnzahl !== "notfound"){
-            return zeichenAnzahl
+            const regex = /Zeichen: (\d+)/;
+            const matches = data.text.match(regex);
+            const zeichenAnzahl = matches ? matches[1] : "notfound";
+        
+            if (zeichenAnzahl !== "notfound"){
+                return zeichenAnzahl
+            }
+            else {
+                return numberOfCharacters
+            }
         }
         else {
-            return numberOfCharacters
+            return 0
         }
+       
     });
     return chars 
 }
