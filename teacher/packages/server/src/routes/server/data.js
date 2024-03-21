@@ -248,20 +248,32 @@ async function countCharsOfPDF(pdfPath, studentname, servername){
             if (data && data.text && studentname) {   
                 let numberOfCharacters = data.text.length;
                 //console.log(`Number of characters in the PDF: ${numberOfCharacters}`, studentname, servername);
-                let header = `${servername} | 10.10.24, 10:10`
-                let footer = `Zeichen: 1000 | Wörter: 100     Wörter/Zeichen in Auswahl: `   //approximately
 
-                numberOfCharacters = numberOfCharacters - header.length - studentname.length - footer.length
+                let header = ` ${servername} | 10.10.24, 10:10 `
+                let footer = ` Zeichen: 10 | Wörter: 10  1/1 `   //approximately
 
-                const regex = /Zeichen: (\d+)/;
-                const matches = data.text.match(regex);
-                const zeichenAnzahl = matches ? matches[1] : "notfound";
-            
-                if (zeichenAnzahl !== "notfound"){
+                numberOfCharacters = numberOfCharacters - header.length - studentname.length - footer.length // -5 for average name length
+
+
+                //we try to filter out the important part of the document that shows the actual number of chars
+                let regex = /Zeichen: (\d+)/;
+                let matches = data.text.match(regex);
+                let zeichenAnzahl = matches ? matches[1] : "notfound";
+               
+                if (zeichenAnzahl !== "notfound"){   //we found it !
                     return zeichenAnzahl
                 }
                 else {
-                    return numberOfCharacters
+                    regex = /Zeichen:(\d+)/;  //try slightly different regex because some pdfs (probably from mac) remove spaces when read
+                    matches = data.text.match(regex);
+                    zeichenAnzahl = matches ? matches[1] : "notfound";
+                    if (zeichenAnzahl !== "notfound"){  // now we found it
+                        return zeichenAnzahl
+                    }
+                    else {
+                        console.log(data.text)
+                        return numberOfCharacters >= 0 ? `~ ${numberOfCharacters}` : '~ 0';
+                    }
                 }
             }
             else {

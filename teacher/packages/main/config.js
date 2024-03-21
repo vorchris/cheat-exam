@@ -1,7 +1,7 @@
 import pjson from "../../package.json"
 
 const config = {
-    development: false,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
+    development: true,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
     showdevtools: false,
    
     workdirectory : "",   // set by server.js (desktop path + examdir)
@@ -18,7 +18,7 @@ const config = {
     examServerList: {},
     accessToken: false,
     version: pjson.version,
-    info: "Release Candidate 5",
+    info: "Release Candidate 6",
     buildforWEB: false
 
 }
