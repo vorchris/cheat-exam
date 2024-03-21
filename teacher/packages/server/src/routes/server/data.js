@@ -233,6 +233,7 @@ function isValidPdf(data) {
     const pdfHeader = [0x25, 0x50, 0x44, 0x46, 0x2D]; // "%PDF-" in Hex
     for (let i = 0; i < pdfHeader.length; i++) {
         if (header[i] !== pdfHeader[i]) {
+            log.warn('data @ isValidPdf: invalid PDF processed')
             return false; // Früher Abbruch, wenn ein Byte nicht übereinstimmt
         }
     }
@@ -284,7 +285,7 @@ async function countCharsOfPDF(pdfPath, studentname, servername){
         .catch(err => {log.error(`data @ countCharsOfPDF: ${err}`); return 0  });
     }
     else {
-        chars = "invalid pdf"
+        chars = "no pdf"
     }
  
     return chars 
@@ -308,6 +309,9 @@ async function createIndexPDF(dataArray, servername){
         }
         if (item.latestFilePath ) {
            chars = await countCharsOfPDF(item.latestFilePath, item.studentName, servername)
+        }
+        else {
+            chars = "no pdf"
         }
 
         if (item.latestFolder && item.latestFolder.path && item.latestFileName) {
