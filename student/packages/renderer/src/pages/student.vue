@@ -185,6 +185,9 @@ export default {
                         this.status("Suche Prüfungen...")
                     }
                 
+                    //stop polling the API if already connected to the specefied serverip
+                    //FIXME
+
                     fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/serverlist`)
                     .then(response => response.json()) // Parse JSON response
                     .then(data => {
