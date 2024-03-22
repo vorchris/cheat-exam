@@ -338,16 +338,14 @@ function disableRestrictions(win){
      */
     if (process.platform === 'win32') {
         //unblock important keyboard shortcuts (disable-shortcuts.exe)
-        log.info("deactivating shortcuts...")
-        childProcess.exec('taskkill /f /im disable-shortcuts.exe', (error, stdout, stderr) => {
+        log.info("platformrestrictions @ disableRestrictions (win): unblocking shortcuts...")
+        childProcess.exec(`taskkill /F /IM "disable-shortcuts.exe" /T`, (error, stderr, stdout) => { 
             if (error) {
                 log.error(`exec error: ${error}`);
                 return;
             }
-           // log.info(`stdout: ${stdout}`);
-           // log.error(`stderr: ${stderr}`);
-          });
-
+        });
+      
 
         // start explorer.exe windowsshell again
         // Überprüfe, ob explorer.exe läuft
