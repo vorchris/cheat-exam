@@ -178,10 +178,10 @@ export default {
             this.clientinfo = getinfo.clientinfo;
             this.token = this.clientinfo.token;
 
-            if (this.advanced) {
+            if (this.advanced && !this.token) {
                 if (validator.isIP(this.serverip) || validator.isFQDN(this.serverip)){
                     //give some userfeedback here
-                    if (this.serverlist.length == 0){
+                    if (this.serverlistAdvanced.length == 0){
                         this.status("Suche Prüfungen...")
                     }
                 
@@ -193,6 +193,7 @@ export default {
                     .then(data => {
                         if (data && data.status === "success") {
                             this.serverlistAdvanced = data.serverlist;
+                            //if (this.serverlistAdvanced.length > 0){ this.status("Prüfung gefunden...") }
                             this.networkerror = false;
                         }
                     })
@@ -200,6 +201,8 @@ export default {
                         log.error(`student.vue @ fetchInfo: ${err.message}`);
                         this.networkerror = true;
                     });
+
+
 
                 }
             }
