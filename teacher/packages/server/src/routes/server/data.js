@@ -120,7 +120,8 @@ import moment from 'moment';
                 const itemPath = path.join(studentDir.path, item.name);
                 const stats = fs.statSync(itemPath);
                 
-                if (stats.mtimeMs > latestModTime) {   // Überprüfe, ob das aktuelle Verzeichnis das neueste ist
+               // if (stats.mtimeMs > latestModTime) {   // Überprüfe, ob das aktuelle Verzeichnis das neueste ist //falls modtime ident (copy) check name
+                if (stats.mtimeMs > latestModTime || (stats.mtimeMs === latestModTime && item.name > (latestFolder ? latestFolder.name : ''))) {
                     latestModTime = stats.mtimeMs;
                     latestFolder = {
                         path: itemPath,
@@ -129,7 +130,7 @@ import moment from 'moment';
                     };
                 }
             }
-          });
+        });
         if (latestFolder) { 
             studentDir.latestFolder = latestFolder;  
             //check if the newest directory is older than 5 minutes.. set warning = true this will show a warning to the teacher!
@@ -307,8 +308,10 @@ async function createIndexPDF(dataArray, servername){
         if (item.latestFolder && item.latestFolder.time ) {
             time = moment(item.latestFolder.time).format('DD.MM.YYYY HH:mm')
         }
-        if (item.latestFilePath ) {
-           chars = await countCharsOfPDF(item.latestFilePath, item.studentName, servername)
+        if (item.latestFilePath ) {  // if pdf filepath exists get time from filetime and count chars of pdf
+            const stats = fs.statSync(item.latestFilePath);
+            time = moment(stats.mtimeMs).format('DD.MM.YYYY HH:mm')
+            chars = await countCharsOfPDF(item.latestFilePath, item.studentName, servername)
         }
         else {
             chars = "no pdf"
