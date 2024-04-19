@@ -138,7 +138,7 @@
     </div>
     <div id="statusbar">
         <!-- Statischer Text mit v-once, um das Neurendern zu verhindern da $t offenbar jedesmal performance measures durchführt die zu memory bloat führen -->
-            <span v-once>{{ $t("editor.chars") }}:</span> <span>{{ charcount }}</span> | <span v-once>{{ $t("editor.words") }}:</span> <span>{{ wordcount }}</span>
+            <span v-once>{{ $t("editor.words") }}:</span> <span>{{ wordcount }}</span> | <span v-once>{{ $t("editor.chars") }}:</span> <span>{{ charcount }}</span>  
             &nbsp;
             <span v-once> {{ $t("editor.selected") }}: </span> <span id="editselected"> {{ selectedWordCount }}/{{ selectedCharCount }}</span>
             <img @click="zoomin()" src="/src/assets/img/svg/zoom-in.svg" class="zoombutton">  
@@ -361,7 +361,9 @@ export default {
 
 
         clock(){
-            this.charcount = this.editor.storage.characterCount.characters()
+            // this.charcount = this.editor.storage.characterCount.characters()   //this also counts blank spaces
+            this.charcount = this.editor.getText().replace(/<[^>]*>/g, '').replace(/\s/g, '').length
+
             this.wordcount = this.editor.storage.characterCount.words()
             this.now = new Date().getTime()
             this.timesinceentry =  new Date(this.now - this.entrytime).toISOString().substr(11, 8)
@@ -649,9 +651,15 @@ export default {
         },
         //show wordcount and charcount of selection 
         getSelectedTextInfo() {
-            let selectedText = window.getSelection().toString();
-            this.selectedWordCount = selectedText ? selectedText.split(/\s+/).filter(Boolean).length : 0;
-            this.selectedCharCount = selectedText ? selectedText.length : 0;
+            // let selectedText = window.getSelection().toString();
+            // this.selectedWordCount = selectedText ? selectedText.split(/\s+/).filter(Boolean).length : 0;
+            // this.selectedCharCount = selectedText ? selectedText.length : 0;
+            if (!this.editor || !this.editor.state.selection) {
+                this.selectedCharCount = 0
+            }
+            const { from, to } = this.editor.state.selection;
+            const textInSelection = this.editor.state.doc.textBetween(from, to, ' ');
+            this.selectedCharCount = textInSelection ? textInSelection.replace(/\s/g, '').length : 0;
             return
         },
         // manual copy and paste because we disabled clipboard
