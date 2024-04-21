@@ -50,7 +50,7 @@
             <button id="closefilebrowser" type="button" class=" btn-close pt-2 pe-2 float-end" title="close"></button>
             <h4>{{$t('dashboard.filesfolder')}}: <br> <h6 class="ms-3 mb-3"><strong> {{currentdirectory}}</strong>  </h6></h4>
             <div class="btn btn-dark pe-3 ps-3 me-1 mb-3 btn-sm" @click="loadFilelist(workdirectory) "><img src="/src/assets/img/svg/go-home.svg" class="" width="22" height="22" > </div>
-            <div :class="( serverstatus.examtype === 'eduvidual' )? 'disabledblue':''" class="btn btn-primary pe-3 ps-3 me-1 mb-3 btn-sm" style="float: right;" :title="$t('dashboard.summarizepdf')" @click="getLatest() "><img src="/src/assets/img/svg/edit-copy.svg" class="" width="22" height="22" >{{$t('dashboard.summarizepdfshort')}}</div>
+            <div :class="( serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'website' )? 'disabledblue':''" class="btn btn-primary pe-3 ps-3 me-1 mb-3 btn-sm" style="float: right;" :title="$t('dashboard.summarizepdf')" @click="getLatest() "><img src="/src/assets/img/svg/edit-copy.svg" class="" width="22" height="22" >{{$t('dashboard.summarizepdfshort')}}</div>
             <div  v-if="(currentdirectory !== workdirectory)" class="btn btn-dark pe-3 ps-3 me-1 mb-3 btn-sm" @click="loadFilelist(currentdirectoryparent) "><img src="/src/assets/img/svg/edit-undo.svg" class="" width="22" height="22" >up </div>
             <div :key="3" style="height: 76vh; overflow-y:auto;">
                 <div v-for="file in localfiles" :key="file.path" class="d-inline">
@@ -107,7 +107,7 @@
             <!-- editor -->
             <div class="form-check m-1" :class="(serverstatus.exammode)? 'disabledexam':''">
                 <input v-model="serverstatus.examtype" @click="activateSpellcheck()" value="editor" class="form-check-input" type="radio" name="examtype" id="examtype1">
-                <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}} <span v-if="(serverstatus.spellcheck)">({{serverstatus.spellchecklang}})</span></label>
+                <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}} <span class="text-white-50" v-if="(serverstatus.spellcheck)">({{serverstatus.spellchecklang}})</span></label>
             </div>
             <!-- eduvidual -->
             <div class="form-check m-1 mb-1" :class="(serverstatus.exammode)? 'disabledexam':''">
@@ -118,6 +118,13 @@
             <div class="form-check m-1 mb-1" :class="(serverstatus.exammode)? 'disabledexam':''">
                 <input v-model="serverstatus.examtype" @click="getFormsID()" value="gforms" class="form-check-input" type="radio" name="examtype" id="examtype5">
                 <label class="form-check-label" for="examtype5"> {{$t('dashboard.gforms')}}  </label>
+            </div>
+            <!-- website -->
+            <div class="form-check m-1 mb-1" :class="(serverstatus.exammode)? 'disabledexam':''">
+                <input v-model="serverstatus.examtype" @click="getTestURL()" value="website" class="form-check-input" type="radio" name="examtype" id="examtype6">
+                <label class="form-check-label" for="examtype6"> Website <br>
+                    <div class="text-white-50" style="width: 160px; display:inline-block; overflow: hidden; text-overflow: ellipsis;" v-if="(serverstatus.domainname)">({{serverstatus.domainname}}</div><div v-if="(serverstatus.domainname)" style="overflow: hidden; display:inline-block;" class="text-white-50">)</div>   
+                </label>
             </div>
 
             <!-- microsoft365 -->
@@ -207,7 +214,7 @@
         <div v-if="(serverstatus.exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:128px; height:62px;" @click="endExam();hideDescription();"  @mouseover="showDescription($t('dashboard.exitkiosk'))" @mouseout="hideDescription"  >                                                                                                                                         <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" width="28" height="28" style="vertical-align: top;"> <div style="display:inline-block; margin-top:4px; margin-left:4px; width:60px; font-size:0.8em;"> {{numberOfConnections}} {{$t('dashboard.stopexam')}} </div></div>
         <div v-if="(!serverstatus.exammode)" class="btn btn-teal m-1 mt-0 text-start ms-0"  @click="startExam();hideDescription();"  @mouseover="showDescription($t('dashboard.startexamdesc'))" @mouseout="hideDescription" :class="(serverstatus.examtype === 'microsoft365' && (!this.config.accessToken || !serverstatus.msOfficeFile))? 'disabledgreen':''" style="width:128px; height:62px;">  <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" width="28" height="28" style="vertical-align: top;"> <div style="display:inline-block; margin-top:4px; margin-left:4px; width:60px; font-size:0.8em;"> {{numberOfConnections}} {{$t('dashboard.startexam')}}</div></div>
         <div class="btn btn-cyan m-1 mt-0 text-start ms-0" @click="sendFiles('all');hideDescription();"   @mouseover="showDescription($t('dashboard.sendfile'))" @mouseout="hideDescription"  style="width:62px; height:62px;"><img src="/src/assets/img/svg/document-send.svg" class="mt-2" width="32" height="32"></div>
-        <div class="btn btn-cyan m-1 mt-0 text-start ms-0" @click="getFiles('all', true);hideDescription();"  @mouseover="showDescription($t('dashboard.getfile'))" @mouseout="hideDescription"  :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledblue':''"  style="width:62px; height:62px;" ><img src="/src/assets/img/svg/edit-download.svg" class="mt-2" width="32" height="32"></div>
+        <div class="btn btn-cyan m-1 mt-0 text-start ms-0" @click="getFiles('all', true);hideDescription();"  @mouseover="showDescription($t('dashboard.getfile'))" @mouseout="hideDescription"  :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms'|| serverstatus.examtype === 'website')? 'disabledblue':''"  style="width:62px; height:62px;" ><img src="/src/assets/img/svg/edit-download.svg" class="mt-2" width="32" height="32"></div>
         <div class="btn btn-cyan m-1 mt-0 text-start ms-0" @click="loadFilelist(workdirectory);hideDescription();"  @mouseover="showDescription($t('dashboard.showworkfolder'))" @mouseout="hideDescription"  style="width: 62px; height:62px;"><img src="/src/assets/img/svg/folder-open.svg" class="mt-2" width="32" height="32" ></div>
         <div v-if="(serverstatus.screenslocked)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(false);hideDescription();"> <img src="/src/assets/img/svg/eye-fill.svg" class="white mt-2" width="32" height="32" >   </div>
         <div v-if="(!serverstatus.screenslocked)" class="btn btn-dark m-1 mt-0 text-start ms-0 " style="width:62px; height:62px;" @click="lockscreens(true);hideDescription();"  @mouseover="showDescription($t('dashboard.lock'))" @mouseout="hideDescription" > <img src="/src/assets/img/svg/eye-slash-fill.svg" class="white mt-2" width="32" height="32" >  </div>
@@ -592,12 +599,45 @@ export default {
             })  
         },
 
+
+        /**
+         * Website
+         */
+         async getTestURL(){
+            this.$swal.fire({
+                title: this.$t("dashboard.website"),
+                icon: 'question',
+                input: 'text',
+                html: `
+                    <div class="row m-4 mt-1">                   
+                       zB.: https://classtime.com
+                    </div>
+                    `,  
+                inputValidator: (value) => {
+                    if (!this.isValidFullDomainName(value)) {return 'Ungültige Domain!'}
+                }  
+            })
+            .then((input) => {
+                let domainname = input.value
+                this.serverstatus.domainname = this.isValidFullDomainName(  domainname ) ? domainname : null
+
+                if (!this.serverstatus.domainname) {document.getElementById('examtype2').checked = true; this.serverstatus.examtype = "math"}
+                //console.log( this.serverstatus.domainname )
+            })  
+        },
+
+
         isValidDomainName(str) {
             // Regex for matching a simple domain name structure
             var regex = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/i;
             return regex.test(str);
         },
 
+        isValidFullDomainName(str) {
+            // Regex for matching a simple domain name structure
+            var regex = /^(https?:\/\/)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/i;
+            return regex.test(str);
+        },
 
         /**
          * Text Editor

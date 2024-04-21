@@ -46,6 +46,7 @@
         "lang": "Language",
         "math": "Math",
         "eduvidual": "Eduvidual",
+        "website": "Website URL",
         "autoget": "auto fetch",
         "startexam": "Secure devices",
         "startexamdesc": "This starts the Exam Mode for all students",

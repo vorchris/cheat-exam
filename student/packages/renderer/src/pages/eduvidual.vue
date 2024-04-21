@@ -78,7 +78,8 @@ export default {
             electron: this.$route.params.electron,
             pincode : this.$route.params.pincode,
             serverstatus: this.$route.params.serverstatus,
-
+            config: this.$route.params.config,
+            
             clientinfo: null,
             entrytime: 0,
             timesinceentry: 0,

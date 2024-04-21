@@ -46,6 +46,7 @@
         "lang": "Sprachen",
         "math": "Mathematik",
         "eduvidual": "Eduvidual / Moodle",
+        "website": "Website URL",
         "autoget": "Abgabeintervall",
         "startexam": "Geräte absichern",
         "startexamdesc": "Startet den abgesicherten Exam Modus auf den Geräten der Schüler:innen",

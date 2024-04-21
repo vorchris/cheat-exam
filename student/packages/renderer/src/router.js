@@ -29,8 +29,9 @@ import gforms from '/src/pages/forms.vue'
 import lock from '/src/pages/lock.vue'
 import eduvidual from '/src/pages/eduvidual.vue'
 import microsoft365 from '/src/pages/microsoft365.vue'
+import website from '/src/pages/website.vue'
 
-//console.log(config)  // config is exposed to the renderer (frontend) in preload.js (it's readonly here!)
+console.log(config)  // config is exposed to the renderer (frontend) in preload.js (it's readonly here!)
 
 // check if we run this app in electron (host is always "localhost" then)
 let electron = false
@@ -46,6 +47,7 @@ const routes = [
     { path: '/math/:token',         name:"math",         component: geogebra,     beforeEnter: [addParams, fetchInfo] },
     { path: '/gforms/:token',       name:"gforms",       component: gforms,       beforeEnter: [addParams, fetchInfo] },
     { path: '/eduvidual/:token',    name:"eduvidual",    component: eduvidual,    beforeEnter: [addParams, fetchInfo] },
+    { path: '/website/:token',      name:"website",      component: website,      beforeEnter: [addParams, fetchInfo] },
     { path: '/microsoft365/:token', name:"microsoft365", component: microsoft365, beforeEnter: [addParams, fetchInfo] },
     { path: '/lock',                name:"lock",         component: lock },
     { path: '/:pathMatch(.*)*',     name:"404",          component: notfound },   // to load a specific view just replace the error view and load an unknown component at path: /
