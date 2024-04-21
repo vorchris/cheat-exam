@@ -31,7 +31,7 @@ import eduvidual from '/src/pages/eduvidual.vue'
 import microsoft365 from '/src/pages/microsoft365.vue'
 import website from '/src/pages/website.vue'
 
-console.log(config)  // config is exposed to the renderer (frontend) in preload.js (it's readonly here!)
+//console.log(config)  // config is exposed to the renderer (frontend) in preload.js (it's readonly here!)
 
 // check if we run this app in electron (host is always "localhost" then)
 let electron = false

@@ -254,7 +254,7 @@ async function countCharsOfPDF(pdfPath, studentname, servername){
                 let header = ` ${servername} | 10.10.24, 10:10 `
                 let footer = ` Zeichen: 10 | Wörter: 10  1/1 `   //approximately
 
-                numberOfCharacters = numberOfCharacters - header.length - studentname.length - footer.length // -5 for average name length
+                numberOfCharacters = numberOfCharacters // - header.length - studentname.length - footer.length // -5 for average name length  // für msword option - hier gibts keinen header
 
 
                 //we try to filter out the important part of the document that shows the actual number of chars
