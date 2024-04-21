@@ -305,6 +305,10 @@ for (let i = 0; i<16; i++ ){
  *  @param clientname the name of the student
  *  @param clientip the clients ip address for api calls
  */
+
+
+import WindowHandler from '../../../../main/scripts/windowhandler.js'
+
  router.get('/registerclient/:servername/:pin/:clientname/:clientip/:hostname/:version', function (req, res, next) {
     const clientname = req.params.clientname
     const clientip = req.params.clientip
@@ -356,6 +360,10 @@ for (let i = 0; i<16; i++ ){
             if (now - 20000 > registeredClient.timestamp) { // student probably went offline (teacher connection loss) but is coming back now
                 registeredClient.timestamp = now
                 log.info("control @ registerclient: student reconnected")
+
+                //inform frontend about re-connection
+                WindowHandler.mainwindow.webContents.send("reconnected", registeredClient)
+
                 return res.json({sender: "server", message:t("control.registered"), status: "success", token: registeredClient.token})  //send back old token
             }
             else {

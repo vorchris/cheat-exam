@@ -112,10 +112,10 @@ app.whenReady().then(()=>{
 
     WindowHandler.createWindow()
 
-    // globalShortcut.register('CommandOrControl+Shift+D', () => {
-    //     const win = BrowserWindow.getFocusedWindow()
-    //     if (win) {
-    //         win.webContents.toggleDevTools()
-    //     }
-    // })
+    globalShortcut.register('CommandOrControl+Shift+D', () => {
+        const win = BrowserWindow.getFocusedWindow()
+        if (win) {
+            win.webContents.toggleDevTools()
+        }
+    })
 })
