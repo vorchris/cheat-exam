@@ -227,9 +227,14 @@
                             <div v-if="!student.focus" class="kioskwarning" >{{$t("dashboard.leftkiosk")}}</div>
                             <div v-if="student.status.sendexam" class="examrequest" >{{$t("dashboard.examrequest")}}</div>
                             <span>   
-                                <div style="display:inline;" v-bind:title="(student.files) ? 'Documents: '+student.files : ''"> 
-                                    <img v-for="file in student.files" style="width:22px; margin-left:-4px; position: relative; filter: sepia(10%) hue-rotate(306deg) brightness(0.3) saturate(75);" class="" src="/src/assets/img/svg/document.svg"><br>
+                                <div style="display: inline-block; overflow: hidden; width: 140px; height: 22px" v-bind:title="(student.files) ? 'Documents: '+student.files : ''"> 
+                                    <img v-for="file in student.files" style="width:22px; margin-left:-4px; position: relative; filter: sepia(10%) hue-rotate(306deg) brightness(0.3) saturate(75);" class="" src="/src/assets/img/svg/document.svg">
                                 </div>
+                                <div style="display: inline-block; margin: 0px; position: absolute; right: 4px;" >
+                                    <img src="/src/assets/img/svg/edit-delete.svg" width="22" height="22" class="delfolderstudent" @click="delfolderquestion(student.token)"  @mouseover="showDescription($t('dashboard.delsingle'))" @mouseout="hideDescription" >
+                                </div>
+
+                                <br>
                                 {{ truncatedClientName(student.clientname) }}  
                                 <button  @click='kick(student.token,student.clientip)'  @mouseover="showDescription($t('dashboard.kick'))" @mouseout="hideDescription" type="button" class=" btn-close  btn-close-white pt-1 pe-2 float-end"></button> 
                             </span>
@@ -1120,6 +1125,15 @@ export default {
 .studentimage {
     background-color:transparent!important;
 }
+
+.delfolderstudent {
+    cursor: pointer;
+}
+.delfolderstudent:hover {
+    filter: brightness(150%);
+}
+
+
 
 .ghost {
    opacity: 0.3;

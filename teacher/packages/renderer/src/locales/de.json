@@ -71,6 +71,8 @@
         "close":"schließen",
         "del": "Arbeitsordner auf Geräten der Schüler:innen bereinigen",
         "delsure": "Die Arbeitsordner auf den Geräten der Schüler:innen werden geleert",
+        "delsingle": "Arbeitsordner auf Schüler:innen-Seite bereinigen",
+        "delsinglesure": "Der Arbeitsordner auf dem Schüler:innen-Gerät wird geleert",
         "attention": "Achtung!",
         "abgaberequest": "Arbeiten werden geholt",
         "showworkfolder": "Lokalen Arbeitsordner anzeigen",

@@ -287,22 +287,30 @@ function toggleScreenshot(){
 
 
         // show warning
-function delfolderquestion(){
+function delfolderquestion(token="all"){
     if (this.studentlist.length === 0) { this.status(this.$t("dashboard.noclients")); return;}
+    let text =  this.$t("dashboard.delsure")
+    
+    if (token !== "all"){ 
+        text = this.$t("dashboard.delsinglesure")
+    }
+
     this.$swal.fire({
         title: this.$t("dashboard.attention"),
-        text:  this.$t("dashboard.delsure"),
+        text:  text,
         icon: "question",
         showCancelButton: true,
         cancelButtonText: this.$t("dashboard.cancel"),
         reverseButtons: true,
         
     })
+
+
     .then((result) => {
         if (result.isConfirmed) {
         
                 // inform student that folder needs to be deleted
-            fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/setstudentstatus/${this.servername}/${this.servertoken}/all`, { 
+            fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/setstudentstatus/${this.servername}/${this.servertoken}/${token}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },
                 body: JSON.stringify({ delfolder : true } )
