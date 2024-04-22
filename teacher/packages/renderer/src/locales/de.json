@@ -139,7 +139,8 @@
         "allowdirectprint": "Schüler:innen Direktdruck erlauben",
         "noprinter": "Keine Drucker gefunden",
         "directprint": "Direktdruck",
-        "open": "Datei in externem Betrachter öffnen"
+        "open": "Datei in externem Betrachter öffnen",
+        "ocr": "OCR Sicherheit (Exam PIN erkennen)"
     },
     "control": {
         "tokennotvalid": "Das Token ist ungültig",

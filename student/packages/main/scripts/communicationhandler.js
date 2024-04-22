@@ -32,6 +32,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
 import log from 'electron-log/main';
 
 import {SchedulerService} from './schedulerservice.ts'
+import Tesseract from 'tesseract.js';
 
  /**
   * Handles information fetching from the server and acts on status updates
@@ -201,8 +202,9 @@ import {SchedulerService} from './schedulerservice.ts'
 
             if (Buffer.isBuffer(img)) {
                 try {
+                    let sWidth = 1440
                     const resized = await sharp(img)
-                        .resize(1440) // Gewünschte Breite setzen; Höhe wird proportional skaliert
+                        .resize(sWidth) // Gewünschte Breite setzen; Höhe wird proportional skaliert
                         .toFormat('jpeg')
                         .jpeg({ quality: 65, mozjpeg: true }) // Gewünschte JPEG-Qualität setzen
                         .toBuffer();
@@ -211,11 +213,32 @@ import {SchedulerService} from './schedulerservice.ts'
                     const screenshotfilename = this.multicastClient.clientinfo.token + ".jpg";
                     const hash = crypto.createHash('md5').update(resized).digest("hex");
                     
+                    // send the top 64 px (next-exam header) for OCR scan
+                    const header = await sharp(resized).extract({ width: sWidth, height: 100, left: 0, top: 0 }).toBuffer();
+                    const headerBase64 = header.toString('base64');
+
+              
+                    if ( this.multicastClient.clientinfo.exammode && this.multicastClient.clientinfo.screenshotocr ){
+                        try{
+                            const ocrResult = await Tesseract.recognize(header , 'eng' );
+                            let pincodeVisible = ocrResult.data.text.includes(this.multicastClient.clientinfo.pin)
+        
+                            if (!pincodeVisible){
+                                this.multicastClient.clientinfo.focus = pincodeVisible
+                                log.info("communicationhandler @ sendScreenshot (ocr): Student Screenshot does not fit requirements");
+                            }
+                        }
+                        catch(err){
+                            log.info(`communicationhandler @ sendScreenshot (ocr): ${err}`);
+                        }
+                    }
+        
                     const payload = {
                         clientinfo: {...this.multicastClient.clientinfo},
                         screenshot: screenshotBase64,
                         screenshothash: hash,
-                        screenshotfilename: screenshotfilename
+                        screenshotfilename: screenshotfilename,
+                        header : headerBase64
                     };
                     
                     fetch(`https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/updatescreenshot`, {
@@ -311,6 +334,14 @@ import {SchedulerService} from './schedulerservice.ts'
             if (studentstatus.restorefocusstate === true){
                 log.info("communicationhandler @ processUpdatedServerstatus: restoring focus state for student")
                 this.multicastClient.clientinfo.focus = true
+                
+                if (WindowHandler.examwindow){ 
+                    WindowHandler.examwindow.setKiosk(true)
+                    WindowHandler.examwindow.focus()
+                }
+
+               
+
             }
             if (studentstatus.allowspellcheck && studentstatus.allowspellcheck !== "deactivate"){
                 log.info("communicationhandler @ processUpdatedServerstatus: activating spellcheck for student")
@@ -337,6 +368,9 @@ import {SchedulerService} from './schedulerservice.ts'
         // global status updates
         if (serverstatus.screenslocked && !this.multicastClient.clientinfo.screenlock) {  this.activateScreenlock() }
         else if (!serverstatus.screenslocked ) { this.killScreenlock() }
+
+        if (serverstatus.screenshotocr) { this.multicastClient.clientinfo.screenshotocr = true  }
+        else { this.multicastClient.clientinfo.screenshotocr = false   }
 
         //update screenshotinterval
         if (serverstatus.screenshotinterval || serverstatus.screenshotinterval === 0) { //0 is the same as false or undefined but should be treated as number

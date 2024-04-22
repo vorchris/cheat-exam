@@ -139,7 +139,8 @@
         "allowdirectprint": "allow direct print for students",
         "noprinter": "no printer found",
         "directprint": "direct  print",
-        "open": "open file in external viewer"
+        "open": "open file in external viewer",
+        "ocr": "activate OCR saftey feature"
     },
     "control": {
         "tokennotvalid": "token is not valid",

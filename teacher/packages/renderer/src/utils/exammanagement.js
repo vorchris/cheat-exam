@@ -193,20 +193,34 @@ function getFiles(who='all', feedback=false, quiet=false){
         title: this.$t("dashboard.screenshottitle"),
         icon: 'question',
         input: 'range',
-        html: `${this.$t("dashboard.screenshotquestion")} <br>  ${this.$t("dashboard.screenshothint")}`,
+        html: `${this.$t("dashboard.screenshotquestion")} <br>  ${this.$t("dashboard.screenshothint")}
+        <br><br>
+
+        <input class="form-check-input" type="checkbox" id="screenshotocr">
+        <label class="form-check-label" for="screenshotocer"> ${this.$t("dashboard.ocr")} </label> <br>
+
+
+        
+        `,
         inputAttributes: {
             min: 0,
             max: 60,
             step: 2
         },
-        inputValue: this.serverstatus.screenshotinterval
+        inputValue: this.serverstatus.screenshotinterval,
+        didOpen: () => {
+            document.getElementById('screenshotocr').checked =  this.serverstatus.screenshotocr
+        },
     }).then((result) => {
         const inputInteger = parseInt(result.value, 10); // Convert to integer
         this.serverstatus.screenshotinterval = inputInteger
        
+        this.serverstatus.screenshotocr = document.getElementById('screenshotocr').checked;
+
         if (!this.serverstatus.screenshotinterval || !Number.isInteger(this.serverstatus.screenshotinterval)){
             console.log("deactivating screenshots");
             this.serverstatus.screenshotinterval = 0
+            this.serverstatus.screenshotocr = false
         }
 
         if (this.serverstatus.screenshotinterval == 0) { document.getElementById("screenshotinterval").checked = false }

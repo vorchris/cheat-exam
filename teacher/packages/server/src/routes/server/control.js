@@ -30,6 +30,8 @@ import axios from "axios"
 import { msalConfig } from '../../../../renderer/src/msalutils/authConfig'
 import log from 'electron-log/main';
 
+import WindowHandler from '../../../../main/scripts/windowhandler.js'
+import Tesseract from 'tesseract.js';
 
 
 /**
@@ -307,7 +309,6 @@ for (let i = 0; i<16; i++ ){
  */
 
 
-import WindowHandler from '../../../../main/scripts/windowhandler.js'
 
  router.get('/registerclient/:servername/:pin/:clientname/:clientip/:hostname/:version', function (req, res, next) {
     const clientname = req.params.clientname
@@ -726,7 +727,7 @@ router.post('/setstudentstatus/:servername/:csrfservertoken/:studenttoken', func
  * @param servername the name of the server at which the student is registered
  * @param token the students token to search and update the screenshot
  */
-router.post('/updatescreenshot', function (req, res, next) {
+router.post('/updatescreenshot', async function (req, res, next) {
     const clientinfo = req.body.clientinfo
     const studenttoken = clientinfo.token
     const servername = clientinfo.servername
@@ -745,6 +746,27 @@ router.post('/updatescreenshot', function (req, res, next) {
         if (hash === req.body.screenshothash) {
             student.imageurl = 'data:image/jpeg;base64,' + screenshotBase64; // oder 'data:image/png;base64,' je nach tatsächlichem Bildformat  
             
+            if (mcServer.serverstatus.exammode && mcServer.serverstatus.screenshotocr){
+                try{
+                    const header = req.body.header.split(';base64,').pop();
+                    const headerimageBuffer = Buffer.from(header, 'base64');
+
+                    const ocrResult = await Tesseract.recognize(headerimageBuffer , 'eng' );
+                    let pincodeVisible = ocrResult.data.text.includes(mcServer.serverinfo.pin)
+
+                    if (!pincodeVisible){
+                        student.focus = pincodeVisible
+                        log.info("control @ updatescreenshot (ocr): Student Screenshot does not include Exam PIN");
+                    }
+                }
+                catch(err){
+                    log.info(`control @ updatescreenshot (ocr): ${err}`);
+                }
+                
+            }
+
+   
+
             if (!student.focus) { // Archiviere Screenshot, wenn Student nicht fokussiert ist
                 log.info("control @ updatescreenshot: Student out of focus - securing screenshots");
                 let time = new Date().toISOString().substr(11, 8).replace(/:/g, "_");

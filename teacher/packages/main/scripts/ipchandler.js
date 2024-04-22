@@ -102,7 +102,7 @@ class IpcHandler {
        
                 let diskSpace = await checkDiskSpace(config.workdirectory);
                 let free = Math.round(diskSpace.free / 1024 / 1024 / 1024 * 1000) / 1000;
-                log.info("ipchandler @ checkDiskspace:",diskSpace)
+                //log.info("ipchandler @ checkDiskspace:",diskSpace)
                 return free;
               
         });
