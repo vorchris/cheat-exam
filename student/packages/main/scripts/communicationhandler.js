@@ -33,6 +33,8 @@ import log from 'electron-log/main';
 
 import {SchedulerService} from './schedulerservice.ts'
 import Tesseract from 'tesseract.js';
+let TesseractWorker = false
+
 
  /**
   * Handles information fetching from the server and acts on status updates
@@ -218,10 +220,15 @@ import Tesseract from 'tesseract.js';
                     const headerBase64 = header.toString('base64');
 
               
-                    if ( this.multicastClient.clientinfo.exammode && this.multicastClient.clientinfo.screenshotocr ){
+                    if ( this.multicastClient.clientinfo.exammode && this.multicastClient.clientinfo.screenshotocr && !this.config.development ){
                         try{
-                            const ocrResult = await Tesseract.recognize(header , 'eng' );
-                            let pincodeVisible = ocrResult.data.text.includes(this.multicastClient.clientinfo.pin)
+
+                            if (!TesseractWorker){
+                                TesseractWorker = await Tesseract.createWorker('eng');
+                            }
+
+                            const { data: { text } }   = await Tesseract.recognize(header , 'eng' );
+                            let pincodeVisible = text.includes(this.multicastClient.clientinfo.pin)
         
                             if (!pincodeVisible){
                                 this.multicastClient.clientinfo.focus = pincodeVisible
@@ -335,7 +342,7 @@ import Tesseract from 'tesseract.js';
                 log.info("communicationhandler @ processUpdatedServerstatus: restoring focus state for student")
                 this.multicastClient.clientinfo.focus = true
                 
-                if (WindowHandler.examwindow){ 
+                if (WindowHandler.examwindow && !this.config.development){ 
                     WindowHandler.examwindow.setKiosk(true)
                     WindowHandler.examwindow.focus()
                 }

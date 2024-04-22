@@ -248,10 +248,14 @@ class IpcHandler {
                 });
 
                 this.WindowHandler.examwindow.webContents.printToPDF(options).then(data => {
+                    if (fs.existsSync(pdffilepath)) { fs.unlinkSync(pdffilepath); }
+
+
                     fs.writeFile(pdffilepath, data, (err) => { 
                         if (err) {
                             log.error(`ipchandler @ printpdf: ${err.message} - writing file as: ${alternatepath} `); 
                
+                            if (fs.existsSync(alternatepath)) { fs.unlinkSync(alternatepath); }
                             fs.writeFile(alternatepath, data, (err) => { 
                                 if (err) {
                                     log.error(err.message);
@@ -326,6 +330,18 @@ class IpcHandler {
         ipcMain.handle('getinfoasync', (event) => {   
             let serverstatus = false
             if (this.WindowHandler.examwindow) { serverstatus = this.WindowHandler.examwindow.serverstatus }
+
+            if (!this.multicastClient.clientinfo.exammode){
+                const workdir = path.join(config.workdirectory,"/")
+                if (!fs.existsSync(workdir)){ fs.mkdirSync(workdir, { recursive: true });  } //do not crash if the directory is deleted after the app is started ^^
+                let filelist =  fs.readdirSync(workdir, { withFileTypes: true })
+                    .filter(dirent => dirent.isFile())
+                    .map(dirent => dirent.name)
+                this.multicastClient.clientinfo.numberOfFiles = filelist.length
+                console.log(filelist)
+            }
+            
+
 
             return {   
                 serverlist: this.multicastClient.examServerList,

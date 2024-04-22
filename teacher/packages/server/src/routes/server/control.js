@@ -32,7 +32,7 @@ import log from 'electron-log/main';
 
 import WindowHandler from '../../../../main/scripts/windowhandler.js'
 import Tesseract from 'tesseract.js';
-
+let TesseractWorker = false
 
 /**
  * this route generates the nessesary codeVerifier and codeChallenge für PKCE 
@@ -349,7 +349,42 @@ for (let i = 0; i<16; i++ ){
             }
             //create folder for student
             let studentfolder =path.join(config.workdirectory, mcServer.serverinfo.servername , clientname);
-            if (!fs.existsSync(studentfolder)){ fs.mkdirSync(studentfolder, { recursive: true }); }
+           
+           
+            if (fs.existsSync(studentfolder)) { 
+                // das verzeichnis für diesen student existiert 
+                // auf unix ist der ordnername 100% ident - auf windows könnte es aber in der gross/kleinschreibung unterschiede geben
+                // prüfe ob es EXAKT gleich geschrieben wurde (case-sensitiv)
+                
+                const parentDir = path.dirname(studentfolder);
+                const targetDirName = path.basename(studentfolder);
+                const directories = fs.readdirSync(parentDir, { withFileTypes: true })
+                                      .filter(dirent => dirent.isDirectory())
+                                      .map(dirent => dirent.name);
+
+
+                if (!directories.includes(targetDirName)) {  // wir haben windows ertappt.. der dateiname ist nicht 100% ident "Test" !== "test"
+                    
+                    const existingDir = directories.find(dir => dir.toLowerCase() === targetDirName.toLowerCase());
+                    if (existingDir) {
+                        const oldPath = path.join(parentDir, existingDir);
+                        const newPath = path.join(parentDir, `backup-${existingDir}`);
+                        fs.renameSync(oldPath, newPath);  // Umbenennen des alten Verzeichnisses
+                        log.warn(`control @ registerclient: Renaming ${oldPath} to ${newPath} - thx bill gates for the worst operating system otw`)
+                    }
+                }
+                else {
+                    log.warn(`control @ registerclient: Using already existing directory: ${targetDirName}`)
+                }
+            } else { // Das Verzeichnis existiert nicht, erstelle es
+                fs.mkdirSync(studentfolder, { recursive: true });
+                console.log(`control @ registerclient: Creating ${studentfolder}`);
+            }
+
+           
+
+
+
             if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory, { recursive: true }); }
 
             mcServer.studentList.push(client)
@@ -750,9 +785,13 @@ router.post('/updatescreenshot', async function (req, res, next) {
                 try{
                     const header = req.body.header.split(';base64,').pop();
                     const headerimageBuffer = Buffer.from(header, 'base64');
+                    if (!TesseractWorker){
+                        TesseractWorker = await Tesseract.createWorker('eng');
+                    }
+                     
 
-                    const ocrResult = await Tesseract.recognize(headerimageBuffer , 'eng' );
-                    let pincodeVisible = ocrResult.data.text.includes(mcServer.serverinfo.pin)
+                    const { data: { text } }  = await TesseractWorker.recognize(headerimageBuffer);
+                    let pincodeVisible = text.includes(mcServer.serverinfo.pin)
 
                     if (!pincodeVisible){
                         student.focus = pincodeVisible
