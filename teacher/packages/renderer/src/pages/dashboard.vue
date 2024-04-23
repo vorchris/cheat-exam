@@ -197,7 +197,7 @@
                 <button class="btn btn-secondary mt-1 mb-0"><img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" >  no printer found </button>
             </div>
             <div v-for="printer in availablePrinters">
-                <button  :key="printer" @click="selectPrinter(printer)" :class="(defaultPrinter == printer)? 'btn-cyan':'' " class="btn btn-secondary mt-1 mb-0">
+                <button  :key="printer" @click="selectPrinter(printer)" :title="printer" :class="(defaultPrinter == printer)? 'btn-cyan':'' " class="btn btn-secondary mt-1 mb-0">
                     <img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" >  {{ printer }} 
                 </button>
                 <img v-if="(printer == defaultPrinter)" src="/src/assets/img/svg/games-solve.svg" class="printercheck" width="22" height="22" >
@@ -1090,7 +1090,7 @@ export default {
 
 #availablePrinters button {
     display: inline-block;
-    width: 200px; /* oder eine gewünschte feste Breite */
+    max-width: 270px; /* oder eine gewünschte feste Breite */
     overflow: hidden;
     text-overflow: ellipsis;
     text-align: left;

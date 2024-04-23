@@ -338,7 +338,7 @@ class IpcHandler {
                     .filter(dirent => dirent.isFile())
                     .map(dirent => dirent.name)
                 this.multicastClient.clientinfo.numberOfFiles = filelist.length
-                console.log(filelist)
+                //console.log(filelist)
             }
             
 

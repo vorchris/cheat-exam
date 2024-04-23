@@ -146,6 +146,7 @@
         "bootstrap": "^5.3.2",
         "cors": "^2.8.5",
         "default-gateway": "^6.0.3",
+        "dexie": "^4.0.4",
         "electron-audio": "^0.1.0",
         "electron-log": "^5.0.1",
         "esbuild": "^0.19.11",
