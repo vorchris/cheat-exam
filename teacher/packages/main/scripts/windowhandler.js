@@ -38,7 +38,7 @@ class WindowHandler {
 
     createWindow() {
         const primaryDisplay = screen.getPrimaryDisplay();
-        const { width, height } = primaryDisplay ? primaryDisplay.workAreaSize : { width: 800, height: 600 };
+        const { width, height } = primaryDisplay ? primaryDisplay.workAreaSize : { width: 800, height: 800 };
 
         this.mainwindow = new BrowserWindow({
             title: 'Main window',
@@ -47,7 +47,7 @@ class WindowHandler {
             width: width,
             height: height,
             minWidth: 800,
-            minHeight: 600,
+            minHeight: 800,
             webPreferences: {
                 preload: join(__dirname, '../preload/preload.cjs'),
                 spellcheck: false
