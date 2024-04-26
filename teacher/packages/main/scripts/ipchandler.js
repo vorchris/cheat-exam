@@ -27,6 +27,7 @@ import { print } from "unix-print";
 import { print as printWin } from "pdf-to-printer";
 import { exec } from 'child_process';
 
+import LanguageToolServer from './lt-server';
 
 const checkDiskSpace = require('check-disk-space').default
 
@@ -41,6 +42,22 @@ class IpcHandler {
         this.config = config
         this.WindowHandler = wh  
         this.CommunicationHandler = ch
+
+
+        // Start languageTool API Server (with Java JRE)
+        ipcMain.handle('startLanguageTool', (event) => { 
+            try{
+                const ltServer = new LanguageToolServer();
+                ltServer.startServer();
+
+               
+            }
+            catch(err){
+                return false
+            }
+            return true
+        }) 
+
 
         ipcMain.on('openmsauth', (event) => { this.WindowHandler.createMsauthWindow();  event.returnValue = true })  
 

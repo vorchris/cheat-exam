@@ -700,10 +700,16 @@ export default {
                         <label><input type="radio" name="fontfamily" value="serif"/> serif</label> &nbsp;
                         <label><input type="radio" name="fontfamily" value="sans-serif" checked/> sans-serif</label> &nbsp;
                     </div><br>
+                    <hr>
                     <div>
                         <h6>${this.$t("dashboard.spellcheck")}</h6>
                         <input class="form-check-input" type="checkbox" id="checkboxspellcheck">
-                        <label class="form-check-label" for="checkboxspellcheck"> ${this.$t("dashboard.spellcheckactivate")} </label> <br>
+                        <label class="form-check-label" for="checkboxspellcheck"> Hunspell ${this.$t("dashboard.spellcheckactivate")} </label> <br>
+
+                        <input class="form-check-input" type="checkbox" id="checkboxLT">
+                        <label class="form-check-label" for="checkboxLT"> LanguagTool ${this.$t("dashboard.spellcheckactivate")} </label> <br>
+                        <br>
+
                         <input class="form-check-input" type="checkbox" id="checkboxsuggestions">
                         <label class="form-check-label" for="checkboxsuggestions"> ${this.$t("dashboard.suggest")} </label><br><br>
                         <h6>${this.$t("dashboard.spellcheckchoose")}</h6>
@@ -728,6 +734,8 @@ export default {
                 preConfirm: () => {
                     this.serverstatus.suggestions = document.getElementById('checkboxsuggestions').checked; 
                     this.serverstatus.spellcheck = document.getElementById('checkboxspellcheck').checked; 
+                    this.serverstatus.languagetool = document.getElementById('checkboxLT').checked; 
+
                     const radioButtons = document.querySelectorAll('input[name="correction_margin"]');
                     const marginValue = document.getElementById('marginValue').value;
                     const linespacingradioButtons = document.querySelectorAll('input[name="linespacing"]');
@@ -773,6 +781,12 @@ export default {
             else {
                 this.serverstatus.spellchecklang = 'de'
             }
+            if (this.serverstatus.languagetool){
+                let response = await ipcRenderer.invoke("startLanguageTool")
+                console.log(response)
+
+            }
+
         },
 
 
