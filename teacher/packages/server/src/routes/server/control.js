@@ -858,7 +858,45 @@ router.post('/heartbeat/:servername/:studenttoken', function (req, res, next) {
 
 
 
+/**
+ * LanguageTool Request 
+ * Students can send a string in order to check for spelling and grammar mistakes
+ * Returns an array of misspelled words with additional descriptions and location in the text
+ * @param servername the name of the server at which the student is registered
+ * @param token the students token to search and update the entry in the list
+ */
+router.post('/languagetool/:servername/:studenttoken', async function (req, res, next) {
+    const studenttoken = req.params.studenttoken
+    const servername = req.params.servername
+    const text = req.body.text
+    const language = req.body.language
+    
+    //check if server exists 
+    const mcServer = config.examServerList[servername]
+    if ( !mcServer) {  return res.send({sender: "server", message:"notavailable", status: "error"} )  }
 
+    //check if student is registered on server
+    let student = mcServer.studentList.find(element => element.token === studenttoken)
+    if ( !student ) {return res.send({ sender: "server", message:"removed", status: "error" }) }
+    
+    const languageToolUrl = 'http://localhost:8088/v2/check';
+     
+    try {
+        const response = await fetch(languageToolUrl, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+            body: new URLSearchParams({ text: text, language: language}).toString() 
+        });
+        if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`);   }
+        const data = await response.json();
+       
+        res.send({sender: "server", message:"success", status:"success", data: data.matches })
+    } catch (error) {
+        console.error('Error sending text to LanguageTool:', error);
+        res.send({sender: "server", message:"error", status:"error", data: error.message })
+    }
+
+})
 
 
 

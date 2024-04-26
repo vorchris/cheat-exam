@@ -115,9 +115,6 @@
     <!-- focuswarning end  -->
 
 
-
-
-
      <!-- AUDIO Player start -->
         <div id="aplayer">
             <audio id="audioPlayer" controls controlsList="nodownload">
@@ -129,20 +126,41 @@
     <!-- AUDIO Player end -->
 
 
+
     <!-- EDITOR START -->
-    <div id="editormaincontainer" style="position: relative; height: 100%; overflow-x:auto; overflow-y: scroll; background-color: #eeeefa;">
+    <div id="editormaincontainer" style="height: 100%; overflow-x:auto; overflow-y: scroll; background-color: #eeeefa;">
         <div id="editorcontainer" class="shadow" style="">
             <editor-content :editor="editor" class='p-0' id="editorcontent" style="background-color: #fff; border-radius:0;" />
+            <canvas id="highlight-layer"></canvas>
         </div>
-
     </div>
+    <!-- EDITOR END -->
+
+    <!-- LANGUAGE TOOL START -->
+    <div id="languagetool">
+        <div id="ltcheck" @click="LTtoggleSidebar(); LTcheckAllWords();">
+            <img src="/src/assets/img/svg/eye-fill.svg" class="darkgreen" width="22" height="22" >
+        </div>
+        <div class="ltscrollarea">
+            <div v-for="entry in misspelledWords" :key="entry.wrongWord" class="error-entry" @click="LTshowWord(entry)">
+                <div :style="{ backgroundColor: entry.color }" class="color-circle"></div>
+                <div class="error-word" @click="LTshowWord(entry)">{{ entry.wrongWord }}</div>
+                <div>{{ entry.message}}</div>
+                <div class="replacement">{{ entry.replacements[0].value }}</div>
+            </div>
+        </div>
+    </div>
+    <!-- LANGUAGE TOOL END -->
+
+
+
     <div id="statusbar">
         <!-- Statischer Text mit v-once, um das Neurendern zu verhindern da $t offenbar jedesmal performance measures durchführt die zu memory bloat führen -->
             <span v-once>{{ $t("editor.words") }}:</span> <span>{{ wordcount }}</span> | <span v-once>{{ $t("editor.chars") }}:</span> <span>{{ charcount }}</span>  
             &nbsp;
             <span v-once> {{ $t("editor.selected") }}: </span> <span id="editselected"> {{ selectedWordCount }}/{{ selectedCharCount }}</span>
-            <img @click="zoomin()" src="/src/assets/img/svg/zoom-in.svg" class="zoombutton">  
-            <img @click="zoomout()" src="/src/assets/img/svg/zoom-out.svg" class="zoombutton">
+            <img @click="zoomin(); LTupdateHighlights();" src="/src/assets/img/svg/zoom-in.svg" class="zoombutton">  
+            <img @click="zoomout(); LTupdateHighlights();" src="/src/assets/img/svg/zoom-out.svg" class="zoombutton">
         </div>
     <!-- EDITOR END -->
 </template>
@@ -188,6 +206,7 @@ import moment from 'moment-timezone';
 import ExamHeader from '../components/ExamHeader.vue';
 import {SchedulerService} from '../utils/schedulerservice.js'
 
+import { LTcheckAllWords, LTfindWordPositions, LThighlightWords, LTdisable } from '../utils/languagetool.js'
 
 
 // in order to insert <span> elements (used for highlighting misspelled words) we need our own tiptap extenison
@@ -215,8 +234,6 @@ const CustomSpan = Node.create({
     parseHTML() { return [ { tag: 'span', }, ] },
     renderHTML({ HTMLAttributes }) { return ['span', mergeAttributes(HTMLAttributes), 0] },
 })
-
-
 
 export default {
     components: {
@@ -271,7 +288,17 @@ export default {
             allowspellcheck: false, // this is a per student override (for students with legasthenie)
             individualSpellcheckActivated: false,
             audioSource: null,
-            currentpreview: null
+            currentpreview: null,
+
+            misspelledWords:[],
+            textContainer : null,
+            canvas : null,
+            ctx : null,
+            text: null,
+            currentLTword:"",
+            currentLTwordPos:null,
+            LTpositions: []
+
         }
     },
     computed: {
@@ -285,6 +312,12 @@ export default {
 
 
     methods: {
+
+        LTcheckAllWords:LTcheckAllWords,
+        LTfindWordPositions:LTfindWordPositions,
+        LThighlightWords:LThighlightWords,
+        LTdisable:LTdisable,
+
         checkAllWords:SpellChecker.checkAllWords,
         checkSelectedWords:SpellChecker.checkSelectedWords,  //just checks the selection for mistakes
         highlightMisspelledWords:SpellChecker.highlightMisspelledWords,
@@ -298,10 +331,45 @@ export default {
         hideSpellcheckMenu:SpellChecker.hideSpellcheckMenu, // hides the spellcheck context menu
         checkAllWordsOnSpacebar:SpellChecker.checkAllWordsOnSpacebar,  //does a complete spellcheck after hitting spacebar while writing
    
-        async playAudio(file) {
-       
-            document.querySelector("#aplayer").style.display = 'block';
 
+
+        LTtoggleSidebar(){
+            let ltdiv = document.getElementById(`languagetool`)
+            let ltcheck = document.getElementById('ltcheck')
+            if (ltdiv.style.right == "0px"){
+                ltdiv.style.right = "-282px";
+                ltdiv.style.boxShadow = "-2px 1px 2px rgba(0,0,0,0)";
+                ltcheck.innerHTML= `<img src="/src/assets/img/svg/eye-fill.svg" class="darkgreen"  width="22" height="22" > Lt`
+            }
+            else {
+                ltdiv.style.right = "0px"
+                ltdiv.style.boxShadow = "-2px 1px 2px rgba(0,0,0,0.2)";
+                ltcheck.innerHTML= `<img src="/src/assets/img/svg/eye-slash-fill.svg" class="darkred" width="22" height="22" > Lt`
+            }
+        },
+        LTshowWord(word){
+            this.currentLTword = word.wrongWord
+            let maincontainer = document.getElementById('editormaincontainer')
+            maincontainer.scrollTop = 0
+            this.LTupdateHighlights()
+            
+            if(this.currentLTwordpos){
+                maincontainer.scrollTop = this.currentLTwordpos.top - 200  
+               // maincontainer.scrollTop = this.currentLTwordpos.top - maincontainer.scrollTop  //needs to steps.. makes no sense at all.. tf?
+            }
+        },
+        LTupdateHighlights(){
+            let positions = this.LTfindWordPositions()
+            if(this.currentLTword){this.currentLTwordpos = positions.find(obj => obj.word === this.currentLTword) }
+            this.LThighlightWords(positions)
+        },
+
+
+
+
+
+        async playAudio(file) {
+            document.querySelector("#aplayer").style.display = 'block';
             try {
                 const base64Data = await ipcRenderer.invoke('getfilesasync', file, true);
                 if (base64Data) {
@@ -353,6 +421,11 @@ export default {
                 sel.removeAllRanges();
                 sel.addRange(range);
             }
+
+            if(this.serverstatus.languagetool){
+                this.LTupdateHighlights()
+            }
+
         },
         rgbToHex(rgb) {
             const [r, g, b] = rgb.match(/\d+/g).map(Number);
@@ -462,6 +535,7 @@ export default {
         },
         // get file from local workdirectory and replace editor content with it
         async loadHTML(file){
+            this.LTdisable()
             this.$swal.fire({
                 title: this.$t("editor.replace"),
                 html:  `${this.$t("editor.replacecontent1")} <b>${file}</b> ${this.$t("editor.replacecontent2")}`,
@@ -914,7 +988,10 @@ export default {
         this.editorcontentcontainer.addEventListener('mouseup',  this.getSelectedTextInfo );   // show amount of words and characters
         this.editorcontentcontainer.addEventListener('keydown', this.insertSpaceInsteadOfTab)   //this changes the tab behaviour and allows tabstops   
         
-        
+        // update LThighlights positions on scroll
+        document.getElementById('editormaincontainer').addEventListener('scroll', this.LTupdateHighlights);
+
+        // block editor on escape
         document.body.addEventListener('mouseleave', this.sendFocuslost);
 
 
@@ -926,12 +1003,17 @@ export default {
         */
         this.editorcontentcontainer.removeEventListener('keydown', this.insertSpaceInsteadOfTab)
         this.editorcontentcontainer.removeEventListener('contextmenu', this.getWord );
+
+
         document.removeEventListener('input', this.checkAllWordsOnSpacebar)
         document.body.removeEventListener('mouseleave', this.sendFocuslost);
 
         document.removeEventListener('click', this.hideSpellcheckMenu);
         this.editorcontentcontainer.removeEventListener('mouseup',  this.getSelectedTextInfo );
         
+
+        document.getElementById('editormaincontainer').removeEventListener('scroll', this.LTupdateHighlights);
+
         this.editor.destroy()
 
         
@@ -1414,6 +1496,115 @@ Other Styles
   cursor: ew-resize;
   cursor: col-resize;
 }
+
+
+/** LANGUAGE TOOL STYLES */
+#highlight-layer {
+    position: absolute; 
+    top: 20px ;
+    left: 50% ;
+    width: var(--js-editorWidth) !important;
+    min-height: 60vh;
+    pointer-events: none;
+}
+
+#languagetool {
+    position: fixed;
+    z-index: 100000; 
+    width: 280px;
+    height: 100vh;
+    right: -282px;
+    top: 52px;
+    background-color: var(--bs-gray-100);
+    box-shadow: -2px 1px 2px rgba(0, 0, 0, 0);
+    transition: 0.3s;
+    padding: 6px;
+    padding-bottom: 100px;
+}
+
+#ltcheck {
+    position: absolute;
+    margin-left: -76px;
+    margin-top: 130px;
+    padding: 10px;
+    background-color: var(--bs-gray-100);
+    box-shadow: -2px 1px 2px rgba(0,0,0,0.2);
+    width: 70px;
+    height: 45px;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+    cursor: pointer;
+    color:#616161
+}
+#ltcheck:hover{
+    background-color: var(--bs-gray-200);
+}
+#ltcheck img{
+    vertical-align: bottom;
+
+}
+
+#languagetool .ltscrollarea {
+    height: calc(100vh - 52px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    position: absolute;
+    top: 0px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+#languagetool .error-entry {
+  margin: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  background-color:   rgb(238, 238, 250);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  font-size: 0.8em;
+  cursor: pointer;
+}
+
+#languagetool .error-entry:hover {
+  background-color:   rgba(238, 238, 250, 0.508);
+}
+
+.darkgreen {
+    filter: invert(36%) sepia(100%) saturate(2200%) hue-rotate(95deg) brightness(75%);
+}
+.darkred {
+    filter: invert(28%) sepia(99%) saturate(7476%) hue-rotate(345deg) brightness(65%);
+
+}
+#languagetool .error-word {
+  padding: 5px;
+  border: none;
+  background-color: transparent;
+  color: var(--bs-info-text-emphasis);
+  font-size: 1.1em;
+  display: inline;
+}
+
+#languagetool .color-circle {
+  height: 10px;
+  width: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+#languagetool .replacement {
+    padding: 2px;
+    padding-left: 0px;
+    margin-top: 4px;
+    border-top: 1px solid var(--bs-cyan);
+    color: var(--bs-green);
+    border-radius: 0px;
+}
+
+
+
+
+
+
 
 
 </style>

@@ -1,0 +1,186 @@
+/**
+ * @license GPL LICENSE
+ * Copyright (c) 2021 Thomas Michael Weissel
+ * 
+ * This program is free software: you can redistribute it and/or modify it 
+ * under the terms of the GNU General Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * You should have received a copy of the GNU General Public License along with this program.
+ * If not, see <http://www.gnu.org/licenses/>
+ */
+
+
+
+function LTdisable(){
+    this.misspelledWords= []
+    this.canvas = document.getElementById('highlight-layer');
+    this.ctx = this.canvas.getContext('2d');
+
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); // Vorheriges Highlighting löschen
+    
+    let ltdiv = document.getElementById(`languagetool`)
+    let ltcheck = document.getElementById('ltcheck')
+    if (ltdiv.style.right == "0px"){
+        ltdiv.style.right = "-282px";
+        ltdiv.style.boxShadow = "-2px 1px 2px rgba(0,0,0,0)";
+        ltcheck.innerHTML= `<img src="/src/assets/img/svg/eye-fill.svg" class="darkgreen"  width="22" height="22" > Lt`
+    }
+
+    return 
+}
+
+
+async function LTcheckAllWords(){
+
+    if (this.misspelledWords.length > 0){ 
+        this.misspelledWords= []
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); // Vorheriges Highlighting löschen
+        return 
+    }
+  
+    this.textContainer =  document.querySelector('#editorcontent > div');
+    this.canvas = document.getElementById('highlight-layer');
+    this.ctx = this.canvas.getContext('2d');
+
+    this.text = this.editor.getText(); 
+    if (this.text.length == 0) { return; }
+
+     fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/languagetool/${this.servername}/${this.token}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: this.text, language: this.serverstatus.spellchecklang })
+    })
+    .then(response => response.json())
+    .then(data => {
+        //console.log(data)
+        if (data.status == "error" || !Array.isArray(data.data)){
+            console.log('languagetool.js @ LTcheckAllwords:', data.data)
+            return  
+        }
+
+        // Verarbeiten der Antwort, um das fehlerhafte Wort zu extrahieren und Duplikate zu entfernen
+        const uniqueWords = new Set(); // Ein Set, um die Einzigartigkeit der Wörter zu gewährleisten
+        
+        
+
+        this.misspelledWords = data.data.filter(match => {
+            const wrongWord = this.text.substring(match.offset, match.offset + match.length);
+            if (!uniqueWords.has(wrongWord)) {
+                uniqueWords.add(wrongWord);
+                return true; // Behalte dieses Match, da das Wort noch nicht hinzugefügt wurde
+            }
+            return false; // Entferne dieses Match, da das Wort bereits vorhanden ist
+        }).map(match => {
+            // Nachdem Duplikate entfernt wurden, füge das fehlerhafte Wort hinzu
+            const wrongWord = this.text.substring(match.offset, match.offset + match.length);
+            return {
+                ...match,
+                wrongWord,
+            };
+        });
+        if (!this.misspelledWords.length) return;
+
+        let positions = this.LTfindWordPositions();
+        this.LThighlightWords(positions)
+
+    })
+    .catch(error => {
+        console.log('languagetool.js @ LTcheckAllwords:', error)  
+        return
+    })
+    
+
+
+
+
+
+  
+}
+
+
+
+
+function LTfindWordPositions() {
+    if (!this.misspelledWords || !this.textContainer) return;
+    const nodeIterator = document.createNodeIterator(this.textContainer, NodeFilter.SHOW_TEXT);
+    let textNode;
+
+    const wordsMap = new Map(); // Speichert alle Vorkommen jedes Wortes
+    while ((textNode = nodeIterator.nextNode())) {   // Durchlaufe alle Textknoten und sammle Vorkommen der zu markierenden Wörter
+        const text = textNode.nodeValue;
+        this.misspelledWords.forEach(word => {
+
+            //suche auch nach "  " (zwei leerzeichen) ansonsten nach dem wort
+            const pattern = word.wrongWord.trim() === '' ? '\\s\\s+' : `(?<!\\w)${word.wrongWord}(?!\\w)`;
+            const regex = new RegExp(pattern, 'g');
+
+            let match;
+            while ((match = regex.exec(text)) !== null) {
+                if (!wordsMap.has(word)) { wordsMap.set(word, []); }
+                wordsMap.get(word).push({ node: textNode, index: match.index });
+            }
+        });
+    }
+  
+    const positions = [];
+    wordsMap.forEach((occurrences, word) => {   // Berechne die Positionen für jedes Wort nur einmal
+        if (word.rule.issueType == "typographical") { word.color = "rgba(146, 43, 33 , 0.3)"; }
+        else if (word.rule.issueType == "whitespace") { word.color = "rgba( 249, 231, 159, 0.5)";}
+        else if (word.rule.issueType == "misspelling") { word.color = "rgba( 211, 84, 0, 0.3)"; }
+        else { word.color = "rgba( 108, 52, 131, 0.3)"; }
+
+        
+
+        occurrences.forEach(({ node, index }) => {
+            const range = document.createRange();
+            range.setStart(node, index);
+            range.setEnd(node, index + word.wrongWord.length);
+            const rects = range.getClientRects();
+            if (rects.length > 0) {
+                positions.push(...Array.from(rects).map(rect => ({
+                    left: rect.left,
+                    top: rect.top,
+                    width: rect.width,
+                    height: rect.height,
+                    word: word.wrongWord,
+                    color: word.color
+                })));
+            }
+        });
+    });
+    return positions
+}
+
+function LThighlightWords(positions) {
+    if (!this.textContainer){ return }
+    this.canvas.width = this.textContainer.offsetWidth;
+    this.canvas.height = this.textContainer.offsetHeight;
+    this.canvas.style.top = this.textContainer.offsetTop + 'px';
+    this.canvas.style.left = this.textContainer.offsetLeft + 'px';
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); // Vorheriges Highlighting löschen
+    
+    positions.forEach(word => {
+        let height = 3
+        let translate = word.height
+      
+        if (word.word == this.currentLTword){ height= height+word.height+3; translate = -3; }
+
+        const adjustedLeft = word.left - this.textContainer.offsetLeft + window.scrollX;
+        const adjustedTop = word.top - this.textContainer.offsetTop + window.scrollY;
+        this.ctx.fillStyle = word.color; // Farbe und Transparenz des Highlights
+        this.ctx.fillRect(adjustedLeft, adjustedTop+translate, word.width, height); // Angepasste Position und Größe
+    });
+}
+    
+
+
+
+
+
+export { LTcheckAllWords, LTfindWordPositions, LThighlightWords, LTdisable }

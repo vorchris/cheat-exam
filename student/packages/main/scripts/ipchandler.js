@@ -188,9 +188,11 @@ class IpcHandler {
                                 }
                                 else {
                                     log.info("ipchandler @ storeHTML: success!");
+                                    event.reply("loadfilelist")
                                 }
                             }); 
                         }
+                        event.reply("loadfilelist")
                     } ); 
                 }
                 catch(err){
