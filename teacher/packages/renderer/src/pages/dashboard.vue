@@ -98,7 +98,7 @@
         <div class="btn btn-light m-1 text-start infobutton" @click="showinfo()">{{$t('dashboard.server')}} <br><b>{{serverip}}</b> </div><br>
         <div class="btn btn-light m-1 mb-3 text-start infobutton" @click="showinfo()">{{$t('dashboard.pin')}}<br><b> {{ serverstatus.pin }} </b>  </div><br>
         
-        <div style="font-size:0.9em">
+        <div style="font-size:0.9em; width: 220px">
             <!-- geogebra -->
             <div class="form-check m-1 mb-1"  :class="(serverstatus.exammode)? 'disabledexam':''">
                 <input v-model="serverstatus.examtype" value="math" class="form-check-input" type="radio" name="examtype" id="examtype2" checked>
@@ -107,7 +107,7 @@
             <!-- editor -->
             <div class="form-check m-1" :class="(serverstatus.exammode)? 'disabledexam':''">
                 <input v-model="serverstatus.examtype" @click="activateSpellcheck()" value="editor" class="form-check-input" type="radio" name="examtype" id="examtype1">
-                <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}} <span class="text-white-50" v-if="(serverstatus.spellcheck)">({{serverstatus.spellchecklang}})</span></label>
+                <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}}<span class="text-white-50" v-if="(serverstatus.spellcheck)">|{{serverstatus.spellchecklang}}</span></label>
             </div>
             <!-- eduvidual -->
             <div class="form-check m-1 mb-1" :class="(serverstatus.exammode)? 'disabledexam':''">
@@ -122,8 +122,10 @@
             <!-- website -->
             <div class="form-check m-1 mb-1" :class="(serverstatus.exammode)? 'disabledexam':''">
                 <input v-model="serverstatus.examtype" @click="getTestURL()" value="website" class="form-check-input" type="radio" name="examtype" id="examtype6">
-                <label class="form-check-label" for="examtype6"> Website <br>
-                    <div class="text-white-50" style="width: 160px; display:inline-block; overflow: hidden; text-overflow: ellipsis;" v-if="(serverstatus.domainname)">({{serverstatus.domainname}}</div><div v-if="(serverstatus.domainname)" style="overflow: hidden; display:inline-block;" class="text-white-50">)</div>   
+                <label class="form-check-label" for="examtype6"> 
+                    <div style="display:inline-block; overflow: hidden; text-overflow: ellipsis;">Website</div>
+                    <div style="width: 134px; display:inline-block; overflow: hidden; text-overflow: ellipsis;" class="text-white-50" v-if="(serverstatus.domainname)">|{{serverstatus.domainname}}</div>  
+                    
                 </label>
             </div>
 
@@ -159,13 +161,13 @@
             <div class="form-check form-switch  m-1 mb-2" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledexam':''">
                 <input  @click="setAbgabeInterval()" v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
                 <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
-                <span v-if="autoabgabe" class="text-white-50"> ({{ abgabeintervalPause }}min)</span>
+                <span v-if="autoabgabe" class="text-white-50">|{{ abgabeintervalPause }}min</span>
             </div>
             <div class="form-check form-switch  m-1 mb-2">
                 <input v-if="serverstatus.screenshotinterval > 0" @change="toggleScreenshot()" @click="setScreenshotInterval()" checked class="form-check-input" type="checkbox" id="screenshotinterval">
                 <input v-if="serverstatus.screenshotinterval == 0" @change="toggleScreenshot()" @click="setScreenshotInterval()" class="form-check-input" type="checkbox" id="screenshotinterval">
                 <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.screenshot')}}</label>
-                <span v-if="serverstatus.screenshotinterval > 0" class="text-white-50"> ({{ serverstatus.screenshotinterval }}s)</span>
+                <span v-if="serverstatus.screenshotinterval > 0" class="text-white-50">|{{ serverstatus.screenshotinterval }}s</span>
             </div>
             <div class="form-check form-switch  m-1 mb-2">
                 <input v-model=directPrintAllowed @click="checkforDefaultprinter()" @mouseover="showDescription( $t('dashboard.allowdirectprint') )" @mouseout="hideDescription" checked=false class="form-check-input" type="checkbox" id="directprint">
@@ -704,10 +706,10 @@ export default {
                     <div>
                         <h6>${this.$t("dashboard.spellcheck")}</h6>
                         <input class="form-check-input" type="checkbox" id="checkboxspellcheck">
-                        <label class="form-check-label" for="checkboxspellcheck"> Hunspell ${this.$t("dashboard.spellcheckactivate")} </label> <br>
+                        <label class="form-check-label" for="checkboxspellcheck"> Hunspell ${this.$t("dashboard.activate")} </label> <br>
 
                         <input class="form-check-input" type="checkbox" id="checkboxLT">
-                        <label class="form-check-label" for="checkboxLT"> LanguagTool ${this.$t("dashboard.spellcheckactivate")} </label> <br>
+                        <label class="form-check-label" for="checkboxLT"> LanguageTool ${this.$t("dashboard.activate")} </label> <br>
                         <br>
 
                         <input class="form-check-input" type="checkbox" id="checkboxsuggestions">
@@ -783,7 +785,23 @@ export default {
             }
             if (this.serverstatus.languagetool){
                 let response = await ipcRenderer.invoke("startLanguageTool")
-                console.log(response)
+                if (response){
+                    this.$swal.fire({
+                        text: "LanguageTool started!",
+                        timer: 2000,
+                        timerProgressBar: true,
+                        didOpen: () => { this.$swal.showLoading() }
+                    });
+                }
+                else {
+                    this.$swal.fire({
+                        text: "LanguageTool Error!",
+                        timer: 2000,
+                        timerProgressBar: true,
+                        didOpen: () => { this.$swal.showLoading() }
+                    });
+                }
+                
 
             }
 

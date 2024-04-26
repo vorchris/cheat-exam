@@ -98,7 +98,7 @@
         "paste":"einfügen",
         "copy":"kopieren",
         "spellcheck": "Rechtschreibprüfung aktivieren",
-        "spellcheckdeactivate": "Rechtschreibprüfung deaktieren",
+        "spellcheckdeactivate": "Rechtschreibprüfung deaktivieren",
         "reload": "Neu laden",
         "reloadtext": "Wollen sie den Texteditor neu initialisieren?",
         "reloadcontent": "Inhalt beibehalten",

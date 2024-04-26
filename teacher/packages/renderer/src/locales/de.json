@@ -90,6 +90,7 @@
         "print": "drucken",
         "preview": "ansehen",
         "send": "versenden",
+        "activate":"aktivieren",
         "virtualized": "virtualiserte Arbeitsumgebung",
         "delete": "löschen",
         "filedelete": "Wollen sie die Datei/den Ordner wirklich löschen?",

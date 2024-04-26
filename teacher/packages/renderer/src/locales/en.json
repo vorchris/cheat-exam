@@ -90,6 +90,7 @@
         "print": "print",
         "preview": "preview",
         "send": "send",
+        "activate":"activate",
         "virtualized": "virtual environment detected",
         "delete": "delete",
         "filedelete": "Do you really want to delete this file/folder?",
