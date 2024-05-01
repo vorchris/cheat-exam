@@ -669,7 +669,8 @@ router.post('/setstudentstatus/:servername/:csrfservertoken/:studenttoken', func
     
     const printdenied = req.body.printdenied
     const delfolder = req.body.delfolder
-    const allowspellcheck = req.body.allowspellcheck
+    const activatePrivateSpellcheck = req.body.activatePrivateSpellcheck
+    const activatePrivateSuggestions = req.body.activatePrivateSuggestions
     const removeprintrequest = req.body.removeprintrequest
 
     if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {  //first check if csrf token is valid and server is allowed to trigger this api request
@@ -688,8 +689,14 @@ router.post('/setstudentstatus/:servername/:csrfservertoken/:studenttoken', func
                     student.printrequest = false  // unset printrequest so that dashboard fetchInfo (which fetches the studentlist) doesnt trigger it again
                 } 
                 if (delfolder)  { student.status.delfolder = true   } // on the next update cycle the student gets informed to delete workfolder
-                if (allowspellcheck) {student.status.allowspellcheck = { suggestions: req.body.suggestions, languagetool: req.body.languagetool } } // allow spellcheck for this specific student (special cases)
-                if (allowspellcheck == false) { student.status.allowspellcheck = "deactivate" }
+                if (activatePrivateSpellcheck) {    // allow spellcheck for this specific student (special cases)
+                    student.status.activatePrivateSpellcheck = true; 
+                    student.status.activatePrivateSuggestions = activatePrivateSuggestions;
+                }
+                else {
+                    student.status.activatePrivateSpellcheck = false;
+                    student.status.activateSuggestions = false;
+                }
                 if (removeprintrequest == true){ student.printrequest = false }  // unset printrequest so that dashboard fetchInfo (which fetches the studentlist) doesnt trigger it again
                 
                 log.info("control @ setstudentstatus:", req.body)
@@ -748,7 +755,7 @@ router.post('/setstudentstatus/:servername/:csrfservertoken/:studenttoken', func
     student.status.printdenied = false 
     student.status.delfolder = false 
     student.status.sendexam = false // request only once
-    student.status.allowspellcheck = false
+    //student.status.activatePrivateSpellcheck = false   // activate only once - when student retrieved "studentstatus" we can reset some values of "student.status"
 
     // return current serverinformation to process on clientside
     res.charset = 'utf-8';

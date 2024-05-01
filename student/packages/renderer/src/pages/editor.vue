@@ -58,9 +58,7 @@
             <button :title="$t('editor.specialchar')"  @click="showInsertSpecial()" class="invisible-button btn btn-outline-warning p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/sign.svg" class="" width="22" height="22" ></button>
 
 
-            <!-- <button v-if="(serverstatus.spellcheck || allowspellcheck) && spellcheck"  :title="$t('editor.spellcheckdeactivate')"  @click="deactivateSpellcheck()" class="invisible-button btn btn-outline-danger p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/autocorrection.svg" class="" width="22" height="22" ></button>
-            <button v-if="(serverstatus.spellcheck || allowspellcheck) && !spellcheck" :title="$t('editor.spellcheck')"  @click="activateSpellcheck()" class="invisible-button btn btn-outline-success p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/autocorrection.svg" class="" width="22" height="22" ></button> -->
-
+   
             <button :title="$t('editor.more')" id="more" @click="showMore()" class="invisible-button btn btn-outline-info p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/view-more-horizontal-symbolic.svg" class="white" width="22" height="22" ></button>
             <div id="moreoptions" style="display:none;">
                 <button :title="$t('editor.inserttable')" @click="editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()" class="invisible-button btn btn-outline-info p-1 me-0 mb-1 btn-sm"><img src="/src/assets/img/svg/insert-table.svg" width="22" height="22" ></button>
@@ -137,7 +135,7 @@
     <!-- EDITOR END -->
 
     <!-- LANGUAGE TOOL START -->
-    <div id="languagetool" v-if="serverstatus.languagetool || (allowspellcheck && allowspellcheck.languagetool) ">
+    <div id="languagetool" v-if="serverstatus.languagetool || privateSpellcheck.activated">
         <div id="ltcheck" @click="LTtoggleSidebar(); LTcheckAllWords();">
             <img src="/src/assets/img/svg/eye-fill.svg" class="darkgreen" width="22" height="22" > &nbsp;LanguageTool
         </div>
@@ -152,7 +150,7 @@
             <div v-for="entry in misspelledWords" :key="entry.wrongWord" class="error-entry" @click="LTshowWord(entry)">
                 <div :style="{ backgroundColor: entry.color }" class="color-circle"></div>
                 <div class="error-word" @click="LTshowWord(entry)">{{ entry.wrongWord }}</div>
-                <div v-if="serverstatus.suggestions || allowspellcheck.suggestions">
+                <div v-if="serverstatus.suggestions || privateSpellcheck.suggestions">
                   <div v-if="entry.message">{{ entry.message}}</div>
                      <div v-if="entry.replacements" class="replacement">
                         <span v-if="entry.replacements[0]">  {{ entry.replacements[0].value }}</span>
@@ -300,7 +298,7 @@ export default {
             serverstatus: this.$route.params.serverstatus,
             linespacing: this.$route.params.serverstatus.linespacing ? this.$route.params.serverstatus.linespacing : '2',
             fontfamily:  this.$route.params.serverstatus.fontfamily  ? this.$route.params.serverstatus.fontfamily : "sans-serif", 
-            allowspellcheck: false, // this is a per student override (for students with legasthenie)
+            privateSpellcheck: {activate: false, activated: false, suggestions: false}, // this is a per student override (for students with legasthenie)
             individualSpellcheckActivated: false,
             audioSource: null,
             currentpreview: null,
@@ -467,7 +465,7 @@ export default {
             this.clientname = this.clientinfo.name
             this.exammode = this.clientinfo.exammode
             this.pincode = this.clientinfo.pin
-            this.allowspellcheck = this.clientinfo.allowspellcheck
+            this.privateSpellcheck = this.clientinfo.privateSpellcheck
             this.serverstatus =  getinfo.serverstatus
 
             if (!this.focus){  this.entrytime = new Date().getTime()}
@@ -477,20 +475,12 @@ export default {
             this.battery = await navigator.getBattery().then(battery => { return battery })
             .catch(error => { console.error("Error accessing the Battery API:", error);  });
 
-            if (this.serverstatus.spellcheck === false) {  //handle individual spellcheck (only if not globally activated anyways)
-                if (!this.individualSpellcheckActivated){ // nur wenn nicht eh schon aktiv
-                    if (this.allowspellcheck) {  //this handles individual spellcheck (independend of global spellcheck)
-                        let ipcResponse = await ipcRenderer.invoke('activatespellcheck', this.serverstatus.spellchecklang )  // this.allowspellcheck contains an object with spell config
-                        if (ipcResponse == false) { this.allowspellcheck = false}  // something went wrong on the backend - do not show spellchecker button
-                        if (ipcResponse == true) {this.individualSpellcheckActivated = true}  // setz auf aktiviert (wurde im backend aktiviert 1x reicht)
-                    }
-                }
-                else {
-                    if (!this.allowspellcheck) {
-                        this.deactivateSpellcheck() 
-                        this.LTdisable()
-                        this.individualSpellcheckActivated = false
-                    }
+
+            //handle individual spellcheck (only if not globally activated anyways)
+            if (this.serverstatus.spellcheck === false) {   
+                if (this.privateSpellcheck.activate == false) {
+                    this.LTdisable()
+                    this.privateSpellcheck.activated = false
                 }
             }
         }, 
@@ -785,26 +775,6 @@ export default {
                 var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
                 return v.toString(16);
             });
-        },
-        activateSpellcheck(){
-            //if (this.serverstatus.spellcheck || this.allowspellcheck) {
-               // console.log("[activateSpellcheck] spellcheck activated")
-               // document.addEventListener('input', this.checkAllWordsOnSpacebar)  // do a spellcheck when the user hits space
-                // if (this.serverstatus.suggestions || (this.allowspellcheck && this.allowspellcheck.suggestions)){
-                //     console.log("[activateSpellcheck] suggestions activated")
-                //     document.addEventListener('click', this.hideSpellcheckMenu); // Hide suggestion menu when clicking elsewhere
-                //     this.editorcontentcontainer.addEventListener('contextmenu', this.getWord );   // show the context menu
-                // } 
-            //}
-            this.spellcheck = true
-            //this.checkAllWords()
-        },
-        deactivateSpellcheck(){
-           // this.editorcontentcontainer.removeEventListener('contextmenu', this.getWord );
-           // document.removeEventListener('input', this.checkAllWordsOnSpacebar)
-            this.spellcheck = false
-            //this.removeAllHighlightsByClass()
-            
         },
         reloadAll(){
             this.$swal.fire({

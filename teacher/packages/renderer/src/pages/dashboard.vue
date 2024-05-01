@@ -337,7 +337,7 @@ export default {
                 examtype: 'math',
                 delfolderonexit: false,
                 spellcheck: false,
-                spellchecklang: 'de',
+                spellchecklang: 'de-DE',
                 suggestions: false,
                 moodleTestId: null,
                 moodleTestType: null,
@@ -708,8 +708,6 @@ export default {
                        
                         <input class="form-check-input" type="checkbox" id="checkboxLT">
                         <label class="form-check-label" for="checkboxLT"> LanguageTool ${this.$t("dashboard.activate")} </label> <br>
-                        <br>
-
                         <input class="form-check-input" type="checkbox" id="checkboxsuggestions">
                         <label class="form-check-label" for="checkboxsuggestions"> ${this.$t("dashboard.suggest")} </label><br><br>
                         <h6>${this.$t("dashboard.spellcheckchoose")}</h6>
@@ -721,6 +719,8 @@ export default {
                 didOpen: () => {
                     const marginValueInput = document.getElementById('marginValue');
                     marginValueInput.addEventListener('input', updateMarginValueDisplay);
+                    document.getElementById('checkboxLT').checked = this.serverstatus.languagetool
+                    document.getElementById('checkboxsuggestions').checked = this.serverstatus.suggestions
                 },
                 willClose: () => {
                     const marginValueInput = document.getElementById('marginValue');
@@ -779,14 +779,14 @@ export default {
                 if (language === 'none'){this.serverstatus.languagetool = false}
             }  
             else {
-                this.serverstatus.spellchecklang = 'de'
+                this.serverstatus.spellchecklang = 'de-DE'
             }
             if (this.serverstatus.languagetool){
                 let response = await ipcRenderer.invoke("startLanguageTool")
                 if (response){
                     this.$swal.fire({
                         text: "LanguageTool started!",
-                        timer: 2000,
+                        timer: 1000,
                         timerProgressBar: true,
                         didOpen: () => { this.$swal.showLoading() }
                     });
@@ -794,13 +794,11 @@ export default {
                 else {
                     this.$swal.fire({
                         text: "LanguageTool Error!",
-                        timer: 2000,
+                        timer: 1000,
                         timerProgressBar: true,
                         didOpen: () => { this.$swal.showLoading() }
                     });
                 }
-                
-
             }
 
         },

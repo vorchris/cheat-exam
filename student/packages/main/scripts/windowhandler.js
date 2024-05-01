@@ -462,6 +462,8 @@ class WindowHandler {
             let affix = null;
             let dictionary = null;
 
+            log.info(`windowhandler @ Handle Spellcheck: activating Hunspell Fallback Backend for lang: ${language}`)
+
             try {
                 if (language === "en" || language === "en-GB") {
                     affix       = fs.readFileSync(join(dictionaryPath, 'en_US.aff'))

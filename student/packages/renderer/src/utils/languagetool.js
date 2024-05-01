@@ -75,15 +75,24 @@ async function LTcheckAllWords(){
             // FALLBACK to HUNSPELL if LanguageTool is not reachable
             const res = ipcRenderer.sendSync('checktext', this.text);
             this.misspelledWords = []
-            res.misspelledWords.forEach( mword => {
-                this.misspelledWords.push( {
-                    wrongWord: mword, 
-                    rule: {
-                        issueType:"misspelling"
-                    },
-                    color: "rgba( 211, 84, 0, 0.3)"
-                } )
-            })
+            if (res.misspelledWords){
+                res.misspelledWords.forEach( mword => {
+                    this.misspelledWords.push( {
+                        wrongWord: mword, 
+                        rule: {
+                            issueType:"misspelling"
+                        },
+                        color: "rgba( 211, 84, 0, 0.3)"
+                    } )
+                })
+            }
+            else if (res.error){
+                console.log("languagetool.js @ LTcheckAllwords: Hunspell backend nicht verfügbar")
+                this.LTinfo = "Hunspell nicht verfügbar"
+                return
+            }
+    
+
             if (this.misspelledWords.length > 0){ this.hunspellFallback = true; }
         }
         else {

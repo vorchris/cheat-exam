@@ -286,7 +286,7 @@ class IpcHandler {
         /**
          * activate spellcheck on demand for specific student
          */ 
-        ipcMain.handle('activatespellcheck', (event, spellchecklang) => {  
+        ipcMain.on('activatespellcheck', (event, spellchecklang) => {  
             const dictionaryPath = path.join( __dirname,'../../public/dictionaries');
             let language = "de-DE"
             if (spellchecklang){ language = spellchecklang }
@@ -295,7 +295,7 @@ class IpcHandler {
             let affix = null;
             let dictionary = null;
 
-            log.info(`ipchandler @ activatespellcheck: activating for lang: ${language}`)
+            log.info(`ipchandler @ activatespellcheck: activating Hunspell Fallback Backend for lang: ${language}`)
 
             try {
                 if (language === "en" || language === "en-GB") {
@@ -319,6 +319,9 @@ class IpcHandler {
                     dictionary  = fs.readFileSync(path.join(dictionaryPath, 'es_ES.dic'))
                 }
                 this.WindowHandler.nodehun  = new Nodehun(affix, dictionary)
+                
+                //this.multicastClient.clientinfo.privateSpellcheck.activated = true // this is set because communication handler needs to know if this already happened
+                
                 return true
             }
             catch (e) { log.error(e); return false}
@@ -610,10 +613,14 @@ class IpcHandler {
             const words = selectedText.split(/[^a-zA-ZäöüÄÖÜßéèêëôûüÔÛÜáíóúñÁÍÓÚÑàèéìòùÀÈÉÌÒÙçÇ]+/);
             const misspelledWords = [];
             for (const word of words) {
-                const correct = await this.WindowHandler.nodehun.spell(word);
-                if (!correct) {
-                    misspelledWords.push(word);
-                   // log.info(word)
+                if (this.WindowHandler.nodehun){
+                    const correct = await this.WindowHandler.nodehun.spell(word);
+                    if (!correct) {
+                        misspelledWords.push(word);
+                    }
+                }
+                else {
+                    event.returnValue = {error: "error"};
                 }
             }
             event.returnValue = { misspelledWords };

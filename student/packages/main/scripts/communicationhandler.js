@@ -24,7 +24,7 @@ import extract from 'extract-zip'
 import screenshot from 'screenshot-desktop'
 // import FormData from 'form-data/lib/form_data.js';     //we need to import the file directly otherwise it will introduce a "window" variable in the backend and fail
 import { join } from 'path'
-import { screen } from 'electron'
+import { screen, ipcMain } from 'electron'
 import WindowHandler from './windowhandler.js'
 import sharp from 'sharp'
 import { execSync } from 'child_process';
@@ -350,14 +350,21 @@ let TesseractWorker = false
                
 
             }
-            if (studentstatus.allowspellcheck && studentstatus.allowspellcheck !== "deactivate"){
+           
+            if (studentstatus.activatePrivateSpellcheck == true && this.multicastClient.clientinfo.privateSpellcheck.activated == false  ){
                 log.info("communicationhandler @ processUpdatedServerstatus: activating spellcheck for student")
-                this.multicastClient.clientinfo.allowspellcheck = {...studentstatus.allowspellcheck}  // object with {spellchecklang, suggestions}  (flat copy)
+                this.multicastClient.clientinfo.privateSpellcheck.activate = true  //clientinfo.privateSpellcheck will be put on this.privateSpellcheck in editor updated via fetchInfo()
+                this.multicastClient.clientinfo.privateSpellcheck.activated = true
+                ipcMain.emit('activatespellcheck', serverstatus.spellchecklang ) 
             }
-            if (studentstatus.allowspellcheck === "deactivate") {
+            if (studentstatus.activatePrivateSpellcheck == false && this.multicastClient.clientinfo.privateSpellcheck.activated == true ) {
                 log.info("communicationhandler @ processUpdatedServerstatus: de-activating spellcheck for student")
-                this.multicastClient.clientinfo.allowspellcheck = false
+                this.multicastClient.clientinfo.privateSpellcheck.activate = false
+                this.multicastClient.clientinfo.privateSpellcheck.activated = false 
             }
+
+            this.multicastClient.clientinfo.privateSpellcheck.suggestions = studentstatus.activatePrivateSuggestions
+
             if (studentstatus.sendexam === true){
                 this.sendExamToTeacher()
             }
