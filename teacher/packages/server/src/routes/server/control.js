@@ -688,7 +688,7 @@ router.post('/setstudentstatus/:servername/:csrfservertoken/:studenttoken', func
                     student.printrequest = false  // unset printrequest so that dashboard fetchInfo (which fetches the studentlist) doesnt trigger it again
                 } 
                 if (delfolder)  { student.status.delfolder = true   } // on the next update cycle the student gets informed to delete workfolder
-                if (allowspellcheck) {student.status.allowspellcheck = { suggestions: req.body.suggestions } } // allow spellcheck for this specific student (special cases)
+                if (allowspellcheck) {student.status.allowspellcheck = { suggestions: req.body.suggestions, languagetool: req.body.languagetool } } // allow spellcheck for this specific student (special cases)
                 if (allowspellcheck == false) { student.status.allowspellcheck = "deactivate" }
                 if (removeprintrequest == true){ student.printrequest = false }  // unset printrequest so that dashboard fetchInfo (which fetches the studentlist) doesnt trigger it again
                 
@@ -889,7 +889,7 @@ router.post('/languagetool/:servername/:studenttoken', async function (req, res,
         });
         if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`);   }
         const data = await response.json();
-       
+        console.log(data)
         res.send({sender: "server", message:"success", status:"success", data: data.matches })
     } catch (error) {
         console.error('Error sending text to LanguageTool:', error);

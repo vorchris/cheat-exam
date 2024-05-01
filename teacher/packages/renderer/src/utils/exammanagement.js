@@ -359,8 +359,11 @@ async function activateSpellcheckForStudent(token, clientname){
         html: `
         <div style="padding: 4px; font-size: 0.9em; text-align: left;">
             <h5>${this.$t("dashboard.allowspellcheck")}</h5>
-            <input class="form-check-input" type="checkbox" id="checkboxspellcheck">
-            <label class="form-check-label" for="checkboxspellcheck"> ${this.$t("dashboard.spellcheckactivate")} </label> <br>
+            <br>
+            <input class="form-check-input" type="checkbox" id="checkboxLT">
+            <label class="form-check-label" for="checkboxLT"> LanguageTool ${this.$t("dashboard.activate")} </label> <br>
+            
+
             <input class="form-check-input" type="checkbox" id="checkboxsuggestions">
             <label class="form-check-label" for="checkboxsuggestions"> ${this.$t("dashboard.suggest")} </label>
         </div>`,
@@ -368,13 +371,16 @@ async function activateSpellcheckForStudent(token, clientname){
         preConfirm: () => {
              
         }
-    }).then((input) => {
+    }).then(async (input) => {
 
-        let spellcheck = document.getElementById('checkboxspellcheck').checked; 
+        //let spellcheck = document.getElementById('checkboxspellcheck').checked; 
         let suggestions = document.getElementById('checkboxsuggestions').checked;
+        let languagetool = document.getElementById('checkboxLT').checked;
 
-        if (!spellcheck){
-            spellcheck = false
+
+
+        if (!languagetool){
+           
             console.log(`de-activating spellcheck for user: ${clientname} `)
             
             // inform student that spellcheck can be activated
@@ -389,11 +395,33 @@ async function activateSpellcheckForStudent(token, clientname){
         else {
             console.log(`activating spellcheck for user: ${clientname} `)
          
+
+            //start languagetool server api
+            if (languagetool){
+                let response = await ipcRenderer.invoke("startLanguageTool")
+                if (response){
+                    this.$swal.fire({
+                        text: "LanguageTool started!",
+                        timer: 2000,
+                        timerProgressBar: true,
+                        didOpen: () => { this.$swal.showLoading() }
+                    });
+                }
+                else {
+                    this.$swal.fire({
+                        text: "LanguageTool Error!",
+                        timer: 2000,
+                        timerProgressBar: true,
+                        didOpen: () => { this.$swal.showLoading() }
+                    });
+                }
+            }
+
             // inform student that spellcheck can be activated
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/setstudentstatus/${this.servername}/${this.servertoken}/${token}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },
-                body: JSON.stringify({ allowspellcheck : true, suggestions: suggestions } )
+                body: JSON.stringify({ allowspellcheck : true, suggestions: suggestions, languagetool: languagetool } )
             })
             .then( res => res.json() )
             .then( result => { log.info(result)});

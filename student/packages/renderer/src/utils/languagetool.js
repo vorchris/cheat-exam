@@ -18,80 +18,116 @@
 
 
 function LTdisable(){
-    this.misspelledWords= []
+    this.LTactive = false
     this.canvas = document.getElementById('highlight-layer');
     this.ctx = this.canvas.getContext('2d');
-
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); // Vorheriges Highlighting löschen
-    
     let ltdiv = document.getElementById(`languagetool`)
     let ltcheck = document.getElementById('ltcheck')
-    if (ltdiv.style.right == "0px"){
+    if (ltdiv && ltdiv.style.right == "0px"){
         ltdiv.style.right = "-282px";
         ltdiv.style.boxShadow = "-2px 1px 2px rgba(0,0,0,0)";
-        ltcheck.innerHTML= `<img src="/src/assets/img/svg/eye-fill.svg" class="darkgreen"  width="22" height="22" > Lt`
+        ltcheck.innerHTML= `<img src="/src/assets/img/svg/eye-fill.svg" class="darkgreen"  width="22" height="22" > &nbsp;LanguageTool`
     }
-
+    this.misspelledWords = []
+    this.LTpositions = []
     return 
 }
 
 
 async function LTcheckAllWords(){
-
-    if (this.misspelledWords.length > 0){ 
-        this.misspelledWords= []
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); // Vorheriges Highlighting löschen
-        return 
-    }
-  
+   
     this.textContainer =  document.querySelector('#editorcontent > div');
     this.canvas = document.getElementById('highlight-layer');
     this.ctx = this.canvas.getContext('2d');
 
+    //check if lt is open
+    if (this.LTactive ){    // close LT sidebar
+        this.LTdisable()
+        return 
+    }
+  
     this.text = this.editor.getText(); 
-    if (this.text.length == 0) { return; }
+    if (this.text.length == 0) { 
+        this.LTinfo = "keine Fehler gefunden"
+        return; 
+    }
 
-     fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/languagetool/${this.servername}/${this.token}`, {
+  
+    //request LanguageTool API
+    this.LTactive = true;
+    this.LTinfo = "searching..."
+
+    fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/languagetool/${this.servername}/${this.token}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: this.text, language: this.serverstatus.spellchecklang })
     })
     .then(response => response.json())
     .then(data => {
-        //console.log(data)
+  
         if (data.status == "error" || !Array.isArray(data.data)){
             console.log('languagetool.js @ LTcheckAllwords:', data.data)
-            return  
+            this.LTinfo = data.data
+            
+
+
+            // FALLBACK to HUNSPELL if LanguageTool is not reachable
+            const res = ipcRenderer.sendSync('checktext', this.text);
+            this.misspelledWords = []
+            res.misspelledWords.forEach( mword => {
+                this.misspelledWords.push( {
+                    wrongWord: mword, 
+                    rule: {
+                        issueType:"misspelling"
+                    },
+                    color: "rgba( 211, 84, 0, 0.3)"
+                } )
+            })
+            if (this.misspelledWords.length > 0){ this.hunspellFallback = true; }
+        }
+        else {
+            this.hunspellFallback = false;
+            // Verarbeiten der Antwort, um das fehlerhafte Wort zu extrahieren und Duplikate zu entfernen
+            const uniqueWords = new Set(); // Ein Set, um die Einzigartigkeit der Wörter zu gewährleisten
+
+            this.misspelledWords = data.data.filter(match => {
+                const wrongWord = this.text.substring(match.offset, match.offset + match.length);
+                if (!uniqueWords.has(wrongWord)) {
+                    uniqueWords.add(wrongWord);
+                    return true; // Behalte dieses Match, da das Wort noch nicht hinzugefügt wurde
+                }
+                return false; // Entferne dieses Match, da das Wort bereits vorhanden ist
+            }).map(match => {
+                // Nachdem Duplikate entfernt wurden, füge das fehlerhafte Wort hinzu
+                const wrongWord = this.text.substring(match.offset, match.offset + match.length);
+                return {
+                    ...match,
+                    wrongWord,
+                };
+            });
         }
 
-        // Verarbeiten der Antwort, um das fehlerhafte Wort zu extrahieren und Duplikate zu entfernen
-        const uniqueWords = new Set(); // Ein Set, um die Einzigartigkeit der Wörter zu gewährleisten
-        
-        
 
-        this.misspelledWords = data.data.filter(match => {
-            const wrongWord = this.text.substring(match.offset, match.offset + match.length);
-            if (!uniqueWords.has(wrongWord)) {
-                uniqueWords.add(wrongWord);
-                return true; // Behalte dieses Match, da das Wort noch nicht hinzugefügt wurde
-            }
-            return false; // Entferne dieses Match, da das Wort bereits vorhanden ist
-        }).map(match => {
-            // Nachdem Duplikate entfernt wurden, füge das fehlerhafte Wort hinzu
-            const wrongWord = this.text.substring(match.offset, match.offset + match.length);
-            return {
-                ...match,
-                wrongWord,
-            };
-        });
-        if (!this.misspelledWords.length) return;
 
+
+
+       
+
+
+        if (!this.misspelledWords.length) {
+            this.LTinfo = "keine Fehler gefunden"
+            return;
+        }
+
+        this.LTinfo = "closing..."
         let positions = this.LTfindWordPositions();
         this.LThighlightWords(positions)
 
     })
     .catch(error => {
         console.log('languagetool.js @ LTcheckAllwords:', error)  
+        this.LTinfo = error
         return
     })
     
@@ -107,7 +143,7 @@ async function LTcheckAllWords(){
 
 
 function LTfindWordPositions() {
-    if (!this.misspelledWords || !this.textContainer) return;
+    if (!this.misspelledWords || !this.textContainer || this.misspelledWords.length == 0) return;
     const nodeIterator = document.createNodeIterator(this.textContainer, NodeFilter.SHOW_TEXT);
     let textNode;
 
@@ -158,7 +194,7 @@ function LTfindWordPositions() {
 }
 
 function LThighlightWords(positions) {
-    if (!this.textContainer){ return }
+    if (!this.textContainer || !positions || positions.length == 0){ return }
     this.canvas.width = this.textContainer.offsetWidth;
     this.canvas.height = this.textContainer.offsetHeight;
     this.canvas.style.top = this.textContainer.offsetTop + 'px';

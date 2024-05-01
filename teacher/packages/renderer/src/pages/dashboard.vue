@@ -230,7 +230,7 @@
                 <div v-for="student in studentwidgets" :key="student.token" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':''" class="studentwidget btn rounded-3 btn-block ">
                     <div v-if="student.clientname">
                         <div class="studentimage rounded" style="position: relative; height:132px;">  
-                            <button v-if="serverstatus.examtype === 'editor' && !this.serverstatus.spellcheck && this.serverstatus.spellchecklang !== 'none'" @mouseover="showDescription($t('dashboard.allowspellcheck'))" @mouseout="hideDescription" @click='activateSpellcheckForStudent(student.token,student.clientname)' type="button" class="btn btn-sm pt-1 mt-2 pe-1 float-end" style="z-index:1000; position:relative;"><img src="/src/assets/img/svg/autocorrection.svg" class="widgetbutton" width="22" height="22" ></button> 
+                            <button v-if="serverstatus.examtype === 'editor' && !this.serverstatus.spellcheck  && !this.serverstatus.languagetool && this.serverstatus.spellchecklang !== 'none'" @mouseover="showDescription($t('dashboard.allowspellcheck'))" @mouseout="hideDescription" @click='activateSpellcheckForStudent(student.token,student.clientname)' type="button" class="btn btn-sm pt-1 mt-2 pe-1 float-end" style="z-index:1000; position:relative;"><img src="/src/assets/img/svg/autocorrection.svg" class="widgetbutton" width="22" height="22" ></button> 
                             <div v-cloak :id="student.token" style="position: relative;background-size: cover; height: 132px;" v-bind:style="(student.imageurl && now - 20000 < student.timestamp)? `background-image: url('${student.imageurl}')`:'background-image: url(user-red.svg)'"></div>
                             <div v-if="student.virtualized" class="virtualizedinfo" >{{$t("dashboard.virtualized")}}</div>
                             <div v-if="!student.focus" class="kioskwarning" >{{$t("dashboard.leftkiosk")}}</div>
@@ -648,11 +648,11 @@ export default {
             const inputOptions = new Promise((resolve) => {
                 setTimeout(() => {
                     resolve({
-                        'de': this.$t("dashboard.de"),
+                        'de-DE': this.$t("dashboard.de"),
                         'en-GB': this.$t("dashboard.en"),
-                        'fr': this.$t("dashboard.fr"),
-                        'es': this.$t("dashboard.es"),
-                        'it': this.$t("dashboard.it"),
+                        'fr-FR': this.$t("dashboard.fr"),
+                        'es-ES': this.$t("dashboard.es"),
+                        'it-IT': this.$t("dashboard.it"),
                         'none':this.$t("dashboard.none"),
                     })
                 }, 100)
@@ -705,9 +705,7 @@ export default {
                     <hr>
                     <div>
                         <h6>${this.$t("dashboard.spellcheck")}</h6>
-                        <input class="form-check-input" type="checkbox" id="checkboxspellcheck">
-                        <label class="form-check-label" for="checkboxspellcheck"> Hunspell ${this.$t("dashboard.activate")} </label> <br>
-
+                       
                         <input class="form-check-input" type="checkbox" id="checkboxLT">
                         <label class="form-check-label" for="checkboxLT"> LanguageTool ${this.$t("dashboard.activate")} </label> <br>
                         <br>
@@ -735,7 +733,7 @@ export default {
                 },
                 preConfirm: () => {
                     this.serverstatus.suggestions = document.getElementById('checkboxsuggestions').checked; 
-                    this.serverstatus.spellcheck = document.getElementById('checkboxspellcheck').checked; 
+                    // this.serverstatus.spellcheck = document.getElementById('checkboxspellcheck').checked; 
                     this.serverstatus.languagetool = document.getElementById('checkboxLT').checked; 
 
                     const radioButtons = document.querySelectorAll('input[name="correction_margin"]');
@@ -778,7 +776,7 @@ export default {
             })
             if (language) {
                 this.serverstatus.spellchecklang = language
-                if (language === 'none'){this.serverstatus.spellcheck = false}
+                if (language === 'none'){this.serverstatus.languagetool = false}
             }  
             else {
                 this.serverstatus.spellchecklang = 'de'

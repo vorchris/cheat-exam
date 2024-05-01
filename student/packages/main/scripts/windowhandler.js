@@ -462,27 +462,35 @@ class WindowHandler {
             let affix = null;
             let dictionary = null;
 
-            if (language === "en-GB") {
-                affix       = fs.readFileSync(join(dictionaryPath, 'en_US.aff'))
-                dictionary  = fs.readFileSync(join(dictionaryPath, 'en_US.dic'))
+            try {
+                if (language === "en" || language === "en-GB") {
+                    affix       = fs.readFileSync(join(dictionaryPath, 'en_US.aff'))
+                    dictionary  = fs.readFileSync(join(dictionaryPath, 'en_US.dic'))
+                }
+                else if (language === "de" || language === "de-DE"){
+                    affix       = fs.readFileSync(join(dictionaryPath, 'de_DE_frami.aff'))
+                    dictionary  = fs.readFileSync(join(dictionaryPath, 'de_DE_frami.dic'))
+                }
+                else if (language === "it" || language === "it-IT"){
+                    affix       = fs.readFileSync(join(dictionaryPath, 'it_IT.aff'))
+                    dictionary  = fs.readFileSync(join(dictionaryPath, 'it_IT.dic'))
+                }
+                else if (language === "fr" || language === "fr-FR"){
+                    affix       = fs.readFileSync(join(dictionaryPath, 'fr.aff'))
+                    dictionary  = fs.readFileSync(join(dictionaryPath, 'fr.dic'))
+                }
+                else if (language === "es" || language === "es-ES"){
+                    affix       = fs.readFileSync(join(dictionaryPath, 'es_ES.aff'))
+                    dictionary  = fs.readFileSync(join(dictionaryPath, 'es_ES.dic'))
+                }
+                this.nodehun  = new Nodehun(affix, dictionary)
             }
-            else if (language === "de"){
-                affix       = fs.readFileSync(join(dictionaryPath, 'de_DE_frami.aff'))
-                dictionary  = fs.readFileSync(join(dictionaryPath, 'de_DE_frami.dic'))
-            }
-            else if (language === "it"){
-                affix       = fs.readFileSync(join(dictionaryPath, 'it_IT.aff'))
-                dictionary  = fs.readFileSync(join(dictionaryPath, 'it_IT.dic'))
-            }
-            else if (language === "fr"){
-                affix       = fs.readFileSync(join(dictionaryPath, 'fr.aff'))
-                dictionary  = fs.readFileSync(join(dictionaryPath, 'fr.dic'))
-            }
-            else if (language === "es"){
-                affix       = fs.readFileSync(join(dictionaryPath, 'es_ES.aff'))
-                dictionary  = fs.readFileSync(join(dictionaryPath, 'es_ES.dic'))
-            }
-            this.nodehun  = new Nodehun(affix, dictionary)
+            catch (e) { log.error(e);}
+
+
+
+
+
         }
         
 

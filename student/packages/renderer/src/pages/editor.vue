@@ -58,8 +58,8 @@
             <button :title="$t('editor.specialchar')"  @click="showInsertSpecial()" class="invisible-button btn btn-outline-warning p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/sign.svg" class="" width="22" height="22" ></button>
 
 
-            <button v-if="(serverstatus.spellcheck || allowspellcheck) && spellcheck"  :title="$t('editor.spellcheckdeactivate')"  @click="deactivateSpellcheck()" class="invisible-button btn btn-outline-danger p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/autocorrection.svg" class="" width="22" height="22" ></button>
-            <button v-if="(serverstatus.spellcheck || allowspellcheck) && !spellcheck" :title="$t('editor.spellcheck')"  @click="activateSpellcheck()" class="invisible-button btn btn-outline-success p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/autocorrection.svg" class="" width="22" height="22" ></button>
+            <!-- <button v-if="(serverstatus.spellcheck || allowspellcheck) && spellcheck"  :title="$t('editor.spellcheckdeactivate')"  @click="deactivateSpellcheck()" class="invisible-button btn btn-outline-danger p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/autocorrection.svg" class="" width="22" height="22" ></button>
+            <button v-if="(serverstatus.spellcheck || allowspellcheck) && !spellcheck" :title="$t('editor.spellcheck')"  @click="activateSpellcheck()" class="invisible-button btn btn-outline-success p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/autocorrection.svg" class="" width="22" height="22" ></button> -->
 
             <button :title="$t('editor.more')" id="more" @click="showMore()" class="invisible-button btn btn-outline-info p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/view-more-horizontal-symbolic.svg" class="white" width="22" height="22" ></button>
             <div id="moreoptions" style="display:none;">
@@ -137,17 +137,32 @@
     <!-- EDITOR END -->
 
     <!-- LANGUAGE TOOL START -->
-    <div id="languagetool">
+    <div id="languagetool" v-if="serverstatus.languagetool || (allowspellcheck && allowspellcheck.languagetool) ">
         <div id="ltcheck" @click="LTtoggleSidebar(); LTcheckAllWords();">
-            <img src="/src/assets/img/svg/eye-fill.svg" class="darkgreen" width="22" height="22" >
+            <img src="/src/assets/img/svg/eye-fill.svg" class="darkgreen" width="22" height="22" > &nbsp;LanguageTool
         </div>
-        <div class="ltscrollarea">
+        <div class="ltscrollarea">      
+            <div v-if="hunspellFallback"  style="text-align: center; font-size: 0.8em;">
+                Hunspell Fallback <br> LanguageTool nicht verfügbar
+            </div> 
+            <div v-if="misspelledWords.length == 0"  style="text-align: center; font-size: 0.8em;">
+                {{this.LTinfo}}
+            </div> 
+
             <div v-for="entry in misspelledWords" :key="entry.wrongWord" class="error-entry" @click="LTshowWord(entry)">
                 <div :style="{ backgroundColor: entry.color }" class="color-circle"></div>
                 <div class="error-word" @click="LTshowWord(entry)">{{ entry.wrongWord }}</div>
-                <div>{{ entry.message}}</div>
-                <div class="replacement">{{ entry.replacements[0].value }}</div>
+                <div v-if="serverstatus.suggestions || allowspellcheck.suggestions">
+                  <div v-if="entry.message">{{ entry.message}}</div>
+                     <div v-if="entry.replacements" class="replacement">
+                        <span v-if="entry.replacements[0]">  {{ entry.replacements[0].value }}</span>
+                        <span v-if="entry.replacements[1]">, {{ entry.replacements[1].value }}</span>
+                        <span v-if="entry.replacements[2]">, {{ entry.replacements[2].value }}</span>
+                    </div>
+                </div>
             </div>
+            
+      
         </div>
     </div>
     <!-- LANGUAGE TOOL END -->
@@ -297,7 +312,9 @@ export default {
             text: null,
             currentLTword:"",
             currentLTwordPos:null,
-            LTpositions: []
+            LTinfo: "searching...",
+            LTactive: false,
+            hunspellFallback: false
 
         }
     },
@@ -318,18 +335,18 @@ export default {
         LThighlightWords:LThighlightWords,
         LTdisable:LTdisable,
 
-        checkAllWords:SpellChecker.checkAllWords,
-        checkSelectedWords:SpellChecker.checkSelectedWords,  //just checks the selection for mistakes
-        highlightMisspelledWords:SpellChecker.highlightMisspelledWords,
-        getWord:SpellChecker.getWord,  // get rightklicked word and show suggestions
-        showSuggestions:SpellChecker.showSuggestions,     // Function to display suggestions
-        replaceWord:SpellChecker.replaceWord,  //replace misspelled word with suggestion - remove highlight
-        getSpanIdFromRange:SpellChecker.getSpanIdFromRange,
-        removeHighlight:SpellChecker.removeHighlight,
-        removeAllHighlightsByClass:SpellChecker.removeAllHighlightsByClass, //searches fer the highlight class and removes every object
-        removeElementsByClassFromString:SpellChecker.removeElementsByClassFromString,  // this removes html elements from a string that contains html elements
-        hideSpellcheckMenu:SpellChecker.hideSpellcheckMenu, // hides the spellcheck context menu
-        checkAllWordsOnSpacebar:SpellChecker.checkAllWordsOnSpacebar,  //does a complete spellcheck after hitting spacebar while writing
+        // checkAllWords:SpellChecker.checkAllWords,
+        // checkSelectedWords:SpellChecker.checkSelectedWords,  //just checks the selection for mistakes
+        // highlightMisspelledWords:SpellChecker.highlightMisspelledWords,
+        // getWord:SpellChecker.getWord,  // get rightklicked word and show suggestions
+        // showSuggestions:SpellChecker.showSuggestions,     // Function to display suggestions
+        // replaceWord:SpellChecker.replaceWord,  //replace misspelled word with suggestion - remove highlight
+        // getSpanIdFromRange:SpellChecker.getSpanIdFromRange,
+        // removeHighlight:SpellChecker.removeHighlight,
+        // removeAllHighlightsByClass:SpellChecker.removeAllHighlightsByClass, //searches fer the highlight class and removes every object
+        // removeElementsByClassFromString:SpellChecker.removeElementsByClassFromString,  // this removes html elements from a string that contains html elements
+        // hideSpellcheckMenu:SpellChecker.hideSpellcheckMenu, // hides the spellcheck context menu
+        // checkAllWordsOnSpacebar:SpellChecker.checkAllWordsOnSpacebar,  //does a complete spellcheck after hitting spacebar while writing
    
 
 
@@ -339,12 +356,12 @@ export default {
             if (ltdiv.style.right == "0px"){
                 ltdiv.style.right = "-282px";
                 ltdiv.style.boxShadow = "-2px 1px 2px rgba(0,0,0,0)";
-                ltcheck.innerHTML= `<img src="/src/assets/img/svg/eye-fill.svg" class="darkgreen"  width="22" height="22" > Lt`
+                ltcheck.innerHTML= `<img src="/src/assets/img/svg/eye-fill.svg" class="darkgreen"  width="22" height="22" > &nbsp;LanguageTool`
             }
             else {
                 ltdiv.style.right = "0px"
                 ltdiv.style.boxShadow = "-2px 1px 2px rgba(0,0,0,0.2)";
-                ltcheck.innerHTML= `<img src="/src/assets/img/svg/eye-slash-fill.svg" class="darkred" width="22" height="22" > Lt`
+                ltcheck.innerHTML= `<img src="/src/assets/img/svg/eye-slash-fill.svg" class="darkred" width="22" height="22" > &nbsp;LanguageTool`
             }
         },
         LTshowWord(word){
@@ -360,7 +377,7 @@ export default {
         },
         LTupdateHighlights(){
             let positions = this.LTfindWordPositions()
-            if(this.currentLTword){this.currentLTwordpos = positions.find(obj => obj.word === this.currentLTword) }
+            if(this.currentLTword && Array.isArray(positions)){this.currentLTwordpos = positions.find(obj => obj.word === this.currentLTword) }
             this.LThighlightWords(positions)
         },
 
@@ -471,6 +488,7 @@ export default {
                 else {
                     if (!this.allowspellcheck) {
                         this.deactivateSpellcheck() 
+                        this.LTdisable()
                         this.individualSpellcheckActivated = false
                     }
                 }
@@ -769,23 +787,24 @@ export default {
             });
         },
         activateSpellcheck(){
-            if (this.serverstatus.spellcheck || this.allowspellcheck) {
-                console.log("[activateSpellcheck] spellcheck activated")
-                document.addEventListener('input', this.checkAllWordsOnSpacebar)  // do a spellcheck when the user hits space
-                if (this.serverstatus.suggestions || (this.allowspellcheck && this.allowspellcheck.suggestions)){
-                    console.log("[activateSpellcheck] suggestions activated")
-                    document.addEventListener('click', this.hideSpellcheckMenu); // Hide suggestion menu when clicking elsewhere
-                    this.editorcontentcontainer.addEventListener('contextmenu', this.getWord );   // show the context menu
-                } 
-            }
+            //if (this.serverstatus.spellcheck || this.allowspellcheck) {
+               // console.log("[activateSpellcheck] spellcheck activated")
+               // document.addEventListener('input', this.checkAllWordsOnSpacebar)  // do a spellcheck when the user hits space
+                // if (this.serverstatus.suggestions || (this.allowspellcheck && this.allowspellcheck.suggestions)){
+                //     console.log("[activateSpellcheck] suggestions activated")
+                //     document.addEventListener('click', this.hideSpellcheckMenu); // Hide suggestion menu when clicking elsewhere
+                //     this.editorcontentcontainer.addEventListener('contextmenu', this.getWord );   // show the context menu
+                // } 
+            //}
             this.spellcheck = true
-            this.checkAllWords()
+            //this.checkAllWords()
         },
         deactivateSpellcheck(){
-            this.editorcontentcontainer.removeEventListener('contextmenu', this.getWord );
-            document.removeEventListener('input', this.checkAllWordsOnSpacebar)
-            this.removeAllHighlightsByClass()
+           // this.editorcontentcontainer.removeEventListener('contextmenu', this.getWord );
+           // document.removeEventListener('input', this.checkAllWordsOnSpacebar)
             this.spellcheck = false
+            //this.removeAllHighlightsByClass()
+            
         },
         reloadAll(){
             this.$swal.fire({
@@ -1054,7 +1073,7 @@ export default {
 <style lang="scss">
 
 @media print {  //this controls how the editor view is printed (to pdf)
-    #editortoolbar, #apphead, #editselected, #focuswarning, .focus-container, #specialcharsdiv, #aplayer,  span.NXTEhighlight::after {
+    #editortoolbar, #apphead, #editselected, #focuswarning, .focus-container, #specialcharsdiv, #aplayer,  span.NXTEhighlight::after, #highlight-layer, #languagetool  {
         display: none !important;
     }
     #statusbar {
@@ -1512,7 +1531,7 @@ Other Styles
     position: fixed;
     z-index: 100000; 
     width: 280px;
-    height: 100vh;
+    height: 100%;
     right: -282px;
     top: 52px;
     background-color: var(--bs-gray-100);
@@ -1524,17 +1543,20 @@ Other Styles
 
 #ltcheck {
     position: absolute;
-    margin-left: -76px;
+    margin-left: -6px;
     margin-top: 130px;
     padding: 10px;
     background-color: var(--bs-gray-100);
-    box-shadow: -2px 1px 2px rgba(0,0,0,0.2);
-    width: 70px;
+    box-shadow: 1px 2px 2px rgba(0,0,0,0.2);
+    width: 160px;
     height: 45px;
-    border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
     cursor: pointer;
-    color:#616161
+    color:#616161;
+
+    transform: rotate(90deg); 
+    transform-origin: top left; 
 }
 #ltcheck:hover{
     background-color: var(--bs-gray-200);
@@ -1546,6 +1568,7 @@ Other Styles
 
 #languagetool .ltscrollarea {
     height: calc(100vh - 52px);
+    width: 268px;
     overflow-x: hidden;
     overflow-y: auto;
     position: absolute;
@@ -1555,13 +1578,13 @@ Other Styles
 }
 
 #languagetool .error-entry {
-  margin: 10px;
-  padding: 10px;
-  border-radius: 8px;
-  background-color:   rgb(238, 238, 250);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  font-size: 0.8em;
-  cursor: pointer;
+    margin: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    background-color:   rgb(238, 238, 250);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    font-size: 0.8em;
+    cursor: pointer;
 }
 
 #languagetool .error-entry:hover {
@@ -1581,7 +1604,8 @@ Other Styles
   background-color: transparent;
   color: var(--bs-info-text-emphasis);
   font-size: 1.1em;
-  display: inline;
+  display: inline-block;
+ 
 }
 
 #languagetool .color-circle {
