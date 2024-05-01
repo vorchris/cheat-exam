@@ -142,8 +142,19 @@ async function LTcheckAllWords(){
     
 
 
+        //refactor this ^^  if fetch fails (disconnect) use hunspell.. export whole function
 
 
+
+        // lt-server @ startserver error: Error: spawn ENOTDIR
+        // at ChildProcess.spawn (node:internal/child_process:413:11)
+        // at Object.spawn (node:child_process:783:9)
+        // at exports.spawn (/tmp/.mount_Next-EXjpVDw/resources/app.asar/node_modules/node-jre/index.js:97:21)
+        // at CC.startServer (/tmp/.mount_Next-EXjpVDw/resources/app.asar/dist/main/main.cjs:188:2029)
+        // at /tmp/.mount_Next-EXjpVDw/resources/app.asar/dist/main/main.cjs:203:288
+        // at node:electron/js2c/browser_init:2:98085
+        // at EventEmitter.<anonymous> (node:electron/js2c/browser_init:2:81603)
+        // at EventEmitter.emit (node:events:513:28)
 
   
 }
