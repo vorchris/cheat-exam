@@ -6,17 +6,22 @@ import { app } from 'electron'
 let languageToolJarPath = path.join(__dirname, '../../public/LanguageTool/languagetool-server.jar')
 if (app.isPackaged) { languageToolJarPath = path.join(process.resourcesPath, 'app.asar.unpacked', 'public/LanguageTool/languagetool-server.jar') }
 
-// if (app.isPackaged) { languageToolJarPath = path.join(config.tempdirectory, 'LanguageTool/languagetool-server.jar') }
-console.log( languageToolJarPath)
 
 
 
+import { spawn } from 'jre-handler.js';
 
- import { spawn } from 'node-jre';
+if (app.isPackaged) { 
+    console.log("changing jre path")
+    let jrepath = path.join(process.resourcesPath, 'app.asar.unpacked/node_modules/node-jre', 'jre') 
+    console.log(jrepath)
+    jreDir = exports.jreDir = () => path.join(process.resourcesPath, 'app.asar.unpacked/node_modules/node-jre', 'jre') 
+}
 
- class LanguageToolServer {
+class LanguageToolServer {
      constructor() {
          this.languageToolProcess = null; // Initialisiert die Prozessvariable
+         this.port = 8088
      }
  
      startServer() {
@@ -28,9 +33,9 @@ console.log( languageToolJarPath)
             this.languageToolProcess = spawn(
                 ['java', '-cp', languageToolJarPath], // Klassenpfad
                 'org.languagetool.server.HTTPServer', // Hauptklasse der LanguageTool API
-                ['--port', '8088', '--allow-origin', '*'] // Zusätzliche Argumente, z.B. Port und CORS-Erlaubnis
+                ['--port', this.port, '--allow-origin', '*'] // Zusätzliche Argumente, z.B. Port und CORS-Erlaubnis
             );
-            console.log( this.languageToolProcess)
+            //console.log( this.languageToolProcess)
             log.info('lt-server @ startserver: LanguageTool API running at localhost:8088');
 
             this.languageToolProcess.stdout.on('data', data => {
@@ -38,7 +43,12 @@ console.log( languageToolJarPath)
             });
     
             this.languageToolProcess.stderr.on('data', data => {
-                log.error('lt-server @ startserver error:', data.toString());
+                if (data.toString().includes(this.port) || data.toString().includes("Adresse wird bereits verwendet")){
+                    log.warn('lt-server @ startserver error: another LanguageTool server is probably already running on port:', this.port);
+                }else {
+                     log.error('lt-server @ startserver error:', data.toString());
+                }
+               
             });
     
             this.languageToolProcess.on('exit', code => {

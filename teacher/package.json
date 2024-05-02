@@ -25,7 +25,8 @@
         "appId": "com.nextexam-teacher.app",
         "asar": true,
         "asarUnpack": [
-            "public"
+            "public",
+            "node_modules/node-jre/**/*"
         ],
         "afterSign": "scripts/notarize.cjs",
         "directories": {
