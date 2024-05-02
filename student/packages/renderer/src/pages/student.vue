@@ -185,9 +185,6 @@ export default {
                         this.status("Suche Prüfungen...")
                     }
                 
-                    //stop polling the API if already connected to the specefied serverip
-                    //FIXME
-
                     fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/serverlist`)
                     .then(response => response.json()) // Parse JSON response
                     .then(data => {
@@ -198,7 +195,7 @@ export default {
                         }
                     })
                     .catch(err => {
-                        log.error(`student.vue @ fetchInfo: ${err.message}`);
+                        log.error(`student.vue @ fetchInfo (advanced): ${err.message}`);
                         this.networkerror = true;
                     });
 
@@ -242,7 +239,7 @@ export default {
                     server.reachable = true; // Markieren als erreichbar, wenn erfolgreich
                 })
                 .catch(err => {
-                    if (err.name === 'AbortError') {   console.log('student @ fetchinfo: Fetch request was aborted due to timeout'); } 
+                    if (err.name === 'AbortError') {   console.log('student.vue @ fetchinfo (ping): Fetch request was aborted due to timeout'); } 
                     else {  console.log("student @ fetchinfo:", err.message);  }
                     server.reachable = false; // Markieren als nicht erreichbar bei Fehlern
                 });

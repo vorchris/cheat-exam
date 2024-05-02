@@ -6,17 +6,13 @@ import { app } from 'electron'
 let languageToolJarPath = path.join(__dirname, '../../public/LanguageTool/languagetool-server.jar')
 if (app.isPackaged) { languageToolJarPath = path.join(process.resourcesPath, 'app.asar.unpacked', 'public/LanguageTool/languagetool-server.jar') }
 
+let languageToolConfigPath = path.join(__dirname, '../../public/LanguageTool/server.properties')
+if (app.isPackaged) { languageToolConfigPath = path.join(process.resourcesPath, 'app.asar.unpacked', 'public/LanguageTool/server.properties') }
 
 
+import JreHandler from './jre-handler.js';
+JreHandler.init()
 
-import { spawn } from 'jre-handler.js';
-
-if (app.isPackaged) { 
-    console.log("changing jre path")
-    let jrepath = path.join(process.resourcesPath, 'app.asar.unpacked/node_modules/node-jre', 'jre') 
-    console.log(jrepath)
-    jreDir = exports.jreDir = () => path.join(process.resourcesPath, 'app.asar.unpacked/node_modules/node-jre', 'jre') 
-}
 
 class LanguageToolServer {
      constructor() {
@@ -30,10 +26,10 @@ class LanguageToolServer {
              return; // Verhindert das erneute Starten, wenn der Server bereits läuft
          }
          try {
-            this.languageToolProcess = spawn(
-                ['java', '-cp', languageToolJarPath], // Klassenpfad
+            this.languageToolProcess = JreHandler.jSpawn(
+                [languageToolJarPath], // Klassenpfad
                 'org.languagetool.server.HTTPServer', // Hauptklasse der LanguageTool API
-                ['--port', this.port, '--allow-origin', '*'] // Zusätzliche Argumente, z.B. Port und CORS-Erlaubnis
+                ['--port', this.port,'--config',languageToolConfigPath, '--allow-origin', '*'] // Zusätzliche Argumente, z.B. Port und CORS-Erlaubnis
             );
             //console.log( this.languageToolProcess)
             log.info('lt-server @ startserver: LanguageTool API running at localhost:8088');

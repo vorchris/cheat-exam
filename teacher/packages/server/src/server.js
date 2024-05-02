@@ -77,10 +77,10 @@ const publicPath = app.isPackaged
   : path.join('public');
 
 // Kopieren Sie den Inhalt von `public/` in das `config.tempdirectory`.
-fsExtra.copy(publicPath, `${config.tempdirectory}/`, function (err) {
-  if (err) return console.error(err);
-  log.info('server: copied public directory to temp...');
-});
+// fsExtra.copy(publicPath, `${config.tempdirectory}/`, function (err) {
+//   if (err) return console.error(err);
+//   log.info('server: copied public directory to temp...');
+// });
 
 
 

@@ -767,7 +767,7 @@ export default {
                             side: selectedMargin,
                             size: parseFloat(marginValue)
                         }
-                        console.log( this.serverstatus.cmargin)
+                       // console.log( this.serverstatus.cmargin)
                     }
 
                     this.serverstatus.linespacing = selectedSpacing

@@ -418,7 +418,7 @@ class IpcHandler {
                     this.multicastClient.clientinfo.token = data.token; // we need to store the client token in order to check against it before processing critical api calls
                     this.multicastClient.clientinfo.focus = true;
                     this.multicastClient.clientinfo.pin = pin;
-                    log.info(`ipchandler @ register: successfully registered at ${serverip} as ${clientname}`);
+                    log.info(`ipchandler @ register: successfully registered at ${servername} @ ${serverip} as ${clientname}`);
                     event.returnValue = data;
                 } 
                 else {
