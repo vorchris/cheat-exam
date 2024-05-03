@@ -32,15 +32,18 @@
             "output": "../release/${version}"
         },
         "compression": "normal",
-        "files": [
-            "dist",
-            "public"
-        ],
+
         "linux": {
             "target": "AppImage",
             "category": "Utility",
             "icon": "public/icons/256x256.png",
-            "artifactName": "${productName}_${version}.${ext}"
+            "artifactName": "${productName}_${version}.${ext}",
+            "files": [
+                "dist",
+                "public",
+                "!public/minimal-jre-11-win/**/*",
+                "!public/minimal-jre-11-mac/**/*"
+            ]
         },
         "mac": {
             "icon": "public/icons/icon.png",
@@ -55,7 +58,13 @@
                 "arch": [
                     "universal"
                 ]
-            }
+            },
+            "files": [
+                "dist",
+                "public",
+                "!public/minimal-jre-11-win/**/*",
+                "!public/minimal-jre-11-lin/**/*"
+            ]
         },
         "dmg": {
             "sign": "true"
@@ -79,6 +88,12 @@
             "certificateSubjectName": "OSOS Austria",
             "signingHashAlgorithms": [
                 "sha256"
+            ],
+            "files": [
+                "dist",
+                "public",
+                "!public/minimal-jre-11-mac/**/*",
+                "!public/minimal-jre-11-lin/**/*"
             ]
         }
     },

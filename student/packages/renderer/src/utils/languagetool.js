@@ -41,6 +41,7 @@ async function LTcheckAllWords(){
     this.ctx = this.canvas.getContext('2d');
     this.text = this.editor.getText();    //get text to check
    
+
     //check if lt is alread open (toggle button)
     if (this.LTactive ){    
         this.LTdisable()  // close LT sidebar
@@ -62,7 +63,7 @@ async function LTcheckAllWords(){
         body: JSON.stringify({ text: this.text, language: this.serverstatus.spellchecklang })
     })
     .then(response => response.json())
-    .then(data => {
+    .then(async (data) => {
         if (data.status == "error" || !Array.isArray(data.data)){
             console.warn('languagetool.js @ LTcheckAllwords:', data.data)
             // FALLBACK to HUNSPELL if LanguageTool is not reachable
@@ -79,18 +80,18 @@ async function LTcheckAllWords(){
         }
 
         this.LTinfo = "closing..."
-        let positions = this.LTfindWordPositions();  //finde wörter im text und erzeuge highlights
+        let positions = await this.LTfindWordPositions();  //finde wörter im text und erzeuge highlights
         this.LThighlightWords(positions)
 
     })
-    .catch(error => {
+    .catch(async (error) => {
         console.error('languagetool.js @ LTcheckAllwords:', error.message)  
          // FALLBACK to HUNSPELL if LanguageTool (Next-Exam-Teacher) is not reachable
         const hunspelldata = ipcRenderer.sendSync('checktext', this.text);
         this.LThandleMisspelled("hunspell", hunspelldata) 
 
         this.LTinfo = "closing..."
-        let positions = this.LTfindWordPositions();  //finde wörter im text und erzeuge highlights
+        let positions = await this.LTfindWordPositions();  //finde wörter im text und erzeuge highlights
         this.LThighlightWords(positions)
     })
     }
@@ -137,7 +138,7 @@ function LThandleMisspelled(backend, data){
                 uniqueWords.add(wrongWord);
                 return true; // Behalte dieses Match, da das Wort noch nicht hinzugefügt wurde
             }
-            return false; // Entferne dieses Match, da das Wort bereits vorhanden ist
+            return true; // Entferne dieses Match, da das Wort bereits vorhanden ist
         }).map(match => {
             // Nachdem Duplikate entfernt wurden, füge das fehlerhafte Wort hinzu
             const wrongWord = this.text.substring(match.offset, match.offset + match.length);
@@ -153,15 +154,23 @@ function LThandleMisspelled(backend, data){
 
 
 
-function LTfindWordPositions() {
+async function LTfindWordPositions() {
+    
     if (!this.misspelledWords || !this.textContainer || this.misspelledWords.length == 0) return;
     const nodeIterator = document.createNodeIterator(this.textContainer, NodeFilter.SHOW_TEXT);
     let textNode;
 
     const wordsMap = new Map(); // Speichert alle Vorkommen jedes Wortes
+  
     while ((textNode = nodeIterator.nextNode())) {   // Durchlaufe alle Textknoten und sammle Vorkommen der zu markierenden Wörter
         const text = textNode.nodeValue;
+        let nodeoffset = this.text.indexOf(text)  // wir brauchen den genauen offset dieses textknotens - addieren den offset des worts innerhalb des textknotens
+
         this.misspelledWords.forEach(word => {
+            if (word.rule.issueType == "typographical") { word.color = "rgba(146, 43, 33 , 0.3)"; }
+            else if (word.rule.issueType == "whitespace") { word.color = "rgba( 243, 190, 41, 0.5)";}
+            else if (word.rule.issueType == "misspelling") { word.color = "rgba( 211, 84, 0, 0.3)"; }
+            else { word.color = "rgba( 108, 52, 131, 0.3)"; }
 
             //suche auch nach "  " (zwei leerzeichen) ansonsten nach dem wort
             const pattern = word.wrongWord.trim() === '' ? '\\s\\s+' : `(?<!\\w)${word.wrongWord}(?!\\w)`;
@@ -169,21 +178,18 @@ function LTfindWordPositions() {
 
             let match;
             while ((match = regex.exec(text)) !== null) {
-                if (!wordsMap.has(word)) { wordsMap.set(word, []); }
-                wordsMap.get(word).push({ node: textNode, index: match.index });
+                const currentOffset = nodeoffset + match.index;  // hier berechnen wir den lokalen offset des wortes für den vergleich
+                // nur wenn der offset des gefunden worts auch in etwa dem offset im text von languagetool entspricht wird das wort aufgenommen - (wort am satzanfang möglicherweise falsch aber im text nicht)
+                if (Math.abs(word.offset - currentOffset) <= 10) { // Erlaube eine kleine Abweichung des wort-offsets
+                    if (!wordsMap.has(word)) { wordsMap.set(word, []);  }
+                    wordsMap.get(word).push({ node: textNode, index: match.index });
+                }
             }
         });
     }
   
     const positions = [];
     wordsMap.forEach((occurrences, word) => {   // Berechne die Positionen für jedes Wort nur einmal
-        if (word.rule.issueType == "typographical") { word.color = "rgba(146, 43, 33 , 0.3)"; }
-        else if (word.rule.issueType == "whitespace") { word.color = "rgba( 249, 231, 159, 0.5)";}
-        else if (word.rule.issueType == "misspelling") { word.color = "rgba( 211, 84, 0, 0.3)"; }
-        else { word.color = "rgba( 108, 52, 131, 0.3)"; }
-
-        
-
         occurrences.forEach(({ node, index }) => {
             const range = document.createRange();
             range.setStart(node, index);
@@ -196,11 +202,13 @@ function LTfindWordPositions() {
                     width: rect.width,
                     height: rect.height,
                     word: word.wrongWord,
-                    color: word.color
+                    color: word.color,
+                    textoffset: word.offset
                 })));
             }
         });
     });
+   
     return positions
 }
 

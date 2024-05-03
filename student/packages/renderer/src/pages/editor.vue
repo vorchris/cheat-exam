@@ -148,7 +148,7 @@
             </div> 
 
             <div v-for="entry in misspelledWords" :key="entry.wrongWord" class="error-entry" @click="LTshowWord(entry)">
-                <div :style="{ backgroundColor: entry.color }" class="color-circle"></div>
+                <div :style="'background-color:' + entry.color " class="color-circle"></div>
                 <div class="error-word" @click="LTshowWord(entry)">{{ entry.wrongWord }}</div>
                 <div v-if="serverstatus.suggestions || privateSpellcheck.suggestions">
                   <div v-if="entry.message">{{ entry.message}}</div>
@@ -165,6 +165,7 @@
         </div>
     </div>
     <!-- LANGUAGE TOOL END -->
+
 
 
 
@@ -356,13 +357,20 @@ export default {
             this.LTupdateHighlights()
             
             if(this.currentLTwordpos){
+                
+              
+                
                 maincontainer.scrollTop = this.currentLTwordpos.top - 200  
                // maincontainer.scrollTop = this.currentLTwordpos.top - maincontainer.scrollTop  //needs to steps.. makes no sense at all.. tf?
             }
         },
-        LTupdateHighlights(){
-            let positions = this.LTfindWordPositions()
-            if(this.currentLTword && Array.isArray(positions)){this.currentLTwordpos = positions.find(obj => obj.word === this.currentLTword) }
+        async LTupdateHighlights(){
+            let positions = await this.LTfindWordPositions()
+            if(this.currentLTword && Array.isArray(positions)){
+                // jedes wort in positions hat auch ein textoffset.. nutze dieses um die scroll position zu finden
+                this.currentLTwordpos = positions.find(obj => obj.word === this.currentLTword) 
+                
+            }
             this.LThighlightWords(positions)
         },
 
@@ -424,7 +432,7 @@ export default {
                 sel.addRange(range);
             }
 
-            if(this.serverstatus.languagetool){
+            if(this.serverstatus.languagetool || this.privateSpellcheck){
                 this.LTupdateHighlights()
             }
 

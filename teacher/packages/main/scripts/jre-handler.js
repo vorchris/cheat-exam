@@ -13,11 +13,18 @@ class JreHandler {
         this._arch = os.arch();
         this._platform = os.platform();
         this._driver = null
+        this.jre = "minimal-jre-11-lin"   // every platform needs it's own jre (linux, win32, darwin) //fixme: use GraalVM to precompile languagetool in order to save space and get rid of jre?
     }
 
     init(){
-        if (app.isPackaged) { this.jreDir = path.join(process.resourcesPath, 'app.asar.unpacked', 'public/minimal-jre-11')   }
-        else {                this.jreDir = path.join(__dirname, '../../public/minimal-jre-11')  }
+        
+        if (os.platform() == "linux") {  this.jre = "minimal-jre-11-lin"  }
+        else if (os.platform() == "win32") {  this.jre = "minimal-jre-11-win"  }
+        else if (os.platform() == "darwin") {  this.jre = "minimal-jre-11-mac"  }
+
+
+        if (app.isPackaged) { this.jreDir = path.join(process.resourcesPath, 'app.asar.unpacked', 'public', this.jre)   }
+        else {                this.jreDir = path.join(__dirname, '../../public', this.jre)  }
         log.info(this.jreDir)
 
 

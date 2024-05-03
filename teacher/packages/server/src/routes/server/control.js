@@ -699,7 +699,7 @@ router.post('/setstudentstatus/:servername/:csrfservertoken/:studenttoken', func
                 }
                 if (removeprintrequest == true){ student.printrequest = false }  // unset printrequest so that dashboard fetchInfo (which fetches the studentlist) doesnt trigger it again
                 
-                log.info("control @ setstudentstatus:", req.body)
+                //log.info("control @ setstudentstatus:", req.body)
               
             }
         }
