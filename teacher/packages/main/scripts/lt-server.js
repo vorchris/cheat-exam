@@ -1,7 +1,6 @@
 import path from 'path';
 import log from 'electron-log/main';
 import { app } from 'electron'
-//import config from '../config.js'
 
 let languageToolJarPath = path.join(__dirname, '../../public/LanguageTool/languagetool-server.jar')
 if (app.isPackaged) { languageToolJarPath = path.join(process.resourcesPath, 'app.asar.unpacked', 'public/LanguageTool/languagetool-server.jar') }

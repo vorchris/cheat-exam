@@ -1,5 +1,6 @@
  
 
 #das baut eine jre mit den modulen die für languagtool relevant sind (ca 80mb statt 200)
-jlink --module-path /usr/lib/jvm/java-1.11.0-openjdk-amd64/jmods/ --add-modules java.base,jdk.httpserver,java.xml,java.naming,java.desktop --output ./minimal-jre-11
+
+jlink --module-path /usr/lib/jvm/java-1.11.0-openjdk-amd64/jmods/ --add-modules java.base,jdk.httpserver,java.xml,java.naming,java.desktop --strip-debug --compress=2 --output minimaljre
 
