@@ -156,6 +156,7 @@
                         <span v-if="entry.replacements[0]">  {{ entry.replacements[0].value }}</span>
                         <span v-if="entry.replacements[1]">, {{ entry.replacements[1].value }}</span>
                         <span v-if="entry.replacements[2]">, {{ entry.replacements[2].value }}</span>
+                        <span v-if="entry.replacements[3]">, {{ entry.replacements[3].value }}</span>
                     </div>
                 </div>
             </div>
@@ -214,12 +215,12 @@ import { lowlight } from "lowlight/lib/common.js";
 import { Color } from '@tiptap/extension-color'
 import TextStyle from '@tiptap/extension-text-style'
 import { Node, mergeAttributes } from '@tiptap/core'   //we need this for our custom editor extension that allows to insert span elements
-import SpellChecker from '../utils/spellcheck'
+
 import moment from 'moment-timezone';
 import ExamHeader from '../components/ExamHeader.vue';
 import {SchedulerService} from '../utils/schedulerservice.js'
 
-import { LTcheckAllWords, LTfindWordPositions, LThighlightWords, LTdisable } from '../utils/languagetool.js'
+import { LTcheckAllWords, LTfindWordPositions, LThighlightWords, LTdisable, LThandleMisspelled } from '../utils/languagetool.js'
 
 
 // in order to insert <span> elements (used for highlighting misspelled words) we need our own tiptap extenison
@@ -332,21 +333,7 @@ export default {
         LTfindWordPositions:LTfindWordPositions,
         LThighlightWords:LThighlightWords,
         LTdisable:LTdisable,
-
-        // checkAllWords:SpellChecker.checkAllWords,
-        // checkSelectedWords:SpellChecker.checkSelectedWords,  //just checks the selection for mistakes
-        // highlightMisspelledWords:SpellChecker.highlightMisspelledWords,
-        // getWord:SpellChecker.getWord,  // get rightklicked word and show suggestions
-        // showSuggestions:SpellChecker.showSuggestions,     // Function to display suggestions
-        // replaceWord:SpellChecker.replaceWord,  //replace misspelled word with suggestion - remove highlight
-        // getSpanIdFromRange:SpellChecker.getSpanIdFromRange,
-        // removeHighlight:SpellChecker.removeHighlight,
-        // removeAllHighlightsByClass:SpellChecker.removeAllHighlightsByClass, //searches fer the highlight class and removes every object
-        // removeElementsByClassFromString:SpellChecker.removeElementsByClassFromString,  // this removes html elements from a string that contains html elements
-        // hideSpellcheckMenu:SpellChecker.hideSpellcheckMenu, // hides the spellcheck context menu
-        // checkAllWordsOnSpacebar:SpellChecker.checkAllWordsOnSpacebar,  //does a complete spellcheck after hitting spacebar while writing
-   
-
+        LThandleMisspelled: LThandleMisspelled,
 
         LTtoggleSidebar(){
             let ltdiv = document.getElementById(`languagetool`)

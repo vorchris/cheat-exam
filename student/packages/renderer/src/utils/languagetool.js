@@ -36,18 +36,16 @@ function LTdisable(){
 
 
 async function LTcheckAllWords(){
-   
     this.textContainer =  document.querySelector('#editorcontent > div');
     this.canvas = document.getElementById('highlight-layer');
     this.ctx = this.canvas.getContext('2d');
-
-    //check if lt is open
-    if (this.LTactive ){    // close LT sidebar
-        this.LTdisable()
+    this.text = this.editor.getText();    //get text to check
+   
+    //check if lt is alread open (toggle button)
+    if (this.LTactive ){    
+        this.LTdisable()  // close LT sidebar
         return 
     }
-  
-    this.text = this.editor.getText(); 
     if (this.text.length == 0) { 
         this.LTinfo = "keine Fehler gefunden"
         return; 
@@ -65,64 +63,15 @@ async function LTcheckAllWords(){
     })
     .then(response => response.json())
     .then(data => {
-  
         if (data.status == "error" || !Array.isArray(data.data)){
-            console.log('languagetool.js @ LTcheckAllwords:', data.data)
-            this.LTinfo = data.data
-            
-
-
+            console.warn('languagetool.js @ LTcheckAllwords:', data.data)
             // FALLBACK to HUNSPELL if LanguageTool is not reachable
-            const res = ipcRenderer.sendSync('checktext', this.text);
-            this.misspelledWords = []
-            if (res.misspelledWords){
-                res.misspelledWords.forEach( mword => {
-                    this.misspelledWords.push( {
-                        wrongWord: mword, 
-                        rule: {
-                            issueType:"misspelling"
-                        },
-                        color: "rgba( 211, 84, 0, 0.3)"
-                    } )
-                })
-            }
-            else if (res.error){
-                console.log("languagetool.js @ LTcheckAllwords: Hunspell backend nicht verfügbar")
-                this.LTinfo = "Hunspell nicht verfügbar"
-                return
-            }
-    
-
-            if (this.misspelledWords.length > 0){ this.hunspellFallback = true; }
+            const hunspelldata = ipcRenderer.sendSync('checktext', this.text);
+            this.LThandleMisspelled("hunspell", hunspelldata)  // generiert misspelled object dass ähnlich verarbeitet werden kann wie das lt object
         }
         else {
-            this.hunspellFallback = false;
-            // Verarbeiten der Antwort, um das fehlerhafte Wort zu extrahieren und Duplikate zu entfernen
-            const uniqueWords = new Set(); // Ein Set, um die Einzigartigkeit der Wörter zu gewährleisten
-
-            this.misspelledWords = data.data.filter(match => {
-                const wrongWord = this.text.substring(match.offset, match.offset + match.length);
-                if (!uniqueWords.has(wrongWord)) {
-                    uniqueWords.add(wrongWord);
-                    return true; // Behalte dieses Match, da das Wort noch nicht hinzugefügt wurde
-                }
-                return false; // Entferne dieses Match, da das Wort bereits vorhanden ist
-            }).map(match => {
-                // Nachdem Duplikate entfernt wurden, füge das fehlerhafte Wort hinzu
-                const wrongWord = this.text.substring(match.offset, match.offset + match.length);
-                return {
-                    ...match,
-                    wrongWord,
-                };
-            });
+            this.LThandleMisspelled("languagetool", data)   //bereitet die liste auf - entfernt duplikate
         }
-
-
-
-
-
-       
-
 
         if (!this.misspelledWords.length) {
             this.LTinfo = "keine Fehler gefunden"
@@ -130,33 +79,75 @@ async function LTcheckAllWords(){
         }
 
         this.LTinfo = "closing..."
-        let positions = this.LTfindWordPositions();
+        let positions = this.LTfindWordPositions();  //finde wörter im text und erzeuge highlights
         this.LThighlightWords(positions)
 
     })
     .catch(error => {
-        console.log('languagetool.js @ LTcheckAllwords:', error)  
-        this.LTinfo = error
-        return
+        console.error('languagetool.js @ LTcheckAllwords:', error.message)  
+         // FALLBACK to HUNSPELL if LanguageTool (Next-Exam-Teacher) is not reachable
+        const hunspelldata = ipcRenderer.sendSync('checktext', this.text);
+        this.LThandleMisspelled("hunspell", hunspelldata) 
+
+        this.LTinfo = "closing..."
+        let positions = this.LTfindWordPositions();  //finde wörter im text und erzeuge highlights
+        this.LThighlightWords(positions)
     })
-    
-
-
-        //refactor this ^^  if fetch fails (disconnect) use hunspell.. export whole function
+    }
 
 
 
-        // lt-server @ startserver error: Error: spawn ENOTDIR
-        // at ChildProcess.spawn (node:internal/child_process:413:11)
-        // at Object.spawn (node:child_process:783:9)
-        // at exports.spawn (/tmp/.mount_Next-EXjpVDw/resources/app.asar/node_modules/node-jre/index.js:97:21)
-        // at CC.startServer (/tmp/.mount_Next-EXjpVDw/resources/app.asar/dist/main/main.cjs:188:2029)
-        // at /tmp/.mount_Next-EXjpVDw/resources/app.asar/dist/main/main.cjs:203:288
-        // at node:electron/js2c/browser_init:2:98085
-        // at EventEmitter.<anonymous> (node:electron/js2c/browser_init:2:81603)
-        // at EventEmitter.emit (node:events:513:28)
+function LThandleMisspelled(backend, data){
+    if (backend == "hunspell"){
+        this.hunspellFallback = true;
+        this.misspelledWords = []
+        if (data.misspelledWords){
+            data.misspelledWords.forEach( word => {
+                //generate LT like replacements array of objects
+                let suggestions = []
+                word.suggestions.forEach(sugg =>{
+                    suggestions.push({value: sugg})
+                } )
+               
 
-  
+                this.misspelledWords.push( {
+                    wrongWord: word.wrongWord, 
+                    rule: {
+                        issueType:"misspelling"
+                    },
+                    color: "rgba( 211, 84, 0, 0.3)",
+                    replacements: suggestions
+                } )
+            })
+        }
+        else if (data.error){
+            console.error("languagetool.js @ LTcheckAllwords: Hunspell backend nicht verfügbar")
+            this.LTinfo = "Hunspell nicht verfügbar"
+            return
+        }
+    }
+
+    if (backend == "languagetool"){
+        this.hunspellFallback = false;
+        // Verarbeiten der Antwort, um das fehlerhafte Wort zu extrahieren und Duplikate zu entfernen
+        const uniqueWords = new Set(); // Ein Set, um die Einzigartigkeit der Wörter zu gewährleisten
+        this.misspelledWords = data.data.filter(match => {
+            const wrongWord = this.text.substring(match.offset, match.offset + match.length);
+            if (!uniqueWords.has(wrongWord)) {
+                uniqueWords.add(wrongWord);
+                return true; // Behalte dieses Match, da das Wort noch nicht hinzugefügt wurde
+            }
+            return false; // Entferne dieses Match, da das Wort bereits vorhanden ist
+        }).map(match => {
+            // Nachdem Duplikate entfernt wurden, füge das fehlerhafte Wort hinzu
+            const wrongWord = this.text.substring(match.offset, match.offset + match.length);
+            
+            return {
+                ...match,
+                wrongWord,
+            };
+        });
+    }
 }
 
 
@@ -239,4 +230,4 @@ function LThighlightWords(positions) {
 
 
 
-export { LTcheckAllWords, LTfindWordPositions, LThighlightWords, LTdisable }
+export { LTcheckAllWords, LTfindWordPositions, LThighlightWords, LTdisable, LThandleMisspelled }

@@ -601,22 +601,18 @@ class IpcHandler {
 
 
         /**
-         * this is our manually implemented spellchecker for the editor
+         * this is our manually implemented Hunspell spellchecker for the editor (fallback for languagetool)
          */
-        ipcMain.on('checkword', async (event, selectedWord) => {
-            log.info(`Received selected text: ${selectedWord}`);
-            const suggestions = await this.WindowHandler.nodehun.suggest(selectedWord)
-            //log.info(suggestions)
-            event.returnValue = {  suggestions : suggestions }   
-        });
         ipcMain.on('checktext', async (event, selectedText) => {
             const words = selectedText.split(/[^a-zA-ZäöüÄÖÜßéèêëôûüÔÛÜáíóúñÁÍÓÚÑàèéìòùÀÈÉÌÒÙçÇ]+/);
             const misspelledWords = [];
             for (const word of words) {
                 if (this.WindowHandler.nodehun){
                     const correct = await this.WindowHandler.nodehun.spell(word);
+
                     if (!correct) {
-                        misspelledWords.push(word);
+                        const suggestions = await this.WindowHandler.nodehun.suggest(word)
+                        misspelledWords.push( { wrongWord: word, suggestions: suggestions });
                     }
                 }
                 else {
@@ -624,10 +620,6 @@ class IpcHandler {
                 }
             }
             event.returnValue = { misspelledWords };
-        });
-        ipcMain.on('add-word-to-dictionary', (event, word) => {
-            log.info("adding word to dictionary")
-            this.WindowHandler.nodehun.add(word)
         });
     }
 }

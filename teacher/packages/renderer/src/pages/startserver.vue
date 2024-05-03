@@ -29,8 +29,7 @@
             {{$t("general.slist")}}
         </router-link> 
     
-        <div v-if="!advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("startserver.advanced") }}</div>
-        <div v-if="advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("startserver.simple") }}</div> 
+       
         <div v-if="freeDiscspace < 0.1" class="warning">  {{ $t("startserver.freespacewarning") }}   </div>
         
         <div id="previous" class="mt-4" v-if="previousExams && previousExams.length > 0">
@@ -58,7 +57,7 @@
     <div id="content" class="fadeinslow p-3">
         <div class="col8">
             <div class="input-group  mb-1">
-                <span class="input-group-text col-2"  id="inputGroup-sizing-lg" style="width:150px;max-width:150px;min-width:150px;">{{$t("startserver.examname")}}</span>
+                <span class="input-group-text col-2"  id="inputGroup-sizing-lg" style="width:160px;max-width:160px;min-width:160px;">{{$t("startserver.examname")}}</span>
                 <input v-model="servername" maxlength="20" type="text" class="form-control" id="servername" placeholder="Mathe-5a" style="width:200px;max-width:200px;min-width:135px;">
     
             </div>   
@@ -66,18 +65,21 @@
                 <input v-model="password" type="text" class="form-control " id="password" placeholder="password" style="width:135px;max-width:135px;min-width:135px;">
                 <span class="input-group-text col-4" style="width:135px;" id="inputGroup-sizing-lg">{{$t("startserver.pwd")}}</span>
             </div>
-     
+
+            
+            <div class="input-group mb-3" style="max-width: fit-content">  
+                    <button @click="setWorkdir()" id="examstart" class="btn btn-info" value="start exam" style="width:160px;" :title="$t('startserver.select')">{{$t("startserver.workfolder")}}</button>
+                    <span class="form-control " style="font-family: monospace; white-space: pre; font-size:0.em; padding-top: 8px;">{{ workdir }}</span>
+            </div>
+            
+
+
             <button @click="startServer()" :class="(!hostip) ? 'disabled':''" id="examstart" class="mb-5 btn btn-success" value="start exam" style="width:150px;max-width:150px;min-width:120px;">{{$t("startserver.start")}}</button>
             
         </div>
 
         
-        <div v-if="advanced" id="list" class="">
-            <div class="input-group input-group-sm" style="max-width: fit-content">  
-                <button @click="setWorkdir()" id="examstart" class="btn btn-sm btn-info" value="start exam" style="width:195px;">{{$t("startserver.select")}}</button>
-                <span class="form-control " style="font-family: monospace; white-space: pre; font-size:0.8em; padding-top: 5px;">{{ workdir }}</span>
-            </div>
-        </div>
+
 
     </div>
 </div>
