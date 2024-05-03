@@ -71,7 +71,7 @@
             "icon": "public/icons/icon.ico",
             "target": [
                 {
-                    "target": "portable",
+                    "target": "msi",
                     "arch": [
                         "x64"
                     ]
