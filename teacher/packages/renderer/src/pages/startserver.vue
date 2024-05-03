@@ -56,23 +56,28 @@
     <!-- maincontent -->
     <div id="content" class="fadeinslow p-3">
         <div class="col8">
-            <div class="input-group  mb-1">
-                <span class="input-group-text col-2"  id="inputGroup-sizing-lg" style="width:160px;max-width:160px;min-width:160px;">{{$t("startserver.examname")}}</span>
+            <div class="input-group  mb-1 mt-0">
+                <span class="input-group-text col-2 grayback" id="inputGroup-sizing-lg" style="width:160px;max-width:160px;min-width:160px;">{{$t("startserver.examname")}}</span>
                 <input v-model="servername" maxlength="20" type="text" class="form-control" id="servername" placeholder="Mathe-5a" style="width:200px;max-width:200px;min-width:135px;">
     
             </div>   
-            <div class="input-group  mb-3" :class="(electron) ? 'hidden':''"> <!-- we do not need to display the password in electron standalone version because no other exams are ever listed and you can not leave the exam without ending the server -->
+            <div class="input-group mb-3" style="max-width: fit-content">  
+                <span id="workdir" class="input-group-text col-2 grayback"  style="width:160px;">{{$t("startserver.workfolder")}}</span>
+                <span class="form-control " style="font-family: monospace; font-size: 0.9em; padding-top: 8px; white-space: pre;">{{ workdir }}</span>
+                <button @click="setWorkdir()" id="workdir" class="btn btn-info p-0" style="width:40px;" :title="$t('startserver.select')">
+                   
+                    <img src="/src/assets/img/svg/settings.svg" style="vertical-align: sub;" class="" width="18" height="18" >
+                </button>
+            </div>
+
+
+
+            
+            <!-- we do not need to display the password in electron standalone version because no other exams are ever listed and you can not leave the exam without ending the server -->
+            <div class="input-group  mb-3" :class="(electron) ? 'hidden':''"> 
                 <input v-model="password" type="text" class="form-control " id="password" placeholder="password" style="width:135px;max-width:135px;min-width:135px;">
                 <span class="input-group-text col-4" style="width:135px;" id="inputGroup-sizing-lg">{{$t("startserver.pwd")}}</span>
             </div>
-
-            
-            <div class="input-group mb-3" style="max-width: fit-content">  
-                    <button @click="setWorkdir()" id="examstart" class="btn btn-info" value="start exam" style="width:160px;" :title="$t('startserver.select')">{{$t("startserver.workfolder")}}</button>
-                    <span class="form-control " style="font-family: monospace; white-space: pre; font-size:0.em; padding-top: 8px;">{{ workdir }}</span>
-            </div>
-            
-
 
             <button @click="startServer()" :class="(!hostip) ? 'disabled':''" id="examstart" class="mb-5 btn btn-success" value="start exam" style="width:150px;max-width:150px;min-width:120px;">{{$t("startserver.start")}}</button>
             

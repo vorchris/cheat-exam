@@ -71,8 +71,13 @@ class JreHandler {
     }
 
     jSpawn(classpath, classname, args) {
-        log.info("jre-handler @ jSpawn: spawning java process",classpath)
-        return spawn(this.driver(), this.getArgs(classpath, classname, args));
+        
+        let javapath = this.driver()
+        let javaargs = this.getArgs(classpath, classname, args)
+        let javacmdline =  `${javapath} ${javaargs.join(' ')} `
+
+        log.info(`jre-handler @ jSpawn: spawning java process: ${javacmdline}`)
+        return spawn(javapath, javaargs);
     }
 }
 
