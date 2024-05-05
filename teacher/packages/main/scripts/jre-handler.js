@@ -85,6 +85,7 @@ class JreHandler {
 
         log.info(`jre-handler @ jSpawn: spawning java process: ${javacmdline}`)
         return spawn(javapath, javaargs);
+       // return spawn(javacmdline);
     }
 }
 

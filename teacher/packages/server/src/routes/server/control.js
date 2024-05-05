@@ -886,7 +886,7 @@ router.post('/languagetool/:servername/:studenttoken', async function (req, res,
     let student = mcServer.studentList.find(element => element.token === studenttoken)
     if ( !student ) {return res.send({ sender: "server", message:"removed", status: "error" }) }
     
-    const languageToolUrl = 'http://localhost:8088/v2/check';
+    const languageToolUrl = 'http://127.0.0.1:8088/v2/check';
      
     try {
         const response = await fetch(languageToolUrl, {
@@ -896,10 +896,10 @@ router.post('/languagetool/:servername/:studenttoken', async function (req, res,
         });
         if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`);   }
         const data = await response.json();
-        console.log(data)
+        //console.log(data)
         res.send({sender: "server", message:"success", status:"success", data: data.matches })
     } catch (error) {
-        console.error('Error sending text to LanguageTool:', error);
+        log.error('control @ languagetool: Error sending text to LanguageTool:', error);
         res.send({sender: "server", message:"error", status:"error", data: error.message })
     }
 
