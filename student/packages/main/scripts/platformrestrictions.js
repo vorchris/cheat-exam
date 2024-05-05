@@ -90,9 +90,9 @@ function enableRestrictions(win){
 
 
     // list of apps we do not want to run in background
-    // const appsToClose = [ 'zoom.us', 'Google Chrome', 'Microsoft Edge', 'Microsoft Teams','firefox', 'discord', 'zoom', 'chrome', 'msedge', 'teams', 'teamviewer', 'google-chrome','skypeforlinux','skype','brave','opera','anydesk','safari'];
-    const appsToClose = [ 'Teams','ms-teams','zoom.us', 'Microsoft Teams', 'discord', 'zoom', 'teams', 'teamviewer','skypeforlinux','skype','anydesk'];
-    // students tend to download and start the app directly from the browser.. if we kill the browser we kill the app
+    const appsToClose = ['Teams','ms-teams', 'zoom.us', 'Google Chrome', 'Microsoft Edge', 'Microsoft Teams','firefox', 'discord', 'zoom', 'chrome', 'msedge', 'teams', 'teamviewer', 'google-chrome','skypeforlinux','skype','brave','opera','anydesk','safari'];
+   // const appsToClose = [ 'Teams','ms-teams','zoom.us', 'Microsoft Teams', 'discord', 'zoom', 'teams', 'teamviewer','skypeforlinux','skype','anydesk'];
+    // students tend to download and start the app directly from the browser.. if we kill the browser we kill the app ???
 
 
    
