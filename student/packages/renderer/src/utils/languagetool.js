@@ -167,8 +167,9 @@ async function LTfindWordPositions() {
         let nodeoffset = this.text.indexOf(text)  // wir brauchen den genauen offset dieses textknotens - addieren den offset des worts innerhalb des textknotens
 
         this.misspelledWords.forEach(word => {
+           
             if (word.rule.issueType == "typographical") { word.color = "rgba(146, 43, 33 , 0.3)"; }
-            else if (word.rule.issueType == "whitespace") { word.color = "rgba( 243, 190, 41, 0.5)";}
+            else if (word.rule.issueType == "whitespace") { word.color = "rgba( 243, 190, 41, 0.5)"; word.whitespace = true;}
             else if (word.rule.issueType == "misspelling") { word.color = "rgba( 211, 84, 0, 0.3)"; }
             else { word.color = "rgba( 108, 52, 131, 0.3)"; }
 
@@ -181,15 +182,28 @@ async function LTfindWordPositions() {
                 const currentOffset = nodeoffset + match.index;  // hier berechnen wir den lokalen offset des wortes für den vergleich
                 // nur wenn der offset des gefunden worts auch in etwa dem offset im text von languagetool entspricht wird das wort aufgenommen - (wort am satzanfang möglicherweise falsch aber im text nicht)
                 if (Math.abs(word.offset - currentOffset) <= 10) { // Erlaube eine kleine Abweichung des wort-offsets
-                    if (!wordsMap.has(word)) { wordsMap.set(word, []);  }
-                    wordsMap.get(word).push({ node: textNode, index: match.index });
+                    const wordKey = `${word.wrongWord}_${word.offset}`; // Eindeutiger Schlüssel pro word und offset
+                    if (!wordsMap.has(wordKey)) { wordsMap.set(wordKey, { word, occurrences: [] });  }
+                    wordsMap.get(wordKey).occurrences.push({ node: textNode, index: match.index });
                 }
             }
         });
     }
-  
+
+ 
+
+
+
+ 
+     
+ 
+
+
+
     const positions = [];
-    wordsMap.forEach((occurrences, word) => {   // Berechne die Positionen für jedes Wort nur einmal
+    wordsMap.forEach((data, wordKey) => {   // Zugriff auf das `word` Objekt und die Vorkommen
+        const { word, occurrences } = data;
+    
         occurrences.forEach(({ node, index }) => {
             const range = document.createRange();
             range.setStart(node, index);
@@ -224,7 +238,7 @@ function LThighlightWords(positions) {
         let height = 3
         let translate = word.height
       
-        if (word.word == this.currentLTword){ height= height+word.height+3; translate = -3; }
+        if (word.word == this.currentLTword.wrongWord){ height= height+word.height+3; translate = -3; }
 
         const adjustedLeft = word.left - this.textContainer.offsetLeft + window.scrollX;
         const adjustedTop = word.top - this.textContainer.offsetTop + window.scrollY;

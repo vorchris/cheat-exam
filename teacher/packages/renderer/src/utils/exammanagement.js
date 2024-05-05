@@ -383,7 +383,6 @@ async function activateSpellcheckForStudent(token, clientname){
     }).then(async (input) => {
         if (!input.isConfirmed) {return}
 
-        //let spellcheck = document.getElementById('checkboxspellcheck').checked; 
         let suggestions = document.getElementById('checkboxsuggestions').checked;
         let languagetool = document.getElementById('checkboxLT').checked;
 

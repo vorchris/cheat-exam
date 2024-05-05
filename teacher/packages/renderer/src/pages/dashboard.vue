@@ -107,7 +107,7 @@
             <!-- editor -->
             <div class="form-check m-1" :class="(serverstatus.exammode)? 'disabledexam':''">
                 <input v-model="serverstatus.examtype" @click="activateSpellcheck()" value="editor" class="form-check-input" type="radio" name="examtype" id="examtype1">
-                <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}}<span class="text-white-50" v-if="(serverstatus.spellcheck)">|{{serverstatus.spellchecklang}}</span></label>
+                <label class="form-check-label" for="examtype1"> {{$t('dashboard.lang')}}<span class="text-white-50" v-if="(serverstatus.languagetool)">|{{serverstatus.spellchecklang}}</span></label>
             </div>
             <!-- eduvidual -->
             <div class="form-check m-1 mb-1" :class="(serverstatus.exammode)? 'disabledexam':''">
@@ -230,7 +230,7 @@
                 <div v-for="student in studentwidgets" :key="student.token" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':''" class="studentwidget btn rounded-3 btn-block ">
                     <div v-if="student.clientname">
                         <div class="studentimage rounded" style="position: relative; height:132px;">  
-                            <button v-if="serverstatus.examtype === 'editor' && !this.serverstatus.spellcheck  && !this.serverstatus.languagetool && this.serverstatus.spellchecklang !== 'none'" @mouseover="showDescription($t('dashboard.allowspellcheck'))" @mouseout="hideDescription" @click='activateSpellcheckForStudent(student.token,student.clientname)' type="button" class="btn btn-sm pt-1 mt-2 pe-1 float-end" style="z-index:1000; position:relative;"><img src="/src/assets/img/svg/autocorrection.svg" class="widgetbutton" width="22" height="22" ></button> 
+                            <button v-if="serverstatus.examtype === 'editor' && !this.serverstatus.languagetool && this.serverstatus.spellchecklang !== 'none'" @mouseover="showDescription($t('dashboard.allowspellcheck'))" @mouseout="hideDescription" @click='activateSpellcheckForStudent(student.token,student.clientname)' type="button" class="btn btn-sm pt-1 mt-2 pe-1 float-end" style="z-index:1000; position:relative;"><img src="/src/assets/img/svg/autocorrection.svg" class="widgetbutton" width="22" height="22" ></button> 
                             <div v-cloak :id="student.token" style="position: relative;background-size: cover; height: 132px;" v-bind:style="(student.imageurl && now - 20000 < student.timestamp)? `background-image: url('${student.imageurl}')`:'background-image: url(user-red.svg)'"></div>
                             <div v-if="student.virtualized" class="virtualizedinfo" >{{$t("dashboard.virtualized")}}</div>
                             <div v-if="!student.focus" class="kioskwarning" >{{$t("dashboard.leftkiosk")}}</div>
@@ -336,7 +336,6 @@ export default {
                 exammode: false,
                 examtype: 'math',
                 delfolderonexit: false,
-                spellcheck: false,
                 spellchecklang: 'de-DE',
                 suggestions: false,
                 moodleTestId: null,
@@ -733,7 +732,6 @@ export default {
                 },
                 preConfirm: () => {
                     this.serverstatus.suggestions = document.getElementById('checkboxsuggestions').checked; 
-                    // this.serverstatus.spellcheck = document.getElementById('checkboxspellcheck').checked; 
                     this.serverstatus.languagetool = document.getElementById('checkboxLT').checked; 
 
                     const radioButtons = document.querySelectorAll('input[name="correction_margin"]');
@@ -894,7 +892,7 @@ export default {
         getPreviousServerStatus(){
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/getserverstatus/${this.servername}/${this.servertoken}`, { method: 'POST', headers: {'Content-Type': 'application/json' },})
             .then( res => res.json())
-            .then( response => {
+            .then( async (response) => {
                 if (response.serverstatus === false) {return}
                 this.serverstatus = response.serverstatus // we slowly move things over to a centra serverstatus object
          
@@ -907,6 +905,30 @@ export default {
                         icon: "info"
                     })
                 }
+
+                if (this.serverstatus.languagetool){
+                    let response = await ipcRenderer.invoke("startLanguageTool")
+                    if (response){
+                        this.$swal.fire({
+                            text: "LanguageTool started!",
+                            timer: 1000,
+                            timerProgressBar: true,
+                            didOpen: () => { this.$swal.showLoading() }
+                        });
+                    }
+                    else {
+                        this.$swal.fire({
+                            text: "LanguageTool Error!",
+                            timer: 1000,
+                            timerProgressBar: true,
+                            didOpen: () => { this.$swal.showLoading() }
+                        });
+                    }
+                }
+
+
+
+
 
                 this.setServerStatus()  //  we fetched a backup of serverstatus and now we make sure the backend has the updated settings for the students to fetch
             })

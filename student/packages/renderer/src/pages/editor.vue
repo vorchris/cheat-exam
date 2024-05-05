@@ -149,7 +149,7 @@
 
             <div v-for="entry in misspelledWords" :key="entry.wrongWord" class="error-entry" @click="LTshowWord(entry)">
                 <div :style="'background-color:' + entry.color " class="color-circle"></div>
-                <div class="error-word" @click="LTshowWord(entry)">{{ entry.wrongWord }}</div>
+                <div class="error-word">{{ entry.wrongWord }}  <span v-if="entry.whitespace">' &nbsp;  '</span></div>
                 <div v-if="serverstatus.suggestions || privateSpellcheck.suggestions">
                   <div v-if="entry.message">{{ entry.message}}</div>
                      <div v-if="entry.replacements" class="replacement">
@@ -257,6 +257,7 @@ export default {
     },
     data() {
         return {
+            index: 0,
             componentName: 'Writer',
             online: true,
             focus: true,
@@ -296,7 +297,6 @@ export default {
             currentRange:0,
             word:"",
             editorcontentcontainer:null,
-            spellcheck: false,
             serverstatus: this.$route.params.serverstatus,
             linespacing: this.$route.params.serverstatus.linespacing ? this.$route.params.serverstatus.linespacing : '2',
             fontfamily:  this.$route.params.serverstatus.fontfamily  ? this.$route.params.serverstatus.fontfamily : "sans-serif", 
@@ -351,26 +351,14 @@ export default {
             }
         },
         LTshowWord(word){
-            this.currentLTword = word.wrongWord
+            this.currentLTword = word
             let maincontainer = document.getElementById('editormaincontainer')
             maincontainer.scrollTop = 0
             this.LTupdateHighlights()
-            
-            if(this.currentLTwordpos){
-                
-              
-                
-                maincontainer.scrollTop = this.currentLTwordpos.top - 200  
-               // maincontainer.scrollTop = this.currentLTwordpos.top - maincontainer.scrollTop  //needs to steps.. makes no sense at all.. tf?
-            }
+            this.editor.commands.focus(this.currentLTword.offset)
         },
         async LTupdateHighlights(){
             let positions = await this.LTfindWordPositions()
-            if(this.currentLTword && Array.isArray(positions)){
-                // jedes wort in positions hat auch ein textoffset.. nutze dieses um die scroll position zu finden
-                this.currentLTwordpos = positions.find(obj => obj.word === this.currentLTword) 
-                
-            }
             this.LThighlightWords(positions)
         },
 
@@ -472,7 +460,7 @@ export default {
 
 
             //handle individual spellcheck (only if not globally activated anyways)
-            if (this.serverstatus.spellcheck === false) {   
+            if (this.serverstatus.languagetool === false) {   
                 if (this.privateSpellcheck.activate == false) {
                     this.LTdisable()
                     this.privateSpellcheck.activated = false
@@ -746,18 +734,21 @@ export default {
             const selection = window.getSelection();
             const range = selection.getRangeAt(0);
             const div = document.createElement('div');
+            div.appendChild(range.cloneContents()); // Fügt den ausgewählten Bereich zum Div-Element hinzu
 
-            // Fügt den ausgewählten Bereich zum Div-Element hinzu
-            div.appendChild(range.cloneContents());
+            this.selectedText = div.innerHTML
+           // this.selectedText = div.innerHTML.replace(/<\s*p[^>]*>/gi, '').replace(/<\/\s*p\s*>/gi, '<br>'); // Ersetzt <p> durch <br>
 
-            // Speichert den HTML-Inhalt
-            this.selectedText = div.innerHTML;
         },
         pasteSelection(){
             if (!this.selectedText || this.selectedText == "") {return}
             console.log("[pasteSelection] pasted:",this.selectedText)
-            //paste previously selected html code
-            this.editor.commands.insertContent(this.selectedText)         
+            
+            this.editor.commands.insertContent(this.selectedText, { parseOptions: { preserveWhitespace: 'full' } });
+            // FIXME:  einfügen in den editor (auch ohne tiptap command) verursacht ein <p> element das nicht
+            // als korrekte node erkannt wird und dann auch beim languagetool parsing irgendwie ignoriert wird
+            // wenn ich der bewussten textnode ein wort hinzufüge bzw. irgendwas veränder wird das wort auch indieser map
+            // aufgeführt
         },
         // implementing a sleep (wait) function
         sleep(ms) {
