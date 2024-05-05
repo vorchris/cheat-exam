@@ -203,7 +203,7 @@ async function LTfindWordPositions() {
     const positions = [];
     wordsMap.forEach((data, wordKey) => {   // Zugriff auf das `word` Objekt und die Vorkommen
         const { word, occurrences } = data;
-    
+        if (occurrences.length && occurrences.length == 0){ this.LTdisable(); return;}  // text deleted.. this.misspelledWords still populated
         occurrences.forEach(({ node, index }) => {
             const range = document.createRange();
             range.setStart(node, index);
@@ -227,7 +227,7 @@ async function LTfindWordPositions() {
 }
 
 function LThighlightWords(positions) {
-    if (!this.textContainer || !positions || positions.length == 0){ return }
+    if (!this.textContainer || !positions || positions.length == 0){ this.LTdisable(); return }
     this.canvas.width = this.textContainer.offsetWidth;
     this.canvas.height = this.textContainer.offsetHeight;
     this.canvas.style.top = this.textContainer.offsetTop + 'px';

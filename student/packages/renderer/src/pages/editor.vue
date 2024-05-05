@@ -981,7 +981,7 @@ export default {
         this.editorcontentcontainer.removeEventListener('contextmenu', this.getWord );
 
 
-        document.removeEventListener('input', this.checkAllWordsOnSpacebar)
+        //document.removeEventListener('input', this.checkAllWordsOnSpacebar)
         document.body.removeEventListener('mouseleave', this.sendFocuslost);
 
         document.removeEventListener('click', this.hideSpellcheckMenu);
