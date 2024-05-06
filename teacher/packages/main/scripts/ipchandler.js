@@ -51,13 +51,9 @@ class IpcHandler {
          * students can access the api via teacher api on 22422
          * (we do not expose the lt api because it makes it more complex and would need yet anoter port to open)
         */ 
-
         ipcMain.handle('startLanguageTool', (event) => { 
             try{
-               
                 languageToolServer.startServer();
-
-               
             }
             catch(err){
                 return false
@@ -65,17 +61,29 @@ class IpcHandler {
             return true
         }) 
 
+        // returns the current serverstatus object of the given server(name)
+        ipcMain.handle('getserverstatus', (event, servername) => { 
+            const mcServer = this.config.examServerList[servername]
+            if (mcServer ) { return mcServer.serverstatus  }
+            else {           return false  }
+        }) 
 
+        // opens a loginwindow for microsoft 365
         ipcMain.on('openmsauth', (event) => { this.WindowHandler.createMsauthWindow();  event.returnValue = true })  
 
+        // returns current config
         ipcMain.on('getconfig', (event) => {  
             event.returnValue = this.copyConfig(config); 
         })  
 
+
+        // returns current config async
         ipcMain.handle('getconfigasync', (event) => {  
             return this.copyConfig(config)
         })  
 
+
+        // log out of microsoft 365
         ipcMain.handle('resetToken', async (event) => { 
             
             const win = this.WindowHandler.mainwindow; // Oder wie auch immer Sie auf Ihr BrowserWindow-Objekt zugreifen

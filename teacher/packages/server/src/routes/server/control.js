@@ -594,7 +594,7 @@ router.post('/sharelink/:servername/:csrfservertoken/:studenttoken', function (r
 
 
 /**
- * Get Serverstatus and return Serverstatus from FILE (from previous interrupted exam in order to resume)
+ * Get previous Serverstatus and return Serverstatus from FILE (from previous interrupted exam in order to resume)
  * @param servername the name of the server 
  * @param csrfservertoken servertoken to authenticate before the request is processed
  */
@@ -614,6 +614,19 @@ router.post('/getserverstatus/:servername/:csrfservertoken', function (req, res,
     catch (error) {  serverstatus = false;  }
     return res.json({sender: "server", status: "success", serverstatus: serverstatus}) 
 })
+
+//get current serverstatus from mcserver
+router.get('/getcurrentserverstatus/:servername/:csrfservertoken', function (req, res, next) {
+    const csrfservertoken = req.params.csrfservertoken
+    const servername = req.params.servername
+    const mcServer = config.examServerList[servername]
+    if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
+    if (csrfservertoken !== mcServer.serverinfo.servertoken) { res.send({sender: "server", message:t("control.tokennotvalid"), status: "error"} )}
+   
+    return res.json({sender: "server", status: "success", serverstatus: mcServer.serverstatus}) 
+})
+
+
 
 
 /**

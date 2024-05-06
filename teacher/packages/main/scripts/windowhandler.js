@@ -78,6 +78,22 @@ class WindowHandler {
         });
     
     
+        // this.mainwindow.on('app-command', (e, cmd) => {
+        //     // 'browser-backward' und 'browser-forward' sind die Befehle, die beim Klick auf die Maustasten gesendet werden
+        //     if (cmd === 'browser-backward' || cmd === 'browser-forward') {
+        //         log.warn("no indirect navigation allowed")
+        //         e.preventDefault(); // Verhindern Sie das Standardverhalten
+        //     }
+        // });
+
+        this.mainwindow.webContents.on('before-input-event', (event, input) => {
+            if (input.type === 'keyDown' && (input.key === 'Backspace' || input.key === 'Alt')) {
+                log.warn("no navigation allowed")
+                event.preventDefault(); // Verhindern Sie Navigation mit Tastatur-Shortcuts
+            }
+        });
+
+
         this.mainwindow.on('close', async  (e) => {   //ask before closing
             if (!this.config.development) {
                 if (this.mainwindow.closetriggered) { app.quit(); return;}
