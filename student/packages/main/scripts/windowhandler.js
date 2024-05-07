@@ -681,7 +681,7 @@ class WindowHandler {
             center:true,
             width: 1000,
             height: 600,
-            minWidth: 800,
+            minWidth: 850,
             minHeight: 600,
             show: false,
             webPreferences: {
