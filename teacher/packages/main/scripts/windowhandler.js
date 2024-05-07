@@ -86,12 +86,6 @@ class WindowHandler {
         //     }
         // });
 
-        this.mainwindow.webContents.on('before-input-event', (event, input) => {
-            if (input.type === 'keyDown' && (input.key === 'Backspace' || input.key === 'Alt')) {
-                log.warn("no navigation allowed")
-                event.preventDefault(); // Verhindern Sie Navigation mit Tastatur-Shortcuts
-            }
-        });
 
 
         this.mainwindow.on('close', async  (e) => {   //ask before closing
