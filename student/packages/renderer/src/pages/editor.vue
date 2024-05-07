@@ -112,7 +112,7 @@
     </div>
     <!-- focuswarning end  -->
 
-
+    
      <!-- AUDIO Player start -->
         <div id="aplayer">
             <audio id="audioPlayer" controls controlsList="nodownload">
@@ -137,7 +137,9 @@
     <!-- LANGUAGE TOOL START -->
     <div id="languagetool" v-if="serverstatus.languagetool || privateSpellcheck.activated">
         <div id="ltcheck" @click="LTtoggleSidebar(); LTcheckAllWords();">
-            <img src="/src/assets/img/svg/eye-fill.svg" class="darkgreen" width="22" height="22" > &nbsp;LanguageTool
+            <!-- <img src="/src/assets/img/svg/eye-fill.svg" class="darkgreen eyeopen" width="22" height="22" > -->
+            <div id="eye" class="darkgreen eyeopen"></div> &nbsp;LanguageTool
+        
         </div>
         <div class="ltscrollarea">      
             <div v-if="hunspellFallback"  style="text-align: center; font-size: 0.8em;">
@@ -338,17 +340,20 @@ export default {
 
         LTtoggleSidebar(){
             let ltdiv = document.getElementById(`languagetool`)
-            let ltcheck = document.getElementById('ltcheck')
+            let eye = document.getElementById('eye')
             if (ltdiv.style.right == "0px"){
                 ltdiv.style.right = "-282px";
                 ltdiv.style.boxShadow = "-2px 1px 2px rgba(0,0,0,0)";
-                ltcheck.innerHTML= `<img src="/src/assets/img/svg/eye-fill.svg" class="darkgreen"  width="22" height="22" > &nbsp;LanguageTool`
             }
             else {
                 ltdiv.style.right = "0px"
-                ltdiv.style.boxShadow = "-2px 1px 2px rgba(0,0,0,0.2)";
-                ltcheck.innerHTML= `<img src="/src/assets/img/svg/eye-slash-fill.svg" class="darkred" width="22" height="22" > &nbsp;LanguageTool`
+                ltdiv.style.boxShadow = "-2px 1px 2px rgba(0,0,0,0.2)"; 
             }
+
+            eye.classList.toggle('eyeopen');
+            eye.classList.toggle('darkgreen');
+            eye.classList.toggle('eyeclose');
+            eye.classList.toggle('darkred');
         },
         LTshowWord(word){
             this.currentLTword = word
@@ -1521,6 +1526,21 @@ Other Styles
 #ltcheck img{
     vertical-align: bottom;
 
+}
+#ltcheck #eye {
+    width: 20px;
+    height: 20px;
+    background-size: cover;
+    display:inline-block;
+    vertical-align: text-bottom;
+}
+
+#ltcheck .eyeopen {
+    background-image: url('/src/assets/img/svg/eye-fill.svg');
+   
+}
+#ltcheck .eyeclose {
+    background-image: url('/src/assets/img/svg/eye-slash-fill.svg');
 }
 
 #languagetool .ltscrollarea {
