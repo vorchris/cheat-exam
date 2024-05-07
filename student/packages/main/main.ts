@@ -45,10 +45,19 @@ import log from 'electron-log/main';
 
 config.electron = true
 config.homedirectory = os.homedir()
-config.workdirectory = path.join(os.homedir(), config.examdirectory)
+config.workdirectory = path.join(os.homedir(),'Desktop', config.examdirectory)
 config.tempdirectory = path.join(os.tmpdir(), 'exam-tmp')
-if (!fs.existsSync(config.workdirectory)){ fs.mkdirSync(config.workdirectory); }
-if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory); }
+
+
+
+if (process.platform === 'win32') {
+    config.workdirectory = process.env['USERPROFILE'] ? path.join(process.env['USERPROFILE'], 'Desktop',  config.examdirectory) : config.workdirectory ;   // Nutzt die Umgebungsvariable, falls verfügbar
+}
+
+
+
+if (!fs.existsSync(config.workdirectory)){ fs.mkdirSync(config.workdirectory, { recursive: true }); }
+if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory, { recursive: true }); }
 
 try { //bind to the correct interface
     const {gateway, interface: iface} =  defaultGateway.v4.sync()
@@ -175,12 +184,12 @@ app.whenReady()
     const iconPath = path.join(__dirname, '../../public/icons','icon.png'); // Pfad zum Icon der App
     tray = new Tray(iconPath);
     const contextMenu = Menu.buildFromTemplate([ 
-        { label: 'Show App', click: function () { WindowHandler.mainwindow.show(); }   },
-        { label: 'Disconnect', click: function () {
+        { label: 'Wiederherstellen', click: function () { WindowHandler.mainwindow.show(); }   },
+        { label: 'Verbindung trennen', click: function () {
             log.info("main.ts @ systemtray: removing registration ")
             CommHandler.resetConnection();
         }   },
-        { label: 'Exit', click: function () {WindowHandler.mainwindow.allowexit = true; app.quit(); }   }
+        { label: 'Beenden', click: function () {WindowHandler.mainwindow.allowexit = true; app.quit(); }   }
     ]);
 
     tray.setToolTip('Next-Exam Student');
