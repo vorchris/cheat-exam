@@ -177,8 +177,8 @@ app.whenReady()
     const contextMenu = Menu.buildFromTemplate([ 
         { label: 'Show App', click: function () { WindowHandler.mainwindow.show(); }   },
         { label: 'Disconnect', click: function () {
+            log.info("main.ts @ systemtray: removing registration ")
             CommHandler.resetConnection();
-            CommHandler.gracefullyEndExam();
         }   },
         { label: 'Exit', click: function () {WindowHandler.mainwindow.allowexit = true; app.quit(); }   }
     ]);

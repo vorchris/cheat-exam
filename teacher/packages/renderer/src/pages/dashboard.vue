@@ -552,8 +552,10 @@ export default {
                 }
             }).then((input) => {
                 if (!input.value) {document.getElementById('examtype2').checked = true; this.serverstatus.examtype = "math"}
-                this.serverstatus.gformsTestId = input.value
-                console.log(this.serverstatus.examtype)
+                else {
+                    this.serverstatus.gformsTestId = input.value
+                    this.abgabeinterval.stop();
+                }
             })  
         },
 
@@ -569,7 +571,7 @@ export default {
                     <div class="row m-4 mt-1">                   
                         
                         ${this.$t("dashboard.eduvidualdomain")}
-                        <input class="form-control col-sm-2" type=text id=moodledomain placeholder="eduvidual.at">
+                        <input class="form-control col-sm-2" type=text id=moodledomain value="eduvidual.at">
                     </div>
                     
                     <div  style="text-align: left; width: 150px; margin: auto auto;">
@@ -597,8 +599,12 @@ export default {
             }).then((input) => {
                 if (!input.value) {document.getElementById('examtype2').checked = true; this.serverstatus.examtype = "math"}
                 this.serverstatus.moodleTestId = input.value
-                this.serverstatus.moodleDomain = this.isValidDomainName(  document.getElementById('moodledomain').value ) ? document.getElementById('moodledomain').value : "eduvidual.at"
+                this.serverstatus.moodleDomain = this.isValidDomainName(  document.getElementById('moodledomain').value ) ? document.getElementById('moodledomain').value : null
                 console.log( this.serverstatus.moodleDomain )
+
+                if (!this.serverstatus.moodleDomain) {document.getElementById('examtype2').checked = true; this.serverstatus.examtype = "math"}
+                else { this.abgabeinterval.stop(); }  // no autoabgabe in this exam mode
+
             })  
         },
 
@@ -625,6 +631,7 @@ export default {
                 this.serverstatus.domainname = this.isValidFullDomainName(  domainname ) ? domainname : null
 
                 if (!this.serverstatus.domainname) {document.getElementById('examtype2').checked = true; this.serverstatus.examtype = "math"}
+                else { this.abgabeinterval.stop(); }  // no autoabgabe in this exam mode
                 //console.log( this.serverstatus.domainname )
             })  
         },
