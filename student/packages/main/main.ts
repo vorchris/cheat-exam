@@ -20,7 +20,7 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow, powerSaveBlocker, nativeTheme, globalShortcut} from 'electron'
+import { app, BrowserWindow, powerSaveBlocker, nativeTheme, globalShortcut, Tray, Menu} from 'electron'
 
 if (!app.requestSingleInstanceLock()) {  // allow only one instance of the app per client
     app.quit()
@@ -86,7 +86,7 @@ log.warn(`main: starting Next-Exam "${config.version} ${config.info}" (${process
 log.info(`main: Logfilelocation at ${logfile}`)
 log.info('main: Next-Exam Logger initialized...');
 
-
+let tray = null;
 
   ////////////////////////////////
  // APP handling (Backend) START
@@ -109,6 +109,21 @@ process.emitWarning = (warning, options) => {
     return originalEmitWarning.call(process, warning, options)
 }
  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 app.on('certificate-error', (event, webContents, url, error, certificate, callback) => { // SSL/TSL: this is the self signed certificate support
     event.preventDefault(); // On certificate error we disable default behaviour (stop loading the page)
     callback(true);  // and we then say "it is all fine - true" to the callback
@@ -119,8 +134,7 @@ app.on('window-all-closed', () => {  // if window is closed
     //disableRestrictions()
     WindowHandler.mainwindow = null
     // if (process.platform !== 'darwin'){ app.quit() }
-    app.quit()
-    
+    app.quit()   
 })
 
 app.on('second-instance', () => {
@@ -156,6 +170,26 @@ app.whenReady()
    
     //WindowHandler.createSplashWin()
     WindowHandler.createMainWindow()
+
+    // Tray-Icon erstellen
+    const iconPath = path.join(__dirname, '../../public/icons','icon.png'); // Pfad zum Icon der App
+    tray = new Tray(iconPath);
+    const contextMenu = Menu.buildFromTemplate([ 
+        { label: 'Show App', click: function () { WindowHandler.mainwindow.show(); }   },
+        { label: 'Disconnect', click: function () {
+            CommHandler.resetConnection();
+            CommHandler.gracefullyEndExam();
+        }   },
+        { label: 'Exit', click: function () {WindowHandler.mainwindow.allowexit = true; app.quit(); }   }
+    ]);
+
+    tray.setToolTip('Next-Exam Student');
+    tray.setContextMenu(contextMenu);
+
+    // Klick auf das Tray-Icon zeigt das Fenster
+    tray.on('click', () => {
+        WindowHandler.mainwindow.isVisible() ?  WindowHandler.mainwindow.hide() :  WindowHandler.mainwindow.show();
+    });
 
     //these are some shortcuts we try to capture
     globalShortcut.register('CommandOrControl+R', () => {});

@@ -709,26 +709,14 @@ class WindowHandler {
         });
 
         this.mainwindow.on('close', async  (e) => {   //ask before closing
-            if (!this.config.development && !this.mainwindow.allowexit) {
-                if (this.mainwindow.closetriggered) { app.quit(); return;}
-                let choice = dialog.showMessageBoxSync(this.mainwindow, {
-                    type: 'question',
-                    buttons: ['Ja', 'Nein'],
-                    title: 'Programm Beenden',
-                    message: 'Sind sie sicher?',
-                    cancelId: 1
-                });
-                if(choice == 1){ e.preventDefault(); }
-                else {
-                    this.mainwindow.closetriggered = true
-                    app.quit()
-                }
+            if (!this.config.development && !this.mainwindow.allowexit) {  // allowexit ist ein override vom context menu oder screenshot test. dieser kann die app schliessen
+                this.mainwindow.hide();
+                e.preventDefault();
+                return
             }
-            if (this.config.development){
-                app.quit() 
-            }
+     
         });
-
+        
         this.mainwindow.once('ready-to-show', () => {
            // this.splashwin.close()
             this.mainwindow.show()
