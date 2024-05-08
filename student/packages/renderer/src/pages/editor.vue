@@ -363,8 +363,9 @@ export default {
             this.currentLTword = word
             let maincontainer = document.getElementById('editormaincontainer')
             maincontainer.scrollTop = 0
+            console.log(word)
             this.LTupdateHighlights()
-            this.editor.commands.focus(this.currentLTword.offset)
+            this.editor.commands.focus(this.currentLTword.offset)  // je nach text formatierung ist der node+word offset korrekt oder auch nicht die rects jedoch stimmen alle
         },
         async LTupdateHighlights(){
             if (!this.LTactive){return}

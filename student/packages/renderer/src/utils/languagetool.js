@@ -161,7 +161,6 @@ function LThandleMisspelled(backend, data){
 
 
 async function LTfindWordPositions() {
-    
     if (!this.misspelledWords || !this.textContainer || this.misspelledWords.length == 0) {  return;}
     const nodeIterator = document.createNodeIterator(this.textContainer, NodeFilter.SHOW_TEXT);
     let textNode;
@@ -185,6 +184,7 @@ async function LTfindWordPositions() {
             let match;
             while ((match = regex.exec(text)) !== null) {
                 const currentOffset = nodeoffset + match.index;  // hier berechnen wir den lokalen offset des wortes für den vergleich
+                if (this.hunspellFallback){ word.offset =  currentOffset}  //hunspell doesn't deliver offsets
                 // nur wenn der offset des gefunden worts auch in etwa dem offset im text von languagetool entspricht wird das wort aufgenommen - (wort am satzanfang möglicherweise falsch aber im text nicht)
                 if (this.hunspellFallback || Math.abs(word.offset - currentOffset) <= 10) { // Erlaube eine kleine Abweichung des wort-offsets
                     const wordKey = `${word.wrongWord}_${word.offset}`; // Eindeutiger Schlüssel pro word und offset
@@ -195,6 +195,7 @@ async function LTfindWordPositions() {
         });
     }
 
+    
     const positions = [];
     wordsMap.forEach((data, wordKey) => {   // Zugriff auf das `word` Objekt und die Vorkommen
         const { word, occurrences } = data;
@@ -206,21 +207,46 @@ async function LTfindWordPositions() {
             range.setEnd(node, index + word.wrongWord.length);
             const rects = range.getClientRects();
             if (rects.length > 0) {
-                positions.push(...Array.from(rects).map(rect => ({
-                    left: rect.left,
-                    top: rect.top,
-                    width: rect.width,
-                    height: rect.height,
-                    word: word.wrongWord,
-                    color: word.color,
-                    textoffset: word.offset
-                })));
+                // Verarbeitung der rects und Hinzufügen in `positions` ohne Duplikate
+                Array.from(rects).forEach(rect => {
+                    const newPosition = {
+                        left: rect.left,
+                        top: rect.top,
+                        width: rect.width,
+                        height: rect.height,
+                        word: word.wrongWord,
+                        color: word.color,
+                        textoffset: word.offset
+                    };
+                
+                    word.rect = newPosition  //try to save position on word itself - doesnt work because of weird nodes that are ignored when something is pasted into the editor - WTF?
+
+                    if (isUnique(newPosition, positions)) {
+                        positions.push(newPosition);
+                    }
+                });
+
+
+
             }
         });
     });
     return positions
 }
 
+
+
+function isUnique(position, positions) {
+    return !positions.some(pos => 
+        pos.left === position.left &&
+        pos.top === position.top &&
+        pos.width === position.width &&
+        pos.height === position.height &&
+        pos.word === position.word &&
+        pos.color === position.color &&
+        pos.textoffset === position.textoffset
+    );
+}
 
 
 
