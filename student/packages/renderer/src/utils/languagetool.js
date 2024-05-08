@@ -31,10 +31,10 @@ function LTdisable(){
         ltdiv.style.boxShadow = "-2px 1px 2px rgba(0,0,0,0)";
     }
 
-    eye.classList.toggle('eyeopen');
-    eye.classList.toggle('darkgreen');
-    eye.classList.toggle('eyeclose');
-    eye.classList.toggle('darkred');
+    eye.classList.remove('eyeopen');
+    eye.classList.remove('darkgreen');
+    eye.classList.add('eyeclose');
+    eye.classList.add('darkred');
 
     this.misspelledWords = []
     this.LTpositions = []
@@ -92,7 +92,7 @@ async function LTcheckAllWords(){
 
     })
     .catch(async (error) => {
-        console.error('languagetool.js @ LTcheckAllwords (catch):', error.message)  
+        console.warn('languagetool.js @ LTcheckAllwords (catch):', error.message)  
          // FALLBACK to HUNSPELL if LanguageTool (Next-Exam-Teacher) is not reachable
         const hunspelldata = ipcRenderer.sendSync('checktext', this.text);
         this.LThandleMisspelled("hunspell", hunspelldata) 
@@ -117,9 +117,6 @@ function LThandleMisspelled(backend, data){
                     suggestions.push({value: sugg})
                 } )
                
-                // FIXME:  kein offset daher wordmap leer!!!
-                //  FIXME:  repaint on keystroke ??  
-
                 this.misspelledWords.push( {
                     wrongWord: word.wrongWord, 
                     rule: {
@@ -189,7 +186,7 @@ async function LTfindWordPositions() {
             while ((match = regex.exec(text)) !== null) {
                 const currentOffset = nodeoffset + match.index;  // hier berechnen wir den lokalen offset des wortes für den vergleich
                 // nur wenn der offset des gefunden worts auch in etwa dem offset im text von languagetool entspricht wird das wort aufgenommen - (wort am satzanfang möglicherweise falsch aber im text nicht)
-                if (Math.abs(word.offset - currentOffset) <= 10) { // Erlaube eine kleine Abweichung des wort-offsets
+                if (this.hunspellFallback || Math.abs(word.offset - currentOffset) <= 10) { // Erlaube eine kleine Abweichung des wort-offsets
                     const wordKey = `${word.wrongWord}_${word.offset}`; // Eindeutiger Schlüssel pro word und offset
                     if (!wordsMap.has(wordKey)) { wordsMap.set(wordKey, { word, occurrences: [] });  }
                     wordsMap.get(wordKey).occurrences.push({ node: textNode, index: match.index });
@@ -201,8 +198,6 @@ async function LTfindWordPositions() {
     const positions = [];
     wordsMap.forEach((data, wordKey) => {   // Zugriff auf das `word` Objekt und die Vorkommen
         const { word, occurrences } = data;
-
-        
 
         if (occurrences.length && occurrences.length == 0){ this.LTdisable(); return;}  // text deleted.. this.misspelledWords still populated
         occurrences.forEach(({ node, index }) => {
@@ -223,11 +218,21 @@ async function LTfindWordPositions() {
             }
         });
     });
-   
     return positions
 }
 
+
+
+
+
+
+
+
+
+
+
 function LThighlightWords(positions) {
+    
     if (!this.textContainer || !positions || positions.length == 0){  this.LTdisable(); return }
     this.canvas.width = this.textContainer.offsetWidth;
     this.canvas.height = this.textContainer.offsetHeight;

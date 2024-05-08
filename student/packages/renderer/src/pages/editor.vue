@@ -344,10 +344,12 @@ export default {
             let ltdiv = document.getElementById(`languagetool`)
             let eye = document.getElementById('eye')
             if (ltdiv.style.right == "0px"){
+               
                 ltdiv.style.right = "-282px";
                 ltdiv.style.boxShadow = "-2px 1px 2px rgba(0,0,0,0)";
             }
             else {
+              
                 ltdiv.style.right = "0px"
                 ltdiv.style.boxShadow = "-2px 1px 2px rgba(0,0,0,0.2)"; 
             }
@@ -365,6 +367,7 @@ export default {
             this.editor.commands.focus(this.currentLTword.offset)
         },
         async LTupdateHighlights(){
+            if (!this.LTactive){return}
             let positions = await this.LTfindWordPositions()
             this.LThighlightWords(positions)
         },
