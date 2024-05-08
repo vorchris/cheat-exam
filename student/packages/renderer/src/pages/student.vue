@@ -5,7 +5,7 @@
     <img src='/src/assets/img/svg/speedometer.svg' class="white me-2  " width="32" height="32" >
     <span class="fs-4 align-middle me-4 ">Next-Exam</span>
     <span class="fs-4 align-middle  ms-3" style="float: right">Student</span>
-    <div v-if="token" id="adv" class="btn btn-success btn-sm m-0  mt-1 " style="cursor: unset; float: right">{{ $t("student.connected") }}</div>
+    <div v-if="token && !localLockdown" id="adv" class="btn btn-success btn-sm m-0  mt-1 " style="cursor: unset; float: right">{{ $t("student.connected") }}</div>
     <div v-if="!hostip" id="adv" class="btn btn-danger btn-sm m-0  mt-1 " style="cursor: unset; float: right">{{ $t("student.offline") }}</div>
     <div v-if="networkerror" id="adv" class="btn btn-danger btn-sm m-0  mt-1 " style="cursor: unset; float: right">{{ $t("student.noapi") }}</div>
 </div>
@@ -21,12 +21,18 @@
         <div v-if="!advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("student.advanced") }}</div>
         <div v-if="advanced" id="adv"  class="btn btn-sm btn-outline-secondary mt-2" @click="toggleAdvanced();"> {{ $t("student.simple") }}</div>
         
-        <div v-if="config.bipIntegration" @click="clearUser()" class="form-check form-switch  m-1 mb-2 mt-4" style="font-size:0.9em">
+
+        <div v-if="advanced" @click="setupLocalLockdown()" class="form-check form-switch  m-1 mt-4"  :class="(token)? 'disabledexam':''" style="font-size:0.9em">
+            <!-- Checkbox mit dem Label "BiP Login" -->
+            <input class="form-check-input" type="checkbox" id="localLockdown" v-model="localLockdown"> 
+            <label class="form-check-label" for="localLockdown"> Lokal absperren</label>
+        </div>
+
+        <div v-if="config.bipIntegration && advanced" @click="clearUser()" class="form-check form-switch  m-1 mb-2 mt-2" :class="(token)? 'disabledexam':''"  style="font-size:0.9em">
             <!-- Checkbox mit dem Label "BiP Login" -->
             <input class="form-check-input" type="checkbox" id="bipLogin" v-model="biplogin"> 
             <label class="form-check-label" for="bipLogin"> BiP Login</label>
         </div>
-
 
         
         <div  id="biploginbutton" v-if="biplogin" @click="loginBiP" class="btn btn-info mb-1 me-0" style="padding:0;">
@@ -53,7 +59,7 @@
 
 
 
-        <div class="col-8 mb-2">
+        <div class="col-8 mb-2" :class="(token)? 'disabledtext':''">
             <div v-if="!biplogin" class="input-group  mb-1">
                 <span class="input-group-text col-3" style="width:100px;" id="inputGroup-sizing-lg">{{ $t("student.name") }}</span>
                 <input v-model="username" type="text" required="required" maxlength="25" class="form-control" id="user" placeholder="" style="width:200px;max-width:200px;min-width:135px;">
@@ -134,10 +140,89 @@ export default {
             servername: "",
             hostip: config.hostip,
             biplogin: false,
-            networkerror: false
+            networkerror: false,
+            localLockdown: false
         };
     },
     methods: {
+
+        setupLocalLockdown(){
+            this.$swal({
+                title: 'Lokale Prüfung' ,
+               
+                html:`
+                    Prüfungsmodus wählen <br> <br>
+                    <div style="text-align: left; width: 150px; margin: auto auto;">
+                            <input class="form-check-input" name=etesttype type="radio" id="editor" value="editor" checked>
+                            <label class="form-check-label" for="editor"> Sprachen </label>
+                            <br>
+                            <input class="form-check-input"  name=etesttype type="radio" id="math" value="math">
+                            <label class="form-check-label" for="math"> Mathematik </label>
+                    </div>
+
+                    <div class=" m-2 mt-4"> 
+
+                        <div class="input-group  m-1 mb-1"> 
+                            <span class="input-group-text col-3" style="width:140px;">Benutzername</span>
+                            <input class="form-control" type=text id=localuser placehoder='Benutzername'>
+                        </div>
+
+                        <div class="input-group m-1 mb-1"> 
+                            <span class="input-group-text col-3" style="width:140px;">Passwort</span>
+                            <input class="form-control" type=text id=localpassword placehoder='Passwort'>
+                        </div>
+                    </div>
+                                
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Ok',
+                cancelButtonText: this.$t("editor.cancel"),
+            
+                focusConfirm: false,
+                icon: 'info',
+                didOpen:() => {
+                    document.getElementById("localuser").addEventListener("keypress", function(e) {
+                         // var lettersOnly = /^[a-zA-Z ]+$/;
+                        var lettersOnly = /^[a-zA-ZäöüÄÖÜß ]+$/;  //give some special chars for german a chance
+                        var key = e.key || String.fromCharCode(e.which);
+                        if (!lettersOnly.test(key)) { e.preventDefault(); }
+                    });
+
+
+                },
+
+            }).then((result) => {
+                if (result.isConfirmed) { 
+
+                    const radioButtons = document.querySelectorAll('input[name="etesttype"]');
+                    let exammode = '';
+                    radioButtons.forEach((radio) => {
+                        if (radio.checked) {
+                            exammode = radio.value;
+                        }
+                    });
+
+                    let username = document.getElementById('localuser').value; 
+                    username = username.replace(/^\s+|\s+$/g, '');  //check username - remove leading and trailing spaces
+                    let password = document.getElementById('localpassword').value; 
+
+                    if (username == "" || password == ""){
+                        this.localLockdown = false
+                        return; 
+                    }
+
+                    this.localLockdown = true
+                    ipcRenderer.send('locallockdown', {password:result.value, exammode: exammode, clientname: username, password: password })
+                }
+                else {
+                    this.localLockdown = false
+                    return; 
+                }
+            });
+
+        },
+
+
         loginBiP(){
             let IPCresponse = ipcRenderer.sendSync('loginBiP')
             console.log(IPCresponse)
@@ -177,6 +262,8 @@ export default {
             
             this.clientinfo = getinfo.clientinfo;
             this.token = this.clientinfo.token;
+
+            if (this.token && this.token != "0000") { this.localLockdown = false}
 
             if (this.advanced && !this.token) {
                 if (validator.isIP(this.serverip) || validator.isFQDN(this.serverip)){
@@ -394,6 +481,9 @@ export default {
             if (!lettersOnly.test(key)) { e.preventDefault(); }
         });
 
+ 
+
+
         ipcRenderer.on('bipToken', (event, token) => {  
             console.log("token received: ",token)
             this.fetchBiPData(token)
@@ -409,7 +499,17 @@ export default {
 </script>
 
 <style scoped>
-    
+
+.disabledexam {
+    filter: contrast(100%) grayscale(100%) brightness(80%) blur(0.6px);
+   pointer-events: none;
+}
+.disabledtext {
+    filter: contrast(40%) grayscale(100%) brightness(130%) blur(0.6px);
+   pointer-events: none;
+} 
+
+
 #content {
     background-color: whitesmoke;
     min-width: 680px;

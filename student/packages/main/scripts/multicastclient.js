@@ -50,7 +50,8 @@ class MulticastClient {
             msofficeshare: false,
             screenshotinterval: 4000,   //milliseconds
             printrequest : false,
-            privateSpellcheck: {activated: false}
+            privateSpellcheck: {activated: false},
+            localLockdown: false
         }
     }
 

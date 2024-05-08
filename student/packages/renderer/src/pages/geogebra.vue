@@ -24,6 +24,7 @@
       :currenttime="currenttime"
       :timesinceentry="timesinceentry"
       :componentName="componentName"
+      :localLockdown="localLockdown"
       @reconnect="reconnect"
       @gracefullyexit="gracefullyexit"
     ></exam-header>
@@ -111,10 +112,12 @@ export default {
             token: this.$route.params.token,
             clientname: this.$route.params.clientname,
             serverApiPort: this.$route.params.serverApiPort,
+            serverstatus: this.$route.params.serverstatus,
             clientApiPort: this.$route.params.clientApiPort,
             config: this.$route.params.config,
             electron: this.$route.params.electron,
             pincode : this.$route.params.pincode,
+            localLockdown: this.$route.params.localLockdown,
             clientinfo: null,
             entrytime: 0,
             timesinceentry: 0,
@@ -239,6 +242,9 @@ export default {
                 }
             })
         },
+
+
+        // disable lock but keep examwindow
         gracefullyexit(){
             this.$swal.fire({
                 title: this.$t("editor.exit"),
@@ -246,14 +252,32 @@ export default {
                 icon: "question",
                 showCancelButton: true,
                 cancelButtonText: this.$t("editor.cancel"),
-                reverseButtons: true
+                reverseButtons: true,
+
+                html: this.localLockdown ? `
+                    <div class="m-2 mt-4"> 
+                        <div class="input-group m-1 mb-1"> 
+                            <span class="input-group-text col-3" style="width:140px;">Passwort</span>
+                            <input class="form-control" type="text" id="localpassword" placeholder='Passwort'>
+                        </div>
+                    </div>
+                ` : '',
             })
             .then((result) => {
                 if (result.isConfirmed) {
-                    ipcRenderer.send('gracefullyexit')
+                    if (this.localLockdown){
+                        let password = document.getElementById('localpassword').value; 
+                        if (password == this.serverstatus.password){ ipcRenderer.send('gracefullyexit')  }
+                    }
+                    else {
+                        ipcRenderer.send('gracefullyexit')
+                    }  
                 } 
             }); 
         },
+
+
+
         sendFocuslost(){
             let response = ipcRenderer.send('focuslost')  // refocus, go back to kiosk, inform teacher
             if (!this.config.development && !response.focus){  //immediately block frontend
@@ -348,6 +372,8 @@ export default {
             this.clientname = this.clientinfo.name
             this.exammode = this.clientinfo.exammode
             this.pincode = this.clientinfo.pin
+            
+            if (this.pincode !== "0000"){this.localLockdown = false}
 
             if (!this.focus){  this.entrytime = new Date().getTime()}
             if (this.clientinfo && this.clientinfo.token){  this.online = true  }

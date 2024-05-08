@@ -99,6 +99,8 @@ let TesseractWorker = false
      * 5 Heartbeats lost is considered offline 
      */
     async sendHeartbeat(){
+        if (this.multicastClient.clientinfo.localLockdown){return}
+
         // CONNECTION LOST - UNLOCK SCREEN
         if (this.multicastClient.beaconsLost >= 5 ){ // no serversignal for 20 seconds
             log.warn("communicationhandler @ sendHeartbeat: Connection to Teacher lost! Removing registration.") //remove server registration locally (same as 'kick')
@@ -137,6 +139,7 @@ let TesseractWorker = false
      * Update current Serverstatus + Studenttstatus (every 5 seconds)
      */
     async requestUpdate(){
+        if (this.multicastClient.clientinfo.localLockdown){return}
         if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip
             const clientInfo = JSON.stringify(this.multicastClient.clientinfo);
 
@@ -182,6 +185,7 @@ let TesseractWorker = false
      * Update Screenshot on Server  (every 4 seconds - or depending on the server setting)
      */
     async sendScreenshot(){
+        if (this.multicastClient.clientinfo.localLockdown){return}
         if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip
             let img = null
             if (this.screenshotAbility){   // "imagemagick" has to be installed for linux - wayland is not (yet) supported by imagemagick !!
@@ -680,6 +684,7 @@ let TesseractWorker = false
         this.multicastClient.clientinfo.focus = true  // we are focused 
         //this.multicastClient.clientinfo.exammode = false   // do not set to false until exam window is manually closed
         this.multicastClient.clientinfo.timestamp = false
+        this.multicastClient.clientinfo.localLockdown = false
         //this.multicastClient.clientinfo.virtualized = false  // this check happens only at the application start.. do not reset once set
     }
  

@@ -79,6 +79,7 @@ async function fetchInfo(to, from){
     to.params.clientname = clientinfo.name
     to.params.pincode = clientinfo.pin
     to.params.cmargin = clientinfo.cmargin
+    to.params.localLockdown = clientinfo.localLockdown
     return true
 }
 

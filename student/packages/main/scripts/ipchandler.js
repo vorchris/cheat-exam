@@ -45,6 +45,52 @@ class IpcHandler {
         this.CommunicationHandler = ch
         
 
+
+        /**
+         *  Start LOCAL Lockdown
+         */
+
+        ipcMain.on('locallockdown', (event, args) => {
+            log.info("ipchandler @ locallockdown: locking down client without teacher connection")
+            
+            let serverstatus = {
+                exammode: true,
+                examtype: args.exammode,
+                delfolderonexit: false,
+                spellcheck: true,
+                spellchecklang: 'de',
+                suggestions: false,
+                moodleTestType: '',
+                moodleDomain: '',
+                cmargin: { side: 'right', size: 3 },
+                screenshotinterval: 0,
+                msOfficeFile: false,
+                screenslocked: false,
+                pin: '0000',
+                linespacing: '2',
+                unlockonexit: false,
+                fontfamily: 'sans-serif',
+                moodleTestId: '',
+                languagetool: true,
+                password: args.password
+            }
+            
+            this.multicastClient.clientinfo.name = args.clientname;
+            this.multicastClient.clientinfo.serverip = "127.0.0.1";
+            this.multicastClient.clientinfo.servername = "localhost";
+            this.multicastClient.clientinfo.pin = "0000";
+            this.multicastClient.clientinfo.token = "0000";
+            this.multicastClient.clientinfo.localLockdown = true; // this must be set to true in order to stop typical next-exam client/teacher actions
+
+            this.CommunicationHandler.startExam(serverstatus)
+
+            console.log(serverstatus)
+
+            event.returnValue = "hello from locallockdown"
+        })
+
+
+
         /**
          *  Start BIP Login Sequence
          */
@@ -95,7 +141,9 @@ class IpcHandler {
         */ 
         ipcMain.on('gracefullyexit', () => {  
             log.info(`ipchandler @ gracefullyexit: gracefully leaving locked exam mode`)
+
             this.CommunicationHandler.gracefullyEndExam() 
+            this.CommunicationHandler.resetConnection() 
         } )
 
         /**

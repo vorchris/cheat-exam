@@ -12,6 +12,7 @@
         :currenttime="currenttime"
         :timesinceentry="timesinceentry"
         :componentName="componentName"
+        :localLockdown="localLockdown"
         @reconnect="reconnect"
         @gracefullyexit="gracefullyexit"
         ></exam-header>
@@ -88,6 +89,7 @@ export default {
             electron: this.$route.params.electron,
             pincode : this.$route.params.pincode,
             serverstatus: this.$route.params.serverstatus,
+            localLockdown: this.$route.params.localLockdown,
             clientinfo: null,
             entrytime: 0,
             timesinceentry: 0,

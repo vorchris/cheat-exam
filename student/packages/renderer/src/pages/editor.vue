@@ -12,6 +12,7 @@
       :currenttime="currenttime"
       :timesinceentry="timesinceentry"
       :componentName="componentName"
+      :localLockdown="localLockdown"
       @reconnect="reconnect"
       @gracefullyexit="gracefullyexit"
     ></exam-header>
@@ -276,6 +277,7 @@ export default {
             serverip: this.$route.params.serverip,
             token: this.$route.params.token,
             clientname: this.$route.params.clientname,
+            localLockdown: this.$route.params.localLockdown,
             localfiles: null,
             serverApiPort: this.$route.params.serverApiPort,
             clientApiPort: this.$route.params.clientApiPort,
@@ -456,6 +458,8 @@ export default {
             this.pincode = this.clientinfo.pin
             this.privateSpellcheck = this.clientinfo.privateSpellcheck
             this.serverstatus =  getinfo.serverstatus
+           
+            if (this.pincode !== "0000"){this.localLockdown = false}  // pingcode is 0000 only in localmode
 
             if (!this.focus){  this.entrytime = new Date().getTime()}
             if (this.clientinfo && this.clientinfo.token){  this.online = true  }
@@ -517,14 +521,31 @@ export default {
                 icon: "question",
                 showCancelButton: true,
                 cancelButtonText: this.$t("editor.cancel"),
-                reverseButtons: true
+                reverseButtons: true,
+
+                html: this.localLockdown ? `
+                    <div class="m-2 mt-4"> 
+                        <div class="input-group m-1 mb-1"> 
+                            <span class="input-group-text col-3" style="width:140px;">Passwort</span>
+                            <input class="form-control" type="text" id="localpassword" placeholder='Passwort'>
+                        </div>
+                    </div>
+                ` : '',
             })
             .then((result) => {
                 if (result.isConfirmed) {
-                    ipcRenderer.send('gracefullyexit')
+                    if (this.localLockdown){
+                        let password = document.getElementById('localpassword').value; 
+                        if (password == this.serverstatus.password){ ipcRenderer.send('gracefullyexit')  }
+                    }
+                    else {
+                        ipcRenderer.send('gracefullyexit')
+                    }  
                 } 
             }); 
         },
+
+
         //get all files in user directory
         async loadFilelist(){
             let filelist = await ipcRenderer.invoke('getfilesasync', null)
