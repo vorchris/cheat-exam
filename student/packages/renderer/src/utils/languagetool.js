@@ -23,12 +23,19 @@ function LTdisable(){
     this.ctx = this.canvas.getContext('2d');
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); // Vorheriges Highlighting löschen
     let ltdiv = document.getElementById(`languagetool`)
-    let ltcheck = document.getElementById('ltcheck')
+
+  
+    let eye = document.getElementById('eye')
     if (ltdiv && ltdiv.style.right == "0px"){
         ltdiv.style.right = "-282px";
         ltdiv.style.boxShadow = "-2px 1px 2px rgba(0,0,0,0)";
-        ltcheck.innerHTML= `<img src="/src/assets/img/svg/eye-fill.svg" class="darkgreen"  width="22" height="22" > &nbsp;LanguageTool`
     }
+
+    eye.classList.toggle('eyeopen');
+    eye.classList.toggle('darkgreen');
+    eye.classList.toggle('eyeclose');
+    eye.classList.toggle('darkred');
+
     this.misspelledWords = []
     this.LTpositions = []
     return 
@@ -85,7 +92,7 @@ async function LTcheckAllWords(){
 
     })
     .catch(async (error) => {
-        console.error('languagetool.js @ LTcheckAllwords:', error.message)  
+        console.error('languagetool.js @ LTcheckAllwords (catch):', error.message)  
          // FALLBACK to HUNSPELL if LanguageTool (Next-Exam-Teacher) is not reachable
         const hunspelldata = ipcRenderer.sendSync('checktext', this.text);
         this.LThandleMisspelled("hunspell", hunspelldata) 
@@ -94,7 +101,7 @@ async function LTcheckAllWords(){
         let positions = await this.LTfindWordPositions();  //finde wörter im text und erzeuge highlights
         this.LThighlightWords(positions)
     })
-    }
+}
 
 
 
@@ -110,6 +117,8 @@ function LThandleMisspelled(backend, data){
                     suggestions.push({value: sugg})
                 } )
                
+                // FIXME:  kein offset daher wordmap leer!!!
+                //  FIXME:  repaint on keystroke ??  
 
                 this.misspelledWords.push( {
                     wrongWord: word.wrongWord, 
@@ -156,7 +165,7 @@ function LThandleMisspelled(backend, data){
 
 async function LTfindWordPositions() {
     
-    if (!this.misspelledWords || !this.textContainer || this.misspelledWords.length == 0) return;
+    if (!this.misspelledWords || !this.textContainer || this.misspelledWords.length == 0) {  return;}
     const nodeIterator = document.createNodeIterator(this.textContainer, NodeFilter.SHOW_TEXT);
     let textNode;
 
@@ -167,7 +176,6 @@ async function LTfindWordPositions() {
         let nodeoffset = this.text.indexOf(text)  // wir brauchen den genauen offset dieses textknotens - addieren den offset des worts innerhalb des textknotens
 
         this.misspelledWords.forEach(word => {
-           
             if (word.rule.issueType == "typographical") { word.color = "rgba(146, 43, 33 , 0.3)"; }
             else if (word.rule.issueType == "whitespace") { word.color = "rgba( 243, 190, 41, 0.5)"; word.whitespace = true;}
             else if (word.rule.issueType == "misspelling") { word.color = "rgba( 211, 84, 0, 0.3)"; }
@@ -190,19 +198,12 @@ async function LTfindWordPositions() {
         });
     }
 
- 
-
-
-
- 
-     
- 
-
-
-
     const positions = [];
     wordsMap.forEach((data, wordKey) => {   // Zugriff auf das `word` Objekt und die Vorkommen
         const { word, occurrences } = data;
+
+        
+
         if (occurrences.length && occurrences.length == 0){ this.LTdisable(); return;}  // text deleted.. this.misspelledWords still populated
         occurrences.forEach(({ node, index }) => {
             const range = document.createRange();
@@ -227,7 +228,7 @@ async function LTfindWordPositions() {
 }
 
 function LThighlightWords(positions) {
-    if (!this.textContainer || !positions || positions.length == 0){ this.LTdisable(); return }
+    if (!this.textContainer || !positions || positions.length == 0){  this.LTdisable(); return }
     this.canvas.width = this.textContainer.offsetWidth;
     this.canvas.height = this.textContainer.offsetHeight;
     this.canvas.style.top = this.textContainer.offsetTop + 'px';
