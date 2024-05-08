@@ -25,7 +25,7 @@ class JreHandler {
 
         if (app.isPackaged) { this.jreDir = path.join(process.resourcesPath, 'app.asar.unpacked', 'public', this.jre)   }
         else {                this.jreDir = path.join(__dirname, '../../public', this.jre)  }
-        log.info(this.jreDir)
+       // log.info(this.jreDir)
 
 
         switch (this._arch) {

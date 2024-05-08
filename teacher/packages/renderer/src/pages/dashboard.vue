@@ -555,6 +555,7 @@ export default {
                 else {
                     this.serverstatus.gformsTestId = input.value
                     this.abgabeinterval.stop();
+                    this.autoabgabe = false;
                 }
             })  
         },
@@ -603,7 +604,7 @@ export default {
                 console.log( this.serverstatus.moodleDomain )
 
                 if (!this.serverstatus.moodleDomain) {document.getElementById('examtype2').checked = true; this.serverstatus.examtype = "math"}
-                else { this.abgabeinterval.stop(); }  // no autoabgabe in this exam mode
+                else { this.abgabeinterval.stop(); this.autoabgabe = false; }  // no autoabgabe in this exam mode
 
             })  
         },
@@ -631,7 +632,7 @@ export default {
                 this.serverstatus.domainname = this.isValidFullDomainName(  domainname ) ? domainname : null
 
                 if (!this.serverstatus.domainname) {document.getElementById('examtype2').checked = true; this.serverstatus.examtype = "math"}
-                else { this.abgabeinterval.stop(); }  // no autoabgabe in this exam mode
+                else { this.abgabeinterval.stop(); this.autoabgabe = false;}  // no autoabgabe in this exam mode
                 //console.log( this.serverstatus.domainname )
             })  
         },

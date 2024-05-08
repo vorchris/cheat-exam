@@ -36,10 +36,21 @@ import cookieParser from 'cookie-parser'
 import { app } from 'electron'
 import log from 'electron-log/main';
 
-config.workdirectory = path.join(os.homedir(), config.examdirectory)  //Attention! In Electron this makes sense. the WEBserver version will most likely need another Workdirectory
+
+config.homedirectory = os.homedir()
+config.workdirectory = path.join(os.homedir(),'Desktop', config.examdirectory)
 config.tempdirectory = path.join(os.tmpdir(), 'exam-tmp')
-//if (!fs.existsSync(config.workdirectory)){ fs.mkdirSync(config.workdirectory); } //this is done in control.js /start/ anyways
-if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory); }
+
+
+
+if (process.platform === 'win32') {
+    config.workdirectory = process.env['USERPROFILE'] ? path.join(process.env['USERPROFILE'], 'Desktop',  config.examdirectory) : config.workdirectory ;   // Nutzt die Umgebungsvariable, falls verfügbar
+}
+
+if (!fs.existsSync(config.workdirectory)){ fs.mkdirSync(config.workdirectory, { recursive: true }); }
+if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory, { recursive: true }); }
+
+
 
 try {
     const {gateway, interface: iface} =  defaultGateway.v4.sync()
@@ -57,6 +68,7 @@ try {
 
 if (typeof window !== 'undefined'){
     if (window.process.type == "renderer") config.electron = true
+   
 }
 
 
