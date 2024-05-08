@@ -31,10 +31,10 @@ function LTdisable(){
         ltdiv.style.boxShadow = "-2px 1px 2px rgba(0,0,0,0)";
     }
 
-    eye.classList.remove('eyeopen');
-    eye.classList.remove('darkgreen');
-    eye.classList.add('eyeclose');
-    eye.classList.add('darkred');
+    eye.classList.add('eyeopen');
+    eye.classList.add('darkgreen');
+    eye.classList.remove('eyeclose');
+    eye.classList.remove('darkred');
 
     this.misspelledWords = []
     this.LTpositions = []
@@ -50,18 +50,31 @@ async function LTcheckAllWords(){
    
 
     //check if lt is alread open (toggle button)
-    if (this.LTactive ){    
-        this.LTdisable()  // close LT sidebar
+    let ltdiv = document.getElementById(`languagetool`)
+    let eye = document.getElementById('eye')
+   
+    if (this.LTactive){
+        this.LTdisable()
         return 
     }
+    else {
+        ltdiv.style.right = "0px"
+        ltdiv.style.boxShadow = "-2px 1px 2px rgba(0,0,0,0.2)"; 
+        eye.classList.remove('eyeopen');
+        eye.classList.remove('darkgreen');
+        eye.classList.add('eyeclose');
+        eye.classList.add('darkred');
+        this.LTactive = true;
+    }
+
+
+
     if (this.text.length == 0) { 
         this.LTinfo = "keine Fehler gefunden"
         return; 
     }
 
-  
     //request LanguageTool API
-    this.LTactive = true;
     this.LTinfo = "searching..."
 
     fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/languagetool/${this.servername}/${this.token}`, {
@@ -160,7 +173,7 @@ function LThandleMisspelled(backend, data){
 
 
 
-async function LTfindWordPositions() {
+async function LTfindWordPositionsOld() {
     if (!this.misspelledWords || !this.textContainer || this.misspelledWords.length == 0) {  return;}
     const nodeIterator = document.createNodeIterator(this.textContainer, NodeFilter.SHOW_TEXT);
     let textNode;
@@ -195,7 +208,6 @@ async function LTfindWordPositions() {
         });
     }
 
-    
     const positions = [];
     wordsMap.forEach((data, wordKey) => {   // Zugriff auf das `word` Objekt und die Vorkommen
         const { word, occurrences } = data;
@@ -236,16 +248,77 @@ async function LTfindWordPositions() {
 
 
 
-function isUnique(position, positions) {
-    return !positions.some(pos => 
-        pos.left === position.left &&
-        pos.top === position.top &&
-        pos.width === position.width &&
-        pos.height === position.height &&
-        pos.word === position.word &&
-        pos.color === position.color &&
-        pos.textoffset === position.textoffset
+
+
+async function LTfindWordPositions() {
+    if (!this.misspelledWords || !this.textContainer || this.misspelledWords.length === 0) {
+        return [];
+    }
+    this.misspelledWords.forEach(word => {
+        word.position=null // reset and search again
+     })
+
+
+    // Vorbereiten des Node Iterators
+    const nodeIterator = document.createNodeIterator(this.textContainer, NodeFilter.SHOW_TEXT);
+    let textNode;
+
+
+    // Durchlaufe alle Textknoten
+    while ((textNode = nodeIterator.nextNode())) {
+        const text = textNode.nodeValue;
+     
+        this.misspelledWords.forEach(word => {
+            
+            // Setze Farben basierend auf dem Issue Typ
+            if (word.rule.issueType === "typographical") { word.color = "rgba(146, 43, 33 , 0.3)"; }
+            else if (word.rule.issueType === "whitespace") { word.color = "rgba(243, 190, 41, 0.5)"; word.whitespace = true; }
+            else if (word.rule.issueType === "misspelling") { word.color = "rgba(211, 84, 0, 0.3)"; }
+            else { word.color = "rgba(108, 52, 131, 0.3)"; }
+
+            // Erstelle Regex für das Wort
+            const pattern = word.wrongWord.trim() === '' ? '\\s\\s+' : `(?<!\\w)${word.wrongWord}(?!\\w)`;
+            const regex = new RegExp(pattern, 'g');
+
+            // Durchsuche den Text der aktuellen (text)Node nach diesem Wort
+            let match;
+            while ((match = regex.exec(text)) !== null) {
+                const range = document.createRange();
+                range.setStart(textNode, match.index);
+                range.setEnd(textNode, match.index + word.wrongWord.length);
+                const rects = range.getClientRects(); // Positionsinformationen des Textes
+
+                Array.from(rects).forEach(rect => {
+                    const newPosition = {
+                        left: rect.left,
+                        top: rect.top,
+                        width: rect.width,
+                        height: rect.height,
+                    };
+              
+                    if (isUnique(newPosition, word, this.misspelledWords)) {  // Prüfe, ob die Position einzigartig ist
+                        if (!word.position) {
+                            word.position = newPosition;  // Speichere Position, wenn noch keine vorhanden ist
+                            word.range = range
+                        }
+                    }
+
+                });
+            }
+        });
+    }
+
+}
+function isUnique(position, currentWord, allWords) {
+    // Check if any word already has this exact position
+    const alreadyTaken = allWords.some(word => 
+        word !== currentWord && 
+        word.position && 
+        word.position.left === position.left && 
+        word.position.top === position.top 
+       
     );
+    return !alreadyTaken;
 }
 
 
@@ -254,28 +327,22 @@ function isUnique(position, positions) {
 
 
 
-
-
-
-function LThighlightWords(positions) {
-    
-    if (!this.textContainer || !positions || positions.length == 0){  this.LTdisable(); return }
+function LThighlightWords() {
+    if (!this.textContainer || this.misspelledWords.length == 0){  this.LTdisable(); return }
     this.canvas.width = this.textContainer.offsetWidth;
     this.canvas.height = this.textContainer.offsetHeight;
     this.canvas.style.top = this.textContainer.offsetTop + 'px';
     this.canvas.style.left = this.textContainer.offsetLeft + 'px';
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); // Vorheriges Highlighting löschen
     
-    positions.forEach(word => {
+    this.misspelledWords.forEach(word => {
         let height = 3
-        let translate = word.height
-      
-        if (word.word == this.currentLTword.wrongWord){ height= height+word.height+3; translate = -3; }
-
-        const adjustedLeft = word.left - this.textContainer.offsetLeft + window.scrollX;
-        const adjustedTop = word.top - this.textContainer.offsetTop + window.scrollY;
+        let translate = word.position.height
+        if (this.currentLTword && word.position.top == this.currentLTword.position.top){ height= height+word.position.height+3; translate = -3; }
+        const adjustedLeft = word.position.left - this.textContainer.offsetLeft + window.scrollX;
+        const adjustedTop = word.position.top - this.textContainer.offsetTop + window.scrollY;
         this.ctx.fillStyle = word.color; // Farbe und Transparenz des Highlights
-        this.ctx.fillRect(adjustedLeft, adjustedTop+translate, word.width, height); // Angepasste Position und Größe
+        this.ctx.fillRect(adjustedLeft, adjustedTop+translate, word.position.width, height); // Angepasste Position und Größe
     });
 }
     

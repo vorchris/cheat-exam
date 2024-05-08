@@ -21,7 +21,7 @@
 
     <div id="suggestion-menu" style="display:none; position:fixed;"></div>
 
-    <div class="w-100 p-0 m-0 text-white shadow-sm text-center" style=" top: 66px; z-index: 10001 !important; background-color: white;">
+    <div class="w-100 p-0 m-0 text-white shadow-sm text-center" style="top: 66px; z-index: 10001 !important; background-color: white;">
         
         <!-- toolbar start -->
         <div v-if="editor" class="m-2" id="editortoolbar" style="text-align:left;"> 
@@ -137,7 +137,7 @@
 
     <!-- LANGUAGE TOOL START -->
     <div id="languagetool" v-if="serverstatus.languagetool || privateSpellcheck.activated">
-        <div id="ltcheck" @click="LTtoggleSidebar(); LTcheckAllWords();">
+        <div id="ltcheck" @click="LTcheckAllWords();">
             <!-- <img src="/src/assets/img/svg/eye-fill.svg" class="darkgreen eyeopen" width="22" height="22" > -->
             <div id="eye" class="darkgreen eyeopen"></div> &nbsp;LanguageTool
         
@@ -340,41 +340,35 @@ export default {
         LTdisable:LTdisable,
         LThandleMisspelled: LThandleMisspelled,
 
-        LTtoggleSidebar(){
-            let ltdiv = document.getElementById(`languagetool`)
-            let eye = document.getElementById('eye')
-            if (ltdiv.style.right == "0px"){
-               
-                ltdiv.style.right = "-282px";
-                ltdiv.style.boxShadow = "-2px 1px 2px rgba(0,0,0,0)";
-            }
-            else {
-              
-                ltdiv.style.right = "0px"
-                ltdiv.style.boxShadow = "-2px 1px 2px rgba(0,0,0,0.2)"; 
-            }
-
-            eye.classList.toggle('eyeopen');
-            eye.classList.toggle('darkgreen');
-            eye.classList.toggle('eyeclose');
-            eye.classList.toggle('darkred');
-        },
         LTshowWord(word){
             this.currentLTword = word
-            let maincontainer = document.getElementById('editormaincontainer')
-            maincontainer.scrollTop = 0
-            console.log(word)
             this.LTupdateHighlights()
-            this.editor.commands.focus(this.currentLTword.offset)  // je nach text formatierung ist der node+word offset korrekt oder auch nicht die rects jedoch stimmen alle
+            this.setCursorAtStartOfRange(word.range)
         },
         async LTupdateHighlights(){
             if (!this.LTactive){return}
-            let positions = await this.LTfindWordPositions()
-            this.LThighlightWords(positions)
+            await this.LTfindWordPositions()
+            this.LThighlightWords()
         },
 
+        setCursorAtStartOfRange(range) {
+            // Stellen Sie sicher, dass der Bereich in ein editierbares Element gesetzt wird
+            const editableElement = range.startContainer.parentNode; // Das sollte das editierbare Element sein
+            if (editableElement.isContentEditable) {
+                const caretRange = document.createRange();
+                caretRange.setStart(range.startContainer, range.startOffset);
+                caretRange.setEnd(range.startContainer, range.startOffset);
 
+                // Setze den Auswahlbereich (Selection) auf den Anfang des Range-Objekts
+                const selection = window.getSelection();
+                selection.removeAllRanges(); // Entferne alle bestehenden Bereiche aus der aktuellen Auswahl
+                selection.addRange(caretRange); // Fügt die neue Range hinzu, die den Caret positioniert
 
+                // Optional: Scroll das Element in die Sicht, falls nötig
+                editableElement.focus(); // Richtet den Fokus auf das editierbare Element
+                caretRange.startContainer.parentNode.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
+            }
+        },
 
 
         async playAudio(file) {
