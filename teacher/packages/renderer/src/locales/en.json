@@ -141,7 +141,11 @@
         "noprinter": "no printer found",
         "directprint": "direct  print",
         "open": "open file in external viewer",
-        "ocr": "activate OCR saftey feature"
+        "ocr": "activate OCR saftey feature",
+        "audiorepeattitle": "Audio restrictions",
+        "audioallow": "no restrictions",
+        "audiorepeat1": "repetition",
+        "audiorepeat2": "repetitions"
     },
     "control": {
         "tokennotvalid": "token is not valid",

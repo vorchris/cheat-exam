@@ -498,41 +498,7 @@ export default {
 
 
 
-        async showDescription(description) {
-            this.currentDescription = description;
-            this.showDesc = true;
-        },
-        hideDescription() {
-            this.showDesc = false;
-        },
-        visualfeedback(message, timeout=1000){
-             this.$swal.fire({
-                text: message,
-                timer: timeout,
-                timerProgressBar: true,
-                didOpen: () => { this.$swal.showLoading() }
-            });
-        },
-        visualfeedbackClosemanually(message){
-            const closeWhenFinished = async () => {
-                while (!this.serverstatus.msOfficeFile) {
-                    await new Promise((resolve) => setTimeout(resolve, 100));
-                }
-                this.$swal.close();
-            };
-            // Your existing Swal configuration
-            this.$swal.fire({
-                text: message,
-                timerProgressBar: true,
-                didOpen: () => {
-                    this.$swal.showLoading();
-                    closeWhenFinished();
-                },
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                allowEnterKey: false,
-            });
-        },
+   
 
         /**
          * Google Forms
@@ -638,19 +604,6 @@ export default {
         },
 
 
-        isValidDomainName(str) {
-            // Regex for matching a simple domain name structure
-           // var regex = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/i;
-            var regex = /^([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
-            return regex.test(str);
-        },
-
-        isValidFullDomainName(str) {
-            // Regex for matching a simple domain name structure
-            var regex = /^(https?:\/\/)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/i;
-            return regex.test(str);
-        },
-
         /**
          * Text Editor
          */
@@ -684,7 +637,7 @@ export default {
                 },
                 title: this.$t("dashboard.texteditor"),
                 html: `
-                <div style="font-size: 0.8em !important; text-align:left; margin-left:10px;">
+                <div class="my-content" style="font-size: 0.8em !important; text-align:left; margin-left:10px;">
                     <div>
                         <label >
                             <h6>${this.$t("dashboard.cmargin-value")}</h6>
@@ -700,18 +653,30 @@ export default {
                             <input type="radio" name="correction_margin" value="right" checked/>
                             ${this.$t("dashboard.cmargin-right")}
                         </label>
-                    </div><br> 
+                    </div>
                     <div> 
                         <h6> ${this.$t("dashboard.linespacing")}</h6>
                         <label><input type="radio" name="linespacing" value="1"/> 1</label> &nbsp;
                         <label><input type="radio" name="linespacing" value="2" checked/> 2</label> &nbsp;
                         <label><input type="radio" name="linespacing" value="3"/> 3</label> &nbsp;
-                    </div><br>
+                    </div>
                     <div> 
                         <h6>${this.$t("dashboard.fontfamily")}</h6>
                         <label><input type="radio" name="fontfamily" value="serif"/> serif</label> &nbsp;
                         <label><input type="radio" name="fontfamily" value="sans-serif" checked/> sans-serif</label> &nbsp;
-                    </div><br>
+                    </div>
+                    <hr>
+                    <div>
+                        <h6>${this.$t("dashboard.audiorepeattitle")}</h6>
+                        <select id="audiorepeat" class="my-select">
+                            <option value="0">${this.$t("dashboard.audioallow")}</option>
+                            <option value="1">1 ${this.$t("dashboard.audiorepeat1")}</option>
+                            <option value="2">2 ${this.$t("dashboard.audiorepeat2")}</option>
+                            <option value="3">3 ${this.$t("dashboard.audiorepeat2")}</option>
+                            <option value="4">4 ${this.$t("dashboard.audiorepeat2")}</option>
+                        </select>
+                    </div>
+                   
                     <hr>
                     <div>
                         <h6>${this.$t("dashboard.spellcheck")}</h6>
@@ -750,6 +715,10 @@ export default {
                     const linespacingradioButtons = document.querySelectorAll('input[name="linespacing"]');
                     const fontfamilyradioButtons = document.querySelectorAll('input[name="fontfamily"]');
 
+                    const audioRepeat = document.getElementById('audiorepeat').value;
+     
+
+
                     let selectedMargin = '';
                     radioButtons.forEach((radio) => {
                         if (radio.checked) {
@@ -781,6 +750,7 @@ export default {
 
                     this.serverstatus.linespacing = selectedSpacing
                     this.serverstatus.fontfamily = selectedFont
+                    this.serverstatus.audioRepeat = audioRepeat
                 }
             })
             if (language) {
@@ -814,6 +784,57 @@ export default {
 
 
 
+
+
+
+        isValidDomainName(str) {
+            // Regex for matching a simple domain name structure
+           // var regex = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/i;
+            var regex = /^([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+            return regex.test(str);
+        },
+
+        isValidFullDomainName(str) {
+            // Regex for matching a simple domain name structure
+            var regex = /^(https?:\/\/)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/i;
+            return regex.test(str);
+        },
+        async showDescription(description) {
+            this.currentDescription = description;
+            this.showDesc = true;
+        },
+        hideDescription() {
+            this.showDesc = false;
+        },
+        visualfeedback(message, timeout=1000){
+             this.$swal.fire({
+                text: message,
+                timer: timeout,
+                timerProgressBar: true,
+                didOpen: () => { this.$swal.showLoading() }
+            });
+        },
+        // show visual feedback 
+        visualfeedbackClosemanually(message){
+            const closeWhenFinished = async () => {
+                while (!this.serverstatus.msOfficeFile) {
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+                }
+                this.$swal.close();
+            };
+            // Your existing Swal configuration
+            this.$swal.fire({
+                text: message,
+                timerProgressBar: true,
+                didOpen: () => {
+                    this.$swal.showLoading();
+                    closeWhenFinished();
+                },
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
+            });
+        },
         //display student specific actions
         showStudentview(student) {
             document.querySelector("#studentinfocontainer").style.display = 'block';
@@ -899,6 +920,7 @@ export default {
             if (!value) return
             return value.length > len ? value.substr(0, len) + '...' : value;
         },
+
         // we save serverstatus everytime we start an exam - therefore exams can be resumed easily by the teacher if something wicked happens
         getPreviousServerStatus(){
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/getserverstatus/${this.servername}/${this.servertoken}`, { method: 'POST', headers: {'Content-Type': 'application/json' },})
@@ -936,11 +958,6 @@ export default {
                         });
                     }
                 }
-
-
-
-
-
                 this.setServerStatus()  //  we fetched a backup of serverstatus and now we make sure the backend has the updated settings for the students to fetch
             })
             .catch(err => { console.warn(err) })
@@ -1020,6 +1037,14 @@ export default {
         },
 
   
+
+
+
+
+
+
+
+
 
 
     },
@@ -1488,9 +1513,19 @@ hr {
     backdrop-filter: blur(2px); 
 } 
 
-.my-popup {
-   
+
+
+
+.my-select{
+    font-size: 1.125em;
+    margin: 0em 0em 3px;
+    min-height: 1.2em;
+    padding: 0.5em;
+    color: #545454;
+    width: 99%;
 }
+
+
 
 .my-title {
     text-align: left;
@@ -1505,6 +1540,13 @@ hr {
     font-size: 1em;
     margin-bottom: 0px;
 }
+
+.my-content h6 {
+   
+    margin-bottom: 1px;
+    margin-top:8px;
+}
+
 
 .my-custom-input {
     margin-top: 0px;

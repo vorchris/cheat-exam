@@ -103,7 +103,12 @@
         "reloadtext": "Would you like to reinitialize the Editor?",
         "reloadcontent": "keep content",
         "specialchar":"Insert specialcharacter",
-        "print": "print"
+        "print": "print",
+        "playaudio":"Play Audio",
+        "reallyplay":"Do you want to play the audiofile?",
+        "audioremaining":"Remaining playbacks:",
+        "audionotallowed":"You don't have the permission to play this file!"
+
     },
     "math": {
         "exit":"Exit safe exam mode",

@@ -292,7 +292,7 @@ function enableRestrictions(win){
 
 
 
-function disableRestrictions(win){
+function disableRestrictions(){
     
     if (config.development) {return}
 

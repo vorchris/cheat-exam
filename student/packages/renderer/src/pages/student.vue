@@ -263,14 +263,13 @@ export default {
             this.clientinfo = getinfo.clientinfo;
             this.token = this.clientinfo.token;
 
-            if (this.token && this.token != "0000") { this.localLockdown = false}
+            if (this.token && this.token != "0000" || !this.token) { this.localLockdown = false}  //other token than 0000 or no token.. no (local) exam mode
 
             if (this.advanced && !this.token) {
                 if (validator.isIP(this.serverip) || validator.isFQDN(this.serverip)){
+                   
                     //give some userfeedback here
-                    if (this.serverlistAdvanced.length == 0){
-                        this.status("Suche Prüfungen...")
-                    }
+                    if (this.serverlistAdvanced.length == 0){ this.status("Suche Prüfungen...")  }
                 
                     fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/serverlist`)
                     .then(response => response.json()) // Parse JSON response
@@ -285,9 +284,6 @@ export default {
                         log.error(`student.vue @ fetchInfo (advanced): ${err.message}`);
                         this.networkerror = true;
                     });
-
-
-
                 }
             }
 
@@ -316,10 +312,8 @@ export default {
             // check im networkconnection is still alive - otherwise exit here
             this.hostip = ipcRenderer.sendSync('checkhostip')
             if (!this.hostip) return;  
-            for (let server of this.serverlist){ 
-                       
+            for (let server of this.serverlist){      
                 const signal = AbortSignal.timeout(2000); // 2000 Millisekunden = 2 Sekunden
-
                 fetch(`https://${server.serverip}:${this.serverApiPort}/server/control/pong`, { method: 'GET', signal })
                 .then(response => {
                     if (!response.ok) throw new Error('Response not OK');
@@ -330,7 +324,6 @@ export default {
                     else {  console.log("student @ fetchinfo:", err.message);  }
                     server.reachable = false; // Markieren als nicht erreichbar bei Fehlern
                 });
-
             }
         },  
         

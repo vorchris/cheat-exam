@@ -141,7 +141,11 @@
         "noprinter": "Keine Drucker gefunden",
         "directprint": "Direktdruck",
         "open": "Datei in externem Betrachter öffnen",
-        "ocr": "OCR Sicherheit (Exam PIN erkennen)"
+        "ocr": "OCR Sicherheit (Exam PIN erkennen)",
+        "audiorepeattitle": "Abspielen von Audiodateien einschränken",
+        "audioallow": "Keine Einschränkung",
+        "audiorepeat1": "Wiederholung",
+        "audiorepeat2": "Wiederholungen"
     },
     "control": {
         "tokennotvalid": "Das Token ist ungültig",

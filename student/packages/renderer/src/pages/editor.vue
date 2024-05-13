@@ -228,30 +228,30 @@ import { LTcheckAllWords, LTfindWordPositions, LThighlightWords, LTdisable, LTha
 
 
 // in order to insert <span> elements (used for highlighting misspelled words) we need our own tiptap extenison
-const CustomSpan = Node.create({
-    name: 'customSpan',
-    addOptions: { HTMLAttributes: {},    },
-    inline: true,
-    group: 'inline',
-    atom: false,
-    content: 'inline*',
-    addAttributes() {
-        return {
-        id: {
-            default: null,
-            parseHTML: element => ( element.getAttribute('id')),
-            renderHTML: attributes => ({  id: attributes.id }),
-        },
-        class: {
-            default: null,
-            parseHTML: element => ( element.getAttribute('class')),
-            renderHTML: attributes => ({ class: attributes.class }),
-        },
-        }
-    },
-    parseHTML() { return [ { tag: 'span', }, ] },
-    renderHTML({ HTMLAttributes }) { return ['span', mergeAttributes(HTMLAttributes), 0] },
-})
+// const CustomSpan = Node.create({
+//     name: 'customSpan',
+//     addOptions: { HTMLAttributes: {},    },
+//     inline: true,
+//     group: 'inline',
+//     atom: false,
+//     content: 'inline*',
+//     addAttributes() {
+//         return {
+//         id: {
+//             default: null,
+//             parseHTML: element => ( element.getAttribute('id')),
+//             renderHTML: attributes => ({  id: attributes.id }),
+//         },
+//         class: {
+//             default: null,
+//             parseHTML: element => ( element.getAttribute('class')),
+//             renderHTML: attributes => ({ class: attributes.class }),
+//         },
+//         }
+//     },
+//     parseHTML() { return [ { tag: 'span', }, ] },
+//     renderHTML({ HTMLAttributes }) { return ['span', mergeAttributes(HTMLAttributes), 0] },
+// })
 
 export default {
     components: {
@@ -308,7 +308,7 @@ export default {
             individualSpellcheckActivated: false,
             audioSource: null,
             currentpreview: null,
-
+            audiofiles: [],
             misspelledWords:[],
             textContainer : null,
             canvas : null,
@@ -318,7 +318,8 @@ export default {
             currentLTwordPos:null,
             LTinfo: "searching...",
             LTactive: false,
-            hunspellFallback: false
+            hunspellFallback: false,
+            
 
         }
     },
@@ -371,17 +372,89 @@ export default {
         },
 
 
-        async playAudio(file) {
-            this.LTdisable()
-            document.querySelector("#aplayer").style.display = 'block';
-            try {
-                const base64Data = await ipcRenderer.invoke('getfilesasync', file, true);
-                if (base64Data) {
-                    this.audioSource = `data:audio/mp3;base64,${base64Data}`;
-                    audioPlayer.load(); // Lädt die neue Quelle
-                    audioPlayer.play().then(() => { console.log('Playback started'); }).catch(e => { console.error('Playback failed:', e); });
-                } else { console.error('Keine Daten empfangen'); }
-            } catch (error) { console.error('Fehler beim Empfangen der MP3-Datei:', error); }
+        async fetchInfo() {
+            let getinfo = await ipcRenderer.invoke('getinfoasync')  // we need to fetch the updated version of the systemconfig from express api (server.js)
+            this.clientinfo = getinfo.clientinfo;
+            this.token = this.clientinfo.token
+            this.focus = this.clientinfo.focus
+            this.clientname = this.clientinfo.name
+            this.exammode = this.clientinfo.exammode
+            this.pincode = this.clientinfo.pin
+            this.privateSpellcheck = this.clientinfo.privateSpellcheck
+            this.serverstatus =  getinfo.serverstatus
+           
+            if (this.pincode !== "0000"){this.localLockdown = false}  // pingcode is 0000 only in localmode
+            if (!this.focus){  this.entrytime = new Date().getTime()}
+            if (this.clientinfo && this.clientinfo.token){  this.online = true  } else { this.online = false  }
+
+            this.battery = await navigator.getBattery().then(battery => { return battery }).catch(error => { console.error("Error accessing the Battery API:", error);  });
+
+            //handle individual spellcheck (only if not globally activated anyways)
+            if (this.serverstatus.languagetool === false) {   
+                if (this.privateSpellcheck.activate == false) {
+                    this.LTdisable()
+                    this.privateSpellcheck.activated = false
+                }
+            }
+        }, 
+
+
+        /**
+         * plays an audiofile
+         * either shows dialog with limited amount of replays or player controls if unlimited
+         * @param {*} filename the name of the audiofile to be played
+         */
+        async playAudio(filename) {
+            const audioFile = this.audiofiles.find(obj => obj.name === filename);  // search for file in this.audiofiles - get object
+            this.LTdisable()  // close langugagetool
+     
+       
+            if (this.serverstatus.audioRepeat > 0){
+                this.$swal.fire({
+                    title: audioFile.name,
+                    text:  this.$t("editor.reallyplay"),
+                    icon: "question",
+                    showCancelButton: true,
+                    cancelButtonText: this.$t("editor.cancel"),
+                    reverseButtons: true,
+
+                    html: audioFile.playbacks > 0 ? `
+                        <span class="col-3" style="">${this.$t("editor.audioremaining")} ${audioFile.playbacks} </span> <br><br>
+                        
+                        <h6>${this.$t("editor.reallyplay")}</h6>
+                    ` : `
+                       
+                        <span class="col-3" style="">${this.$t("editor.audionotallowed")}</span> 
+                    `,
+                }).then(async (result) => {
+                    if (result.isConfirmed) {
+                        if (audioFile.playbacks > 0){
+                            try {
+                                const base64Data = await ipcRenderer.invoke('getfilesasync', filename, true);
+                                if (base64Data) {
+                                    this.audioSource = `data:audio/mp3;base64,${base64Data}`;
+                                    audioPlayer.load(); // Lädt die neue Quelle
+                                    audioPlayer.play().then(() => { 
+                                        console.log('Playback started');
+                                        audioFile.playbacks -= 1
+                                    }).catch(e => { console.error('Playback failed:', e); });
+                                } else { console.error('Keine Daten empfangen'); }
+                            } catch (error) { console.error('Fehler beim Empfangen der MP3-Datei:', error); }   
+                        }
+                    } 
+                }); 
+            }
+            if (this.serverstatus.audioRepeat == 0){
+                document.querySelector("#aplayer").style.display = 'block';
+                try {
+                    const base64Data = await ipcRenderer.invoke('getfilesasync', file, true);
+                    if (base64Data) {
+                        this.audioSource = `data:audio/mp3;base64,${base64Data}`;
+                        audioPlayer.load(); // Lädt die neue Quelle
+                       
+                    } else { console.error('Keine Daten empfangen'); }
+                } catch (error) { console.error('Fehler beim Empfangen der MP3-Datei:', error); } 
+            }
         },
 
         showInsertSpecial(){
@@ -446,35 +519,7 @@ export default {
             this.timesinceentry =  new Date(this.now - this.entrytime).toISOString().substr(11, 8)
             this.currenttime = moment().tz('Europe/Vienna').format('HH:mm:ss');
         },
-        async fetchInfo() {
-            let getinfo = await ipcRenderer.invoke('getinfoasync')  // we need to fetch the updated version of the systemconfig from express api (server.js)
-            this.clientinfo = getinfo.clientinfo;
-            this.token = this.clientinfo.token
-            this.focus = this.clientinfo.focus
-            this.clientname = this.clientinfo.name
-            this.exammode = this.clientinfo.exammode
-            this.pincode = this.clientinfo.pin
-            this.privateSpellcheck = this.clientinfo.privateSpellcheck
-            this.serverstatus =  getinfo.serverstatus
-           
-            if (this.pincode !== "0000"){this.localLockdown = false}  // pingcode is 0000 only in localmode
 
-            if (!this.focus){  this.entrytime = new Date().getTime()}
-            if (this.clientinfo && this.clientinfo.token){  this.online = true  }
-            else { this.online = false  }
-
-            this.battery = await navigator.getBattery().then(battery => { return battery })
-            .catch(error => { console.error("Error accessing the Battery API:", error);  });
-
-
-            //handle individual spellcheck (only if not globally activated anyways)
-            if (this.serverstatus.languagetool === false) {   
-                if (this.privateSpellcheck.activate == false) {
-                    this.LTdisable()
-                    this.privateSpellcheck.activated = false
-                }
-            }
-        }, 
         reconnect(){
             this.$swal.fire({
                 title: this.$t("editor.reconnect"),
@@ -548,7 +593,18 @@ export default {
         async loadFilelist(){
             let filelist = await ipcRenderer.invoke('getfilesasync', null)
             this.localfiles = filelist;
+            
+            // handle audio file objects (playback limitations)
+            this.localfiles.forEach( file =>{
+                if (file.type == "audio"){
+                    const existingaudiofile = this.audiofiles.find(obj => obj.name === file.name);
+                    if (!existingaudiofile){
+                        this.audiofiles.push({name: file.name, playbacks: this.serverstatus.audioRepeat})
+                    } 
+                }
+            })
         },
+
         // get file from local workdirectory and replace editor content with it
         async loadHTML(file){
             this.LTdisable()
@@ -644,8 +700,6 @@ export default {
         },
         /** Converts the Editor View into a multipage PDF */
         async saveContent(backup, why) {     
-            
-         
             let filename = false  // this is set manually... otherwise use clientname
             if (why === "manual"){
                 await this.$swal({
@@ -832,7 +886,7 @@ export default {
         createEditor(){
             this.editor = new Editor({
                 extensions: [
-                    CustomSpan,
+                    // CustomSpan,
                     Typography,
                     SmilieReplacer,
                     this.charReplacerExtension,

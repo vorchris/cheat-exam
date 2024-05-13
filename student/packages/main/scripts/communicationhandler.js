@@ -53,17 +53,12 @@ let TesseractWorker = false
     init (mc, config) {
         this.multicastClient = mc
         this.config = config
-
         this.heartbeatScheduler = new SchedulerService(this.sendHeartbeat.bind(this), 4000)
         this.heartbeatScheduler.start()
-
         this.updateScheduler = new SchedulerService(this.requestUpdate.bind(this), 5000)
         this.updateScheduler.start()
-
         this.screenshotScheduler = new SchedulerService(this.sendScreenshot.bind(this), this.multicastClient.clientinfo.screenshotinterval)
         this.screenshotScheduler.start()
-
-   
         if (process.platform !== 'linux' || (  !this.isWayland() && this.imagemagickAvailable()  )){ this.screenshotAbility = true } // only on linux we need to check for wayland or the absence of imagemagick - other os have other problems ^^
     }
  
@@ -482,6 +477,7 @@ let TesseractWorker = false
         this.multicastClient.clientinfo.exammode = true
         this.multicastClient.clientinfo.cmargin = serverstatus.cmargin  // this is used to configure margin settings for the editor
         this.multicastClient.clientinfo.linespacing = serverstatus.linespacing // we try to double linespacing on demand in pdf creation
+        this.multicastClient.clientinfo.audioRepeat = serverstatus.audioRepeat // restrict repetition of audio files (for listening comprehension)
 
         if (!WindowHandler.examwindow){  // why do we check? because exammode is left if the server connection gets lost but students could reconnect while the exam window is still open and we don't want to create a second one
             log.info("communicationhandler @ startExam: creating exam window")
@@ -524,15 +520,16 @@ let TesseractWorker = false
             WindowHandler.blockwindows.forEach( (blockwin) => {
                 blockwin.moveTop();
             })
-
         }
-       
     }
 
 
+    //returns true if a number is within tolerance 
     isApproximatelyEqual(x1, x2, tolerance = 4) {
         return Math.abs(x1 - x2) <= tolerance;
     }
+
+
 
     /**
      * Disables Exam mode
@@ -552,10 +549,9 @@ let TesseractWorker = false
             } catch (error) { log.error("communicationhandler @ endExam: ",error); }
         }
         WindowHandler.removeBlurListener();
-        disableRestrictions(WindowHandler.examwindow)
+        disableRestrictions()
 
-        if (WindowHandler.examwindow){ // in some edge cases in development this is set but still unusable - use try/catch
-            
+        if (WindowHandler.examwindow){ // in some edge cases in development this is set but still unusable - use try/catch   
             try {  //send save trigger to exam window
                 if (!serverstatus.delfolderonexit){
                     WindowHandler.examwindow.webContents.send('save', 'exitexam') //trigger, why
@@ -563,7 +559,6 @@ let TesseractWorker = false
                 }
                 WindowHandler.examwindow.close(); 
                 WindowHandler.examwindow.destroy(); 
-                WindowHandler.examwindow = null;
             }
             catch(e){ log.error(e)}
            
@@ -575,11 +570,11 @@ let TesseractWorker = false
                 }
             } catch (e) { 
                 WindowHandler.blockwindows = []
-                console.error("communicationhandler @ endExam: no functional blockwindow to handle")
-            } 
-            WindowHandler.blockwindows = []
+                log.error("communicationhandler @ endExam: no functional blockwindow to handle")
+            }  
         }
-        
+        WindowHandler.blockwindows = []
+        WindowHandler.examwindow = null;
         this.multicastClient.clientinfo.exammode = false
         this.multicastClient.clientinfo.focus = true
     }
@@ -587,17 +582,17 @@ let TesseractWorker = false
 
     // this is manually  triggered if connection is lost during exam - we allow the student to get out of the kiosk mode but keep his work in the editor
     gracefullyEndExam(){
+        disableRestrictions()
+
         if (WindowHandler.examwindow){ 
             this.multicastClient.clientinfo.exammode = false
             log.warn("communicationhandler @ gracefullyEndExam: Manually Unlocking Workstation")
             try {
                 // remove listener
                 WindowHandler.removeBlurListener();
-                disableRestrictions(WindowHandler.examwindow)
-
-                WindowHandler.examwindow.setKiosk(false)
-                WindowHandler.examwindow.setAlwaysOnTop(false)
-                WindowHandler.examwindow.alwaysOnTop = false
+                WindowHandler.examwindow.close(); 
+                WindowHandler.examwindow.destroy(); 
+                WindowHandler.examwindow = null
               
             } catch (e) { 
                 WindowHandler.examwindow = null
@@ -613,13 +608,30 @@ let TesseractWorker = false
             } catch (e) { 
                 WindowHandler.blockwindows = []
                 console.error("communicationhandler @ gracefullyEndExam: no functional blockwindow to handle")
-            } 
-            WindowHandler.blockwindows = []
-
-            this.multicastClient.clientinfo.focus = true
-            this.multicastClient.clientinfo.exammode = false
+            }   
         }
+      
+        WindowHandler.blockwindows = []
+        WindowHandler.examwindow = null
+        this.multicastClient.clientinfo.focus = true
+        this.multicastClient.clientinfo.exammode = false
+        this.multicastClient.clientinfo.localLockdown = false;
     }
+
+    // reset all variables that signal or need a valid teacher connection
+    resetConnection(){
+        this.multicastClient.clientinfo.token = false
+        this.multicastClient.clientinfo.ip = false
+        this.multicastClient.clientinfo.serverip = false
+        this.multicastClient.clientinfo.servername = false
+        this.multicastClient.clientinfo.focus = true  // we are focused 
+        //this.multicastClient.clientinfo.exammode = false   // do not set to false until exam window is manually closed
+        this.multicastClient.clientinfo.timestamp = false
+        this.multicastClient.clientinfo.localLockdown = false
+        //this.multicastClient.clientinfo.virtualized = false  // this check happens only at the application start.. do not reset once set
+    }
+ 
+
 
 
     /**
@@ -676,18 +688,7 @@ let TesseractWorker = false
     }
 
 
-    resetConnection(){
-        this.multicastClient.clientinfo.token = false
-        this.multicastClient.clientinfo.ip = false
-        this.multicastClient.clientinfo.serverip = false
-        this.multicastClient.clientinfo.servername = false
-        this.multicastClient.clientinfo.focus = true  // we are focused 
-        //this.multicastClient.clientinfo.exammode = false   // do not set to false until exam window is manually closed
-        this.multicastClient.clientinfo.timestamp = false
-        this.multicastClient.clientinfo.localLockdown = false
-        //this.multicastClient.clientinfo.virtualized = false  // this check happens only at the application start.. do not reset once set
-    }
- 
+
 
     async sendExamToTeacher(){
         //send save trigger to exam window

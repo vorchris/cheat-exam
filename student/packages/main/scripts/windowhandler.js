@@ -837,8 +837,10 @@ class WindowHandler {
     }
     //removes blur listener when leaving exam mode
     removeBlurListener(){
-        log.info("windowhandler @ removeBlurListener: removing blur listener")
-        this.examwindow.removeAllListeners('blur')
+        if (this.examwindow){
+            this.examwindow.removeAllListeners('blur')
+            log.info("windowhandler @ removeBlurListener: removing blur listener")
+        }
     }
     // implementing a sleep (wait) function
     sleep(ms) {

@@ -103,7 +103,11 @@
         "reloadtext": "Wollen sie den Texteditor neu initialisieren?",
         "reloadcontent": "Inhalt beibehalten",
         "specialchar":"Sonderzeichen einfügen",
-        "print": "drucken"
+        "print": "drucken",
+        "playaudio":"Audio abspielen",
+        "reallyplay":"Wollen Sie das Hörbeispiel jetzt abspielen?",
+        "audioremaining":"Verbleibende Durchläufe:",
+        "audionotallowed":"Sie haben keine Berechtigung die Audiodatei erneut abzuspielen!"
     },
     "math": {
         "exit":"Abgesicherten Modus beenden?",
