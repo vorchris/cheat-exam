@@ -45,16 +45,14 @@ import log from 'electron-log/main';
 
 config.electron = true
 config.homedirectory = os.homedir()
-config.workdirectory = path.join(os.homedir(),'Desktop', config.examdirectory)
+config.workdirectory = path.join(os.homedir(),'Desktop', config.clientname)
 config.tempdirectory = path.join(os.tmpdir(), 'exam-tmp')
 
-
-
 if (process.platform === 'win32') {
-    config.workdirectory = process.env['USERPROFILE'] ? path.join(process.env['USERPROFILE'], 'Desktop',  config.examdirectory) : config.workdirectory ;   // Nutzt die Umgebungsvariable, falls verfügbar
+    config.workdirectory = process.env['USERPROFILE'] ? path.join(process.env['USERPROFILE'], 'Desktop',  config.clientname) : config.workdirectory ;   // Nutzt die Umgebungsvariable, falls verfügbar
 }
 
-
+config.examdirectory = config.workdirectory    // we need this variable setup even if we do not connect to a teacher instance
 
 if (!fs.existsSync(config.workdirectory)){ fs.mkdirSync(config.workdirectory, { recursive: true }); }
 if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory, { recursive: true }); }

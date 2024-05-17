@@ -215,7 +215,7 @@ class IpcHandler {
                 log.info(`ipchandler: storeHTML: creating manual backup as ${htmlfilename}`)
             }
 
-            const htmlfile = path.join(this.config.workdirectory, htmlfilename);
+            const htmlfile = path.join(this.config.examdirectory, htmlfilename);
 
             if (htmlContent) { 
                 // log.info("ipchandler: storeHTML: saving students work to disk...")
@@ -272,18 +272,18 @@ class IpcHandler {
                     pdffilename = `${args.filename}.pdf`
                     log.info(`ipchandler @ printpdf: creating manual backup as ${pdffilename}`)
                 }
-                const pdffilepath = path.join(this.config.workdirectory, pdffilename);  //the original file "thomas.pdf"
+                const pdffilepath = path.join(this.config.examdirectory, pdffilename);  //the original file "thomas.pdf"
                 const alternatefilename = `${pdffilename}-aux.pdf`    //thomas.pdf-aux.pdf 
                 const alternatebackupfilename = `${pdffilename}-old.pdf`;   //thomas.pdf-old.pdf
 
-                const alternatepath = path.join(this.config.workdirectory, alternatefilename);
+                const alternatepath = path.join(this.config.examdirectory, alternatefilename);
 
                 // aux files are files created if the main pdffilepath is not writeable (opened on windows) and preferred by printrequest and when combining all pdfs. 
-                fs.readdir(this.config.workdirectory, (err, files) => { // rename it if it exists - we don't want old backupfiles to mess up printrequest and combine (if everything is ok and the mainfile is writeable)
+                fs.readdir(this.config.examdirectory, (err, files) => { // rename it if it exists - we don't want old backupfiles to mess up printrequest and combine (if everything is ok and the mainfile is writeable)
                     if (err) {  return; }
                     files.forEach(file => {
                         if (file === alternatefilename) {
-                            const newPath = path.join(this.config.workdirectory, alternatebackupfilename);
+                            const newPath = path.join(this.config.examdirectory, alternatebackupfilename);
                             fs.rename(alternatepath, newPath, err => {
                                 if (err) { 
                                     log.error('ipchandler @ printpdf: Error renaming file:', err);
@@ -382,8 +382,9 @@ class IpcHandler {
             let serverstatus = false
             if (this.WindowHandler.examwindow) { serverstatus = this.WindowHandler.examwindow.serverstatus }
 
+            //count number of files in exam directory
             if (!this.multicastClient.clientinfo.exammode){
-                const workdir = path.join(config.workdirectory,"/")
+                const workdir = path.join(config.examdirectory,"/")
                 if (!fs.existsSync(workdir)){ fs.mkdirSync(workdir, { recursive: true });  } //do not crash if the directory is deleted after the app is started ^^
                 let filelist =  fs.readdirSync(workdir, { withFileTypes: true })
                     .filter(dirent => dirent.isFile())
@@ -466,6 +467,10 @@ class IpcHandler {
                     this.multicastClient.clientinfo.pin = pin;
                     log.info(`ipchandler @ register: successfully registered at ${servername} @ ${serverip} as ${clientname}`);
                     event.returnValue = data;
+
+                    //create exam folder in workfolder
+                    config.examdirectory = path.join(config.workdirectory, servername)
+                    if (!fs.existsSync(config.examdirectory)){ fs.mkdirSync(config.examdirectory, { recursive: true }); }
                 } 
                 else {
                     event.returnValue = { status: "error", message: data.message };
@@ -493,7 +498,7 @@ class IpcHandler {
             const content = args.content
             const filename = args.filename
             const reason = args.reason
-            const ggbFilePath = path.join(this.config.workdirectory, filename);
+            const ggbFilePath = path.join(this.config.examdirectory, filename);
             if (content) { 
                 //log.info("ipchandler @ saveGGB: saving students work to disk...")
                 const fileData = Buffer.from(content, 'base64');
@@ -519,7 +524,7 @@ class IpcHandler {
          * @param args contains an object { filename:`${this.clientname}.ggb` }
          */
         ipcMain.handle('loadGGB', (event, filename) => {   
-            const ggbFilePath = path.join(this.config.workdirectory, filename);
+            const ggbFilePath = path.join(this.config.examdirectory, filename);
             try {
                 // Read the file and convert it to base64
                 const fileData = fs.readFileSync(ggbFilePath);
@@ -540,7 +545,7 @@ class IpcHandler {
          * @param filename if set the content of the file is returned
          */ 
         ipcMain.on('getpdf', (event, filename) => {   
-            const workdir = path.join(config.workdirectory,"/")
+            const workdir = path.join(config.examdirectory,"/")
             if (filename) { //return content of specific file
                 let filepath = path.join(workdir,filename)
                 try {
@@ -554,7 +559,7 @@ class IpcHandler {
         })
 
         ipcMain.handle('getpdfasync', (event, filename) => {   
-            const workdir = path.join(config.workdirectory,"/")
+            const workdir = path.join(config.examdirectory,"/")
             if (filename) { //return content of specific file
                 let filepath = path.join(workdir,filename)
                 try {
@@ -573,11 +578,11 @@ class IpcHandler {
  
 
         /**
-         * ASYNC GET FILE-LIST from workdirectory
+         * ASYNC GET FILE-LIST from examdirectory
          * @param filename if set the content of the file is returned
          */ 
         ipcMain.handle('getfilesasync', (event, filename, audio=false) => {   
-            const workdir = path.join(config.workdirectory,"/")
+            const workdir = path.join(config.examdirectory,"/")
 
             if (filename) { //return content of specific file as string (html) to replace in editor)
                 let filepath = path.join(workdir,filename)

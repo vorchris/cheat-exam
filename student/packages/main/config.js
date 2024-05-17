@@ -9,7 +9,8 @@ const config = {
     workdirectory : "",   // (desktop path + examdir)
     tempdirectory : "",   // (desktop path + 'tmp')
     homedirectory : "",   // set in main.ts
-    examdirectory: "EXAM-STUDENT",
+    examdirectory : "",    // set after registering
+    clientname: "EXAM-STUDENT",
 
     serverApiPort:22422,  // this is needed to be reachable on the teachers pc for basic functionality
     multicastClientPort: 6024,  // only needed for exam autodiscovery

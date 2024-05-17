@@ -308,9 +308,9 @@ let TesseractWorker = false
                 log.info("communicationhandler @ processUpdatedServerstatus: cleaning exam workfolder")
                 let delfolder = true
                 try {
-                    if (fs.existsSync(this.config.workdirectory)){   // set by server.js (desktop path + examdir)
-                        fs.rmSync(this.config.workdirectory, { recursive: true });
-                        fs.mkdirSync(this.config.workdirectory);
+                    if (fs.existsSync(this.config.examdirectory)){   // set by server.js (desktop path + examdir)
+                        fs.rmSync(this.config.examdirectory, { recursive: true });
+                        fs.mkdirSync(this.config.examdirectory);
                     }
                 } catch (error) { 
                     delfolder = false
@@ -319,11 +319,11 @@ let TesseractWorker = false
                 }
 
                 if (delfolder == false){  //try deleting file by file (the one that causes the problem will stay in the folder)
-                    if (fs.existsSync(this.config.workdirectory)) {
-                        const files = fs.readdirSync(this.config.workdirectory);
+                    if (fs.existsSync(this.config.examdirectory)) {
+                        const files = fs.readdirSync(this.config.examdirectory);
 
                         files.forEach(file => {
-                            const filePath = join(this.config.workdirectory, file);
+                            const filePath = join(this.config.examdirectory, file);
                             try {
                                 const stats = fs.statSync(filePath);
                                 if (stats.isDirectory()) { fs.rmSync(filePath, { recursive: true }); }  // Versuche, das Verzeichnis rekursiv zu löschen
@@ -542,9 +542,9 @@ let TesseractWorker = false
         if (serverstatus.delfolderonexit === true){
             log.info("communicationhandler @ endExam: cleaning exam workfolder on exit")
             try {
-                if (fs.existsSync(this.config.workdirectory)){   // set by server.js (desktop path + examdir)
-                    fs.rmSync(this.config.workdirectory, { recursive: true });
-                    fs.mkdirSync(this.config.workdirectory);
+                if (fs.existsSync(this.config.examdirectory)){   // set by server.js (desktop path + examdir)
+                    fs.rmSync(this.config.examdirectory, { recursive: true });
+                    fs.mkdirSync(this.config.examdirectory);
                 }
             } catch (error) { log.error("communicationhandler @ endExam: ",error); }
         }
@@ -666,7 +666,7 @@ let TesseractWorker = false
             fs.writeFile(absoluteFilepath, Buffer.from(buffer), (err) => {
                 if (err) { log.error(err);  } 
                 else {
-                    extract(absoluteFilepath, { dir: this.config.workdirectory }) 
+                    extract(absoluteFilepath, { dir: this.config.examdirectory }) 
                     .then(() => {
                         log.info("CommunicationHandler @ requestFileFromServer: files received and extracted");
                         return fs.promises.unlink(absoluteFilepath); // Verwendung der Promise-basierten API von fs
@@ -722,7 +722,7 @@ let TesseractWorker = false
 
         let base64File = null
         try {
-            await this.zipDirectory(this.config.workdirectory, zipfilepath)
+            await this.zipDirectory(this.config.examdirectory, zipfilepath)
             const fileContent = fs.readFileSync(zipfilepath);
             base64File = fileContent.toString('base64');
         }catch (e){  log.error(e)  }

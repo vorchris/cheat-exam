@@ -605,7 +605,7 @@ export default {
             })
         },
 
-        // get file from local workdirectory and replace editor content with it
+        // get file from local examdirectory and replace editor content with it
         async loadHTML(file){
             this.LTdisable()
             this.$swal.fire({
