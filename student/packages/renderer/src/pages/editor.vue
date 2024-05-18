@@ -447,7 +447,7 @@ export default {
             if (this.serverstatus.audioRepeat == 0){
                 document.querySelector("#aplayer").style.display = 'block';
                 try {
-                    const base64Data = await ipcRenderer.invoke('getfilesasync', file, true);
+                    const base64Data = await ipcRenderer.invoke('getfilesasync', filename, true);
                     if (base64Data) {
                         this.audioSource = `data:audio/mp3;base64,${base64Data}`;
                         audioPlayer.load(); // Lädt die neue Quelle
@@ -1043,7 +1043,7 @@ export default {
         this.editorcontentcontainer.addEventListener('keydown', this.insertSpaceInsteadOfTab)   //this changes the tab behaviour and allows tabstops   
         
         // update LThighlights positions on scroll
-        document.getElementById('editormaincontainer').addEventListener('scroll', this.LTupdateHighlights);
+        document.getElementById('editormaincontainer').addEventListener('scroll', this.LTupdateHighlights, { passive: true });
 
         // block editor on escape
         document.body.addEventListener('mouseleave', this.sendFocuslost);
@@ -1066,7 +1066,7 @@ export default {
         this.editorcontentcontainer.removeEventListener('mouseup',  this.getSelectedTextInfo );
         
 
-        document.getElementById('editormaincontainer').removeEventListener('scroll', this.LTupdateHighlights);
+        document.getElementById('editormaincontainer').removeEventListener('scroll', this.LTupdateHighlights, { passive: true });
 
         this.editor.destroy()
 

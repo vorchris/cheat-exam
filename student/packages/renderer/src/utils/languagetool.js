@@ -18,6 +18,7 @@
 
 
 function LTdisable(){
+    if (!this.serverstatus.languagetool && !this.privateSpellcheck.activated){return}  // the div is not existant if lt is disabled
     this.LTactive = false
     this.canvas = document.getElementById('highlight-layer');
     this.ctx = this.canvas.getContext('2d');
@@ -173,78 +174,78 @@ function LThandleMisspelled(backend, data){
 
 
 
-async function LTfindWordPositionsOld() {
-    if (!this.misspelledWords || !this.textContainer || this.misspelledWords.length == 0) {  return;}
-    const nodeIterator = document.createNodeIterator(this.textContainer, NodeFilter.SHOW_TEXT);
-    let textNode;
+// async function LTfindWordPositionsOld() {
+//     if (!this.misspelledWords || !this.textContainer || this.misspelledWords.length == 0) {  return;}
+//     const nodeIterator = document.createNodeIterator(this.textContainer, NodeFilter.SHOW_TEXT);
+//     let textNode;
 
-    const wordsMap = new Map(); // Speichert alle Vorkommen jedes Wortes
+//     const wordsMap = new Map(); // Speichert alle Vorkommen jedes Wortes
   
-    while ((textNode = nodeIterator.nextNode())) {   // Durchlaufe alle Textknoten und sammle Vorkommen der zu markierenden Wörter
-        const text = textNode.nodeValue;
-        let nodeoffset = this.text.indexOf(text)  // wir brauchen den genauen offset dieses textknotens - addieren den offset des worts innerhalb des textknotens
+//     while ((textNode = nodeIterator.nextNode())) {   // Durchlaufe alle Textknoten und sammle Vorkommen der zu markierenden Wörter
+//         const text = textNode.nodeValue;
+//         let nodeoffset = this.text.indexOf(text)  // wir brauchen den genauen offset dieses textknotens - addieren den offset des worts innerhalb des textknotens
 
-        this.misspelledWords.forEach(word => {
-            if (word.rule.issueType == "typographical") { word.color = "rgba(146, 43, 33 , 0.3)"; }
-            else if (word.rule.issueType == "whitespace") { word.color = "rgba( 243, 190, 41, 0.5)"; word.whitespace = true;}
-            else if (word.rule.issueType == "misspelling") { word.color = "rgba( 211, 84, 0, 0.3)"; }
-            else { word.color = "rgba( 108, 52, 131, 0.3)"; }
+//         this.misspelledWords.forEach(word => {
+//             if (word.rule.issueType == "typographical") { word.color = "rgba(146, 43, 33 , 0.3)"; }
+//             else if (word.rule.issueType == "whitespace") { word.color = "rgba( 243, 190, 41, 0.5)"; word.whitespace = true;}
+//             else if (word.rule.issueType == "misspelling") { word.color = "rgba( 211, 84, 0, 0.3)"; }
+//             else { word.color = "rgba( 108, 52, 131, 0.3)"; }
 
-            //suche auch nach "  " (zwei leerzeichen) ansonsten nach dem wort
-            const pattern = word.wrongWord.trim() === '' ? '\\s\\s+' : `(?<!\\w)${word.wrongWord}(?!\\w)`;
-            const regex = new RegExp(pattern, 'g');
+//             //suche auch nach "  " (zwei leerzeichen) ansonsten nach dem wort
+//             const pattern = word.wrongWord.trim() === '' ? '\\s\\s+' : `(?<!\\w)${word.wrongWord}(?!\\w)`;
+//             const regex = new RegExp(pattern, 'g');
 
-            let match;
-            while ((match = regex.exec(text)) !== null) {
-                const currentOffset = nodeoffset + match.index;  // hier berechnen wir den lokalen offset des wortes für den vergleich
-                if (this.hunspellFallback){ word.offset =  currentOffset}  //hunspell doesn't deliver offsets
-                // nur wenn der offset des gefunden worts auch in etwa dem offset im text von languagetool entspricht wird das wort aufgenommen - (wort am satzanfang möglicherweise falsch aber im text nicht)
-                if (this.hunspellFallback || Math.abs(word.offset - currentOffset) <= 10) { // Erlaube eine kleine Abweichung des wort-offsets
-                    const wordKey = `${word.wrongWord}_${word.offset}`; // Eindeutiger Schlüssel pro word und offset
-                    if (!wordsMap.has(wordKey)) { wordsMap.set(wordKey, { word, occurrences: [] });  }
-                    wordsMap.get(wordKey).occurrences.push({ node: textNode, index: match.index });
-                }
-            }
-        });
-    }
+//             let match;
+//             while ((match = regex.exec(text)) !== null) {
+//                 const currentOffset = nodeoffset + match.index;  // hier berechnen wir den lokalen offset des wortes für den vergleich
+//                 if (this.hunspellFallback){ word.offset =  currentOffset}  //hunspell doesn't deliver offsets
+//                 // nur wenn der offset des gefunden worts auch in etwa dem offset im text von languagetool entspricht wird das wort aufgenommen - (wort am satzanfang möglicherweise falsch aber im text nicht)
+//                 if (this.hunspellFallback || Math.abs(word.offset - currentOffset) <= 10) { // Erlaube eine kleine Abweichung des wort-offsets
+//                     const wordKey = `${word.wrongWord}_${word.offset}`; // Eindeutiger Schlüssel pro word und offset
+//                     if (!wordsMap.has(wordKey)) { wordsMap.set(wordKey, { word, occurrences: [] });  }
+//                     wordsMap.get(wordKey).occurrences.push({ node: textNode, index: match.index });
+//                 }
+//             }
+//         });
+//     }
 
-    const positions = [];
-    wordsMap.forEach((data, wordKey) => {   // Zugriff auf das `word` Objekt und die Vorkommen
-        const { word, occurrences } = data;
+//     const positions = [];
+//     wordsMap.forEach((data, wordKey) => {   // Zugriff auf das `word` Objekt und die Vorkommen
+//         const { word, occurrences } = data;
 
-        if (occurrences.length && occurrences.length == 0){ this.LTdisable(); return;}  // text deleted.. this.misspelledWords still populated
-        occurrences.forEach(({ node, index }) => {
-            const range = document.createRange();
-            range.setStart(node, index);
-            range.setEnd(node, index + word.wrongWord.length);
-            const rects = range.getClientRects();
-            if (rects.length > 0) {
-                // Verarbeitung der rects und Hinzufügen in `positions` ohne Duplikate
-                Array.from(rects).forEach(rect => {
-                    const newPosition = {
-                        left: rect.left,
-                        top: rect.top,
-                        width: rect.width,
-                        height: rect.height,
-                        word: word.wrongWord,
-                        color: word.color,
-                        textoffset: word.offset
-                    };
+//         if (occurrences.length && occurrences.length == 0){ this.LTdisable(); return;}  // text deleted.. this.misspelledWords still populated
+//         occurrences.forEach(({ node, index }) => {
+//             const range = document.createRange();
+//             range.setStart(node, index);
+//             range.setEnd(node, index + word.wrongWord.length);
+//             const rects = range.getClientRects();
+//             if (rects.length > 0) {
+//                 // Verarbeitung der rects und Hinzufügen in `positions` ohne Duplikate
+//                 Array.from(rects).forEach(rect => {
+//                     const newPosition = {
+//                         left: rect.left,
+//                         top: rect.top,
+//                         width: rect.width,
+//                         height: rect.height,
+//                         word: word.wrongWord,
+//                         color: word.color,
+//                         textoffset: word.offset
+//                     };
                 
-                    word.rect = newPosition  //try to save position on word itself - doesnt work because of weird nodes that are ignored when something is pasted into the editor - WTF?
+//                     word.rect = newPosition  //try to save position on word itself - doesnt work because of weird nodes that are ignored when something is pasted into the editor - WTF?
 
-                    if (isUnique(newPosition, positions)) {
-                        positions.push(newPosition);
-                    }
-                });
+//                     if (isUnique(newPosition, positions)) {
+//                         positions.push(newPosition);
+//                     }
+//                 });
 
 
 
-            }
-        });
-    });
-    return positions
-}
+//             }
+//         });
+//     });
+//     return positions
+// }
 
 
 
@@ -335,10 +336,21 @@ function LThighlightWords() {
     this.canvas.style.left = this.textContainer.offsetLeft + 'px';
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); // Vorheriges Highlighting löschen
     
+     // Check if the 'position' attribute exists in the 'word' object - if not remove word object from misspelled array -  don't know if that's a good idea????
+    // this.misspelledWords = this.misspelledWords.filter(word => {
+    //     return word.hasOwnProperty('position') && word.position;
+    // });
+
     this.misspelledWords.forEach(word => {
+        if (!word.position){return}  // student could delete word without requesting a new check so it's still in this.misspelled words but nothing to highlight anymore
         let height = 3
         let translate = word.position.height
-        if (this.currentLTword && word.position.top == this.currentLTword.position.top){ height= height+word.position.height+3; translate = -3; }
+        if (this.currentLTword && this.currentLTword.position && word.position.top == this.currentLTword.position.top){ 
+            if (word === this.currentLTword) {
+                height = word.position.height + 3;
+                translate = -3;
+            }
+        }
         const adjustedLeft = word.position.left - this.textContainer.offsetLeft + window.scrollX;
         const adjustedTop = word.position.top - this.textContainer.offsetTop + window.scrollY;
         this.ctx.fillStyle = word.color; // Farbe und Transparenz des Highlights

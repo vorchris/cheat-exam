@@ -469,7 +469,8 @@ class IpcHandler {
                     event.returnValue = data;
 
                     //create exam folder in workfolder
-                    config.examdirectory = path.join(config.workdirectory, servername)
+                    let uniqueexamName = `${servername}-${pin}`
+                    config.examdirectory = path.join(config.workdirectory, uniqueexamName)
                     if (!fs.existsSync(config.examdirectory)){ fs.mkdirSync(config.examdirectory, { recursive: true }); }
                 } 
                 else {
