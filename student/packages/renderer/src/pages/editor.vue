@@ -391,9 +391,9 @@ export default {
 
             //handle individual spellcheck (only if not globally activated anyways)
             if (this.serverstatus.languagetool === false) {   
-                if (this.privateSpellcheck.activate == false) {
+                if (this.privateSpellcheck.activate == false && this.LTactive) {
                     this.LTdisable()
-                    this.privateSpellcheck.activated = false
+                    this.privateSpellcheck.activated = false   // das wird eigentlich eh im communication handler für clientinfo bereits auf false gesetzt und bei fetchinfo() übernommen
                 }
             }
         }, 
