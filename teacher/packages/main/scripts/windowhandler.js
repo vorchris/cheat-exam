@@ -41,7 +41,9 @@ class WindowHandler {
         const { width, height } = primaryDisplay ? primaryDisplay.workAreaSize : { width: 800, height: 800 };
 
         this.mainwindow = new BrowserWindow({
-            title: 'Main window',
+            title: 'Next-Exam-Teacher',
+            backgroundColor: '#2e2c29',
+            show: false,
             icon: join(__dirname, '../../public/icons/icon.png'),
             center:true,
             width: width,
@@ -52,6 +54,7 @@ class WindowHandler {
                 preload: join(__dirname, '../preload/preload.cjs'),
                 spellcheck: false
             },
+  
         })
         
         if (app.isPackaged || process.env["DEBUG"]) {
@@ -87,6 +90,10 @@ class WindowHandler {
         // });
 
 
+        this.mainwindow.once('ready-to-show', () => {
+            this.mainwindow?.show()
+            this.mainwindow?.moveTop();
+        })
 
         this.mainwindow.on('close', async  (e) => {   //ask before closing
             if (!this.config.development) {

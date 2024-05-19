@@ -97,7 +97,7 @@ app.whenReady().then(()=>{
         log.info(`main: Express listening on https://${config.hostip}:${config.serverApiPort}`)
     }) 
 })
-.then(()=>{
+.then(async ()=>{
     if (config.hostip == "127.0.0.1") { config.hostip = false }
     if (config.hostip) { multicastClient.init(config.gateway)  } //multicast client only tracks other exam instances on the net
     powerSaveBlocker.start('prevent-display-sleep')

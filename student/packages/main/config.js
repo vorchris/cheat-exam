@@ -10,7 +10,7 @@ const config = {
     tempdirectory : "",   // (desktop path + 'tmp')
     homedirectory : "",   // set in main.ts
     examdirectory : "",    // set after registering in ipcHandler
-    clientname: "EXAM-STUDENT",
+    clientdirectory: "EXAM-STUDENT",
 
     serverApiPort:22422,  // this is needed to be reachable on the teachers pc for basic functionality
     multicastClientPort: 6024,  // only needed for exam autodiscovery

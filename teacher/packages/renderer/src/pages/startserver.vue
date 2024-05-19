@@ -293,8 +293,6 @@ export default {
         // add event listener to exam input field to supress all special chars 
         document.getElementById("servername").addEventListener("keypress", this.validateInput);
         document.getElementById("servername").addEventListener("keyup",  this.handleKeyupEvent);
-
-
     },
     beforeUnmount() {
         document.getElementById("servername").removeEventListener("keyup",  this.handleKeyupEvent);  // sollte eigentlich nicht notwendig sein, aber bei singlepage apps vielleicht besser und sauberer so

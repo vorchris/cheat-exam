@@ -145,7 +145,7 @@ class IpcHandler {
                 log.info('directories selected', result.filePaths)
                 let message = ""
                 try {
-                    let testdir = join(result.filePaths[0]   , config.examdirectory)
+                    let testdir = join(result.filePaths[0]   , config.serverdirectory)
                     if (!fs.existsSync(testdir)){fs.mkdirSync(testdir)}
                     message = "success"
                     config.workdirectory = testdir
@@ -443,7 +443,7 @@ class IpcHandler {
             showdevtools: conf.showdevtools,
             workdirectory: conf.workdirectory,
             tempdirectory: conf.tempdirectory,
-            examdirectory: conf.examdirectory,
+            serverdirectory: conf.serverdirectory,
             serverApiPort: conf.serverApiPort,
             multicastClientPort: conf.multicastClientPort,
             multicastServerClientPort: conf.multicastServerClientPort,

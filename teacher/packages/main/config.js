@@ -1,12 +1,12 @@
 import pjson from "../../package.json"
 
 const config = {
-    development: false,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
-    showdevtools: false,
+    development: true,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
+    showdevtools: true,
    
     workdirectory : "",   // set by server.js (desktop path + examdir)
     tempdirectory : "",   // set by server.js (desktop path + 'tmp')
-    examdirectory: "EXAM-TEACHER",
+    serverdirectory: "EXAM-TEACHER",
 
     serverApiPort:22422,  //this must be reachable at the teachers machine otherwise nothing is going to work
     multicastClientPort: 6024,  //needed for exam autodiscovery by the student

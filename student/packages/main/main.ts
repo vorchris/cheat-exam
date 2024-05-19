@@ -44,18 +44,32 @@ import log from 'electron-log/main';
 
 
 config.electron = true
-config.homedirectory = os.homedir()
-config.workdirectory = path.join(os.homedir(),'Desktop', config.clientname)
-config.tempdirectory = path.join(os.tmpdir(), 'exam-tmp')
 
-if (process.platform === 'win32') {
-    config.workdirectory = process.env['USERPROFILE'] ? path.join(process.env['USERPROFILE'], 'Desktop',  config.clientname) : config.workdirectory ;   // Nutzt die Umgebungsvariable, falls verfügbar
-}
 
+config.homedirectory = os.homedir();
+config.workdirectory = path.join(config.homedirectory, config.clientdirectory);
+config.tempdirectory = path.join(os.tmpdir(), 'exam-tmp');
 config.examdirectory = config.workdirectory    // we need this variable setup even if we do not connect to a teacher instance
+
 
 if (!fs.existsSync(config.workdirectory)){ fs.mkdirSync(config.workdirectory, { recursive: true }); }
 if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory, { recursive: true }); }
+
+
+// Define the desktop path based on the platform
+const desktopPath = process.platform === 'win32'
+    ? path.join(process.env['USERPROFILE'], 'Desktop')
+    : path.join(config.homedirectory, 'Desktop');
+
+
+// Check if the desktop folder exists and create if it doesn't
+if (!fs.existsSync(desktopPath)) {  fs.mkdirSync(desktopPath, { recursive: true }); }
+// Define the path for the symbolic link
+const linkPath = path.join(desktopPath, config.clientdirectory);
+// Create the symbolic link
+if (!fs.existsSync(linkPath)) { fs.symlinkSync(config.workdirectory, linkPath, 'junction'); }
+
+
 
 try { //bind to the correct interface
     const {gateway, interface: iface} =  defaultGateway.v4.sync()
