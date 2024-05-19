@@ -256,7 +256,13 @@ function isUnique(position, currentWord, allWords) {
 
 
 function LThighlightWords() {
-    if (!this.textContainer || this.misspelledWords.length == 0 || (!this.languagetool && !this.privateSpellcheck.activated)){  console.log("here"); this.LTdisable(); return }
+    if (!this.textContainer || this.misspelledWords.length == 0 || (!this.serverstatus.languagetool && !this.privateSpellcheck.activated)){
+        console.log(this.privateSpellcheck)
+        console.log(this.languagetool)
+        this.LTdisable(); 
+         return 
+    }
+
     this.canvas.width = this.textContainer.offsetWidth;
     this.canvas.height = this.textContainer.offsetHeight;
     this.canvas.style.top = this.textContainer.offsetTop + 'px';

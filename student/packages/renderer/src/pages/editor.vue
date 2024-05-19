@@ -383,6 +383,7 @@ export default {
             this.privateSpellcheck = this.clientinfo.privateSpellcheck
             this.serverstatus =  getinfo.serverstatus
            
+            console.log(this.serverstatus)
             if (this.pincode !== "0000"){this.localLockdown = false}  // pingcode is 0000 only in localmode
             if (!this.focus){  this.entrytime = new Date().getTime()}
             if (this.clientinfo && this.clientinfo.token){  this.online = true  } else { this.online = false  }
