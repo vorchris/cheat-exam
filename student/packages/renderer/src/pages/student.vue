@@ -286,6 +286,9 @@ export default {
                     });
                 }
             }
+            else {
+                this.networkerror = false;
+            }
 
             if (getinfo.serverlist.length  !== 0 ) {
                 this.serverlist = getinfo.serverlist; 
