@@ -28,7 +28,8 @@ import log from 'electron-log/main';
 import Nodehun from 'nodehun'
 import {disableRestrictions} from './platformrestrictions.js';
 
-import * as RTFJS from '../../../node_modules/rtf.js/dist/RTFJS.bundle.js';
+
+import mammoth from 'mammoth';
 
 
 
@@ -593,7 +594,7 @@ class IpcHandler {
          * ASYNC GET FILE-LIST from examdirectory
          * @param filename if set the content of the file is returned
          */ 
-        ipcMain.handle('getfilesasync', (event, filename, audio=false, rtf=false) => {   
+        ipcMain.handle('getfilesasync', async (event, filename, audio=false, docx=false) => {   
             const workdir = path.join(config.examdirectory,"/")
 
             if (filename) { //return content of specific file as string (html) to replace in editor)
@@ -603,55 +604,15 @@ class IpcHandler {
                     const audioData = fs.readFileSync(filepath);
                     return audioData.toString('base64');
                 }
-                else if (rtf){  //rich text file
-                    let string = fs.readFileSync(filepath, 'utf-8')
-
-
-                    const buffer = new ArrayBuffer(string.length);
-                    const bufferView = new Uint8Array(buffer);
-                    for (let i = 0; i < string.length; i++) {
-                        bufferView[i] = string.charCodeAt(i);
-                    }
-
-                      
-                    const doc = new RTFJS.Document(buffer);
-
-
-                    let html = '';
-                            
-                    // Dokument parsen
-
-// Dokument parsen
-doc.render().then(elements => {
-    elements.forEach(element => {
-        if (element.type === 'text') {
-            html += element.value;
-        } else if (element.type === 'paragraph') {
-            html += `<p>${element.value}</p>`;
-        } else if (element.type === 'bold') {
-            html += `<b>${element.value}</b>`;
-        } else if (element.type === 'italic') {
-            html += `<i>${element.value}</i>`;
-        } else if (element.type === 'underline') {
-            html += `<u>${element.value}</u>`;
-        } else if (element.type === 'image') {
-            const base64Image = Buffer.from(element.value, 'hex').toString('base64');
-            html += `<img src="data:image/png;base64,${base64Image}" />`;
-        }
-        // Weitere Konvertierungen hier hinzufügen
-    });
-}).catch((error) => {
-    console.error('Error parsing RTF:', error);
-});
-
-                    return html
-
-
-
-
-
-
-
+                else if (docx){  //office open xml file
+                    let result = await mammoth.convertToHtml({path: filepath})
+                    .then((data) => {
+                        return data
+                    })
+                    .catch(function(error) {
+                        console.error(error);
+                    });
+                    return result
                 }
                 else {   //bak file
                     try {
@@ -678,7 +639,7 @@ doc.render().then(elements => {
                         let mod = modified.getTime()
                         if  (path.extname(file).toLowerCase() === ".pdf"){ files.push( {name: file, type: "pdf", mod: mod})   }         //pdf
                         else if  (path.extname(file).toLowerCase() === ".bak"){ files.push( {name: file, type: "bak", mod: mod})   }   // editor| backup file to replace editor content
-                        else if  (path.extname(file).toLowerCase() === ".rtf"){ files.push( {name: file, type: "rtf", mod: mod})   }   // editor| content file (from teacher) to replace content and continue writing
+                        else if  (path.extname(file).toLowerCase() === ".docx"){ files.push( {name: file, type: "docx", mod: mod})   }   // editor| content file (from teacher) to replace content and continue writing
                         else if  (path.extname(file).toLowerCase() === ".ggb"){ files.push( {name: file, type: "ggb", mod: mod})   }  // geogebra
                         else if  (path.extname(file).toLowerCase() === ".mp3" || path.extname(file).toLowerCase() === ".ogg" || path.extname(file).toLowerCase() === ".wav" ){ files.push( {name: file, type: "audio", mod: mod})   }  // audio
                         else if  (path.extname(file).toLowerCase() === ".jpg" || path.extname(file).toLowerCase() === ".png" || path.extname(file).toLowerCase() === ".gif" ){ files.push( {name: file, type: "image", mod: mod})   }  // images

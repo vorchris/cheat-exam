@@ -19,8 +19,7 @@
      <!-- HEADER END -->
 
 
-    <div id="suggestion-menu" style="display:none; position:fixed;"></div>
-
+   
     <div class="w-100 p-0 m-0 text-white shadow-sm text-center" style="top: 66px; z-index: 10001 !important; background-color: white;">
         
         <!-- toolbar start -->
@@ -87,7 +86,7 @@
             <br>
            <div v-for="file in localfiles" :key="file.name" class="d-inline" style="text-align:left">
                 <div v-if="(file.type == 'bak')" class="btn btn-mediumlight p-0  pe-2 ps-1 me-1 mb-0 btn-sm"   @click="selectedFile=file.name; loadHTML(file.name)"><img src="/src/assets/img/svg/games-solve.svg" class="" width="22" height="22" style="vertical-align: top;"> {{file.name}}     ({{ new Date(this.now - file.mod).toISOString().substr(11, 5) }})</div>
-                <div v-if="(file.type == 'rtf')" class="btn btn-success p-0  pe-2 ps-1 me-1 mb-0 btn-sm"   @click="selectedFile=file.name; loadRTF(file.name)"><img src="/src/assets/img/svg/games-solve.svg" class="" width="22" height="22" style="vertical-align: top;"> {{file.name}}</div>
+                <div v-if="(file.type == 'docx')" class="btn btn-success p-0  pe-2 ps-1 me-1 mb-0 btn-sm"   @click="selectedFile=file.name; loadDOCX(file.name)"><img src="/src/assets/img/svg/games-solve.svg" class="" width="22" height="22" style="vertical-align: top;"> {{file.name}}</div>
                 
                 <div v-if="(file.type == 'pdf')" class="btn btn-info p-0 pe-2 ps-1 me-1 mb-0 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" style="vertical-align: top;"> {{file.name}} </div>
                 <div v-if="(file.type == 'audio')" class="btn btn-info p-0 pe-2 ps-1 me-1 mb-0 btn-sm" @click="playAudio(file.name)"><img src="/src/assets/img/svg/im-google-talk.svg" class="" width="22" height="22" style="vertical-align: top;"> {{file.name}} </div>
@@ -187,6 +186,7 @@
 
 <script>
 import { Editor, EditorContent, VueNodeViewRenderer } from '@tiptap/vue-3'
+import Image from '@tiptap/extension-image';
 import TextAlign from '@tiptap/extension-text-align'
 import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
@@ -220,40 +220,11 @@ import { CharReplacer } from '../components/CharReplacer'
 import { lowlight } from "lowlight/lib/common.js";
 import { Color } from '@tiptap/extension-color'
 import TextStyle from '@tiptap/extension-text-style'
-import { Node, mergeAttributes } from '@tiptap/core'   //we need this for our custom editor extension that allows to insert span elements
-
 import moment from 'moment-timezone';
 import ExamHeader from '../components/ExamHeader.vue';
 import {SchedulerService} from '../utils/schedulerservice.js'
-
 import { LTcheckAllWords, LTfindWordPositions, LThighlightWords, LTdisable, LThandleMisspelled } from '../utils/languagetool.js'
-
-
-// in order to insert <span> elements (used for highlighting misspelled words) we need our own tiptap extenison
-// const CustomSpan = Node.create({
-//     name: 'customSpan',
-//     addOptions: { HTMLAttributes: {},    },
-//     inline: true,
-//     group: 'inline',
-//     atom: false,
-//     content: 'inline*',
-//     addAttributes() {
-//         return {
-//         id: {
-//             default: null,
-//             parseHTML: element => ( element.getAttribute('id')),
-//             renderHTML: attributes => ({  id: attributes.id }),
-//         },
-//         class: {
-//             default: null,
-//             parseHTML: element => ( element.getAttribute('class')),
-//             renderHTML: attributes => ({ class: attributes.class }),
-//         },
-//         }
-//     },
-//     parseHTML() { return [ { tag: 'span', }, ] },
-//     renderHTML({ HTMLAttributes }) { return ['span', mergeAttributes(HTMLAttributes), 0] },
-// })
+import DOMPurify from 'dompurify';
 
 export default {
     components: {
@@ -630,7 +601,7 @@ export default {
 
 
         // get file from local examdirectory and replace editor content with it
-        async loadRTF(file){
+        async loadDOCX(file){
             this.LTdisable()
             this.$swal.fire({
                 title: this.$t("editor.replace"),
@@ -642,15 +613,56 @@ export default {
             })
             .then(async (result) => {
                 if (result.isConfirmed) {
-                    let data = await ipcRenderer.invoke('getfilesasync', file, false, true )   //signal, filename, audiofile, rtffile
+                    let data = await ipcRenderer.invoke('getfilesasync', file, false, true )   //signal, filename, audiofile, docxfile
+                    
+                    //replace editor content ??? or not ??
                     this.editor.commands.clearContent(true)
-                    this.editor.commands.insertContent(data)  
+            
+                    const cleanHtml = DOMPurify.sanitize(data.value);
+                    const body = this.parseHTMLString(cleanHtml);
+                    
+                    this.editor.commands.insertContent(cleanHtml)
+                   // body.childNodes.forEach(node => {  this.processNode(node); });
                 } 
             }); 
         },
+        processNode(node) {           
+            let nodestring = node.innerHTML
+            let outernodestring = node.outerHTML
+           
+            if (nodestring.includes("data:image")){
+                for (let childnode of node.childNodes){
+                    let childnodestring = childnode.outerHTML
+                    if (childnodestring.includes("data:image")){
+                        let childnodesource = childnode.src 
+                       
+                        this.editor.commands.insertContent(nodestring)
+                        this.editor.chain().focus().setImage({ src:  childnodesource }).run();
+                    }
+                }
+            }
+            else if (nodestring.includes("tr")){
+                console.log("found table")
+                this.editor.commands.insertContent(outernodestring)
+            }
 
+            else {
+               
+                this.editor.commands.insertContent(outernodestring)
+            }
+        },
 
+        parseHTMLString(htmlString) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlString, 'text/html');
 
+            doc.querySelectorAll('td').forEach(td => {
+                if (!td.innerHTML.trim()) {
+                td.innerHTML = '<p></p>'; // Ensure empty cells have a paragraph with a line break
+                }
+            });
+            return doc.body;
+        },
 
         //checks if arraybuffer contains a valid pdf file
         isValidPdf(data) {
@@ -913,8 +925,12 @@ export default {
         createEditor(){
             this.editor = new Editor({
                 extensions: [
-                    // CustomSpan,
                     Typography,
+                   
+                    Image.configure({
+                         inline: true,
+                         allowBase64: true,
+                    }),
                     SmilieReplacer,
                     this.charReplacerExtension,
                     Table.configure({
@@ -1247,49 +1263,6 @@ audio::-webkit-media-controls-panel {
 }
 
 
-/**
-NodeHun Custom Spellchecker Styles 
-*/
-#suggestion-menu{
-    z-index:100000;
-    padding: 4px;
-    background-color: #f3f8fd;
-    border: 1px solid #d3e5ff;
-    cursor: pointer;
-    border-radius: 4px;
-    box-shadow: 0px 0px 10px #00000047;
-}
-#suggestion-menu div {
-    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-    font-size: 0.8em;
-    padding: 2px 6px 2px 6px;
-    transition:0.2s;
-    border-radius:4px;
-    
-}
-#suggestion-menu div:hover {
-    box-shadow: 0px 0px 10px inset #bacbe4;
-}
-
-span.NXTEhighlight {
-    position: relative;
-}
-/* Create the glowing underline */
-span.NXTEhighlight::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    height: 1px;
-    background: lightcoral; /* Light red color */
-    box-shadow: 0 0 5px lightcoral;
-}
-.menu-separator {
-    border-top: 1px solid #ccc;
-    margin: 5px 0;
-}
-
 
 
 /**
@@ -1568,6 +1541,12 @@ Other Styles
     }
   }
 }
+
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+}
+
 
 .tableWrapper {
   overflow-x: auto;
