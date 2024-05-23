@@ -141,7 +141,8 @@ export default {
             hostip: config.hostip,
             biplogin: false,
             networkerror: false,
-            localLockdown: false
+            localLockdown: false,
+            biptest:false
         };
     },
     methods: {
@@ -224,7 +225,7 @@ export default {
 
 
         loginBiP(){
-            let IPCresponse = ipcRenderer.sendSync('loginBiP')
+            let IPCresponse = ipcRenderer.sendSync('loginBiP', this.biptest)
             console.log(IPCresponse)
         },
         clearUser(){
@@ -405,8 +406,9 @@ export default {
             }
         },
         showCopyleft(){
+            const vm = this
             this.$swal.fire({
-                title: "<span style='display:inline-block; transform: scaleX(-1); vertical-align: middle; cursor: pointer;'>&copy;</span>",
+                title: "<span id='cpleft' class='active' style='display:inline-block; transform: scaleX(-1); vertical-align: middle; cursor: pointer;'>&copy;</span>",
                 icon: 'info',
                 html: `
                 Thomas Michael Weissel <br>
@@ -415,7 +417,22 @@ export default {
                 </span><br><br>
                 <span style="font-size:0.8em">Version: ${this.version} ${this.info}</span>
                 `,
+                didRender: () => {
+                    document.getElementById('cpleft').onclick = () => this.easter();
+                }
             })
+        },
+        easter(){
+            if (this.biptest){
+                this.biptest = false
+                document.getElementById('cpleft').classList.toggle('active');
+                document.getElementById('cpleft').classList.toggle('inactive');
+            } 
+            else { 
+                this.biptest = true
+                document.getElementById('cpleft').classList.toggle('active');
+                document.getElementById('cpleft').classList.toggle('inactive');
+            }
         },
         fetchBiPData(base64String){
 
@@ -494,6 +511,16 @@ export default {
 }
 </script>
 
+<style>
+.active {
+    filter: contrast(100%) grayscale(100%) brightness(80%) !important;
+}
+.inactive {
+    filter: contrast(40%) grayscale(100%) brightness(130%) blur(0.6px) !important;
+}
+
+</style>
+
 <style scoped>
 
 .disabledexam {
@@ -504,7 +531,6 @@ export default {
     filter: contrast(40%) grayscale(100%) brightness(130%) blur(0.6px);
    pointer-events: none;
 } 
-
 
 #content {
     background-color: whitesmoke;

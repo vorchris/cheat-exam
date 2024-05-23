@@ -68,7 +68,7 @@ class WindowHandler {
     }
 
 
-    createBiPLoginWin() {
+    createBiPLoginWin(biptest) {
         this.bipwindow = new BrowserWindow({
             title: 'Next-Exam',
             icon: join(__dirname, '../../public/icons/icon.png'),
@@ -86,7 +86,8 @@ class WindowHandler {
            // transparent: true
         })
      
-        this.bipwindow.loadURL(`https://www.bildung.gv.at/admin/tool/mobile/launch.php?service=moodle_mobile_app&passport=next-exam`)
+        if (biptest){   this.bipwindow.loadURL(`https://www.bildung.gv.at/admin/tool/mobile/launch.php?service=moodle_mobile_app&passport=next-exam`)   }
+        else {          this.bipwindow.loadURL(`https://www.bildung.gv.at/admin/tool/mobile/launch.php?service=moodle_mobile_app&passport=next-exam`)   }
 
         this.bipwindow.once('ready-to-show', () => {
             this.bipwindow.show()

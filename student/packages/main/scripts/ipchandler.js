@@ -28,6 +28,10 @@ import log from 'electron-log/main';
 import Nodehun from 'nodehun'
 import {disableRestrictions} from './platformrestrictions.js';
 
+import * as RTFJS from '../../../node_modules/rtf.js/dist/RTFJS.bundle.js';
+
+
+
   ////////////////////////////////
  // IPC handling (Backend) START
 ////////////////////////////////
@@ -93,9 +97,9 @@ class IpcHandler {
          *  Start BIP Login Sequence
          */
 
-        ipcMain.on('loginBiP', (event) => {
-            log.info("ipchandler @ loginBiP: opening bip window")
-            this.WindowHandler.createBiPLoginWin()
+        ipcMain.on('loginBiP', (event, biptest) => {
+            log.info("ipchandler @ loginBiP: opening bip window. testenvironment:", biptest)
+            this.WindowHandler.createBiPLoginWin(biptest)
             event.returnValue = "hello from bip logon"
         })
 
@@ -448,7 +452,7 @@ class IpcHandler {
 
 
          
-            const url = `https://${serverip}:${this.config.serverApiPort}/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}/${hostname}/ ${version}`;
+            const url = `https://${serverip}:${this.config.serverApiPort}/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}/${hostname}/${version}`;
             const signal = AbortSignal.timeout(8000); // 8000 Millisekunden = 8 Sekunden AbortSignal mit einem Timeout
 
 
@@ -474,6 +478,13 @@ class IpcHandler {
                     if (!fs.existsSync(config.examdirectory)){ fs.mkdirSync(config.examdirectory, { recursive: true }); }
                 } 
                 else {
+                    if (data.version){
+                        // compare versions and display message (teacher needs upgrade.. client needs upgrade)
+                        const comparisonResult = this.compareSoftware(config.version, config.info , data.version, data.versioninfo ) //serverVersion, serverStatus, localVersion, localStatus
+                        if (comparisonResult > 0) {       event.returnValue = { status: "error", message: "Ihre Version von Next-Exam ist neuer als die der Lehrperson!" };   } 
+                        else if (comparisonResult < 0) {  event.returnValue = { status: "error", message: "Ihre Version von Next-Exam ist zu alt. Laden sie sich eine aktuelle Version herunter!" };   } 
+                        else {                            event.returnValue = { status: "error", message: "Unbekannter Fehler beim Verbindungsaufbau." };    }
+                    }
                     event.returnValue = { status: "error", message: data.message };
                 }
             })
@@ -582,17 +593,67 @@ class IpcHandler {
          * ASYNC GET FILE-LIST from examdirectory
          * @param filename if set the content of the file is returned
          */ 
-        ipcMain.handle('getfilesasync', (event, filename, audio=false) => {   
+        ipcMain.handle('getfilesasync', (event, filename, audio=false, rtf=false) => {   
             const workdir = path.join(config.examdirectory,"/")
 
             if (filename) { //return content of specific file as string (html) to replace in editor)
                 let filepath = path.join(workdir,filename)
                 //log.info(filepath)
-                if (audio){
+                if (audio){ // audio file
                     const audioData = fs.readFileSync(filepath);
                     return audioData.toString('base64');
                 }
-                else {
+                else if (rtf){  //rich text file
+                    let string = fs.readFileSync(filepath, 'utf-8')
+
+
+                    const buffer = new ArrayBuffer(string.length);
+                    const bufferView = new Uint8Array(buffer);
+                    for (let i = 0; i < string.length; i++) {
+                        bufferView[i] = string.charCodeAt(i);
+                    }
+
+                      
+                    const doc = new RTFJS.Document(buffer);
+
+
+                    let html = '';
+                            
+                    // Dokument parsen
+
+// Dokument parsen
+doc.render().then(elements => {
+    elements.forEach(element => {
+        if (element.type === 'text') {
+            html += element.value;
+        } else if (element.type === 'paragraph') {
+            html += `<p>${element.value}</p>`;
+        } else if (element.type === 'bold') {
+            html += `<b>${element.value}</b>`;
+        } else if (element.type === 'italic') {
+            html += `<i>${element.value}</i>`;
+        } else if (element.type === 'underline') {
+            html += `<u>${element.value}</u>`;
+        } else if (element.type === 'image') {
+            const base64Image = Buffer.from(element.value, 'hex').toString('base64');
+            html += `<img src="data:image/png;base64,${base64Image}" />`;
+        }
+        // Weitere Konvertierungen hier hinzufügen
+    });
+}).catch((error) => {
+    console.error('Error parsing RTF:', error);
+});
+
+                    return html
+
+
+
+
+
+
+
+                }
+                else {   //bak file
                     try {
                         let data = fs.readFileSync(filepath, 'utf8')
                         return data
@@ -616,7 +677,8 @@ class IpcHandler {
                         let modified = fs.statSync(   path.join(workdir,file)  ).mtime
                         let mod = modified.getTime()
                         if  (path.extname(file).toLowerCase() === ".pdf"){ files.push( {name: file, type: "pdf", mod: mod})   }         //pdf
-                        else if  (path.extname(file).toLowerCase() === ".bak"){ files.push( {name: file, type: "bak", mod: mod})   }   // editor backup
+                        else if  (path.extname(file).toLowerCase() === ".bak"){ files.push( {name: file, type: "bak", mod: mod})   }   // editor| backup file to replace editor content
+                        else if  (path.extname(file).toLowerCase() === ".rtf"){ files.push( {name: file, type: "rtf", mod: mod})   }   // editor| content file (from teacher) to replace content and continue writing
                         else if  (path.extname(file).toLowerCase() === ".ggb"){ files.push( {name: file, type: "ggb", mod: mod})   }  // geogebra
                         else if  (path.extname(file).toLowerCase() === ".mp3" || path.extname(file).toLowerCase() === ".ogg" || path.extname(file).toLowerCase() === ".wav" ){ files.push( {name: file, type: "audio", mod: mod})   }  // audio
                         else if  (path.extname(file).toLowerCase() === ".jpg" || path.extname(file).toLowerCase() === ".png" || path.extname(file).toLowerCase() === ".gif" ){ files.push( {name: file, type: "image", mod: mod})   }  // images
@@ -674,6 +736,40 @@ class IpcHandler {
             event.returnValue = { misspelledWords };
         });
     }
+
+
+
+    compareVersions(versionA, versionB) {
+        const partsA = versionA.split('.').map(Number);
+        const partsB = versionB.split('.').map(Number);
+    
+        for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
+            const numA = partsA[i] || 0; // Fallback auf 0, falls kein Wert vorhanden
+            const numB = partsB[i] || 0;
+    
+            if (numA < numB) return -1;
+            if (numA > numB) return 1;
+        }
+        return 0;
+    }
+    
+    compareReleaseNumbers(statusA, statusB) {
+        const numberA = parseInt(statusA.match(/\d+/), 10) || 0;
+        const numberB = parseInt(statusB.match(/\d+/), 10) || 0;
+    
+        if (numberA < numberB) return -1;
+        if (numberA > numberB) return 1;
+        return 0;
+    }
+
+    compareSoftware(versionA, statusA, versionB, statusB) {
+        const versionComparison = this.compareVersions(versionA, versionB);
+        if (versionComparison !== 0) return versionComparison;
+    
+        return this.compareReleaseNumbers(statusA, statusB);
+    }
+
+
 }
  
 export default new IpcHandler()

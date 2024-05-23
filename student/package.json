@@ -71,7 +71,7 @@
             "icon": "public/icons/icon.ico",
             "target": [
                 {
-                    "target": "msi",
+                    "target": "portable",
                     "arch": [
                         "x64"
                     ]
@@ -166,6 +166,7 @@
         "node-prevent-sleep": "^0.0.4",
         "nodehun": "^3.0.2",
         "play-sound": "^1.1.5",
+        "rtf.js": "^3.0.9",
         "sass": "^1.49.9",
         "screenshot-desktop": "^1.12.7",
         "sharp": "^0.33.1",

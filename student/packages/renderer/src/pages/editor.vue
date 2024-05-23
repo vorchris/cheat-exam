@@ -86,7 +86,9 @@
 
             <br>
            <div v-for="file in localfiles" :key="file.name" class="d-inline" style="text-align:left">
-                <div v-if="(file.type == 'bak')" class="btn btn-success p-0  pe-2 ps-1 me-1 mb-0 btn-sm"   @click="selectedFile=file.name; loadHTML(file.name)"><img src="/src/assets/img/svg/games-solve.svg" class="" width="22" height="22" style="vertical-align: top;"> {{file.name}}     ({{ new Date(this.now - file.mod).toISOString().substr(11, 5) }})</div>
+                <div v-if="(file.type == 'bak')" class="btn btn-mediumlight p-0  pe-2 ps-1 me-1 mb-0 btn-sm"   @click="selectedFile=file.name; loadHTML(file.name)"><img src="/src/assets/img/svg/games-solve.svg" class="" width="22" height="22" style="vertical-align: top;"> {{file.name}}     ({{ new Date(this.now - file.mod).toISOString().substr(11, 5) }})</div>
+                <div v-if="(file.type == 'rtf')" class="btn btn-success p-0  pe-2 ps-1 me-1 mb-0 btn-sm"   @click="selectedFile=file.name; loadRTF(file.name)"><img src="/src/assets/img/svg/games-solve.svg" class="" width="22" height="22" style="vertical-align: top;"> {{file.name}}</div>
+                
                 <div v-if="(file.type == 'pdf')" class="btn btn-info p-0 pe-2 ps-1 me-1 mb-0 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" style="vertical-align: top;"> {{file.name}} </div>
                 <div v-if="(file.type == 'audio')" class="btn btn-info p-0 pe-2 ps-1 me-1 mb-0 btn-sm" @click="playAudio(file.name)"><img src="/src/assets/img/svg/im-google-talk.svg" class="" width="22" height="22" style="vertical-align: top;"> {{file.name}} </div>
                 <div v-if="(file.type == 'image')" class="btn btn-info p-0 pe-2 ps-1 me-1 mb-0 btn-sm" @click="loadImage(file.name)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" style="vertical-align: top;"> {{file.name}} </div>
@@ -383,7 +385,7 @@ export default {
             this.privateSpellcheck = this.clientinfo.privateSpellcheck
             this.serverstatus =  getinfo.serverstatus
            
-            console.log(this.serverstatus)
+           // console.log(this.serverstatus)
             if (this.pincode !== "0000"){this.localLockdown = false}  // pingcode is 0000 only in localmode
             if (!this.focus){  this.entrytime = new Date().getTime()}
             if (this.clientinfo && this.clientinfo.token){  this.online = true  } else { this.online = false  }
@@ -625,6 +627,30 @@ export default {
                 } 
             }); 
         },
+
+
+        // get file from local examdirectory and replace editor content with it
+        async loadRTF(file){
+            this.LTdisable()
+            this.$swal.fire({
+                title: this.$t("editor.replace"),
+                html:  `${this.$t("editor.replacecontent1")} <b>${file}</b> ${this.$t("editor.replacecontent2")}`,
+                icon: "question",
+                showCancelButton: true,
+                cancelButtonText: this.$t("editor.cancel"),
+                reverseButtons: true
+            })
+            .then(async (result) => {
+                if (result.isConfirmed) {
+                    let data = await ipcRenderer.invoke('getfilesasync', file, false, true )   //signal, filename, audiofile, rtffile
+                    this.editor.commands.clearContent(true)
+                    this.editor.commands.insertContent(data)  
+                } 
+            }); 
+        },
+
+
+
 
         //checks if arraybuffer contains a valid pdf file
         isValidPdf(data) {
