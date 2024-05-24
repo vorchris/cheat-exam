@@ -248,7 +248,12 @@ function sendFiles(who) {
     if (this.studentlist.length === 0) { this.status(this.$t("dashboard.noclients")); return;}
     this.$swal.fire({
         title: this.$t("dashboard.filesend"),
-        text: this.$t("dashboard.filesendtext"),
+       
+        html: `
+             ${this.$t("dashboard.filesendtext")} <br>
+             <span style="font-size:0.8em;">(.pdf, .docx, .bak, .ogg, .wav, .mp3, .jpg, .png, .gif, .ggb)</span>
+        
+        `,
         icon: "info",
         input: 'file',
         showCancelButton: true,
@@ -260,7 +265,7 @@ function sendFiles(who) {
             id: "swalFile",
             class:"form-control",
             multiple:"multiple",
-            accept: ".pdf, .bak, .ogg, .wav, .mp3, .jpg"
+            accept: ".pdf, .docx, .bak, .ogg, .wav, .mp3, .jpg, .png, .gif, .ggb"
         }
     })
     .then((input) => {
