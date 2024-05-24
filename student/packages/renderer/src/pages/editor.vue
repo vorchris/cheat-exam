@@ -90,7 +90,7 @@
                 
                 <div v-if="(file.type == 'pdf')" class="btn btn-info p-0 pe-2 ps-1 me-1 mb-0 btn-sm" @click="selectedFile=file.name; loadPDF(file.name)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" style="vertical-align: top;"> {{file.name}} </div>
                 <div v-if="(file.type == 'audio')" class="btn btn-info p-0 pe-2 ps-1 me-1 mb-0 btn-sm" @click="playAudio(file.name)"><img src="/src/assets/img/svg/im-google-talk.svg" class="" width="22" height="22" style="vertical-align: top;"> {{file.name}} </div>
-                <div v-if="(file.type == 'image')" class="btn btn-info p-0 pe-2 ps-1 me-1 mb-0 btn-sm" @click="loadImage(file.name)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" style="vertical-align: top;"> {{file.name}} </div>
+                <div v-if="(file.type == 'image')" class="btn btn-info p-0 pe-2 ps-1 me-1 mb-0 btn-sm" @click="selectedFile=file.name; loadImage(file.name)"><img src="/src/assets/img/svg/eye-fill.svg" class="white" width="22" height="22" style="vertical-align: top;"> {{file.name}} </div>
             </div>
         
         </div>
@@ -99,7 +99,7 @@
 
     <!-- angabe/pdf preview start -->
     <div id=preview class="fadeinfast p-4">
-        <div class="btn btn-info me-2 shadow" style="float: right;" @click="insertImage()" :title="$t('editor.insert')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="32" > </div>
+        <div class="btn btn-info me-2 shadow" style="float: right;" @click="insertImage(selectedFile)" :title="$t('editor.insert')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="32" > </div>
         <embed src="" id="pdfembed">
     </div>
     <!-- angabe/pdf preview end -->
@@ -282,7 +282,6 @@ export default {
             individualSpellcheckActivated: false,
             audioSource: null,
             currentpreview: null,
-            currentBase64Image:null,
             audiofiles: [],
             misspelledWords:[],
             textContainer : null,
@@ -713,9 +712,6 @@ export default {
         async loadImage(file){
             URL.revokeObjectURL(this.currentpreview);
             let data = await ipcRenderer.invoke('getpdfasync', file )
-               
-            this.currentBase64Image = data.toString('base64')
-
             this.currentpreview =  URL.createObjectURL(new Blob([data], {type: "image/jpeg"})) 
 
             const pdfEmbed = document.querySelector("#pdfembed");
@@ -731,18 +727,12 @@ export default {
             document.querySelector("#preview").style.display = 'block';     
         },
 
-        async insertImage(){
-
-            //console.log(this.currentBase64Image)
-
-       
-
-            const base64Image = 'iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4/8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==';
-            const imgSrc = `data:image/png;base64,${base64Image}`;
-
-           // const imgSrc = `data:image/png;base64,${this.currentBase64Image}`;
-            console.log(imgSrc)
-            this.editor.chain().focus().setImage({ src: imgSrc }).run()
+        async insertImage(file){
+            let data = await ipcRenderer.invoke('getpdfasync', file, true )   //fileurl, image=true > delivers an image as base64string
+            const imgSrc = `data:image/png;base64,${data}`;
+           // this.editor.chain().focus().setImage({ src: imgSrc }).run()
+            const tableHtml = `<table style="width: 100%; height: 100%;"><tr><td style="max-width: 100%; max-height: 100%;"><img src="${imgSrc}" style="max-width: 100%; max-height: 100%;" class="img-max-size" /></td></tr></table>`;
+            this.editor.chain().focus().insertContent(tableHtml).run();
         },
 
 
@@ -1365,6 +1355,7 @@ Other Styles
     padding: 10px;
     border-radius: 6px;
 }
+
 
 
 /* Basic editor styles */

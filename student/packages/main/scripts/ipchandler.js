@@ -577,12 +577,14 @@ class IpcHandler {
          * GET PDF or IMAGE from EXAM directory
          * @param filename if set the content of the file is returned
          */ 
-        ipcMain.handle('getpdfasync', (event, filename) => {   
+        ipcMain.handle('getpdfasync', (event, filename, image = false) => {   
             const workdir = path.join(config.examdirectory,"/")
             if (filename) { //return content of specific file
                 let filepath = path.join(workdir,filename)
                 try {
                     let data = fs.readFileSync(filepath)
+                   
+                    if (image){ return data.toString('base64');  }
                     return data
                 } 
                 catch (error) {
