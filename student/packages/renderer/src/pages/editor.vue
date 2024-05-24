@@ -99,6 +99,7 @@
 
     <!-- angabe/pdf preview start -->
     <div id=preview class="fadeinfast p-4">
+        <div class="btn btn-info me-2 shadow" style="float: right;" @click="insertImage()" :title="$t('editor.insert')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="32" > </div>
         <embed src="" id="pdfembed">
     </div>
     <!-- angabe/pdf preview end -->
@@ -281,6 +282,7 @@ export default {
             individualSpellcheckActivated: false,
             audioSource: null,
             currentpreview: null,
+            currentBase64Image:null,
             audiofiles: [],
             misspelledWords:[],
             textContainer : null,
@@ -711,6 +713,9 @@ export default {
         async loadImage(file){
             URL.revokeObjectURL(this.currentpreview);
             let data = await ipcRenderer.invoke('getpdfasync', file )
+               
+            this.currentBase64Image = data.toString('base64')
+
             this.currentpreview =  URL.createObjectURL(new Blob([data], {type: "image/jpeg"})) 
 
             const pdfEmbed = document.querySelector("#pdfembed");
@@ -724,6 +729,20 @@ export default {
             pdfEmbed.setAttribute("src", "about:blank");
 
             document.querySelector("#preview").style.display = 'block';     
+        },
+
+        async insertImage(){
+
+            //console.log(this.currentBase64Image)
+
+       
+
+            const base64Image = 'iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4/8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==';
+            const imgSrc = `data:image/png;base64,${base64Image}`;
+
+           // const imgSrc = `data:image/png;base64,${this.currentBase64Image}`;
+            console.log(imgSrc)
+            this.editor.chain().focus().setImage({ src: imgSrc }).run()
         },
 
 

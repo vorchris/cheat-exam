@@ -107,7 +107,8 @@
         "playaudio":"Play Audio",
         "reallyplay":"Do you want to play the audiofile?",
         "audioremaining":"Remaining playbacks:",
-        "audionotallowed":"You don't have the permission to play this file!"
+        "audionotallowed":"You don't have the permission to play this file!",
+        "insert":"Insert Image"
 
     },
     "math": {

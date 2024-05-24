@@ -107,7 +107,8 @@
         "playaudio":"Audio abspielen",
         "reallyplay":"Wollen Sie das Hörbeispiel jetzt abspielen?",
         "audioremaining":"Verbleibende Durchläufe:",
-        "audionotallowed":"Sie haben keine Berechtigung die Audiodatei erneut abzuspielen!"
+        "audionotallowed":"Sie haben keine Berechtigung die Audiodatei erneut abzuspielen!",
+        "insert":"Bild einfügen"
     },
     "math": {
         "exit":"Abgesicherten Modus beenden?",
