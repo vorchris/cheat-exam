@@ -94,6 +94,7 @@
 
 <script>
 import log from 'electron-log/renderer';
+import {SchedulerService} from '../utils/schedulerservice.js'
 
 
 // Erfassen von unhandled promise rejections
@@ -128,6 +129,13 @@ export default {
     },
     components: {},
     methods: {
+
+        async fetchInfo() {
+            this.hostip = ipcRenderer.sendSync('checkhostip')
+            if (!this.hostip) return; 
+
+        },
+
         async checkDiscspace(){   // achtung: custom workdir spreizt sich mit der idee die teacher instanz als reine webversion laufen zulassen - wontfix?
            this.freeDiscspace = await ipcRenderer.invoke('checkDiscspace')
         },
@@ -289,6 +297,12 @@ export default {
             this.checkDiscspace()
             this.getPreviousExams()
         }
+
+
+        // intervalle nicht mit setInterval() da dies sämtliche objekte der callbacks inklusive fetch() antworten im speicher behält bis das interval gestoppt wird
+        this.fetchinterval = new SchedulerService(4000);
+        this.fetchinterval.addEventListener('action',  this.fetchInfo);  // Event-Listener hinzufügen, der auf das 'action'-Event reagiert (reagiert nur auf 'action' von dieser instanz und interferiert nicht)
+        this.fetchinterval.start(); 
 
         // add event listener to exam input field to supress all special chars 
         document.getElementById("servername").addEventListener("keypress", this.validateInput);

@@ -90,6 +90,7 @@ export default {
             pincode : this.$route.params.pincode,
             serverstatus: this.$route.params.serverstatus,
             localLockdown: this.$route.params.localLockdown,
+            config: this.$route.params.config,
             clientinfo: null,
             entrytime: 0,
             timesinceentry: 0,

@@ -15,7 +15,7 @@
     <span class="fs-4 align-middle ms-3" style="float: right">Dashboard</span>
     <div class="btn btn-sm btn-danger m-0 mt-1" @click="stopserver()" @mouseover="showDescription($t('dashboard.exitexam'))" @mouseout="hideDescription"  style="float: right">{{$t('dashboard.stopserver')}}&nbsp; <img src="/src/assets/img/svg/stock_exit.svg" style="vertical-align:text-top;" class="" width="20" height="20" ></div>
     <div class="btn btn-sm btn-secondary me-1 mt-1" style="float: right; padding:3px;" @click="setupDefaultPrinter()"  @mouseover="showDescription($t('dashboard.defaultprinter'))" @mouseout="hideDescription" ><img src="/src/assets/img/svg/settings-symbolic.svg" class="white" width="22" height="22" > </div>
-
+    <div v-if="!hostip" id="adv" class="btn btn-danger btn-sm m-0  mt-1 me-1 " style="cursor: unset; float: right">{{ $t("general.offline") }}</div>
 </div>
  <!-- Header END -->
 
@@ -314,6 +314,7 @@ export default {
             electron: this.$route.params.electron,
             hostname: window.location.hostname,
             config :this.$route.params.config,
+            hostip: this.$route.params.config.hostip,
             now : null,
             files: null,
             autoabgabe: true,
@@ -426,6 +427,9 @@ export default {
             }
             this.now = new Date().getTime()
 
+            this.hostip = ipcRenderer.sendSync('checkhostip')
+            if (!this.hostip) return; 
+
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/studentlist/${this.servername}/${this.servertoken}`)
             .then(response => {
                 if (!response.ok) { throw new Error('Network response was not ok');  }
@@ -493,7 +497,7 @@ export default {
                         }
                     } 
                 }
-            }).catch( err => {console.log(err)});
+            }).catch( err => {console.log(`dashboard @ fetchinfo:`,err)});
         }, 
 
 

@@ -20,7 +20,7 @@ function startExam(){
 
 // disable exammode 
 function endExam(){
-    this.getFiles('all') // fetch files from students before ending exam for everybody
+    if (this.hostip){  this.getFiles('all') }  // fetch files from students before ending exam for everybody
     this.$swal.fire({
         title: this.$t("dashboard.sure"),
         html: `<div>
@@ -51,7 +51,8 @@ function endExam(){
  * Stop and Exit Exam Server Instance
  */
 function stopserver(){
-    this.getFiles('all') // fetch files from students before ending exam for everybody - this takes up to 8 seconds and may fail - so this is just a emergency backup and should be properly handled by the teacher
+
+    if (this.hostip){  this.getFiles('all') }      // fetch files from students before ending exam for everybody - this takes up to 8 seconds and may fail - so this is just a emergency backup and should be properly handled by the teacher
     let message = this.$t("dashboard.exitexam")
     if (!this.serverstatus.exammode) { message = this.$t("dashboard.exitexaminfo")}
 
@@ -65,12 +66,17 @@ function stopserver(){
     })
     .then( async (result) => {
         if (result.isConfirmed) {
+            if (!this.hostip){   // somehow the teacher disconnected - stop everything without network address
+                await ipcRenderer.invoke("stopserver", this.servername)  // need to stop server first otherwise router.js won't route back
+                this.$router.push({ path: '/startserver' });  // route back to startserver view
+                return;  
+            }
             axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/stopserver/${this.servername}/${this.servertoken}`)
             .then( async (response) => {
                 this.status(response.data.message);
                 //log.info(response.data);
                 await this.sleep(2000);
-                this.$router.push({ path: '/startserver' })
+                this.$router.push({ path: '/startserver' });  // route back to startserver view
             }).catch( err => {log.error(err)});
         } 
     });    
@@ -152,7 +158,7 @@ function setAbgabeInterval(){
 // get finished exams (ABGABE) from students
 function getFiles(who='all', feedback=false, quiet=false){
     this.checkDiscspace()
-    if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); log.warn("exammanagement @ getFiles: no clients connected"); return; }
+    if ( this.studentlist.length <= 0 ) { this.status(this.$t("dashboard.noclients")); return; }
 
     if (this.serverstatus.examtype === "microsoft365"){ //fetch files from onedrive
         this.downloadFilesFromOneDrive()
