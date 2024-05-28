@@ -174,6 +174,10 @@
                 <label class="form-check-label">{{$t('dashboard.directprint')}}   </label><br>
                 <div v-if="defaultPrinter" class="ellipsis text-white-50"> {{ defaultPrinter }}</div>
             </div>
+            <div v-if="config.bipIntegration" class="form-check form-switch  m-1 mb-2">
+                <input v-model=serverstatus.requireBiP @click="activateBiP()" @mouseover="showDescription( $t('control.biprequired') )" @mouseout="hideDescription" checked=false class="form-check-input" type="checkbox" id="activatebip">
+                <label class="form-check-label">{{$t('dashboard.bildungsportal')}}   </label><br>
+            </div>
         </div>
         <br>
 
@@ -351,7 +355,8 @@ export default {
                 screenslocked: false,
                 pin: this.$route.params.pin,
                 linespacing: 1,
-                unlockonexit: false
+                unlockonexit: false,
+                requireBiP: false
             }
         };
     },
@@ -919,6 +924,33 @@ export default {
                 }
             })    
         },
+
+        activateBiP(){
+            this.$swal.fire({
+                title: "Bildungsportal",
+                icon: 'info',
+                text: 'Dies erzwingt die Authentifizierung der Schüler:innen durch das Bildungsportal.',
+                showCancelButton: true,
+                cancelButtonText: this.$t("dashboard.cancel"),
+                reverseButtons: true,
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    console.log(this.serverstatus)
+                   this.serverstatus.requireBiP = true
+                   document.getElementById('activatebip').checked = true
+                   this.setServerStatus()
+                }
+                else {
+                    this.serverstatus.requireBiP = false
+                    document.getElementById('activatebip').checked = false
+                    console.log(this.serverstatus)
+                    this.setServerStatus()
+                }
+            })    
+
+
+        },
+
 
         truncatedClientName(value, len=18) {
             if (!value) return

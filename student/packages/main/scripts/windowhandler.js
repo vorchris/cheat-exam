@@ -86,7 +86,7 @@ class WindowHandler {
            // transparent: true
         })
      
-        if (biptest){   this.bipwindow.loadURL(`https://www.bildung.gv.at/admin/tool/mobile/launch.php?service=moodle_mobile_app&passport=next-exam`)   }
+        if (biptest){   this.bipwindow.loadURL(`https://q.bildung.gv.at/admin/tool/mobile/launch.php?service=moodle_mobile_app&passport=next-exam`)   }
         else {          this.bipwindow.loadURL(`https://www.bildung.gv.at/admin/tool/mobile/launch.php?service=moodle_mobile_app&passport=next-exam`)   }
 
         this.bipwindow.once('ready-to-show', () => {
@@ -118,9 +118,9 @@ class WindowHandler {
         this.bipwindow.webContents.on('will-redirect', (event, url) => {
             log.info('Redirecting to:', url);
             // Prüfen, ob die URL das gewünschte Format hat
-            if (url.startsWith('moodlemobile://')) {
+            if (url.startsWith('bildungsportal://')) {
                 event.preventDefault(); // Verhindert den Standard-Redirect
-                const prefix = 'moodlemobile://token=';
+                const prefix = 'bildungsportal://token=';
 
                 const token = url.substring(prefix.length);
                 

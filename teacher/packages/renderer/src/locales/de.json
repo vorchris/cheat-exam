@@ -145,7 +145,8 @@
         "audiorepeattitle": "Abspielen von Audiodateien einschränken",
         "audioallow": "Keine Einschränkung",
         "audiorepeat1": "Wiederholung",
-        "audiorepeat2": "Wiederholungen"
+        "audiorepeat2": "Wiederholungen",
+        "bildungsportal": "Bildungsportal"
     },
     "control": {
         "tokennotvalid": "Das Token ist ungültig",
@@ -169,7 +170,9 @@
         "staterestore": "Vertrauensstellung wiederhergestellt",
         "virtualized": ": Die Prüfungsumgebung wird in einer virtuellen Maschine ausgeführt",
         "versionmismatch": "Die Programmversionen stimmen nicht überein",
-        "examrequest": "Abgaben wurden angefordert"
+        "examrequest": "Abgaben wurden angefordert",
+        "biprequired": "Authentifizierung durch Bildungsportal notwendig!"
+
     },  
     "data": {
         "tokennotvalid": "das token ist ungültig",

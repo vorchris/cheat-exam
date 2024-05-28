@@ -145,7 +145,8 @@
         "audiorepeattitle": "Audio restrictions",
         "audioallow": "no restrictions",
         "audiorepeat1": "repetition",
-        "audiorepeat2": "repetitions"
+        "audiorepeat2": "repetitions",
+        "bildungsportal": "Bildungsportal"
     },
     "control": {
         "tokennotvalid": "token is not valid",
@@ -169,7 +170,8 @@
         "staterestore": "safe exam state restored",
         "virtualized": "next-exam is run in a virtual machine",
         "versionmismatch": "Application versions mismatch",
-        "examrequest": "Exams requested"
+        "examrequest": "Exams requested",
+        "biprequired": "Bildungsportal authentification mandatory!"
     },  
     "data": {
         "tokennotvalid": "the token is not valid",

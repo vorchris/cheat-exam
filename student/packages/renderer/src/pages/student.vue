@@ -35,7 +35,7 @@
         </div>
 
         
-        <div  id="biploginbutton" v-if="biplogin" @click="loginBiP" class="btn btn-info mb-1 me-0" style="padding:0;">
+        <div  id="biploginbutton" v-if="biplogin" @click="loginBiP()" class="btn btn-info mb-1 me-0" style="padding:0;">
             <img v-if="biplogin" style="width:100%; border-top-left-radius:3px;border-top-right-radius:3px; margin:0; " src="/src/assets/img/login_students.jpg">
              <span id="biploginbuttonlabel">Bildungsportal - Login</span>
         </div> 
@@ -139,10 +139,12 @@ export default {
             serverip: "",
             servername: "",
             hostip: config.hostip,
-            biplogin: false,
             networkerror: false,
             localLockdown: false,
-            biptest:false
+            biplogin: false,
+            biptest:false,
+            bipToken:false,
+            bipuserID: false
         };
     },
     methods: {
@@ -259,11 +261,10 @@ export default {
 
 
         async fetchInfo() {
+        
             let getinfo = await ipcRenderer.invoke('getinfoasync')  // gets serverlist and clientinfo from multicastclient
-            
             this.clientinfo = getinfo.clientinfo;
             this.token = this.clientinfo.token;
-
             if (this.token && this.token != "0000" || !this.token) { this.localLockdown = false}  //other token than 0000 or no token.. no (local) exam mode
 
             if (this.advanced && !this.token) {
@@ -308,10 +309,6 @@ export default {
                 if (this.serverlistAdvanced.length !== 0){ this.serverlist = this.serverlistAdvanced }  // one server coming via direct ip polling
                 else { this.serverlist = [] }  // no servers found
             }
-
-
-
-          
 
             // check im networkconnection is still alive - otherwise exit here
             this.hostip = ipcRenderer.sendSync('checkhostip')
@@ -377,7 +374,7 @@ export default {
                 //check username - remove leading and trailing spaces
                 this.username = this.username.replace(/^\s+|\s+$/g, '');
 
-                let IPCresponse = ipcRenderer.sendSync('register', {clientname:this.username, servername:servername, serverip, serverip, pin:this.pincode })
+                let IPCresponse = ipcRenderer.sendSync('register', {clientname:this.username, servername:servername, serverip, serverip, pin:this.pincode, bipuserID:this.bipuserID })
                 console.log(`student @ registerClient: ${IPCresponse.message}`)
                 if (IPCresponse && IPCresponse.token){
                     this.token = IPCresponse.token  // set token (used to determine server connection status)
@@ -439,10 +436,10 @@ export default {
             const tokens = this.decodeBase64AndExtractTokens(base64String);
             console.log(tokens); // Zeigt die extrahierten Tokens, falls vorhanden
             let token = tokens[1]
-
-            const url = `https://www.bildung.gv.at/webservice/rest/server.php?wstoken=${token}&wsfunction=core_webservice_get_site_info&moodlewsrestformat=json`
-                                                                             
-            console.log(url)
+            
+            let url = `https://www.bildung.gv.at/webservice/rest/server.php?wstoken=${token}&wsfunction=core_webservice_get_site_info&moodlewsrestformat=json`
+            if (this.biptest){ url = `https://q.bildung.gv.at/webservice/rest/server.php?wstoken=${token}&wsfunction=core_webservice_get_site_info&moodlewsrestformat=json` }
+            
 
             fetch(url, { method: 'POST'})
             .then( res => res.json() )
@@ -456,7 +453,7 @@ export default {
                 })
                 if (response.fullname){
                     this.username = response.fullname
-
+                    this.bipuserID = response.userid
                     document.querySelector("#biploginbuttonlabel").textContent = "verbunden";
                     document.querySelector("#biploginbutton").disabled = true;
 
@@ -499,6 +496,7 @@ export default {
 
         ipcRenderer.on('bipToken', (event, token) => {  
             console.log("token received: ",token)
+            this.bipToken = token
             this.fetchBiPData(token)
         });
 

@@ -446,6 +446,7 @@ class IpcHandler {
             const clientip = ip.address()
             const hostname = os.hostname()
             const version = this.config.version
+            const bipuserID = args.bipuserID
 
             if (this.multicastClient.clientinfo.token){ //#FIXME das sollte eigentlich vom server kommen 
                 event.returnValue = { sender: "client", message: t("control.alreadyregistered"), status:"error" }
@@ -453,7 +454,7 @@ class IpcHandler {
 
 
          
-            const url = `https://${serverip}:${this.config.serverApiPort}/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}/${hostname}/${version}`;
+            const url = `https://${serverip}:${this.config.serverApiPort}/server/control/registerclient/${servername}/${pin}/${clientname}/${clientip}/${hostname}/${version}/${bipuserID}`;
             const signal = AbortSignal.timeout(8000); // 8000 Millisekunden = 8 Sekunden AbortSignal mit einem Timeout
 
 

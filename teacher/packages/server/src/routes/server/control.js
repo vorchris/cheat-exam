@@ -310,7 +310,7 @@ for (let i = 0; i<16; i++ ){
 
 
 
- router.get('/registerclient/:servername/:pin/:clientname/:clientip/:hostname/:version', function (req, res, next) {
+ router.get('/registerclient/:servername/:pin/:clientname/:clientip/:hostname/:version/:bipuserid', function (req, res, next) {
     const clientname = req.params.clientname
     const clientip = req.params.clientip
     const pin = req.params.pin
@@ -319,6 +319,7 @@ for (let i = 0; i<16; i++ ){
     const token = `csrf-${crypto.randomUUID()}`
     const mcServer = config.examServerList[servername] // get the multicastserver object
     const hostname = req.params.hostname
+    const bipuserID = req.params.bipuserid
 
     log.info("control @ registerclient: ",version)
     // this needs to change once we reached v1.0 (featurefreeze for stable version)
@@ -330,6 +331,11 @@ for (let i = 0; i<16; i++ ){
   
     if (!mcServer) {  return res.send({sender: "server", message:t("control.notfound"), status: "error"} )  }
     if (`${versionteacher}` !== versionstudent ) {  return res.send({sender: "server", message:t("control.versionmismatch"), status: "error", version: config.version, versioninfo: config.info} )  }  
+    
+    if (mcServer.serverstatus.requireBiP && bipuserID == 'false'){ // req.params come as string.. not nice but simple
+        return res.send({sender: "server", message:t("control.biprequired"), status: "error"} ) 
+    }
+    
     if (pin === mcServer.serverinfo.pin) {
         let registeredClient = mcServer.studentList.find(element => element.clientname === clientname)
 
@@ -345,6 +351,7 @@ for (let i = 0; i<16; i++ ){
                 exammode: false,
                 imageurl:false,
                 virtualized: false,
+                bipuserID: bipuserID,  // we can use this in the future to re-check if this user is in the pre-defined userlist for this specific BIP exam
                 status : {}    // we use this to store (per student) information about whats going on on the serverside (tasklist) and send it back on /update
             }
             //create folder for student
