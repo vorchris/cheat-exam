@@ -1,6 +1,7 @@
 ## classic.html
 
-// finde "en" im "blob" und tausche durch "de"
+// um ui sprache deutsch zu erhalten
+// finde 'en' im "blob" und tausche durch 'de'  (einziges en mit single quotes)
 
 	function validLang(lang){
 		return "de";

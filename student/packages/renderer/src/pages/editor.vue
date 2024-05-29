@@ -394,13 +394,17 @@ export default {
                     reverseButtons: true,
 
                     html: audioFile.playbacks > 0 ? `
-                        <span class="col-3" style="">${this.$t("editor.audioremaining")} ${audioFile.playbacks} </span> <br><br>
-                        
+                       
+                        <span class="col-3" style="">${this.$t("editor.audioremaining")} ${audioFile.playbacks} </span> <br>
+                        <div id="soundtest" class="btn btn-info btn-sm m-2">Soundtest</div><br>
                         <h6>${this.$t("editor.reallyplay")}</h6>
                     ` : `
-                       
+                         <div id="soundtest" class="btn btn-info btn-sm m-2">Soundtest</div><br>
                         <span class="col-3" style="">${this.$t("editor.audionotallowed")}</span> 
                     `,
+                    didRender: () => {
+                        document.getElementById('soundtest').onclick = () => this.soundtest();
+                    }
                 }).then(async (result) => {
                     if (result.isConfirmed) {
                         if (audioFile.playbacks > 0){
@@ -430,6 +434,30 @@ export default {
                     } else { console.error('Keine Daten empfangen'); }
                 } catch (error) { console.error('Fehler beim Empfangen der MP3-Datei:', error); } 
             }
+        },
+
+        async soundtest(){
+            try {
+                const base64Data = await ipcRenderer.invoke('getAudioFile', 'attention.wav', true);
+                if (base64Data) {
+                    let soundtest = document.getElementById('soundtest')
+
+                    if (soundtest){
+                        soundtest.classList.add('btn-success')
+                        soundtest.classList.remove('btn-info')
+                    }
+                   
+                    this.audioSource = `data:audio/mp3;base64,${base64Data}`;
+                    audioPlayer.load(); // Lädt die neue Quelle
+                    audioPlayer.play().then(async () => { 
+                        await this.sleep(2000)
+                        if (soundtest){
+                            soundtest.classList.remove('btn-success')
+                            soundtest.classList.add('btn-info')
+                        }
+                    }).catch(e => { console.error('Playback failed:', e); });
+                } else { console.error('Keine Daten empfangen'); }
+            } catch (error) { console.error('Fehler beim Empfangen der MP3-Datei:', error); }   
         },
 
         showInsertSpecial(){

@@ -77,7 +77,8 @@ class IpcHandler {
                 fontfamily: 'sans-serif',
                 moodleTestId: '',
                 languagetool: true,
-                password: args.password
+                password: args.password,
+                audioRepeat: 4
             }
             
             this.multicastClient.clientinfo.name = args.clientname;
@@ -594,9 +595,26 @@ class IpcHandler {
             }
         })
 
-
-
-
+        /**
+         * returns base64 string of audiofile from workdirectory or public directory
+         */
+        ipcMain.handle('getAudioFile', async (event, filename, publicdir=false) => {   
+            const workdir = path.join(config.examdirectory, "/");
+        
+            if (filename && !publicdir) { // Return content of specific file as string (html) to replace in editor
+                let filepath = path.join(workdir, filename);
+                const audioData = fs.readFileSync(filepath);
+                return audioData.toString('base64');
+            }
+        
+            if (filename && publicdir) {
+                let filepath = path.join(__dirname, "../../public",filename);
+                const audioData = fs.readFileSync(filepath);
+                return audioData.toString('base64');
+            }
+        
+            return false;
+        });
  
 
         /**
