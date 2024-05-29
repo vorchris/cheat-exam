@@ -98,9 +98,13 @@
     </div>
 
     <!-- angabe/pdf preview start -->
-    <div id=preview class="fadeinfast p-4">
-        <div class="btn btn-info me-2 shadow" style="float: right;" @click="insertImage(selectedFile)" :title="$t('editor.insert')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="32" > </div>
-        <embed src="" id="pdfembed">
+    <div id="preview" class="fadeinfast p-4">
+        <div class="embed-container">
+        <embed src="" id="pdfembed"></embed>
+        <div class="btn btn-warning shadow " id="insert-button" @click="insertImage(selectedFile)" :title="$t('editor.insert')">
+            <img src="/src/assets/img/svg/edit-download.svg" class="white" width="22" height="32">
+        </div>
+        </div>
     </div>
     <!-- angabe/pdf preview end -->
 
@@ -178,7 +182,7 @@
         <!-- Statischer Text mit v-once, um das Neurendern zu verhindern da $t offenbar jedesmal performance measures durchführt die zu memory bloat führen -->
             <span v-once>{{ $t("editor.words") }}:</span> <span>{{ wordcount }}</span> | <span v-once>{{ $t("editor.chars") }}:</span> <span>{{ charcount }}</span>  
             &nbsp;
-            <span v-once> {{ $t("editor.selected") }}: </span> <span id="editselected"> {{ selectedWordCount }}/{{ selectedCharCount }}</span>
+            <span v-once id="editselectedtext"> {{ $t("editor.selected") }}: </span> <span id="editselected"> {{ selectedWordCount }}/{{ selectedCharCount }}</span>
             <img @click="zoomin(); LTupdateHighlights();" src="/src/assets/img/svg/zoom-in.svg" class="zoombutton">  
             <img @click="zoomout(); LTupdateHighlights();" src="/src/assets/img/svg/zoom-out.svg" class="zoombutton">
         </div>
@@ -728,12 +732,16 @@ export default {
 
             const pdfEmbed = document.querySelector("#pdfembed");
             pdfEmbed.style.backgroundImage = '';
-            pdfEmbed.style.height = "96vh";
-            pdfEmbed.style.marginTop = "-48vh";
+            pdfEmbed.style.height = "95vh";
+            pdfEmbed.style.width = "67vh";
             pdfEmbed.setAttribute("src", `${this.currentpreview}#toolbar=0&navpanes=0&scrollbar=0`);
 
             document.querySelector("#preview").style.display = 'block';
+            document.querySelector("#insert-button").style.display = 'none';
         },
+
+
+
 
 
         // fetch file from disc - show preview
@@ -741,19 +749,45 @@ export default {
             URL.revokeObjectURL(this.currentpreview);
             let data = await ipcRenderer.invoke('getpdfasync', file )
             this.currentpreview =  URL.createObjectURL(new Blob([data], {type: "image/jpeg"})) 
-
             const pdfEmbed = document.querySelector("#pdfembed");
-            pdfEmbed.style.backgroundImage = `url(${this.currentpreview})`;
-            pdfEmbed.style.backgroundSize = 'contain'
-            pdfEmbed.style.backgroundRepeat = 'no-repeat'
-            pdfEmbed.style.backgroundPosition =  'center'
-           
-            pdfEmbed.style.height = "80vh";
-            pdfEmbed.style.marginTop = "-40vh";
-            pdfEmbed.setAttribute("src", "about:blank");
+            
+            // Create an image element to determine the dimensions of the image
+            // always resize the pdfembed div to the same aspect ratio of the given image
+            const img = new window.Image();
+            img.onload = function() {
+                const width = img.width;
+                const height = img.height;
+                const aspectRatio = width / height;
 
-            document.querySelector("#preview").style.display = 'block';     
+                const containerWidth = window.innerWidth * 0.8;
+                const containerHeight = window.innerHeight * 0.8;
+                const containerAspectRatio = containerWidth / containerHeight;
+
+                if (aspectRatio > containerAspectRatio) {
+                    pdfEmbed.style.width = '80vw';
+                    pdfEmbed.style.height = `calc(80vw / ${aspectRatio})`;
+                } else {
+                    pdfEmbed.style.height = '80vh';
+                    pdfEmbed.style.width = `calc(80vh * ${aspectRatio})`;
+                }
+                pdfEmbed.style.backgroundImage = `url(${this.currentpreview})`;
+
+            }.bind(this);
+            img.src = this.currentpreview;
+
+            // clear the pdf viewer
+            pdfEmbed.setAttribute("src", "about:blank");
+            document.querySelector("#insert-button").style.display = 'flex';
+            document.querySelector("#preview").style.display = 'block';    
+
         },
+
+
+
+
+
+
+
 
         async insertImage(file){
             let data = await ipcRenderer.invoke('getpdfasync', file, true )   //fileurl, image=true > delivers an image as base64string
@@ -1188,7 +1222,7 @@ export default {
 <style lang="scss">
 
 @media print {  //this controls how the editor view is printed (to pdf)
-    #editortoolbar, #apphead, #editselected, #focuswarning, .focus-container, #specialcharsdiv, #aplayer,  span.NXTEhighlight::after, #highlight-layer, #languagetool  {
+    #editortoolbar, #apphead, #editselected, #editselectedtext, #focuswarning, .focus-container, #specialcharsdiv, #aplayer,  span.NXTEhighlight::after, #highlight-layer, #languagetool  {
         display: none !important;
     }
     #statusbar {
@@ -1368,21 +1402,45 @@ Other Styles
     z-index:100001;
 }
 
-#pdfembed { 
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-left: -30vw;
-    margin-top: -45vh;
-    width:60vw;
-    height: 90vh;
-    padding: 10px;
-    background-color: rgba(255, 255, 255, 1);
-    border: 0px solid rgba(255, 255, 255, 0.589);
-    box-shadow: 0 0 15px rgba(22, 9, 9, 0.589);
-    padding: 10px;
+
+#pdfembed {
+    background-color: rgba(255, 255, 255, 0.5);
+    border: 0px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 15px rgba(22, 9, 9, 0.5);
     border-radius: 6px;
+    background-size: 100% 100%;  
+    background-repeat: no-repeat;
+    background-position: center;
 }
+
+.embed-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: flex-start;
+}
+
+#insert-button {
+  border: none;
+  border-radius: 0;
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+#insert-button img {
+  width: 22px;
+  height: 52px;
+}
+
 
 
 

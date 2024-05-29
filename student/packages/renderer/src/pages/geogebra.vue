@@ -53,14 +53,13 @@
     
 
 
-    
     <!-- angabe/pdf preview start -->
-    <div id=preview class="fadeinfast p-4">
-        <embed src="" id="pdfembed"/>
+    <div id="preview" class="fadeinfast p-4">
+        <div class="embed-container">
+        <embed src="" id="pdfembed"></embed>
+        </div>
     </div>
     <!-- angabe/pdf preview end -->
-   
-
 
     <div id="content">
           <!-- focus warning start -->
@@ -299,8 +298,9 @@ export default {
 
         // fetch file from disc - show preview
         async loadPDF(file){
+            URL.revokeObjectURL(this.currentpreview);
             let data = await ipcRenderer.invoke('getpdfasync', file )
-
+        
             let isvalid = this.isValidPdf(data)
             if (!isvalid){
                 this.$swal.fire({
@@ -318,27 +318,48 @@ export default {
 
             const pdfEmbed = document.querySelector("#pdfembed");
             pdfEmbed.style.backgroundImage = '';
-            pdfEmbed.style.height = "96vh";
-            pdfEmbed.style.marginTop = "-48vh";
+            pdfEmbed.style.height = "95vh";
+            pdfEmbed.style.width = "67vh";
+            pdfEmbed.setAttribute("src", `${this.currentpreview}#toolbar=0&navpanes=0&scrollbar=0`);
 
-            document.querySelector("#pdfembed").setAttribute("src", `${this.currentpreview}#toolbar=0&navpanes=0&scrollbar=0`);
             document.querySelector("#preview").style.display = 'block';
         },
 
 
         // fetch file from disc - show preview
         async loadImage(file){
+            URL.revokeObjectURL(this.currentpreview);
             let data = await ipcRenderer.invoke('getpdfasync', file )
             this.currentpreview =  URL.createObjectURL(new Blob([data], {type: "image/jpeg"})) 
             const pdfEmbed = document.querySelector("#pdfembed");
-            pdfEmbed.style.backgroundImage = `url(${this.currentpreview})`;
-            pdfEmbed.style.backgroundSize = 'contain'
-            pdfEmbed.style.backgroundRepeat = 'no-repeat'
-            pdfEmbed.style.backgroundPosition =  'center'
-            pdfEmbed.style.height = "80vh";
-            pdfEmbed.style.marginTop = "-40vh";
+            
+            // Create an image element to determine the dimensions of the image
+            // always resize the pdfembed div to the same aspect ratio of the given image
+            const img = new window.Image();
+            img.onload = function() {
+                const width = img.width;
+                const height = img.height;
+                const aspectRatio = width / height;
+
+                const containerWidth = window.innerWidth * 0.8;
+                const containerHeight = window.innerHeight * 0.8;
+                const containerAspectRatio = containerWidth / containerHeight;
+
+                if (aspectRatio > containerAspectRatio) {
+                    pdfEmbed.style.width = '80vw';
+                    pdfEmbed.style.height = `calc(80vw / ${aspectRatio})`;
+                } else {
+                    pdfEmbed.style.height = '80vh';
+                    pdfEmbed.style.width = `calc(80vh * ${aspectRatio})`;
+                }
+                pdfEmbed.style.backgroundImage = `url(${this.currentpreview})`;
+
+            }.bind(this);
+            img.src = this.currentpreview;
+
+            // clear the pdf viewer
             pdfEmbed.setAttribute("src", "about:blank");
-            document.querySelector("#preview").style.display = 'block';     
+            document.querySelector("#preview").style.display = 'block';   
         },
 
 
@@ -574,6 +595,7 @@ export default {
    
 
 }
+
 #preview {
     display: none;
     position: absolute;
@@ -582,23 +604,27 @@ export default {
     width:100vw;
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.4);
-    z-index:100000;
+    z-index:100001;
 }
 
-#pdfembed { 
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-left: -30vw;
-    margin-top: -45vh;
-    width:60vw;
-    height: 90vh;
-    padding: 10px;
-    background-color: rgba(255, 255, 255, 1);
-    border: 0px solid rgba(255, 255, 255, 0.589);
-    box-shadow: 0 0 15px rgba(22, 9, 9, 0.589);
-    padding: 10px;
+
+#pdfembed {
+    background-color: rgba(255, 255, 255, 0.5);
+    border: 0px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 15px rgba(22, 9, 9, 0.5);
     border-radius: 6px;
+    background-size: 100% 100%;  
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.embed-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: flex-start;
 }
 
 </style>

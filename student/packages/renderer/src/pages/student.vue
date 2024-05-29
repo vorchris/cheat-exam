@@ -403,15 +403,12 @@ export default {
             }
         },
         showCopyleft(){
-            const vm = this
             this.$swal.fire({
-                title: "<span id='cpleft' class='active' style='display:inline-block; transform: scaleX(-1); vertical-align: middle; cursor: pointer;'>&copy;</span>",
+                title: "<span id='cpleft' class='active' style='display:inline-block; transform: scaleX(-1); vertical-align: middle; cursor: pointer;'>&copy;</span> <span style='font-size:0.8em'>Thomas Michael Weissel </span>",
                 icon: 'info',
                 html: `
-                Thomas Michael Weissel <br>
-                <span style="font-size:0.8em">
-                  <a href="https://next-exam.at/#kontakt" target="_blank">next-exam.at</a>
-                </span><br><br>
+                <a href="https://linux-bildung.at" target="_blank"><img style="width: 50px; opacity:0.7;" src="./osos.svg"></a> <br>
+                <span style="font-size:0.8em"> <a href="https://next-exam.at/#kontakt" target="_blank">next-exam.at</a> </span><br><br>
                 <span style="font-size:0.8em">Version: ${this.version} ${this.info}</span>
                 `,
                 didRender: () => {
@@ -516,6 +513,16 @@ export default {
 .inactive {
     filter: contrast(40%) grayscale(100%) brightness(130%) blur(0.6px) !important;
 }
+
+/**in order to override swal settings the css needs to be global not scoped*/
+.swal2-popup{
+    opacity: 0.9 !important; 
+}
+
+.swal2-container {
+    backdrop-filter: blur(2px); 
+} 
+
 
 </style>
 
