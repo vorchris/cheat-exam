@@ -1,7 +1,5 @@
 import log from 'electron-log/renderer';
 
-
-
 // DASHBOARD EXPLORER
 
 //delete file or folder
@@ -158,7 +156,8 @@ function loadImage(file){
         .then( response => response.arrayBuffer())
         .then( data => {
             this.currentpreviewPath = file
-
+            this.currentpreviewname = file.split('/').pop(); //needed for preview buttons
+  
             this.currentpreview =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
             // wanted to save code here but images need to be presented in a different way than pdf.. so...
             const pdfEmbed = document.querySelector("#pdfembed");
@@ -365,7 +364,6 @@ function sleep(ms) {
 
 //print pdf in focus - depends on system print dialog
 async function print(){
-    console.log(this.currentpreviewPath)
     if (!this.defaultPrinter){
         this.setupDefaultPrinter()
         return

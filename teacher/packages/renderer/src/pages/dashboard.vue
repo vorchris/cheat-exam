@@ -224,7 +224,7 @@
             </div>
             <div>  <!-- ok button resets currentpreviewPath / print button only appears if currentpreviewPath is set and defaultprinter is set -->
                 <div id="okButton" class="btn mt-3 btn-success" @click="setupDefaultPrinter(); this.currentpreviewPath=null;">OK</div>
-                <div v-if="currentpreviewPath && defaultPrinter" id="printButton" class="btn mt-3 btn-dark" style="margin-left: 10px;" @click="print();setupDefaultPrinter()">Print {{ currentpreviewname }}</div>
+                <div v-if="currentpreviewPath && defaultPrinter" id="printButton" class="btn mt-3 btn-dark" style="margin-left: 10px;" @click="print();setupDefaultPrinter()">Print: {{ currentpreviewname }}</div>
                
             </div>
         </div>
