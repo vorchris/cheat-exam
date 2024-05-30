@@ -124,8 +124,9 @@ function loadPDF(filepath, filename){
   
         const pdfEmbed = document.querySelector("#pdfembed");
         pdfEmbed.style.backgroundImage = '';
-        pdfEmbed.style.height = "96vh";
-        pdfEmbed.style.marginTop = "-48vh";
+
+        pdfEmbed.style.height = "95vh";
+        pdfEmbed.style.width = "67vh";
 
         document.querySelector("#pdfembed").setAttribute("src", `${this.currentpreview}#toolbar=0&navpanes=0&scrollbar=0`);
         document.querySelector("#pdfpreview").style.display = 'block';
@@ -161,13 +162,31 @@ function loadImage(file){
             this.currentpreview =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
             // wanted to save code here but images need to be presented in a different way than pdf.. so...
             const pdfEmbed = document.querySelector("#pdfembed");
-            pdfEmbed.style.backgroundImage = `url(${this.currentpreview})`;
-            pdfEmbed.style.height = "60vh";
-            pdfEmbed.style.marginTop = "-30vh";
-            pdfEmbed.setAttribute("src", '');
-            
-            document.querySelector("#pdfpreview").style.display = 'block';
+            const img = new window.Image();
+            img.onload = function() {
+                const width = img.width;
+                const height = img.height;
+                const aspectRatio = width / height;
 
+                const containerWidth = window.innerWidth * 0.8;
+                const containerHeight = window.innerHeight * 0.8;
+                const containerAspectRatio = containerWidth / containerHeight;
+
+                if (aspectRatio > containerAspectRatio) {
+                    pdfEmbed.style.width = '80vw';
+                    pdfEmbed.style.height = `calc(80vw / ${aspectRatio})`;
+                } else {
+                    pdfEmbed.style.height = '80vh';
+                    pdfEmbed.style.width = `calc(80vh * ${aspectRatio})`;
+                }
+                pdfEmbed.style.backgroundImage = `url(${this.currentpreview})`;
+
+            }.bind(this);
+            img.src = this.currentpreview;
+
+            // clear the pdf viewer
+            pdfEmbed.setAttribute("src", "about:blank");
+            document.querySelector("#pdfpreview").style.display = 'block';  
         }).catch(err => { log.error(err)});     
 }
 
@@ -345,7 +364,8 @@ function sleep(ms) {
 
 
 //print pdf in focus - depends on system print dialog
-function print(){
+async function print(){
+    console.log(this.currentpreviewPath)
     if (!this.defaultPrinter){
         this.setupDefaultPrinter()
         return

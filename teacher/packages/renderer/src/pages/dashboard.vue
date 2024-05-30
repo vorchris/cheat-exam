@@ -80,13 +80,27 @@
 
 
     <!-- pdf preview start -->
-    <div :key="4" id="pdfpreview" class="fadeinslow p-4">
+    <!-- <div :key="4" id="pdfpreview" class="fadeinslow p-4">
         <div class="btn btn-danger me-2  shadow" style="float: right;" @click="hidepreview()" :title="$t('dashboard.close')"><img src="/src/assets/img/svg/dialog-cancel.svg" class="" width="22" height="32" > </div>
         <div class="btn btn-warning me-2 shadow" style="float: right;" id="printPDF" @click="print()"  :title="$t('dashboard.print')"><img src="/src/assets/img/svg/print.svg" class="white" width="22" height="32" > </div>
         <div class="btn btn-dark me-2 shadow" style="float: right;" @click="downloadFile('current')" :title="$t('dashboard.download')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="32" > </div>
         <div class="btn btn-dark me-2 shadow" style="float: right;" @click="openFileExternal(currentpreviewPath)" :title="$t('dashboard.open')"><img src="/src/assets/img/svg/stock_exit_up.svg" class="" width="22" height="32" > </div>
 
         <iframe src="" id="pdfembed"></iframe>
+    </div> -->
+
+
+
+    <div :key="4" id="pdfpreview" class="fadeinfast p-4">
+        <div class="embed-container">
+        <iframe src="" id="pdfembed"></iframe>
+        <div id="previewbuttons">
+            <div class="insert-button btn btn-danger me-2  shadow" style="float: right;" @click="hidepreview()" :title="$t('dashboard.close')"><img src="/src/assets/img/svg/dialog-cancel.svg" class="" width="22" height="32" > </div>
+            <div class="insert-button btn btn-warning me-2 shadow" style="float: right;" id="printPDF" @click="print()"  :title="$t('dashboard.print')"><img src="/src/assets/img/svg/print.svg" class="white" width="22" height="32" > </div>
+            <div class="insert-button btn btn-dark me-2 shadow" style="float: right;" @click="downloadFile('current')" :title="$t('dashboard.download')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="32" > </div>
+            <div class="insert-button btn btn-dark me-2 shadow" style="float: right;" @click="openFileExternal(currentpreviewPath)" :title="$t('dashboard.open')"><img src="/src/assets/img/svg/stock_exit_up.svg" class="" width="22" height="32" > </div>
+        </div>
+        </div>
     </div>
     <!-- pdf preview end -->
    
@@ -208,8 +222,11 @@
                 </button>
                 <img v-if="(printer == defaultPrinter)" src="/src/assets/img/svg/games-solve.svg" class="printercheck" width="22" height="22" >
             </div>
-            <div id="okButton" class="btn mt-3 btn-success" @click="setupDefaultPrinter()">OK</div>
-
+            <div>  <!-- ok button resets currentpreviewPath / print button only appears if currentpreviewPath is set and defaultprinter is set -->
+                <div id="okButton" class="btn mt-3 btn-success" @click="setupDefaultPrinter(); this.currentpreviewPath=null;">OK</div>
+                <div v-if="currentpreviewPath && defaultPrinter" id="printButton" class="btn mt-3 btn-dark" style="margin-left: 10px;" @click="print();setupDefaultPrinter()">Print {{ currentpreviewname }}</div>
+               
+            </div>
         </div>
     </div>
   <!-- PRINT Setup END -->
@@ -326,7 +343,7 @@ export default {
             localfiles: null,
             currentpreview: null,
             currentpreviewname: null,
-            currencpreviewPath: null,
+            currentpreviewPath: null,
             numberOfConnections: 0,
             studentwidgets: [],
             originalIndex: 20,
@@ -1043,6 +1060,7 @@ export default {
 
 
         async setupDefaultPrinter(){
+           
             this.availablePrinters = await ipcRenderer.invoke("getprinters")
             if (document.getElementById("printselectoverlay").style.display == "flex"){
                 if (!this.defaultPrinter){
@@ -1104,7 +1122,7 @@ export default {
 
 
 
-            this.pdfPreviewEventlisterenCallback = () => { document.querySelector("#pdfpreview").style.display = 'none';  document.querySelector("#pdfembed").setAttribute("src", "about:blank"); URL.revokeObjectURL(this.currentpreview);} //unload pdf
+            this.pdfPreviewEventlisterenCallback = () => { document.querySelector("#pdfpreview").style.display = 'none';  document.querySelector("#pdfembed").setAttribute("src", "about:blank"); URL.revokeObjectURL(this.currentpreview);  } //unload pdf
             this.fileBrowserEventlistenerCallback = () => { document.querySelector("#preview").style.display = "none"; }
 
             // Add event listener to #closefilebrowser  (only once - do not accumulate event listeners)
@@ -1388,6 +1406,8 @@ export default {
 }
 
 
+
+
 #pdfpreview {
     display: none;
     position: absolute;
@@ -1396,29 +1416,58 @@ export default {
     width:100vw;
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.4);
-    z-index:10000;
+    z-index:100001;
     backdrop-filter: blur(3px);
 }
 #pdfembed { 
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-left: -30vw;
-    margin-top: -48vh;
-    width:60vw;
-    height: 96vh;
-   
-    background-color: rgba(255, 255, 255, 1);
-    border: 2px solid #212529;
-    box-shadow: 0 0 15px rgba(22, 9, 9, 0.589);
-    
+    background-color: rgba(255, 255, 255, 0.5);
+    border: 0px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 15px rgba(22, 9, 9, 0.5);
     border-radius: 6px;
-    background-size: contain;
+    background-size: 100% 100%;  
     background-repeat: no-repeat;
     background-position: center;
-    background-color: #212529;
-    z-index:-1;
 }
+
+.embed-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: flex-start;
+}
+
+.insert-button {
+  border: none;
+  border-radius: 0;
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.insert-button img {
+  width: 22px;
+  height: 52px;
+}
+
+#previewbuttons {
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column; 
+}
+
+
+
+
+
+
 
 
 
