@@ -69,6 +69,7 @@
         "heading3":"heading3",
         "heading4":"heading4",
         "heading5":"heading5",
+        "heading6":"heading6",
         "subscript":"subscript",
         "superscript":"superscript",
         "bulletlist":"bulletlist",
@@ -108,8 +109,8 @@
         "reallyplay":"Do you want to play the audiofile?",
         "audioremaining":"Remaining playbacks:",
         "audionotallowed":"You don't have the permission to play this file!",
-        "insert":"Insert Image"
-
+        "insert":"Insert Image",
+        "insertmug":"Insert Mugshot"
     },
     "math": {
         "exit":"Exit safe exam mode",
