@@ -146,7 +146,8 @@
         "audioallow": "no restrictions",
         "audiorepeat1": "repetition",
         "audiorepeat2": "repetitions",
-        "bildungsportal": "Bildungsportal"
+        "bildungsportal": "Bildungsportal",
+        "groups":"activate groups"
     },
     "control": {
         "tokennotvalid": "token is not valid",

@@ -51,7 +51,8 @@ class MulticastClient {
             screenshotinterval: 4000,   //milliseconds
             printrequest : false,
             privateSpellcheck: {activated: false},
-            localLockdown: false
+            localLockdown: false,
+            group: 'a'
         }
     }
 

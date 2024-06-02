@@ -365,7 +365,7 @@ function sleep(ms) {
 //print pdf in focus - depends on system print dialog
 async function print(){
     if (!this.defaultPrinter){
-        this.setupDefaultPrinter()
+        this.showSetup()
         return
     }
     this.status(`Druckauftrag an Drucker übertragen`)

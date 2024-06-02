@@ -2,6 +2,7 @@
 
     <!-- HEADER START -->
     <exam-header
+    :clientinfo="clientinfo"
     :online="online"
     :clientname="clientname"
     :exammode="exammode"

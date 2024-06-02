@@ -86,6 +86,7 @@ class IpcHandler {
             this.multicastClient.clientinfo.servername = "localhost";
             this.multicastClient.clientinfo.pin = "0000";
             this.multicastClient.clientinfo.token = "0000";
+            this.multicastClient.clientinfo.group = "a";
             this.multicastClient.clientinfo.localLockdown = true; // this must be set to true in order to stop typical next-exam client/teacher actions
 
             this.CommunicationHandler.startExam(serverstatus)

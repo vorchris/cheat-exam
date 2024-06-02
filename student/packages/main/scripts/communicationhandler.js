@@ -375,6 +375,10 @@ let TesseractWorker = false
                 //set or update sharing link - it will be used in "microsoft365" exam mode
                 this.multicastClient.clientinfo.msofficeshare = studentstatus.msofficeshare  
             }
+            if (studentstatus.group){
+                //set or update group 
+                this.multicastClient.clientinfo.group = studentstatus.group  
+            }
 
         }
 

@@ -14,7 +14,7 @@
 
     <span class="fs-4 align-middle ms-3" style="float: right">Dashboard</span>
     <div class="btn btn-sm btn-danger m-0 mt-1" @click="stopserver()" @mouseover="showDescription($t('dashboard.exitexam'))" @mouseout="hideDescription"  style="float: right">{{$t('dashboard.stopserver')}}&nbsp; <img src="/src/assets/img/svg/stock_exit.svg" style="vertical-align:text-top;" class="" width="20" height="20" ></div>
-    <div class="btn btn-sm btn-secondary me-1 mt-1" style="float: right; padding:3px;" @click="setupDefaultPrinter()"  @mouseover="showDescription($t('dashboard.defaultprinter'))" @mouseout="hideDescription" ><img src="/src/assets/img/svg/settings-symbolic.svg" class="white" width="22" height="22" > </div>
+    <div class="btn btn-sm btn-secondary me-1 mt-1" style="float: right; padding:3px;" @click="showSetup()"  @mouseover="showDescription($t('dashboard.defaultprinter'))" @mouseout="hideDescription" ><img src="/src/assets/img/svg/settings-symbolic.svg" class="white" width="22" height="22" > </div>
     <div v-if="!hostip" id="adv" class="btn btn-danger btn-sm m-0  mt-1 me-1 " style="cursor: unset; float: right">{{ $t("general.offline") }}</div>
 </div>
  <!-- Header END -->
@@ -188,10 +188,7 @@
                 <label class="form-check-label">{{$t('dashboard.directprint')}}   </label><br>
                 <div v-if="defaultPrinter" class="ellipsis text-white-50"> {{ defaultPrinter }}</div>
             </div>
-            <div v-if="config.bipIntegration" class="form-check form-switch  m-1 mb-2">
-                <input v-model=serverstatus.requireBiP @click="activateBiP()" @mouseover="showDescription( $t('control.biprequired') )" @mouseout="hideDescription" checked=false class="form-check-input" type="checkbox" id="activatebip">
-                <label class="form-check-label">{{$t('dashboard.bildungsportal')}}   </label><br>
-            </div>
+      
         </div>
         <br>
 
@@ -209,8 +206,8 @@
 
 
     <!-- PRINT Setup START -->
-    <div :key="6" id="printselectoverlay" class="fadeinslow" @click="setupDefaultPrinter()">
-        <div id="availablePrinters">
+    <div :key="6" id="setupoverlay" class="fadeinslow" @click="hideSetup()">
+        <div id="setupdiv">
             <!-- <div class="swal2-icon swal2-question swal2-icon-show" style="display: flex;"><div class="swal2-icon-content">?</div></div> -->
             <span><h5 style="display: inline">{{ $t('dashboard.defaultprinter') }}</h5></span>
             <div v-if="(availablePrinters.length < 1)">
@@ -222,10 +219,26 @@
                 </button>
                 <img v-if="(printer == defaultPrinter)" src="/src/assets/img/svg/games-solve.svg" class="printercheck" width="22" height="22" >
             </div>
-            <div>  <!-- ok button resets currentpreviewPath / print button only appears if currentpreviewPath is set and defaultprinter is set -->
-                <div id="okButton" class="btn mt-3 btn-success" @click="setupDefaultPrinter(); this.currentpreviewPath=null;">OK</div>
-                <div v-if="currentpreviewPath && defaultPrinter" id="printButton" class="btn mt-3 btn-dark" style="margin-left: 10px;" @click="print();setupDefaultPrinter()">Print: {{ currentpreviewname }}</div>
+            <div v-if="currentpreviewPath && defaultPrinter">
+                <button id="printButton" class="btn btn-dark mt-1 mb-0" @click="print();hideSetup()"><img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" > Print: {{ currentpreviewname }} </button>
+            </div> 
                
+
+
+            <hr>
+
+            <div class="form-check form-switch  m-1 mb-2">
+                <input v-model=serverstatus.groups @click="setupGroups()" checked=false class="form-check-input" type="checkbox" id="activategroups">
+                <label class="form-check-label">{{$t('dashboard.groups')}}   </label><br>
+            </div>
+            <div v-if="config.bipIntegration" class="form-check form-switch  m-1 mb-2" >
+                <input v-model=serverstatus.requireBiP @click="activateBiP()" :title="$t('control.biprequired')" checked=false class="form-check-input" type="checkbox" id="activatebip">
+                <label class="form-check-label">{{$t('dashboard.bildungsportal')}}   </label><br>
+            </div>
+
+            <div>  <!-- ok button resets currentpreviewPath / print button only appears if currentpreviewPath is set and defaultprinter is set -->
+                <div id="okButton" class="btn mt-3 btn-success" @click="hideSetup(); this.currentpreviewPath=null;">OK</div>
+                
             </div>
         </div>
     </div>
@@ -276,6 +289,8 @@
                             <button v-if="(now - 20000 > student.timestamp)" type="button" class="btn btn-outline-danger btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">{{$t('dashboard.offline')}} </button>
                             <button v-if="(now - 20000 < student.timestamp) && student.exammode && student.focus"  @click='showStudentview(student)' type="button" class="btn btn-outline-warning btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;">{{$t('dashboard.secure')}}</button>
                             <button v-if="(now - 20000 < student.timestamp) && !student.focus "   @click='restore(student.token)' type="button" class="btn btn-danger btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;"> {{$t('dashboard.restore')}} </button>
+                            <button v-if="(now - 20000 < student.timestamp) && serverstatus.groups && student.status.group == 'a' "   @click='setGroup(student)' type="button" class="btn btn-info btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;"> A  </button>
+                            <button v-if="(now - 20000 < student.timestamp) && serverstatus.groups && student.status.group == 'b' "  @click='setGroup(student)' type="button" class="btn btn-warning btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;"> B  </button>
                         </div>
                     </div>
                 </div> 
@@ -373,7 +388,10 @@ export default {
                 pin: this.$route.params.pin,
                 linespacing: 1,
                 unlockonexit: false,
-                requireBiP: false
+                requireBiP: false,
+                groups: false,
+                groupA: [],
+                groupB: []
             }
         };
     },
@@ -1031,16 +1049,86 @@ export default {
          * this should be the goTo function from now on to update the backend in a single request
         */
         setServerStatus(){
-            console.log(this.serverstatus)
+            //console.log(this.serverstatus)
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/setserverstatus/${this.servername}/${this.servertoken}`, { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json' },
                 body: JSON.stringify({ serverstatus: this.serverstatus })
             })
             .then( res => res.json())
-            .then( response => { console.log(response.message)})
+            .then( response => { /*console.log(response.message)*/  })
             .catch(err => { console.warn(err) })
         },
+
+
+        setupGroups(){
+            // prepopulate group A
+            if (this.serverstatus.groupA.length == 0){
+                for (let student of this.studentlist) {
+                    student.status.group = "a"
+                    if (!this.serverstatus.groupA.includes(student.clientname)) {
+                        this.serverstatus.groupA.push(student.clientname)
+                    } 
+                }
+            }
+        },
+        setGroup(student) {
+            this.$swal.fire({
+                title: 'Gruppe wählen',
+                html: `
+                    <h3>${student.group.toUpperCase()}</h3>
+                    <button id="btnA" class="swal2-button btn btn-info m-2" style="width: 64px; height: 64px;">A</button>
+                    <button id="btnB" class="swal2-button btn btn-warning m-2" style="width: 64px; height: 64px;">B</button>
+                `,
+                showConfirmButton: false,
+                didRender: () => {
+                    const btnA = document.getElementById('btnA');
+                    const btnB = document.getElementById('btnB');
+
+                    if (btnA && !btnA.dataset.listenerAdded) {
+                        btnA.addEventListener('click', () => {
+                            console.log('set to group A');
+    
+                            // Remove student from group A if present
+                            const indexA = this.serverstatus.groupA.indexOf(student.clientname);
+                            if (indexA > -1) { this.serverstatus.groupA.splice(indexA, 1);  }
+                            // Remove student from group B if present
+                            const indexB = this.serverstatus.groupB.indexOf(student.clientname);
+                            if (indexB > -1) { this.serverstatus.groupB.splice(indexB, 1);  }
+
+                            //Add and Set
+                            this.serverstatus.groupA.push(student.clientname)
+                            this.setStudentStatus({group:"a"}, student.token) 
+                            this.fetchInfo()
+                            this.$swal.close();
+                        });
+                        btnA.dataset.listenerAdded = 'true';
+                    }
+
+                    if (btnB && !btnB.dataset.listenerAdded) {
+                        btnB.addEventListener('click', () => {
+                            console.log('set to group B');
+                            // Remove student from group A if present
+                            const indexA = this.serverstatus.groupA.indexOf(student.clientname);
+                            if (indexA > -1) { this.serverstatus.groupA.splice(indexA, 1);  }
+                            // Remove student from group B if present
+                            const indexB = this.serverstatus.groupB.indexOf(student.clientname);
+                            if (indexB > -1) { this.serverstatus.groupB.splice(indexB, 1);  }
+
+                            //Add and Set
+                          
+                            this.serverstatus.groupB.push(student.clientname)
+                            this.setStudentStatus({group:"b"}, student.token) 
+                            this.fetchInfo()
+                            this.$swal.close();
+                        });
+                        btnB.dataset.listenerAdded = 'true';
+                    }
+                }
+            });
+        },
+
+
 
         /**
          * set student.studentstatus or student attributes serverside
@@ -1059,47 +1147,39 @@ export default {
         },
 
 
-        async setupDefaultPrinter(){
-           
-            this.availablePrinters = await ipcRenderer.invoke("getprinters")
-            if (document.getElementById("printselectoverlay").style.display == "flex"){
-                if (!this.defaultPrinter){
-                    document.getElementById('directprint').checked = false
-                }
-                document.querySelector("#printselectoverlay").style.opacity = 0;
-                document.getElementById('availablePrinters').classList.remove('scaleIn');
-                document.getElementById('availablePrinters').classList.add('scaleOut');
-                await this.sleep(200)  //the transition setting is set to .3s
-                document.querySelector("#printselectoverlay").style.display = "none";
-            }
-            else { 
-                document.getElementById("printselectoverlay").style.display = "flex";
-                document.querySelector("#printselectoverlay").style.opacity = 1;
-                document.getElementById('availablePrinters').classList.remove('scaleOut');
-                document.getElementById('availablePrinters').classList.add('scaleIn');  
-            } 
-        },
+
         selectPrinter(printer){
             this.defaultPrinter = printer
             console.log(`dashboard: selected default printer: ${this.defaultPrinter}`)
             console.log(`dashboard: allow direct print: ${this.directPrintAllowed}`)
         },
         checkforDefaultprinter(){
-            if (!this.defaultPrinter){ this.setupDefaultPrinter()}
+            if (!this.defaultPrinter){ this.showSetup()}
+        },
+        async hideSetup(){
+            if (!this.defaultPrinter){ document.getElementById('directprint').checked = false  }
+            
+            document.getElementById("setupoverlay").style.opacity = 0;
+            document.getElementById('setupdiv').classList.remove('scaleIn');
+            document.getElementById('setupdiv').classList.add('scaleOut');
+           
+            await this.sleep(200)  //the transition setting is set to .3s
+            document.getElementById("setupoverlay").style.display = "none";
+        },
+        async showSetup(){
+            this.availablePrinters = await ipcRenderer.invoke("getprinters")
+
+            document.getElementById("setupoverlay").style.display = "flex";
+            document.getElementById("setupoverlay").style.opacity = 1;
+            document.getElementById('setupdiv').classList.remove('scaleOut');
+            document.getElementById('setupdiv').classList.add('scaleIn'); 
         },
 
   
-
-
-
-
-
-
-
-
-
-
     },
+
+
+
     mounted() {  // when ready
         this.$nextTick(function () { // Code that will run only after the entire view has been rendered
        
@@ -1128,7 +1208,7 @@ export default {
             // Add event listener to #closefilebrowser  (only once - do not accumulate event listeners)
             document.querySelector("#closefilebrowser").addEventListener("click", this.fileBrowserEventlistenerCallback);
             document.querySelector('#workfolder').addEventListener("click", function(e) { e.stopPropagation(); }); // Prevent event propagation for clicks on #workfolder
-            document.getElementById('availablePrinters').addEventListener('click', function(e) { e.stopPropagation();});
+            document.getElementById('setupdiv').addEventListener('click', function(e) { e.stopPropagation();});
             document.querySelector("#pdfpreview").addEventListener("click", this.pdfPreviewEventlisterenCallback); // Set the event listener for #pdfpreview click to hide pdfpreview
 
         })
@@ -1180,7 +1260,7 @@ export default {
 
 <style scoped>
 
-#availablePrinters {
+#setupdiv {
     position: absolute;        /* Fixiert den div über allem anderen */
     top: 50%;               /* Zentriert vertikal */
     left: 50%;              /* Zentriert horizontal */
@@ -1226,7 +1306,7 @@ export default {
     animation: swalIn 0.2s; 
 }
 
-#availablePrinters button {
+#setupdiv button {
     display: inline-block;
     max-width: 270px; /* oder eine gewünschte feste Breite */
     overflow: hidden;
@@ -1237,18 +1317,18 @@ export default {
     border:0;
 }
 
-#availablePrinters span {
+#setupdiv span {
     width: 100%;
     margin-bottom:6px;
     margin-top: 10px;
 }
-#availablePrinters .printercheck {
+#setupdiv .printercheck {
     margin-left:4px;
     filter: brightness(0) saturate(100%) hue-rotate(90deg) brightness(1.2) contrast(0.2);
 
 }
 
-#printselectoverlay {
+#setupoverlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -1594,6 +1674,7 @@ hr {
 
 .swal2-container {
     backdrop-filter: blur(2px); 
+    z-index: 100000;
 } 
 
 

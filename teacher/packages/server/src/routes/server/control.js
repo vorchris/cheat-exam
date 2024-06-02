@@ -352,7 +352,8 @@ for (let i = 0; i<16; i++ ){
                 imageurl:false,
                 virtualized: false,
                 bipuserID: bipuserID,  // we can use this in the future to re-check if this user is in the pre-defined userlist for this specific BIP exam
-                status : {}    // we use this to store (per student) information about whats going on on the serverside (tasklist) and send it back on /update
+                status: {},    // we use this to store (per student) information about whats going on on the serverside (tasklist) and send it back on /update
+                group: 'a'  // we allow two groups (this is just used for distribution of files by now)
             }
             //create folder for student
             let studentfolder =path.join(config.workdirectory, mcServer.serverinfo.servername , clientname);
@@ -692,6 +693,7 @@ router.post('/setstudentstatus/:servername/:csrfservertoken/:studenttoken', func
     const activatePrivateSpellcheck = req.body.activatePrivateSpellcheck
     const activatePrivateSuggestions = req.body.activatePrivateSuggestions
     const removeprintrequest = req.body.removeprintrequest
+    const group = req.body.group
 
     if (req.params.csrfservertoken === mcServer.serverinfo.servertoken) {  //first check if csrf token is valid and server is allowed to trigger this api request
         
@@ -718,7 +720,10 @@ router.post('/setstudentstatus/:servername/:csrfservertoken/:studenttoken', func
                     student.status.activateSuggestions = false;
                 }
                 if (removeprintrequest == true){ student.printrequest = false }  // unset printrequest so that dashboard fetchInfo (which fetches the studentlist) doesnt trigger it again
-                
+                if (group) {student.status.group = group; }
+
+
+
                 //log.info("control @ setstudentstatus:", req.body)
               
             }

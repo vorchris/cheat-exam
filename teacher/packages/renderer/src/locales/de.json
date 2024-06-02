@@ -67,7 +67,7 @@
         "online":"Info",
         "offline": "offline",
         "secure":"abgesichert",
-        "restore":"wiederherstellen",
+        "restore":"freigeben",
         "exammodeactive": "Schüler:in bereits im abgesicherten Modus",
         "close":"schließen",
         "del": "Arbeitsordner auf Geräten der Schüler:innen bereinigen",
@@ -146,7 +146,8 @@
         "audioallow": "Keine Einschränkung",
         "audiorepeat1": "Wiederholung",
         "audiorepeat2": "Wiederholungen",
-        "bildungsportal": "Bildungsportal"
+        "bildungsportal": "Bildungsportal",
+        "groups": "Gruppen aktivieren"
     },
     "control": {
         "tokennotvalid": "Das Token ist ungültig",

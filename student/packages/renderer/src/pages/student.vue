@@ -5,7 +5,11 @@
     <img src='/src/assets/img/svg/speedometer.svg' class="white me-2  " width="32" height="32" >
     <span class="fs-4 align-middle me-4 ">Next-Exam</span>
     <span class="fs-4 align-middle  ms-3" style="float: right">Student</span>
+    
     <div v-if="token && !localLockdown" id="adv" class="btn btn-success btn-sm m-0  mt-1 " style="cursor: unset; float: right">{{ $t("student.connected") }}</div>
+    <button v-if="clientinfo.group == 'a' && token && !localLockdown" type="button" class="btn btn-info btn-sm  m-1 mt-1" style="cursor: unset; float: right"> A  </button>
+    <button v-if="clientinfo.group == 'b' && token && !localLockdown" type="button" class="btn btn-warning btn-sm m-1 mt-1" style="cursor: unset; float: right"> B  </button>
+                     
     <div v-if="!hostip" id="adv" class="btn btn-danger btn-sm m-0  mt-1 " style="cursor: unset; float: right">{{ $t("student.offline") }}</div>
     <div v-if="networkerror" id="adv" class="btn btn-danger btn-sm m-0  mt-1 " style="cursor: unset; float: right">{{ $t("student.noapi") }}</div>
 </div>
@@ -264,6 +268,7 @@ export default {
         
             let getinfo = await ipcRenderer.invoke('getinfoasync')  // gets serverlist and clientinfo from multicastclient
             this.clientinfo = getinfo.clientinfo;
+
             this.token = this.clientinfo.token;
             if (this.token && this.token != "0000" || !this.token) { this.localLockdown = false}  //other token than 0000 or no token.. no (local) exam mode
 
