@@ -94,7 +94,8 @@ function enableRestrictions(winhandler){
        
         if (activeWindow && activeWindow.owner && activeWindow.owner.name) {
             let name = activeWindow.owner.name
-            if (!name.includes("exam") || !name.includes("next")){  
+            let wpath = activeWindow.owner.path
+            if (!name.includes("exam") || !name.includes("next") || !wpath.includes("EaseOfAccessDialog")  ){  
                 console.log(`Aktives Fenster:`, activeWindow.owner); 
             }
             
