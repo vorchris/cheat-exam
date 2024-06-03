@@ -120,11 +120,15 @@ class IpcHandler {
         ipcMain.on('focuslost', (event) => {  
             if (this.config.development || !this.multicastClient.exammode) { 
                 event.returnValue = { sender: "client", focus: true}
-                return 
+                return
             }
-            if (this.WindowHandler.screenlockwindows.length > 0) { return }// do nothing if screenlockwindow stole focus // do not trigger an infinite loop between exam window and screenlock window (stealing each others focus)
+            if (this.WindowHandler.screenlockwindows.length > 0) { 
+                event.returnValue = { sender: "client", focus: true }
+                return
+            }
             if (this.WindowHandler.focusTargetAllowed){ 
                 log.warn(`ipchandler @ focuslost: mouseleave event was triggered but target is allowed`)
+                event.returnValue = { sender: "client", focus: true }
                 return
             } 
 
