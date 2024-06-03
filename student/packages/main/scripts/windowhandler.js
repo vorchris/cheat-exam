@@ -53,7 +53,7 @@ class WindowHandler {
         this.multicastClient = mc
         this.config = config
         this.checkWindowInterval = new SchedulerService(this.windowTracker.bind(this), 1000)
-        this.focusTargetAllowed = false
+        this.focusTargetAllowed = true
     }
 
     // return electron window in focus or an other electron window depending on the hierachy
@@ -624,8 +624,8 @@ class WindowHandler {
                 
                 this.checkWindowInterval.start() //checks if the active window is next-exam (introduces exceptions for windows)
             }
-            this.checkWindowInterval.start()
-            // this.addBlurListener() // just for dev purposes in order to test blur
+             //this.checkWindowInterval.start()
+             //this.addBlurListener() // just for dev purposes in order to test blur
 
         })
 
@@ -839,13 +839,13 @@ class WindowHandler {
                 let name = activeWindow.owner.name
                 let wpath = activeWindow.owner.path
                
-                if (name.includes("exam") || name.includes("next") || wpath.includes("EaseOfAccessDialog")  ){  
+                if (name.includes("exam") || name.includes("next")  || name.includes("Electron")|| name.includes("electron") ||  wpath.includes("EaseOfAccessDialog")  ){  
                     // fokus is on allowed window instance
                     this.focusTargetAllowed = true
                 }
                 else { //focus is not on next-exam or any other allowed window
                     if (this.focusTargetAllowed){  //log just once
-                        log.warn(`windowhandler @ windowTracker: focus lost event was triggered. app: ${wpath}`)
+                        log.warn(`windowhandler @ windowTracker: focus lost event was triggered. app: ${wpath} - ${name} `)
                     }
                     this.multicastClient.clientinfo.focus = false
                     this.focusTargetAllowed = false

@@ -117,29 +117,32 @@ class IpcHandler {
         /**
          * Set FOCUS state to false (mouse left exam window)
          */ 
-        ipcMain.on('focuslost', (event) => {  
+        ipcMain.handle('focuslost', (event) => { 
+            let answer = false 
             if (this.config.development || !this.multicastClient.exammode) { 
-                event.returnValue = { sender: "client", focus: true}
-                return
+                answer = { sender: "client", focus: true}
+                
             }
-            if (this.WindowHandler.screenlockwindows.length > 0) { 
-                event.returnValue = { sender: "client", focus: true }
-                return
+            else if (this.WindowHandler.screenlockwindows.length > 0) { 
+                answer = { sender: "client", focus: true }
+                
             }
-            if (this.WindowHandler.focusTargetAllowed){ 
+            else if (this.WindowHandler.focusTargetAllowed){ 
                 log.warn(`ipchandler @ focuslost: mouseleave event was triggered but target is allowed`)
-                event.returnValue = { sender: "client", focus: true }
-                return
+                answer = { sender: "client", focus: true }
+                
             } 
-
-
-            this.WindowHandler.examwindow.moveTop();
-            this.WindowHandler.examwindow.setKiosk(true);
-            this.WindowHandler.examwindow.show();  
-            this.WindowHandler.examwindow.focus();    // we keep focus on the window.. no matter what
-
-            this.multicastClient.clientinfo.focus = false; // block everything and inform teacher  (probably an overkill on mouseleave - needs testing)
-            event.returnValue = { sender: "client", focus: false }
+            else {
+                this.WindowHandler.examwindow.moveTop();
+                this.WindowHandler.examwindow.setKiosk(true);
+                this.WindowHandler.examwindow.show();  
+                this.WindowHandler.examwindow.focus();    // we keep focus on the window.. no matter what
+    
+                this.multicastClient.clientinfo.focus = false; // block everything and inform teacher  (probably an overkill on mouseleave - needs testing)
+                answer = { sender: "client", focus: false }
+            }
+           
+            return answer
         } )
 
 
