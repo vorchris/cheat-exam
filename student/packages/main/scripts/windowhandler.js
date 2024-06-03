@@ -636,6 +636,7 @@ class WindowHandler {
             else {
                 this.examwindow.destroy(); 
                 this.examwindow = null;
+                this.checkWindowInterval.stop()
                 disableRestrictions(this.examwindow)
                 this.multicastClient.clientinfo.exammode = false
                 this.multicastClient.clientinfo.focus = true

@@ -73,7 +73,6 @@ const gnomeDashToDockKeybindings = ['app-ctrl-hotkey-1','app-ctrl-hotkey-10','ap
 const gnomeWaylandKeybindings = ['switch-to-session-1','switch-to-session-2','switch-to-session-3','switch-to-session-4','switch-to-session-5','switch-to-session-6','switch-to-session-7','switch-to-session-8','switch-to-session-9','switch-to-session-10','switch-to-session-11','switch-to-session-12' ]
 
 let clipboardInterval;
-let checkwinInterval;
 
 function enableRestrictions(winhandler){
   
@@ -309,7 +308,6 @@ function disableRestrictions(){
     log.info("removing restrictions...")
 
     clipboardInterval.stop()
-    checkwinInterval.stop()
 
     globalShortcut.unregister('CommandOrControl+V', () => {console.log('no clipboard')});
     globalShortcut.unregister('CommandOrControl+Shift+V', () => {console.log('no clipboard')});
