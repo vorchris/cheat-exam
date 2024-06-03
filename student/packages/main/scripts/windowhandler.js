@@ -615,12 +615,13 @@ class WindowHandler {
                 
                 this.examwindow.setVisibleOnAllWorkspaces(true); 
 
-                enableRestrictions(this.examwindow)  // enable restriction only when exam window is fully loaded and in focus
+                enableRestrictions(this)  // enable restriction only when exam window is fully loaded and in focus
                 await this.sleep(2000) // wait an additional 2 sec for windows restrictions to kick in (they steal focus)
                 this.examwindow.focus()
                 this.addBlurListener()
             }
-            
+
+            enableRestrictions(this) 
             // this.addBlurListener() // just for dev purposes in order to test blur
 
         })
@@ -820,6 +821,13 @@ class WindowHandler {
      * Additional Functions
      */
 
+
+    async getActiveWindow() {
+        const getwin = await import('get-windows');  // https://www.npmjs.com/package/get-windows
+        return getwin;
+    }
+
+
     //adds blur listener when entering exammode   // blur event isnt fired on macos MISSIONCONTROL (which cant be deactivated anymore) - damn you apple!
     addBlurListener(window = "examwindow"){
         log.info("windowhandler @ addBlurListener: adding blur listener")
@@ -867,19 +875,7 @@ class WindowHandler {
         //     exec('pactl set-sink-mute `pactl get-default-sink` 0');
         // }
         
-        //we could play a sound file here.. tbd.
-        
-        // if (this.multicastClient.clientinfo.examtype === "eduvidual" || this.multicastClient.clientinfo.examtype === "gforms" ){
-        //     // this only works in "eduvidual" mode because otherwise there is no element "warning" to append (clicking on an external link is considered a blur event)
-        //     winhandler.examwindow.webContents.executeJavaScript(` 
-        //                 if (typeof warning !== 'undefined'){
-        //                     document.body.appendChild(warning); 
-        //                     document.getElementById('nextexamwaring').innerHTML = "Leaving exam mode is not allowed";
-        //                     warning.setAttribute('style', 'text-align: center; padding: 20px;display: block; background-color:#ffc107; border-radius:5px;  z-index:100000; position: absolute; top: 50%; left: 50%; margin-left: -10vw; margin-top: -5vh;width:20vw; height: 10vh; box-shadow: 0 0 10px rgba(0,0,0,0.4); ');
-        //                     setTimeout( ()=>{ document.getElementById('nextexamwaring').style.display = 'none'  } , 5000); 
-        //                 }` , true)
-        //     .catch(err => log.error(err))
-        // }
+        //we could play a sound file here.. tbd.  
     }
     //special blur event for temporary low security screenlock
     blureventScreenlock(winhandler) { 

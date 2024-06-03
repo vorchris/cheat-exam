@@ -264,6 +264,7 @@ function sendFiles(who) {
             Gruppe<br>
             <button id="fbtnA" class="swal2-button btn btn-info m-2" style="width: 42px; height: 42px;">A</button>
             <button id="fbtnB" class="swal2-button btn btn-warning m-2" style="width: 42px; height: 42px;filter: grayscale(90%);">B</button>
+            <button id="fbtnC" class="swal2-button btn btn-warning m-2" style="padding:0px;width: 42px; height: 42px;filter: grayscale(90%); background: linear-gradient(-60deg, #0dcaf0 50%, #ffc107 50%);">AB</button>
         `
     }
          
@@ -288,10 +289,12 @@ function sendFiles(who) {
         didRender: () => {
             const btnA = document.getElementById('fbtnA');
             const btnB = document.getElementById('fbtnB');
+            const btnC = document.getElementById('fbtnC');
             if (btnA && !btnA.dataset.listenerAdded) {
                 btnA.addEventListener('click', () => {
                     btnA.style.filter = "grayscale(0%)"
                     btnB.style.filter = "grayscale(90%)"
+                    btnC.style.filter = "grayscale(90%)"
                     activeGroup = "a"
                 });
                 btnA.dataset.listenerAdded = 'true';
@@ -300,9 +303,19 @@ function sendFiles(who) {
                 btnB.addEventListener('click', () => {
                     btnA.style.filter = "grayscale(90%)"
                     btnB.style.filter = "grayscale(0%)"
+                    btnC.style.filter = "grayscale(90%)"
                     activeGroup = "b"
                 });
                 btnB.dataset.listenerAdded = 'true';
+            }
+            if (btnC && !btnC.dataset.listenerAdded) {
+                btnC.addEventListener('click', () => {
+                    btnA.style.filter = "grayscale(90%)"
+                    btnB.style.filter = "grayscale(90%)"
+                    btnC.style.filter = "grayscale(0%)"
+                    activeGroup = "all"
+                });
+                btnC.dataset.listenerAdded = 'true';
             }
         }
     })

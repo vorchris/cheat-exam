@@ -41,8 +41,6 @@ import config from '../config.js';
 import log from 'electron-log/main';
 import {SchedulerService} from './schedulerservice.ts'
 
-
-
 // unfortunately there is no convenient way for gnome-shell to un-set ALL shortcuts at once
 const gnomeKeybindings = [  
     'activate-window-menu','maximize-horizontally','move-to-side-n','move-to-workspace-8','switch-applications','switch-to-workspace-3','switch-windows-backward',
@@ -75,9 +73,10 @@ const gnomeDashToDockKeybindings = ['app-ctrl-hotkey-1','app-ctrl-hotkey-10','ap
 const gnomeWaylandKeybindings = ['switch-to-session-1','switch-to-session-2','switch-to-session-3','switch-to-session-4','switch-to-session-5','switch-to-session-6','switch-to-session-7','switch-to-session-8','switch-to-session-9','switch-to-session-10','switch-to-session-11','switch-to-session-12' ]
 
 let clipboardInterval;
+let checkwinInterval;
 
-function enableRestrictions(win){
-    if (config.development) {return}
+function enableRestrictions(winhandler){
+  
     log.info("enabling platform restrictions")
 
 
@@ -85,8 +84,31 @@ function enableRestrictions(win){
     globalShortcut.register('CommandOrControl+Shift+V', () => {console.log('no clipboard')});
     clipboard.clear()  //this should clean the clipboard for the electron app
   
-    clipboardInterval = new SchedulerService( ()=> { clipboard.clear()  }  , 1000)
+    clipboardInterval = new SchedulerService( ()=> {  clipboard.clear();}  , 1000)
     clipboardInterval.start()
+
+
+    checkwinInterval = new SchedulerService( async ()=> { 
+        const getwin = await winhandler.getActiveWindow();
+        const activeWindow = await getwin.activeWindow()
+        if (activeWindow && activeWindow.owner && activeWindow.owner.name) {
+            let name = activeWindow.owner.name
+            if (!name.includes("exam") || !name.includes("next")){  
+                console.log(`Aktives Fenster:`, activeWindow.owner); 
+            }
+            
+        }
+        
+    }  , 1000)
+    checkwinInterval.start()
+
+
+    if (config.development) {return}
+
+
+
+
+
 
 
     // list of apps we do not want to run in background
@@ -261,7 +283,7 @@ function enableRestrictions(win){
             new TouchBarSpacer({ size: 'flexible' }),
             ]
         })
-        win?.setTouchBar(touchBar)
+        winhandler.examwindow?.setTouchBar(touchBar)
 
         // clear clipboard
         childProcess.exec('pbcopy < /dev/null')
@@ -299,6 +321,8 @@ function disableRestrictions(){
     log.info("removing restrictions...")
 
     clipboardInterval.stop()
+    checkwinInterval.stop()
+
     globalShortcut.unregister('CommandOrControl+V', () => {console.log('no clipboard')});
     globalShortcut.unregister('CommandOrControl+Shift+V', () => {console.log('no clipboard')});
     

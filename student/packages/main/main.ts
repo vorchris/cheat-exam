@@ -42,7 +42,6 @@ import os from 'os'
 import ip from 'ip'
 import log from 'electron-log/main';
 
-
 config.electron = true
 
 
@@ -212,6 +211,9 @@ app.whenReady()
         WindowHandler.mainwindow.isVisible() ?  WindowHandler.mainwindow.hide() :  WindowHandler.mainwindow.show();
     });
 
+
+
+  
     //these are some shortcuts we try to capture
     globalShortcut.register('CommandOrControl+R', () => {});
     globalShortcut.register('F5', () => {});  //reload page
@@ -246,6 +248,9 @@ app.whenReady()
 
 
 })
+
+
+
 
 //capture global keyboard shortcuts like alt+tab and send a signal to the frontend that a key combination has been detected 
     
