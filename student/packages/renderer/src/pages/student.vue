@@ -7,8 +7,8 @@
     <span class="fs-4 align-middle  ms-3" style="float: right">Student</span>
     
     <div v-if="token && !localLockdown" id="adv" class="btn btn-success btn-sm m-0  mt-1 " style="cursor: unset; float: right">{{ $t("student.connected") }}</div>
-    <button v-if="clientinfo.groups && clientinfo.group == 'a' && token && !localLockdown" type="button" class="btn btn-info btn-sm  m-1 mt-1" style="cursor: unset; float: right"> A  </button>
-    <button v-if="clientinfo.groups && clientinfo.group == 'b' && token && !localLockdown" type="button" class="btn btn-warning btn-sm m-1 mt-1" style="cursor: unset; float: right"> B  </button>
+    <button v-if="clientinfo.groups && clientinfo.group == 'a' && token && !localLockdown" type="button" class="btn btn-info btn-sm  m-1 mt-1" style="cursor: unset; width: 32px; float: right"> A  </button>
+    <button v-if="clientinfo.groups && clientinfo.group == 'b' && token && !localLockdown" type="button" class="btn btn-warning btn-sm m-1 mt-1" style="cursor: unset; width: 32px; float: right"> B  </button>
                      
     <div v-if="!hostip" id="adv" class="btn btn-danger btn-sm m-0  mt-1 " style="cursor: unset; float: right">{{ $t("student.offline") }}</div>
     <div v-if="networkerror" id="adv" class="btn btn-danger btn-sm m-0  mt-1 " style="cursor: unset; float: right">{{ $t("student.noapi") }}</div>

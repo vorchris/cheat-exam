@@ -3,8 +3,8 @@
     <div id="apphead" class="bg-dark">
         <div v-if="online && !localLockdown" class="header-item">
             <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style="float: left;" />
-            <button v-if="clientinfo && clientinfo.groups  && clientinfo.group == 'a'" type="button" class="btn btn-info btn-sm  m-1 mt-1" style="cursor: unset; "> A  </button>
-            <button v-if="clientinfo && clientinfo.groups  && clientinfo.group == 'b'" type="button" class="btn btn-warning btn-sm m-1 mt-1" style="cursor: unset; "> B  </button>
+            <button v-if="clientinfo && clientinfo.groups  && clientinfo.group == 'a'" type="button" class="header-item btn btn-info btn-sm ms-2 me-1" style="cursor: unset; width: 32px; justify-content:center; "> A  </button>
+            <button v-if="clientinfo && clientinfo.groups  && clientinfo.group == 'b'" type="button" class="header-item btn btn-warning btn-sm ms-2 me-1" style="cursor: unset; width: 32px; justify-content:center; "> B  </button>
             <span class="fs-5 align-middle me-1" style="float: left;">{{clientname}}</span>
             <span class="fs-5 align-middle me-4 green" style="float: left;" >| {{$t('student.connected')}}</span> 
         </div>
@@ -21,7 +21,7 @@
             <span v-if="localLockdown && !exammode"  class="fs-5 align-middle me-4 red" style="float: left;" >| nicht abgesichert</span> 
         </div>
 
-        <div v-if="!online && !localLockdown && exammode" class="header-item btn btn-success p-1 me-1 btn-sm" @click="reconnect()"><img src="/src/assets/img/svg/gtk-convert.svg" class="" width="22" height="20"> {{ $t("editor.reconnect")}}</div>
+        <div v-if="online && !localLockdown && exammode" class="header-item btn btn-success p-1 me-1 btn-sm" @click="reconnect()"><img src="/src/assets/img/svg/gtk-convert.svg" class="" width="22" height="20"> {{ $t("editor.reconnect")}}</div>
         <div v-if="!online && !localLockdown && exammode" class="header-item btn btn-danger p-1 me-1 btn-sm"  @click="gracefullyexit()"><img src="/src/assets/img/svg/dialog-cancel.svg" class="" width="22" height="20"> {{ $t("editor.unlock")}} </div>
         <div v-if="localLockdown && exammode" class="header-item btn btn-danger p-1 me-1 btn-sm"  @click="gracefullyexit()"><img src="/src/assets/img/svg/dialog-cancel.svg" class="" width="22" height="20"> {{ $t("editor.unlock")}} </div>
         

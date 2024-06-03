@@ -124,6 +124,7 @@ class MulticastClient {
     isDeprecatedInstance () {
         for (let i = 0; i < this.examServerList.length; i++) {
             const now = new Date().getTime()
+
             if (now - 16000 > this.examServerList[i].timestamp) {
                 log.warn(`multicastclient @ isDeprecatedInstance: Removing inactive server '${this.examServerList[i].servername}' from list`)
                 this.examServerList.splice(i, 1)
