@@ -52,6 +52,8 @@ class WindowHandler {
     init (mc, config) {
         this.multicastClient = mc
         this.config = config
+        this.checkWindowInterval = new SchedulerService(this.windowTracker.bind(this), 1000)
+        this.focusTargetAllowed = false
     }
 
     // return electron window in focus or an other electron window depending on the hierachy
@@ -619,9 +621,10 @@ class WindowHandler {
                 await this.sleep(2000) // wait an additional 2 sec for windows restrictions to kick in (they steal focus)
                 this.examwindow.focus()
                 this.addBlurListener()
+                
+                this.checkWindowInterval.start() //checks if the active window is next-exam (introduces exceptions for windows)
             }
-
-            enableRestrictions(this) 
+            this.checkWindowInterval.start()
             // this.addBlurListener() // just for dev purposes in order to test blur
 
         })
@@ -657,11 +660,6 @@ class WindowHandler {
             log.info("windowhandler @ lock365: stopping lockScheduler")
             this.lockScheduler.stop()
         }
-        
-
- 
-
-
     }
 
 
@@ -828,6 +826,36 @@ class WindowHandler {
     }
 
 
+    // this function uses active-win to receive name and url from active window - yet another way to figure out if the focus is still on nextexam
+    // this is used to introduce exemptions for the blur listener
+    // (downgraded from get-windows because of napi v9 issue) https://github.com/sindresorhus/get-windows/issues/186
+    async windowTracker(){
+        try{
+            const getwin = await this.getActiveWindow();
+            const activeWindow = await getwin.default()
+            
+            if (activeWindow && activeWindow.owner && activeWindow.owner.name) {
+                let name = activeWindow.owner.name
+                let wpath = activeWindow.owner.path
+               
+                if (name.includes("exam") || name.includes("next") || wpath.includes("EaseOfAccessDialog")  ){  
+                    // fokus is on allowed window instance
+                    this.focusTargetAllowed = true
+                }
+                else { //focus is not on next-exam or any other allowed window
+                    if (this.focusTargetAllowed){  //log just once
+                        log.warn(`windowhandler @ windowTracker: focus lost event was triggered. app: ${wpath}`)
+                    }
+                    this.multicastClient.clientinfo.focus = false
+                    this.focusTargetAllowed = false
+                }
+            }
+        }
+        catch(err){
+            log.error(`windowhandler @ addWindowTracker: ${err}`) 
+        }
+    }
+
     //adds blur listener when entering exammode   // blur event isnt fired on macos MISSIONCONTROL (which cant be deactivated anymore) - damn you apple!
     addBlurListener(window = "examwindow"){
         log.info("windowhandler @ addBlurListener: adding blur listener")
@@ -859,7 +887,11 @@ class WindowHandler {
     blurevent(winhandler) { 
         log.info("windowhandler @ blurevent: student tried to leave exam window")
         if (winhandler.screenlockwindows.length > 0) { return }// do nothing if screenlockwindow stole focus // do not trigger an infinite loop between exam window and screenlock window (stealing each others focus)
-            
+        if (winhandler.focusTargetAllowed){ 
+            log.warn(`windowhandler @ blurevent: blurevent was triggered but target is allowed`)
+            return
+        } 
+        
         winhandler.multicastClient.clientinfo.focus = false   //inform the teacher
         
         winhandler.examwindow.moveTop();

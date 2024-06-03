@@ -123,7 +123,12 @@ class IpcHandler {
                 return 
             }
             if (this.WindowHandler.screenlockwindows.length > 0) { return }// do nothing if screenlockwindow stole focus // do not trigger an infinite loop between exam window and screenlock window (stealing each others focus)
-            
+            if (this.WindowHandler.focusTargetAllowed){ 
+                log.warn(`ipchandler @ focuslost: mouseleave event was triggered but target is allowed`)
+                return
+            } 
+
+
             this.WindowHandler.examwindow.moveTop();
             this.WindowHandler.examwindow.setKiosk(true);
             this.WindowHandler.examwindow.show();  

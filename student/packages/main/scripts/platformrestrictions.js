@@ -88,24 +88,10 @@ function enableRestrictions(winhandler){
     clipboardInterval.start()
 
 
-    checkwinInterval = new SchedulerService( async ()=> { 
-           const getwin = await winhandler.getActiveWindow();
-        const activeWindow = await getwin.default()
-       
-        if (activeWindow && activeWindow.owner && activeWindow.owner.name) {
-            let name = activeWindow.owner.name
-            let wpath = activeWindow.owner.path
-            if (!name.includes("exam") || !name.includes("next") || !wpath.includes("EaseOfAccessDialog")  ){  
-                console.log(`Aktives Fenster:`, activeWindow.owner); 
-            }
-            
-        }
-
-    }  , 1000)
-    checkwinInterval.start()
 
 
-    if (config.development) {return}
+
+   // if (config.development) {return}
 
 
 
