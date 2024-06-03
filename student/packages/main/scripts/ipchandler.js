@@ -386,7 +386,11 @@ class IpcHandler {
          * Returns all found Servers and the information about this client
          */ 
         ipcMain.handle('getinfoasync', (event) => {   
-            let serverstatus = false
+            let serverstatus = false   
+            // serverstatus objekt wird nur bei beginn des exams an das exam window durchgereicht für basis einstellungen
+            // alle weiteren updates über das serverstatus object werden im communication handler gelesen und ggf. auf das clientinfo object gelegt
+            // dieser kommunikationsfluss muss in 2.0 gestreamlined werden #FIXME
+            
             if (this.WindowHandler.examwindow) { serverstatus = this.WindowHandler.examwindow.serverstatus }
 
             //count number of files in exam directory

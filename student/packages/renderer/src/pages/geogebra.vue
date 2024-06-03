@@ -15,6 +15,7 @@
 
     <!-- HEADER START -->
     <exam-header
+    :serverstatus="serverstatus"
       :clientinfo="clientinfo"
       :online="online"
       :clientname="clientname"

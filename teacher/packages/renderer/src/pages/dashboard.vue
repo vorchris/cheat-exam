@@ -205,7 +205,7 @@
 
 
 
-    <!-- PRINT Setup START -->
+    <!-- SETUP DIALOG START -->
     <div :key="6" id="setupoverlay" class="fadeinslow" @click="hideSetup()">
         <div id="setupdiv">
             <!-- <div class="swal2-icon swal2-question swal2-icon-show" style="display: flex;"><div class="swal2-icon-content">?</div></div> -->
@@ -242,7 +242,7 @@
             </div>
         </div>
     </div>
-  <!-- PRINT Setup END -->
+  <!-- SETUP DIALOG END -->
 
    
     <div :key="7" id="content" class="fadeinslow p-3">
@@ -261,7 +261,7 @@
         <!-- studentlist start -->
         <div id="studentslist" class="pt-1">        
             <draggable v-model="studentwidgets" :move="handleMoveItem" @end="handleDragEndItem" ghost-class="ghost">
-                <div v-for="student in studentwidgets" :key="student.token" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':''" class="studentwidget btn rounded-3 btn-block ">
+                <div v-for="student in studentwidgets" :key="student.token" style="cursor:auto" v-bind:class="(!student.focus)?'focuswarn':''" class="studentwidget btn rounded-3 btn-block">
                     <div v-if="student.clientname">
                         <div class="studentimage rounded" style="position: relative; height:132px;">  
                             <button v-if="serverstatus.examtype === 'editor' && !this.serverstatus.languagetool && this.serverstatus.spellchecklang !== 'none'" @mouseover="showDescription($t('dashboard.allowspellcheck'))" @mouseout="hideDescription" @click='activateSpellcheckForStudent(student.token,student.clientname)' type="button" class="btn btn-sm pt-1 mt-2 pe-1 float-end" style="z-index:1000; position:relative;"><img src="/src/assets/img/svg/autocorrection.svg" class="widgetbutton" width="22" height="22" ></button> 
@@ -289,8 +289,8 @@
                             <button v-if="(now - 20000 > student.timestamp)" type="button" class="btn btn-outline-danger btn-sm " style="border-top:0px; border-top-left-radius:0px; border-top-right-radius:0px; ">{{$t('dashboard.offline')}} </button>
                             <button v-if="(now - 20000 < student.timestamp) && student.exammode && student.focus"  @click='showStudentview(student)' type="button" class="btn btn-outline-warning btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;">{{$t('dashboard.secure')}}</button>
                             <button v-if="(now - 20000 < student.timestamp) && !student.focus "   @click='restore(student.token)' type="button" class="btn btn-danger btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;"> {{$t('dashboard.restore')}} </button>
-                            <button v-if="(now - 20000 < student.timestamp) && serverstatus.groups && student.status.group == 'a' "   @click='setGroup(student)' type="button" class="btn btn-info btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;"> A  </button>
-                            <button v-if="(now - 20000 < student.timestamp) && serverstatus.groups && student.status.group == 'b' "  @click='setGroup(student)' type="button" class="btn btn-warning btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;"> B  </button>
+                            <button v-if="(now - 20000 < student.timestamp) && serverstatus.groups && student.status.group == 'a' "   @click='quickSetGroup(student)' type="button" class="btn-click-feedback2 btn btn-info btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;"> A  </button>
+                            <button v-if="(now - 20000 < student.timestamp) && serverstatus.groups && student.status.group == 'b' "  @click='quickSetGroup(student)' type="button" class="btn-click-feedback1 btn btn-warning btn-sm " style="border-top:0px;border-top-left-radius:0px; border-top-right-radius:0px;"> B  </button>
                         </div>
                     </div>
                 </div> 
@@ -487,6 +487,7 @@ export default {
 
                 if (this.studentlist && this.studentlist.length > 0){
                     this.studentlist.forEach( student => { 
+                      
                         if (this.activestudent && student.token === this.activestudent.token) { this.activestudent = student}  // on studentlist-receive update active student (for student-details)
                         if (!student.imageurl){ student.imageurl = "user-black.svg"  }
                         
@@ -1061,7 +1062,7 @@ export default {
         },
 
 
-        setupGroups(){
+        async setupGroups(){
             // prepopulate group A
             if (this.serverstatus.groupA.length == 0){
                 for (let student of this.studentlist) {
@@ -1071,12 +1072,42 @@ export default {
                     } 
                 }
             }
+            await this.sleep(1000)
+            this.setServerStatus()
         },
+
+        quickSetGroup(student){
+            // Remove student from groups if present
+            const indexA = this.serverstatus.groupA.indexOf(student.clientname);
+            const indexB = this.serverstatus.groupB.indexOf(student.clientname);
+            if (indexA > -1) { this.serverstatus.groupA.splice(indexA, 1);  }
+            if (indexB > -1) { this.serverstatus.groupB.splice(indexB, 1);  }
+            
+            let studentWidget = this.studentwidgets.find(el => el.token === student.token);
+
+            if (student.status.group == "a"){
+                //Add and Set         
+                this.serverstatus.groupB.push(student.clientname)  //update group arrays
+                this.setStudentStatus({group:"b"}, student.token)  //set student object (and inform student about group)
+                this.setServerStatus()
+                if(studentWidget){ studentWidget.status.group = "b"}                          
+            }
+            else {
+                //Add and Set
+                this.serverstatus.groupA.push(student.clientname)
+                this.setStudentStatus({group:"a"}, student.token) 
+                this.setServerStatus()
+                if(studentWidget){ studentWidget.status.group = "a"}
+            }
+        },
+
+
+
         setGroup(student) {
             this.$swal.fire({
                 title: 'Gruppe wählen',
                 html: `
-                    <h3>${student.group.toUpperCase()}</h3>
+                    <h3>${student.status.group.toUpperCase()}</h3>
                     <button id="btnA" class="swal2-button btn btn-info m-2" style="width: 64px; height: 64px;">A</button>
                     <button id="btnB" class="swal2-button btn btn-warning m-2" style="width: 64px; height: 64px;">B</button>
                 `,
@@ -1273,6 +1304,32 @@ export default {
     box-shadow: 0 0 1em rgba(0, 0, 0, 0.5);
     width: 340px;
 }
+
+
+@keyframes clickFeedback1 {
+  0% { transform: scale(1); background-color: #0dcaf0;      border-color: #0dcaf0; }
+  50% { transform: scale(1.4); background-color: #ffffff; border-radius:5px; border-color: #fff;}
+  100% { transform: scale(1); background-color: #ffcd39;   }
+}
+
+.btn-click-feedback1 {
+  animation: clickFeedback1 0.5s ease-in-out;
+}
+
+@keyframes clickFeedback2 {
+  0% { transform: scale(1); background-color: #ffcd39;   border-color: #ffcd39; }
+  50% { transform: scale(1.4); background-color: #ffffff; border-radius:5px; border-color: #fff;}
+  100% { transform: scale(1); background-color:  #0dcaf0;}
+}
+
+.btn-click-feedback2 {
+  animation: clickFeedback2 0.5s ease-in-out;;
+}
+
+.fade-enter-active {
+  transition: opacity 1.5s ease;
+}
+
 
 
 @keyframes swalIn {

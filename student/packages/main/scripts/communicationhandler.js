@@ -386,8 +386,13 @@ let TesseractWorker = false
         if (serverstatus.screenslocked && !this.multicastClient.clientinfo.screenlock) {  this.activateScreenlock() }
         else if (!serverstatus.screenslocked ) { this.killScreenlock() }
 
+        // screenshot safety (OCR searches for next-exam string)
         if (serverstatus.screenshotocr) { this.multicastClient.clientinfo.screenshotocr = true  }
         else { this.multicastClient.clientinfo.screenshotocr = false   }
+
+        // Groups handling
+        if (serverstatus.groups){ this.multicastClient.clientinfo.groups = true}
+        else { this.multicastClient.clientinfo.groups = false}
 
         //update screenshotinterval
         if (serverstatus.screenshotinterval || serverstatus.screenshotinterval === 0) { //0 is the same as false or undefined but should be treated as number

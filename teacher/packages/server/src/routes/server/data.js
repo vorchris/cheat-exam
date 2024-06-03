@@ -718,13 +718,28 @@ router.post('/upload/:servername/:servertoken/:studenttoken', async (req, res, n
             files.push({ name:filename , path:absoluteFilepath });
         }
 
-       
+       console.log(studenttoken)
+
         // inform students about this send-file request so that they trigger a download request for the given files
         if (studenttoken === "all"){
             for (let student of mcServer.studentList){ 
                 student.status['fetchfiles'] = true  
                 student.status['files'] =  files
             }
+        }
+        else if (studenttoken == "a" || studenttoken == "b"){
+            console.log(mcServer.serverstatus.groupA, mcServer.serverstatus.groupB )
+            let groupArray = []
+            if (studenttoken == "a"){groupArray = mcServer.serverstatus.groupA }
+            if (studenttoken == "b"){groupArray = mcServer.serverstatus.groupB }
+            for (let name of groupArray){
+                let student = mcServer.studentList.find(element => element.clientname === name)
+                if (student) {  
+                    student.status['fetchfiles']= true 
+                    student.status['files'] = files
+                }   
+            }
+
         }
         else {
             let student = mcServer.studentList.find(element => element.token === studenttoken)

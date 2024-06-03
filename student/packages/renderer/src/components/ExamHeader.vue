@@ -2,15 +2,9 @@
 
     <div id="apphead" class="bg-dark">
         <div v-if="online && !localLockdown" class="header-item">
-         
             <img src="/src/assets/img/svg/speedometer.svg" class="white me-2" width="32" height="32" style="float: left;" />
-           
-
-           
-          <button v-if="clientinfo && clientinfo.group == 'a'" type="button" class="btn btn-info btn-sm  m-1 mt-1" style="cursor: unset; "> A  </button>
-          <button v-if="clientinfo && clientinfo.group == 'b'" type="button" class="btn btn-warning btn-sm m-1 mt-1" style="cursor: unset; "> B  </button>
-      
-
+            <button v-if="clientinfo && clientinfo.groups  && clientinfo.group == 'a'" type="button" class="btn btn-info btn-sm  m-1 mt-1" style="cursor: unset; "> A  </button>
+            <button v-if="clientinfo && clientinfo.groups  && clientinfo.group == 'b'" type="button" class="btn btn-warning btn-sm m-1 mt-1" style="cursor: unset; "> B  </button>
             <span class="fs-5 align-middle me-1" style="float: left;">{{clientname}}</span>
             <span class="fs-5 align-middle me-4 green" style="float: left;" >| {{$t('student.connected')}}</span> 
         </div>
@@ -59,7 +53,7 @@
 <script>
   export default {
     name: 'ExamHeader',
-    props: ['clientinfo','online', 'clientname', 'exammode', 'servername', 'pincode', 'battery', 'currenttime','timesinceentry','componentName','localLockdown'],
+    props: ['serverstatus','clientinfo','online', 'clientname', 'exammode', 'servername', 'pincode', 'battery', 'currenttime','timesinceentry','componentName','localLockdown'],
     methods: {
       reconnect() {
         // Methode zur Wiederherstellung der Verbindung

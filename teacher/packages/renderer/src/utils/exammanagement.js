@@ -252,14 +252,26 @@ function lockscreens(state, feedback=true){
 //upload files to all students
 function sendFiles(who) {
     if (this.studentlist.length === 0) { this.status(this.$t("dashboard.noclients")); return;}
+    let htmlcontent = `
+        ${this.$t("dashboard.filesendtext")} <br>
+        <span style="font-size:0.8em;">(.pdf, .docx, .bak, .ogg, .wav, .mp3, .jpg, .png, .gif, .ggb)</span>`
+
+    if (this.serverstatus.groups){
+        htmlcontent =  `
+            ${this.$t("dashboard.filesendtext")} <br>
+            <span style="font-size:0.8em;">(.pdf, .docx, .bak, .ogg, .wav, .mp3, .jpg, .png, .gif, .ggb)</span>
+            <br>  <br> 
+            Gruppe<br>
+            <button id="fbtnA" class="swal2-button btn btn-info m-2" style="width: 42px; height: 42px;">A</button>
+            <button id="fbtnB" class="swal2-button btn btn-warning m-2" style="width: 42px; height: 42px;filter: grayscale(90%);">B</button>
+        `
+    }
+         
+    let activeGroup = "a"
+
     this.$swal.fire({
         title: this.$t("dashboard.filesend"),
-       
-        html: `
-             ${this.$t("dashboard.filesendtext")} <br>
-             <span style="font-size:0.8em;">(.pdf, .docx, .bak, .ogg, .wav, .mp3, .jpg, .png, .gif, .ggb)</span>
-        
-        `,
+        html: htmlcontent,
         icon: "info",
         input: 'file',
         showCancelButton: true,
@@ -272,6 +284,26 @@ function sendFiles(who) {
             class:"form-control",
             multiple:"multiple",
             accept: ".pdf, .docx, .bak, .ogg, .wav, .mp3, .jpg, .png, .gif, .ggb"
+        },
+        didRender: () => {
+            const btnA = document.getElementById('fbtnA');
+            const btnB = document.getElementById('fbtnB');
+            if (btnA && !btnA.dataset.listenerAdded) {
+                btnA.addEventListener('click', () => {
+                    btnA.style.filter = "grayscale(0%)"
+                    btnB.style.filter = "grayscale(90%)"
+                    activeGroup = "a"
+                });
+                btnA.dataset.listenerAdded = 'true';
+            }
+            if (btnB && !btnB.dataset.listenerAdded) {
+                btnB.addEventListener('click', () => {
+                    btnA.style.filter = "grayscale(90%)"
+                    btnB.style.filter = "grayscale(0%)"
+                    activeGroup = "b"
+                });
+                btnB.dataset.listenerAdded = 'true';
+            }
         }
     })
     .then((input) => {
@@ -289,12 +321,15 @@ function sendFiles(who) {
             formData.append('files', this.files[i], filename)  // single file is sent as object.. multiple files as array..
         }
         
+        // group managment - send files to specific group
+        if (this.serverstatus.groups){ who = activeGroup}
+
         axios({
             method: "post", 
             url: `https://${this.serverip}:${this.serverApiPort}/server/data/upload/${this.servername}/${this.servertoken}/${who}`, 
             data: formData, 
         })
-        .then( (response) => {log.info(response.data) })
+        .then( (response) => {log.info("exmmmanagment @ sendFiles:", response.data) })
         .catch( err =>{ log.error(`${err}`) })
     });    
 }

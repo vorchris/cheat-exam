@@ -338,9 +338,17 @@ for (let i = 0; i<16; i++ ){
     
     if (pin === mcServer.serverinfo.pin) {
         let registeredClient = mcServer.studentList.find(element => element.clientname === clientname)
+       
+        
 
         if (!registeredClient) {   // create client object
             log.info('control @ registerclient: adding new client')
+
+            let group = false;
+            if (mcServer.serverstatus.groupA.includes(clientname)) { group = 'a'; } 
+            else if (mcServer.serverstatus.groupB.includes(clientname)) { group = 'b';  }
+
+
             const client = {    // we have a different representation of the clientobject on the server than on the client - why exactly? we could just send the whole client object via POST (as we already do in /update route )
                 clientname: clientname,
                 hostname: hostname,
@@ -352,8 +360,8 @@ for (let i = 0; i<16; i++ ){
                 imageurl:false,
                 virtualized: false,
                 bipuserID: bipuserID,  // we can use this in the future to re-check if this user is in the pre-defined userlist for this specific BIP exam
-                status: {},    // we use this to store (per student) information about whats going on on the serverside (tasklist) and send it back on /update
-                group: 'a'  // we allow two groups (this is just used for distribution of files by now)
+                status: { group: group || 'a'},    // we use this to store (per student) information about whats going on on the serverside (tasklist) and send it back on /update
+                // we allow two groups (this is just used for distribution of files by now)
             }
             //create folder for student
             let studentfolder =path.join(config.workdirectory, mcServer.serverinfo.servername , clientname);
