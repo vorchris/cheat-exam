@@ -345,8 +345,8 @@ for (let i = 0; i<16; i++ ){
             log.info('control @ registerclient: adding new client')
 
             let group = false;
-            if (mcServer.serverstatus.groupA.includes(clientname)) { group = 'a'; } 
-            else if (mcServer.serverstatus.groupB.includes(clientname)) { group = 'b';  }
+            if (mcServer.serverstatus.groupA?.includes(clientname)) { group = 'a'; } 
+            else if (mcServer.serverstatus.groupB?.includes(clientname)) { group = 'b';  }
 
 
             const client = {    // we have a different representation of the clientobject on the server than on the client - why exactly? we could just send the whole client object via POST (as we already do in /update route )
