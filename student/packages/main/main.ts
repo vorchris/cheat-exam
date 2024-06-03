@@ -221,16 +221,7 @@ app.whenReady()
     globalShortcut.register('CommandOrControl+L', () => {});  //lockscreen
     globalShortcut.register('CommandOrControl+P', () => {});  //change screen layout
  
-    const getwin = await getActiveWindow();
-        const activeWindow = await getwin.default()
-        console.log(activeWindow)
-        if (activeWindow && activeWindow.owner && activeWindow.owner.name) {
-            let name = activeWindow.owner.name
-            if (!name.includes("exam") || !name.includes("next")){  
-                console.log(`Aktives Fenster:`, activeWindow.owner); 
-            }
-            
-        }
+
    
     if (!config.development){
     }
@@ -252,11 +243,6 @@ app.whenReady()
 
 
 })
-
-async function getActiveWindow() {
-    const getwin = await import('active-win');  // https://www.npmjs.com/package/get-windows
-    return getwin;
-}
 
 
 //capture global keyboard shortcuts like alt+tab and send a signal to the frontend that a key combination has been detected 

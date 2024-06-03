@@ -823,7 +823,7 @@ class WindowHandler {
 
 
     async getActiveWindow() {
-        const getwin = await import('get-windows');  // https://www.npmjs.com/package/get-windows
+        const getwin = await import('active-win');  // https://www.npmjs.com/package/get-windows
         return getwin;
     }
 

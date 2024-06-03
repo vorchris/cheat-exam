@@ -89,8 +89,9 @@ function enableRestrictions(winhandler){
 
 
     checkwinInterval = new SchedulerService( async ()=> { 
-        const getwin = await winhandler.getActiveWindow();
-        const activeWindow = await getwin.activeWindow()
+           const getwin = await winhandler.getActiveWindow();
+        const activeWindow = await getwin.default()
+       
         if (activeWindow && activeWindow.owner && activeWindow.owner.name) {
             let name = activeWindow.owner.name
             if (!name.includes("exam") || !name.includes("next")){  
@@ -98,7 +99,7 @@ function enableRestrictions(winhandler){
             }
             
         }
-        
+
     }  , 1000)
     checkwinInterval.start()
 
