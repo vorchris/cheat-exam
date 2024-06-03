@@ -171,7 +171,7 @@ app.on('activate', () => {
 })
 
 app.whenReady()
-.then(()=>{
+.then(async ()=>{
     nativeTheme.themeSource = 'light'
 
     if (config.hostip == "127.0.0.1") { config.hostip = false }
@@ -181,12 +181,7 @@ app.whenReady()
     }
 
     powerSaveBlocker.start('prevent-display-sleep')
-    if (process.platform === 'win32') {
-        if (process.platform === 'win32') {
-            const preventSleep = require('node-prevent-sleep')
-            preventSleep.enable();
-        }
-    }
+
    
     //WindowHandler.createSplashWin()
     WindowHandler.createMainWindow()
@@ -226,7 +221,16 @@ app.whenReady()
     globalShortcut.register('CommandOrControl+L', () => {});  //lockscreen
     globalShortcut.register('CommandOrControl+P', () => {});  //change screen layout
  
-  
+    const getwin = await getActiveWindow();
+        const activeWindow = await getwin.default()
+        console.log(activeWindow)
+        if (activeWindow && activeWindow.owner && activeWindow.owner.name) {
+            let name = activeWindow.owner.name
+            if (!name.includes("exam") || !name.includes("next")){  
+                console.log(`Aktives Fenster:`, activeWindow.owner); 
+            }
+            
+        }
    
     if (!config.development){
     }
@@ -249,7 +253,10 @@ app.whenReady()
 
 })
 
-
+async function getActiveWindow() {
+    const getwin = await import('active-win');  // https://www.npmjs.com/package/get-windows
+    return getwin;
+}
 
 
 //capture global keyboard shortcuts like alt+tab and send a signal to the frontend that a key combination has been detected 
