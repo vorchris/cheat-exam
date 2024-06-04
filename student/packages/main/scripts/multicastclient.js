@@ -97,6 +97,7 @@ class MulticastClient {
         serverInfo.serverip = rinfo.address
         serverInfo.serverport = rinfo.port
         serverInfo.reachable = true
+        serverInfo.timestamp = new Date().getTime()   //record timestamp of last message from server (ignore servertimestamp because it may have a different system time)
         
         if (this.isNewExamInstance(serverInfo)) {
             log.info(`multicastclient @ messageReceived: Adding new Exam Instance "${serverInfo.servername}" to Serverlist`)

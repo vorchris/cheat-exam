@@ -40,6 +40,7 @@ function addParams(to){
 
 
 //we double check the password for now..  use proper auth process in the future ;-)
+// since we almost moved to single and local instance teacher server password is not needed at all #REFACTOR ? 
 async function checkPasswd(to){
     let hostname = electron ? "localhost" : window.location.hostname
 
@@ -51,7 +52,7 @@ async function checkPasswd(to){
         to.params.pin = res.data.pin; 
         to.params.servertoken = res.data.servertoken; 
         to.params.serverip = res.data.serverip; 
-        console.log("router @ checkPasswd: password ok"); 
+        //console.log("router @ checkPasswd: password ok"); 
         return true 
     }
     else {  

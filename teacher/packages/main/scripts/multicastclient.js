@@ -66,6 +66,7 @@ class MulticastClient {
         const serverInfo = JSON.parse(String(message))
         serverInfo.serverip = rinfo.address
         serverInfo.serverport = rinfo.port
+        serverInfo.timestamp = new Date().getTime()   //record timestamp of last message from server
         
         if (this.isNewExamInstance(serverInfo)) {
             log.info(`multicastclient @ messageReceived: Adding new Exam Instance "${serverInfo.servername}" to Serverlist`)
