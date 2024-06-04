@@ -893,6 +893,7 @@ class WindowHandler {
         
         if (winhandler.screenlockwindows.length > 0) { return }// do nothing if screenlockwindow stole focus // do not trigger an infinite loop between exam window and screenlock window (stealing each others focus)
         if (winhandler.focusTargetAllowed){ 
+            winhandler.examwindow.moveTop();
             winhandler.examwindow.show(); 
             winhandler.examwindow.focus(); //trotzdem focus zurück auf die app
             log.warn(`windowhandler @ blurevent: blurevent was triggered but target is allowed`)
