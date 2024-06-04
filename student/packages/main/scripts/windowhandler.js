@@ -624,7 +624,7 @@ class WindowHandler {
                 
                 this.checkWindowInterval.start() //checks if the active window is next-exam (introduces exceptions for windows)
             }
-             this.checkWindowInterval.start()
+            // this.checkWindowInterval.start()
             // this.addBlurListener() // just for dev purposes in order to test blur
 
         })
