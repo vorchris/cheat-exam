@@ -624,8 +624,8 @@ class WindowHandler {
                 
                 this.checkWindowInterval.start() //checks if the active window is next-exam (introduces exceptions for windows)
             }
-             //this.checkWindowInterval.start()
-            this.addBlurListener() // just for dev purposes in order to test blur
+             this.checkWindowInterval.start()
+            // this.addBlurListener() // just for dev purposes in order to test blur
 
         })
 
@@ -822,7 +822,11 @@ class WindowHandler {
 
 
     async getActiveWindow() {
-        const getwin = await import('active-win');  // https://www.npmjs.com/package/get-windows
+
+        let activewinPath = "active-win"
+        if (app.isPackaged) { activewinPath = join(process.resourcesPath, 'app.asar.unpacked', 'node_modules', 'active-win', 'index.js') }
+
+        const getwin = await import(activewinPath);  // https://www.npmjs.com/package/get-windows
         return getwin;
     }
 
@@ -853,7 +857,7 @@ class WindowHandler {
             }
         }
         catch(err){
-            log.error(`windowhandler @ addWindowTracker: ${err}`) 
+            log.error(`windowhandler @ windowTracker: ${err}`) 
         }
     }
 

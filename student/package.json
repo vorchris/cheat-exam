@@ -28,6 +28,7 @@
             "node_modules/screenshot-desktop/lib/win32",
             "public",
             "node_modules/sharp/**/*",
+            "node_modules/active-win/**/*",
             "node_modules/@img/**/*"
         ],
         "directories": {

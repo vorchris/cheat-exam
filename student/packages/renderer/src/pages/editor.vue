@@ -1262,8 +1262,7 @@ export default {
 
 
 
-
-
+<!-- achtung.. dieser style ist nicht scoped und hat daher auswirkungen auf alle anderen exam modi - testen und scopen oder gleich global arbeiten -->
 <style lang="scss">
 
 @media print {  //this controls how the editor view is printed (to pdf)
@@ -1488,6 +1487,8 @@ Other Styles
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.4);
     z-index:100001;
+    backdrop-filter: blur(2px);
+  
 }
 
 
