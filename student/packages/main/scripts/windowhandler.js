@@ -625,7 +625,7 @@ class WindowHandler {
                 this.checkWindowInterval.start() //checks if the active window is next-exam (introduces exceptions for windows)
             }
              //this.checkWindowInterval.start()
-             //this.addBlurListener() // just for dev purposes in order to test blur
+            this.addBlurListener() // just for dev purposes in order to test blur
 
         })
 
@@ -885,10 +885,15 @@ class WindowHandler {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
     //student fogus went to another window
-    blurevent(winhandler) { 
+    async blurevent(winhandler) { 
+
         log.info("windowhandler @ blurevent: student tried to leave exam window")
+        await this.windowTracker()  //checks if new focus window is allowed
+        log.info("windowtracker check done...")
+        
         if (winhandler.screenlockwindows.length > 0) { return }// do nothing if screenlockwindow stole focus // do not trigger an infinite loop between exam window and screenlock window (stealing each others focus)
         if (winhandler.focusTargetAllowed){ 
+            winhandler.examwindow.focus(); //trotzdem focus zurück auf die app
             log.warn(`windowhandler @ blurevent: blurevent was triggered but target is allowed`)
             return
         } 
