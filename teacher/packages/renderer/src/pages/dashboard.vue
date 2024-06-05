@@ -123,12 +123,11 @@
                 <label class="form-check-label" for="examtype5"> {{$t('dashboard.gforms')}}  </label>
             </div>
             <!-- website -->
-            <div class="form-check m-1 mb-1" :class="(serverstatus.exammode)? 'disabledexam':''">
+            <div class="form-check m-1 mb-1" :class="(serverstatus.exammode)? 'disabledexam':''" style="max-height:24px">
                 <input v-model="serverstatus.examtype" @click="getTestURL()" value="website" class="form-check-input" type="radio" name="examtype" id="examtype6">
                 <label class="form-check-label" for="examtype6"> 
-                    <div style="display:inline-block; overflow: hidden; text-overflow: ellipsis;">Website</div>
+                    <div style="display:inline-block; overflow: hidden; text-overflow: ellipsis;">Website</div>  <!--overflow hidden with text-overflow ellipsis adds 3 pixel to the height of the sourrounding div element.. what the f..? -->
                     <div style="width: 134px; display:inline-block; overflow: hidden; text-overflow: ellipsis;" class="text-white-50" v-if="(serverstatus.domainname)">|{{serverstatus.domainname}}</div>  
-                    
                 </label>
             </div>
 
@@ -151,7 +150,6 @@
                     <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
                     <span style="padding: 0 6px 0 4px; vertical-align:middle;">{{serverstatus.msOfficeFile.name}} </span>
                 </button>
-
 
                 <button v-if="(serverstatus.examtype === 'microsoft365' && this.config.accessToken )"  @click="logout365()" class="btn btn-sm btn-warning mt-1" style=" white-space: nowrap;  width: 170px;overflow: hidden; text-overflow: ellipsis; ">
                     <img  src="/src/assets/img/svg/win.svg" xmlns="http://www.w3.org/2000/svg"  width="24" height="24">
