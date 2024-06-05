@@ -1060,6 +1060,12 @@ export default {
 
 
         async setupGroups(){
+            if (!this.serverstatus.groupA){   //temp fix for old exams (resume) without groups 
+                this.serverstatus.groupA = []
+                this.serverstatus.groupB = []
+            }
+
+
             // prepopulate group A
             if (this.serverstatus.groupA.length == 0){
                 for (let student of this.studentlist) {
