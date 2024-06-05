@@ -80,17 +80,6 @@
 
 
     <!-- pdf preview start -->
-    <!-- <div :key="4" id="pdfpreview" class="fadeinslow p-4">
-        <div class="btn btn-danger me-2  shadow" style="float: right;" @click="hidepreview()" :title="$t('dashboard.close')"><img src="/src/assets/img/svg/dialog-cancel.svg" class="" width="22" height="32" > </div>
-        <div class="btn btn-warning me-2 shadow" style="float: right;" id="printPDF" @click="print()"  :title="$t('dashboard.print')"><img src="/src/assets/img/svg/print.svg" class="white" width="22" height="32" > </div>
-        <div class="btn btn-dark me-2 shadow" style="float: right;" @click="downloadFile('current')" :title="$t('dashboard.download')"><img src="/src/assets/img/svg/edit-download.svg" class="" width="22" height="32" > </div>
-        <div class="btn btn-dark me-2 shadow" style="float: right;" @click="openFileExternal(currentpreviewPath)" :title="$t('dashboard.open')"><img src="/src/assets/img/svg/stock_exit_up.svg" class="" width="22" height="32" > </div>
-
-        <iframe src="" id="pdfembed"></iframe>
-    </div> -->
-
-
-
     <div :key="4" id="pdfpreview" class="fadeinfast p-4">
         <div class="embed-container">
         <iframe src="" id="pdfembed"></iframe>
@@ -897,9 +886,17 @@ export default {
         showinfo(){
             let info = `<span> IP: <strong>${this.serverip}</strong> \nName: ${this.servername}  \nPin: ${this.serverstatus.pin} </span>`
             this.$swal.fire({ 
-                title: `<span style="font-weight:normal"> IP:</span>  ${this.serverip} </span> 
-                        <span style="font-weight:normal"> Name:</span>  ${this.servername}  
-                        <span style="font-weight:normal"> Pin:</span> ${this.serverstatus.pin}`,
+                title: `<div style="display: flex; margin-top:0">
+                            <div style="text-align: right; margin-right: 10px; font-weight:normal">Prüfungsname:
+                            Pincode:
+                            Server:
+                            </div>
+                            <div style="text-align: left;">${this.servername}
+                            ${this.serverstatus.pin}
+                            ${this.serverip}
+
+                            </div>
+                        </div>`,
                 icon: "info",
                 customClass: {
                     popup: 'custom-swal2-popup',

@@ -119,7 +119,7 @@ function loadPDF(filepath, filename){
         this.currentpreview = URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
         this.currentpreviewname = filename   //needed for preview buttons
         this.currentpreviewPath = filepath
-  
+
         const pdfEmbed = document.querySelector("#pdfembed");
         pdfEmbed.style.backgroundImage = '';
 
@@ -206,20 +206,14 @@ async function getLatest(){
             return
         }
         const warning = responseObj.warning;
-        const pdfBuffer = new Uint8Array(responseObj.pdfBuffer.data);
         if (warning){
             this.$swal.close();
             this.visualfeedback(this.$t("dashboard.oldpdfwarning",2000))
             await sleep(2000)
         }
-
-        URL.revokeObjectURL(this.currentpreview);  //speicher freigeben
-        this.currentpreview = URL.createObjectURL(new Blob([pdfBuffer], {type: "application/pdf"})) 
-        this.currentpreviewname = "combined"   //needed for preview buttons
+        // show pdf
+        this.loadPDF(responseObj.pdfPath, "combined.pdf")
         
-        this.currentpreviewPath = responseObj.pdfPath  //getlatest also saves the file as combined.pdf and attaches the current path
-        document.querySelector("#pdfembed").setAttribute("src", `${this.currentpreview}#toolbar=0&navpanes=0&scrollbar=0`);
-        document.querySelector("#pdfpreview").style.display = 'block';
     }).catch(err => { log.error(err)});
 }
 
@@ -286,6 +280,7 @@ async function getLatestFromStudent(student){
     // this informs the student that an exam upload is requested. 
     // this could need 4sek for the student to react because of the current update interval  
     // so if the teacher is faster than that it could happen that no pdf file is found or an old one - a warning will be displayed
+    // FIXME: implement a way to start a listener that waits for a signal that is fired when the student (or all students) deliverd their work
     this.getFiles(student.token, false, true)
     log.info("filemanager @ managePrintrequest: requesting current file from student", student.clientname) 
     await this.sleep(5000);  // give it some time
@@ -319,19 +314,13 @@ async function getLatestFromStudent(student){
                     await sleep(2000)
                 }
 
-                const blob = new Blob([new Uint8Array(responseObj.pdfBuffer.data).buffer], { type: 'application/pdf' });
-                this.currentpreview = URL.createObjectURL(blob);
-                this.currentpreviewname = student.clientname //needed for preview buttons
-                this.currentpreviewPath = responseObj.pdfPath 
-                log.info( "filemanager @ managePrintrequest: pdfPath:", responseObj.pdfPath )
-
-                document.querySelector("#pdfembed").setAttribute("src", `${this.currentpreview}#toolbar=0&navpanes=0&scrollbar=0`);
-                document.querySelector("#pdfpreview").style.display = 'block';
+                // show pdf
+                this.loadPDF(responseObj.pdfPath, student.clientname)
                 
-            }).catch(err => { log.error(err)});
+            }).catch(err => { log.error("filemanager @ managePrintrequest:",err)});
         }
         else {
-            this.setStudentStatus({printdenied:true}, student.token)
+            this.setStudentStatus({printdenied:true}, student.token)  //inform student that request was denied
         }
     }).catch(err => { log.error(err)});
 }
