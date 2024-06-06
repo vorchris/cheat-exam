@@ -884,12 +884,12 @@ export default {
         showinfo(){
             let info = `<span> IP: <strong>${this.serverip}</strong> \nName: ${this.servername}  \nPin: ${this.serverstatus.pin} </span>`
             this.$swal.fire({ 
-                title: `<div style="display: flex; margin-top:0">
-                            <div style="text-align: right; margin-right: 10px; font-weight:normal">Prüfungsname:
+                title: `<div style="display: flex; margin-top:0; justify-content: center">
+                            <div style="text-align: right; margin-right: 10px; font-weight:normal; font-size: 0.8em;">Prüfungsname:
                             Pincode:
                             Server:
                             </div>
-                            <div style="text-align: left;">${this.servername}
+                            <div style="text-align: left;font-size: 0.8em;">${this.servername}
                             ${this.serverstatus.pin}
                             ${this.serverip}
 
@@ -963,7 +963,11 @@ export default {
                 text: 'Dies erzwingt die Authentifizierung der Schüler:innen durch das Bildungsportal.',
                 showCancelButton: true,
                 cancelButtonText: this.$t("dashboard.cancel"),
+                confirmButtonText:  this.$t("dashboard.Activate"),
                 reverseButtons: true,
+                customClass: {
+                    popup: 'custom-swal-popup' // Füge die benutzerdefinierte Klasse hinzu
+                }
             }).then(async (result) => {
                 if (result.isConfirmed) {
                     console.log(this.serverstatus)
@@ -1394,7 +1398,7 @@ export default {
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.4); /* Abdunkeln des Hintergrunds */
     backdrop-filter: blur(2px); /* Unscharf-Effekt */
-    z-index: 10999; /* Unter dem Dialog */
+    z-index: 1999; /* Unter dem Dialog */
     display: none; /* Standardmäßig nicht angezeigt */
    transition: 0.3s;
 }
@@ -1735,6 +1739,9 @@ hr {
     z-index: 100000;
 } 
 
+.custom-swal-popup {
+  z-index: 10000 !important; /* Setze hier den gewünschten z-index */
+}
 
 
 

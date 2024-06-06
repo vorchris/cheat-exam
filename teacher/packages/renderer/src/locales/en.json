@@ -91,6 +91,7 @@
         "preview": "preview",
         "send": "send",
         "activate":"activate",
+        "Activate":"Activate",
         "virtualized": "virtual environment detected",
         "delete": "delete",
         "filedelete": "Do you really want to delete this file/folder?",
