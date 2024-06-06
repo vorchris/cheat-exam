@@ -108,12 +108,14 @@ export default {
     components: { ExamHeader },  
     mounted() {
       
-        if (this.serverstatus.moodleDomain === "eduvidual.at"){
-            this.url =`https://eduvidual.at/mod/${this.serverstatus.moodleTestType}/view.php?id=${this.serverstatus.moodleTestId}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287   
-        }
-        else {
-            this.url =`https://${this.serverstatus.moodleDomain}/mod/${this.serverstatus.moodleTestType}/view.php?id=${this.serverstatus.moodleTestId}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287  
-        }
+        this.url = this.serverstatus.moodleURL
+
+        // if (this.serverstatus.moodleDomain === "eduvidual.at"){
+        //     this.url =`https://eduvidual.at/mod/${this.serverstatus.moodleTestType}/view.php?id=${this.serverstatus.moodleTestId}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287   
+        // }
+        // else {
+        //     this.url =`https://${this.serverstatus.moodleDomain}/mod/${this.serverstatus.moodleTestType}/view.php?id=${this.serverstatus.moodleTestId}`    // https://www.eduvidual.at/mod/quiz/view.php?id=4172287  
+        // }
 
         this.currentFile = this.clientname
         this.entrytime = new Date().getTime()  

@@ -115,7 +115,7 @@
         "abgabeautoquestion":"In welchen Abständen sollen die Arbeiten geholt werden?",
         "abgabeautohint":"(Zeitangabe in Minuten)",
         "eduvidualid": "Eduvidual / Moodle",
-        "eduvidualidhint": "Bitte geben sie eine gültige ID ein!",
+        "eduvidualidhint": "Bitte geben sie eine gültige Test URL ein!",
         "eduvidualdomain": "Sollte ihre Moodleinstanz unter einer anderen Domain erreichbar sein geben sie diese an",
         "lock":"Bildschirme abdunkeln",
         "unlock":"Bildschirme freigeben",
