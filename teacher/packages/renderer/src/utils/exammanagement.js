@@ -256,7 +256,7 @@ function sendFiles(who) {
         ${this.$t("dashboard.filesendtext")} <br>
         <span style="font-size:0.8em;">(.pdf, .docx, .bak, .ogg, .wav, .mp3, .jpg, .png, .gif, .ggb)</span>`
 
-    if (this.serverstatus.groups){
+    if (this.serverstatus.groups && who == "all"){ //wenn who != "all" sondern ein studenttoken ist dann soll die datei an eine einzelne person gesandt werden
         htmlcontent =  `
             ${this.$t("dashboard.filesendtext")} <br>
             <span style="font-size:0.8em;">(.pdf, .docx, .bak, .ogg, .wav, .mp3, .jpg, .png, .gif, .ggb)</span>
@@ -335,7 +335,7 @@ function sendFiles(who) {
         }
         
         // group managment - send files to specific group
-        if (this.serverstatus.groups){ who = activeGroup}
+        if (this.serverstatus.groups && who == "all"){ who = activeGroup}  //nur wenn who == all wurde der allgemeine filesend dialog aufgeruden. who kann auch ein student token sein
 
         axios({
             method: "post", 
