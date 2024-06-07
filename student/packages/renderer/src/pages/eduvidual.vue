@@ -167,7 +167,7 @@ export default {
                         .branding { display: none !important; }
                         #header { display: none !important; }
                        // .drawer-toggler { display: none !important; }
-                       // .drawer-left-toggle { display: none !important; }
+                        .drawer-left-toggle { display: none !important; }
                        // .drawer.drawer-left  { display: none !important; }
                        .drawer.drawer-right { top:0 !important; height: 100% !important;}
                      
@@ -200,7 +200,7 @@ export default {
             
             // Event abfangen, wenn eine Navigation beginnt
             webview.addEventListener('will-navigate', (event) => {
-                if (!event.url.includes(this.serverstatus.moodleTestId)){  //we block everything except pages that contain the following keyword-combinations
+                if (!event.url.includes(this.serverstatus.moodleTestId)){  //we block everything whithout testID except pages that contain the following keyword-combinations
                     console.log(event.url)
                     //check if this an exception (login, init) - if URL doesn't include either of these combinations - block! EXPLICIT is easier to read ;-)
                     if ( event.url.includes("startattempt.php") && event.url.includes(this.serverstatus.moodleDomain) )        { console.log(" url allowed") }  // moodledomain ohne testid
