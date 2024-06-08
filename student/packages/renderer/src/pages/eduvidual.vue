@@ -166,11 +166,8 @@ export default {
                         * {transition: .1s !important;}
                         .branding { display: none !important; }
                         #header { display: none !important; }
-                       // .drawer-toggler { display: none !important; }
                         .drawer-left-toggle { display: none !important; }
-                       // .drawer.drawer-left  { display: none !important; }
                        .drawer.drawer-right { top:0 !important; height: 100% !important;}
-                     
                         #page-footer { display: none !important; }
                         #theme_boost-drawers-courseindex { display: none !important; }
                         #page.drawers {margin-top:0px !important;}
@@ -178,8 +175,9 @@ export default {
                         .navbar, #nav-drawer, #page-header {display: none !important;}
                         body {margin-left: 0px !important;}
                         #page {height: 100% !important}
-                       
                         #page.drawers.show-drawer-left  {margin-left: 0px !important; padding-left: 3rem !important; }
+                        .bycs-header {display: none !important;}
+                        .mbsfooter {display: none !important;}
                         \`;
 
                         const style = document.createElement('style');
