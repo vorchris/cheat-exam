@@ -158,7 +158,7 @@
         "extract-zip": "^2.0.1",
         "fs": "^0.0.1-security",
         "html2pdf-jspdf2": "^0.1.2",
-        "ip": "^1.1.5",
+        "ip": "^2.0.1",
         "lowlight": "^2.5.0",
         "mammoth": "^1.7.2",
         "moment-timezone": "^0.5.45",

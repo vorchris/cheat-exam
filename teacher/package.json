@@ -32,7 +32,6 @@
             "output": "../release/${version}"
         },
         "compression": "normal",
-
         "linux": {
             "target": "AppImage",
             "category": "Utility",
@@ -164,7 +163,7 @@
         "express-fileupload": "^1.3.1",
         "express-rate-limit": "^6.3.0",
         "extract-zip": "^2.0.1",
-        "ip": "^1.1.5",
+        "ip": "^2.0.1",
         "lowlight": "^2.5.0",
         "moment": "^2.30.1",
         "node-forge": "^1.3.1",
