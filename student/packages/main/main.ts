@@ -270,7 +270,7 @@ function checkParent(){
                 type: 'question',
                 buttons: ['OK'],
                 title: 'Programm beenden',
-                message: 'Das Programm wurde aus einem Webbrowser heraus gestartet.\nNext-Exam wird beendet!',
+                message: 'Unerlaubter Programmstart aus einem Webbrowser erkannt.\nNext-Exam wird beendet!',
                 cancelId: 1
             });
           
