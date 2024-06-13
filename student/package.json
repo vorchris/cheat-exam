@@ -167,6 +167,7 @@
         "node-notifier": "^10.0.1",
         "nodehun": "^3.0.2",
         "play-sound": "^1.1.5",
+        "ps-node": "^0.1.6",
         "sass": "^1.49.9",
         "screenshot-desktop": "^1.12.7",
         "sharp": "^0.33.1",

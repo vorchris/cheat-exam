@@ -20,7 +20,7 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow, powerSaveBlocker, nativeTheme, globalShortcut, Tray, Menu} from 'electron'
+import { app, BrowserWindow, powerSaveBlocker, nativeTheme, globalShortcut, Tray, Menu, dialog} from 'electron'
 
 if (!app.requestSingleInstanceLock()) {  // allow only one instance of the app per client
     app.quit()
@@ -28,7 +28,6 @@ if (!app.requestSingleInstanceLock()) {  // allow only one instance of the app p
  }
 
 import { release } from 'os'
-// import { disableRestrictions} from './scripts/platformrestrictions.js';
 import WindowHandler from './scripts/windowhandler.js'
 import CommHandler from './scripts/communicationhandler.js'
 import IpcHandler from './scripts/ipchandler.js'
@@ -174,6 +173,7 @@ app.whenReady()
 .then(async ()=>{
     nativeTheme.themeSource = 'light'
 
+ 
     if (config.hostip == "127.0.0.1") { config.hostip = false }
     if (config.hostip) {
         log.info(`main:  HOSTIP: ${config.hostip}`)
@@ -207,6 +207,7 @@ app.whenReady()
     });
 
 
+    checkParent()  // thischecks if the app was started from within a browser (directly after download)
 
   
     //these are some shortcuts we try to capture
@@ -243,6 +244,47 @@ app.whenReady()
 
 
 })
+
+
+import ps from 'ps-node'
+
+
+//block starting the app from a browser 
+function checkParent(){
+    const parentPid = process.ppid; // Parent Process ID
+
+    ps.lookup({ pid: parentPid }, (err, resultList) => {
+      if (err) {
+        throw new Error(err);
+      }
+  
+      if (resultList.length > 0) {
+        const parentProcess = resultList[0];
+        const parentCommand = parentProcess.command.toLowerCase();
+
+        // Überprüfe, ob der Elternprozess ein Browser ist
+        if (parentCommand.includes('chrom') || parentCommand.includes('edge') || parentCommand.includes('fire') || parentCommand.includes('brave')) {
+            log.warn('main @ checkparent: Die App wurde direkt aus einem Browser gestartet:', parentCommand);
+
+            dialog.showMessageBoxSync(WindowHandler.mainwindow, {
+                type: 'question',
+                buttons: ['OK'],
+                title: 'Programm beenden',
+                message: 'Das Programm wurde aus einem Webbrowser heraus gestartet.\nNext-Exam wird beendet!',
+                cancelId: 1
+            });
+          
+            WindowHandler.mainwindow.closetriggered = true
+            app.quit()
+           
+        } else {
+          log.info('main @ checkparent: Parent Process Check OK');
+        }
+      } else { log.warn('main @ checkparent: Elternprozess nicht gefunden');  }
+    });
+
+}
+
 
 
 //capture global keyboard shortcuts like alt+tab and send a signal to the frontend that a key combination has been detected 
