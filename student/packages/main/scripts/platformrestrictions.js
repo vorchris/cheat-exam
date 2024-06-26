@@ -315,8 +315,7 @@ function disableRestrictions(){
     // disable global keyboardshortcuts on PLASMA/KDE
     if (process.platform === 'linux') {
 
-        // Clear Clipboard history 
-        childProcess.execFile('qdbus', ['org.kde.klipper' ,'/klipper', 'org.kde.klipper.klipper.clearClipboardHistory'])
+       
         // on wayland
         childProcess.execFile('wl-copy', ['-c'])
         // clear clipboard gnome and x11  (this will fail unless xclip or xsell are installed)
@@ -324,21 +323,38 @@ function disableRestrictions(){
         childProcess.exec('xclip -selection clipboard')
         childProcess.exec('xsel -bc')
 
-        // reset all shortcuts KDE
-        childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'false'])
-        // activate ALL 3d Effects (present window, change desktop, etc.) 
-        childProcess.execFile('qdbus', ['org.kde.KWin' ,'/Compositor', 'org.kde.kwin.Compositing.resume'])
-        childProcess.exec('kstart5 kglobalaccel5&')
-        
+
         //enable META Key for Launchermenu
         //childProcess.execFile('sed', ['-i', '-e', 's/global=.*/global=Alt+F1/g', `${config.homedirectory}/.config/plasma-org.kde.plasma.desktop-appletsrc` ])
-        childProcess.execFile('kwriteconfig5', ['--file',`${config.homedirectory}/.config/kwinrc`,'--group','ModifierOnlyShortcuts','--key','Meta','--delete']) 
-        childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
         //childProcess.exec('kwin --replace &')
 
 
-        childProcess.exec('kstart5 plasmashell&')
+        
    
+        childProcess.exec('echo $XDG_CURRENT_DESKTOP', (error, stdout, stderr) => {
+            if (error) {
+              console.error(`exec error: ${error}`);
+              return;
+            }
+            if (stdout.trim() === 'KDE') {
+
+                 // Clear Clipboard history 
+                 childProcess.execFile('qdbus', ['org.kde.klipper' ,'/klipper', 'org.kde.klipper.klipper.clearClipboardHistory'])
+                // reset all shortcuts KDE
+                childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'false'])
+                // activate ALL 3d Effects (present window, change desktop, etc.) 
+                childProcess.execFile('qdbus', ['org.kde.KWin' ,'/Compositor', 'org.kde.kwin.Compositing.resume'])
+                // reactivate shortcutssystem
+                childProcess.exec('kstart5 kglobalaccel5&')
+                // enable meta key, kwin and restart plasmashell
+                childProcess.execFile('kwriteconfig5', ['--file',`${config.homedirectory}/.config/kwinrc`,'--group','ModifierOnlyShortcuts','--key','Meta','--delete']) 
+                childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
+                childProcess.exec('kstart5 plasmashell&')
+            } 
+        });
+
+
+
 
         // reset specific shortcuts GNOME
         for (let binding of gnomeKeybindings){
