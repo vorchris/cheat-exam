@@ -5,8 +5,12 @@ import path from 'path';
 import process from 'process';
 import { spawn } from 'child_process';
 import { app } from 'electron';
-import log from 'electron-log/main';
-  
+import log from 'electron-log';
+
+
+const __dirname = import.meta.dirname;
+
+
 class JreHandler {
     constructor () {
         this.jreDir = ""

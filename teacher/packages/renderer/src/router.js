@@ -7,7 +7,10 @@ import notfound from '/src/pages/notfound.vue'
 import startserver from '/src/pages/startserver.vue'
 import dashboard from '/src/pages/dashboard.vue'
 import serverlist from '/src/pages/serverlist.vue'
-// import { ipcRenderer } from 'electron'
+
+
+//import { ipcRenderer } from 'electron'
+import config from '../../main/config.js';
 
 // check if we run this app in electron (host is always "localhost" then)
 let electron = false

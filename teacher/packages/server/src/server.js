@@ -34,7 +34,7 @@ import defaultGateway from'default-gateway';
 import multicastClient from '../../main/scripts/multicastclient.js'
 import cookieParser from 'cookie-parser'
 import { app } from 'electron'
-import log from 'electron-log/main';
+import log from 'electron-log';
 
 
 config.homedirectory = os.homedir()

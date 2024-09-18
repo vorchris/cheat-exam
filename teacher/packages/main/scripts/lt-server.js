@@ -1,6 +1,11 @@
 import path from 'path';
-import log from 'electron-log/main';
+import log from 'electron-log';
 import { app } from 'electron'
+
+const __dirname = import.meta.dirname;
+
+
+
 
 let languageToolJarPath = path.join(__dirname, '../../public/LanguageTool/languagetool-server.jar')
 if (app.isPackaged) { languageToolJarPath = path.join(process.resourcesPath, 'app.asar.unpacked', 'public/LanguageTool/languagetool-server.jar') }

@@ -28,7 +28,7 @@ import fs from 'fs'
 import qs from 'qs'
 import axios from "axios"
 import { msalConfig } from '../../../../renderer/src/msalutils/authConfig'
-import log from 'electron-log/main';
+import log from 'electron-log';
 
 import WindowHandler from '../../../../main/scripts/windowhandler.js'
 import Tesseract from 'tesseract.js';

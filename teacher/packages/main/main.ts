@@ -27,7 +27,7 @@ import server from "../server/src/server.js"
 import multicastClient from './scripts/multicastclient.js'
 import WindowHandler from './scripts/windowhandler.js'
 import IpcHandler from './scripts/ipchandler.js'
-import log from 'electron-log/main';
+import log from 'electron-log';
 
 WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow
 IpcHandler.init(multicastClient, config, WindowHandler)  //controll all Inter Process Communication

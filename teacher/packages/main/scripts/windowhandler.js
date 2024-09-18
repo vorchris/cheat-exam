@@ -18,7 +18,11 @@
 
 import { app, BrowserWindow, dialog, screen  } from 'electron'
 import { join } from 'path'
-import log from 'electron-log/main';
+import log from 'electron-log';
+
+const __dirname = import.meta.dirname;
+
+
 
 class WindowHandler {
     constructor () {
@@ -51,7 +55,9 @@ class WindowHandler {
             minWidth: 800,
             minHeight: 800,
             webPreferences: {
-                preload: join(__dirname, '../preload/preload.cjs'),
+                preload: join(__dirname, '../preload/preload.mjs'),
+                // nodeIntegration: false,  
+                // contextIsolation: true,  // Isoliert den Preload- und Renderer-Prozess
                 spellcheck: false
             },
   
@@ -134,7 +140,7 @@ class WindowHandler {
             minimizable: false,
             icon: join(__dirname, '../../public/icons/icon.png'),
             webPreferences: {
-                preload: join(__dirname, '../preload/preload.cjs'),
+                preload: join(__dirname, '../preload/preload.mjs'),
             },
         });
     

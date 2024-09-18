@@ -22,16 +22,20 @@ import fs from 'fs'
 //const { t } = i18n.global
 import {  ipcMain, dialog } from 'electron'
 import {join} from 'path'
-import log from 'electron-log/main';
+import log from 'electron-log';
+
+import pdfToPrinter from "pdf-to-printer";
+const { print: printWin } = pdfToPrinter;
+
 import { print } from "unix-print";
-import { print as printWin } from "pdf-to-printer";
+//import { print as printWin } from "pdf-to-printer";
 import { exec } from 'child_process';
 import defaultGateway from'default-gateway';
 import ip from 'ip'
 import languageToolServer from './lt-server';
 import server from "../../server/src/server.js"
+import checkDiskSpace from 'check-disk-space';
 
-const checkDiskSpace = require('check-disk-space').default
 
 class IpcHandler {
     constructor () {
