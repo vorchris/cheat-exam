@@ -156,8 +156,10 @@ function LThandleMisspelled(backend, data){
         this.hunspellFallback = false;
         // Verarbeiten der Antwort, um das fehlerhafte Wort zu extrahieren und Duplikate zu entfernen
         const uniqueWords = new Set(); // Ein Set, um die Einzigartigkeit der Wörter zu gewährleisten
+       
         this.misspelledWords = data.data.filter(match => {
-            const wrongWord = this.text.substring(match.offset, match.offset + match.length);
+            let wrongWord = this.text.substring(match.offset, match.offset + match.length);
+         
             if (!uniqueWords.has(wrongWord)) {
                 uniqueWords.add(wrongWord);
                 return true; // Behalte dieses Match, da das Wort noch nicht hinzugefügt wurde
@@ -166,7 +168,6 @@ function LThandleMisspelled(backend, data){
         }).map(match => {
             // Nachdem Duplikate entfernt wurden, füge das fehlerhafte Wort hinzu
             const wrongWord = this.text.substring(match.offset, match.offset + match.length);
-            
             return {
                 ...match,
                 wrongWord,
@@ -182,7 +183,8 @@ async function LTfindWordPositions() {
     if (!this.misspelledWords || !this.textContainer || this.misspelledWords.length === 0) {
         return [];
     }
-    this.misspelledWords.forEach(word => {
+
+     this.misspelledWords.forEach(word => {
         word.position=null // reset and search again
      })
 
@@ -197,7 +199,7 @@ async function LTfindWordPositions() {
         const text = textNode.nodeValue;
      
         this.misspelledWords.forEach(word => {
-            
+          
             // Setze Farben basierend auf dem Issue Typ
             if (word.rule.issueType === "typographical") { word.color = "rgba(146, 43, 33 , 0.3)"; }
             else if (word.rule.issueType === "whitespace") { word.color = "rgba(243, 190, 41, 0.5)"; word.whitespace = true; }
@@ -205,7 +207,7 @@ async function LTfindWordPositions() {
             else { word.color = "rgba(108, 52, 131, 0.3)"; }
 
             // Erstelle Regex für das Wort
-            const pattern = word.wrongWord.trim() === '' ? '\\s\\s+' : `(?<!\\w)${word.wrongWord}(?!\\w)`;
+            const pattern = word.wrongWord.trim() === '' ? '\\s\\s+' : `${word.wrongWord}`;  // Suche exakt nach dem Wort, ohne Lookbehind oder Lookahead
             const regex = new RegExp(pattern, 'g');
 
             // Durchsuche den Text der aktuellen (text)Node nach diesem Wort

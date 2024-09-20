@@ -25,10 +25,13 @@ import{ipcMain, clipboard} from 'electron'
 import defaultGateway from'default-gateway';
 import os from 'os'
 import log from 'electron-log/main';
-import Nodehun from 'nodehun'
+
+
+//import Nodehun from 'nodehun'   
+const NodehunModule = await import('./native-loader.cjs');  // npm rebuild nodehun --update-binary  on mac after build to run in dev mode
+const { default: Nodehun } = NodehunModule;  // Access the default export
+
 import {disableRestrictions} from './platformrestrictions.js';
-
-
 import mammoth from 'mammoth';
 
 

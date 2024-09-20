@@ -23,16 +23,23 @@ import childProcess from 'child_process'
 import screenshot from 'screenshot-desktop'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 import fs from 'fs' 
-import Nodehun from 'nodehun'   // npm rebuild nodehun --update-binary  on mac after build to run in dev mode
+
+
+//import Nodehun from 'nodehun'   
+const NodehunModule = await import('./native-loader.cjs');  // npm rebuild nodehun --update-binary  on mac after build to run in dev mode
+const { default: Nodehun } = NodehunModule;  // Access the default export
+
 import log from 'electron-log/main'
 import {SchedulerService} from './schedulerservice.ts'
+
+const __dirname = import.meta.dirname;
+
+
+
 
   ////////////////////////////////////////////////////////////
  // Window handling (ipcRenderer Process - Frontend) START
 ////////////////////////////////////////////////////////////
-
-
-
 
 
 class WindowHandler {

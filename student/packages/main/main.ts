@@ -40,6 +40,7 @@ import fsExtra from "fs-extra"
 import os from 'os'
 import ip from 'ip'
 import log from 'electron-log/main';
+const __dirname = import.meta.dirname;
 
 config.electron = true
 

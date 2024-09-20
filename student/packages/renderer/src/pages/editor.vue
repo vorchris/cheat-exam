@@ -189,6 +189,9 @@
             <div v-for="entry in misspelledWords" :key="entry.wrongWord" class="error-entry" @click="LTshowWord(entry)">
                 <div :style="'background-color:' + entry.color " class="color-circle"></div>
                 <div class="error-word">{{ entry.wrongWord }}  <span v-if="entry.whitespace">' &nbsp;  '</span></div>
+                
+                <div v-if="entry.message" class="fw-bold">{{ entry.rule.category.name}}</div>
+
                 <div v-if="serverstatus.suggestions || privateSpellcheck.suggestions">
                   <div v-if="entry.message">{{ entry.message}}</div>
                      <div v-if="entry.replacements" class="replacement">
@@ -198,6 +201,7 @@
                         <span v-if="entry.replacements[3]">, {{ entry.replacements[3].value }}</span>
                     </div>
                 </div>
+                
             </div>
             
       
@@ -252,7 +256,11 @@ import TableRow from '@tiptap/extension-table-row'
 import TableHeader from '@tiptap/extension-table-header'
 import { SmilieReplacer } from '../components/SmilieReplacer'
 import { CharReplacer } from '../components/CharReplacer'
-import { lowlight } from "lowlight/lib/common.js";
+
+
+import {common, createLowlight} from 'lowlight'
+const lowlight = createLowlight(common)
+
 import { Color } from '@tiptap/extension-color'
 import TextStyle from '@tiptap/extension-text-style'
 import moment from 'moment-timezone';
@@ -352,7 +360,8 @@ export default {
         LTshowWord(word){
             this.currentLTword = word
             this.LTupdateHighlights()
-            this.setCursorAtStartOfRange(word.range)
+            if (word.range){  this.setCursorAtStartOfRange(word.range) }
+           
         },
         async LTupdateHighlights(){
             if (!this.LTactive){return}
