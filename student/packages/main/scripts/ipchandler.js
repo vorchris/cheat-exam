@@ -723,6 +723,30 @@ class IpcHandler {
             }
             event.returnValue = { misspelledWords };
         });
+
+
+        
+     
+        ipcMain.on('get-cpu-info', (event) => {
+            const cpus = os.cpus().map(cpu => cpu.model.toLowerCase());
+            const vmCpuKeywords = ['qemu', 'virtual', 'vmware', 'kvm', 'xen', 'hyper-v'];
+    
+
+            let virtualCpu = false;
+            cpus.forEach(cpu => {
+                vmCpuKeywords.forEach(keyword => {
+                    if (cpu.includes(keyword)) {
+                        virtualCpu = true;
+                    }
+                });
+            });
+    
+            event.returnValue = virtualCpu;
+        });
+
+
+
+
     }
 
 

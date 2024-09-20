@@ -34,6 +34,9 @@ import WindowHandler from '../../../../main/scripts/windowhandler.js'
 import Tesseract from 'tesseract.js';
 let TesseractWorker = false
 
+
+
+
 /**
  * this route generates the nessesary codeVerifier and codeChallenge für PKCE 
  * authorization flow for the microsoft onedrive graph API

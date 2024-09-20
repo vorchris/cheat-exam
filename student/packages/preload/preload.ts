@@ -24,55 +24,12 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import virtualized from './scripts/simplevmdetect.js';  // has to run in frontend (since we create a webgl insance) > inform backend (mulitcastClient.clientinfo)
 
-if (virtualized){ipcRenderer.send('virtualized')}
+
 let config = ipcRenderer.sendSync('getconfig')  // we need to fetch the updated version of the systemconfig from express api (server.js)
-
-/** document ready */
-// function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {
-//   return new Promise(resolve => {
-//     if (condition.includes(document.readyState)) {
-//       resolve(true)
-//     } else {
-//       document.addEventListener('readystatechange', () => {
-//         if (condition.includes(document.readyState)) {
-//           resolve(true)
-//         }
-//       })
-//     }
-//   })
-// }
-
-// ;(async () => {
-//   await domReady()
-// })()
-
-// // --------- Expose some API to the Renderer process. ---------
-// contextBridge.exposeInMainWorld('ipcRenderer', withPrototype(ipcRenderer))   // this gives us an option to access the electron mainwindow with an ipc call
-// contextBridge.exposeInMainWorld('config', config )  // expose configuration (readonly) to the renderer (frontend)
-
- 
-
-// // `exposeInMainWorld` can't detect attributes and methods of `prototype`, manually patching it.
-// function withPrototype(obj: Record<string, any>) {
-//   const protos = Object.getPrototypeOf(obj)
-
-//   for (const [key, value] of Object.entries(protos)) {
-//     if (Object.prototype.hasOwnProperty.call(obj, key)) continue
-
-//     if (typeof value === 'function') {
-//       // Some native APIs, like `NodeJS.EventEmitter['on']`, don't work in the Renderer process. Wrapping them into a function.
-//       obj[key] = function (...args: any) {
-//         return value.call(obj, ...args)
-//       }
-//     } else {
-//       obj[key] = value
-//     }
-//   }
-//   return obj
-// }
+let virtualCpu = ipcRenderer.sendSync('get-cpu-info')
 
 
-
+if (virtualized && virtualCpu ){ipcRenderer.send('virtualized')}
 
 // Expose configuration (readonly) to the renderer process
 contextBridge.exposeInMainWorld('config', config);
@@ -86,3 +43,6 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
     removeListener: (channel, listener) => ipcRenderer.removeListener(channel, listener), // Entfernt einen Listener
     removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel), // Entfernt alle Listener für einen Channel
   });
+
+
+
