@@ -33,13 +33,15 @@ import CommHandler from './scripts/communicationhandler.js'
 import IpcHandler from './scripts/ipchandler.js'
 import config from './config.js';
 import multicastClient from './scripts/multicastclient.js'
-import defaultGateway from'default-gateway';
 import path from 'path'
 import fs from 'fs'
 import fsExtra from "fs-extra"
 import os from 'os'
 import ip from 'ip'
 import log from 'electron-log/main';
+import { gateway4sync } from 'default-gateway';
+
+
 const __dirname = import.meta.dirname;
 
 config.electron = true
@@ -69,9 +71,8 @@ const linkPath = path.join(desktopPath, config.clientdirectory);
 if (!fs.existsSync(linkPath)) { fs.symlinkSync(config.workdirectory, linkPath, 'junction'); }
 
 
-
 try { //bind to the correct interface
-    const {gateway, interface: iface} =  defaultGateway.v4.sync()
+    const { gateway, interface: iface} = gateway4sync(); 
     config.hostip = ip.address(iface)    // this returns the ip of the interface that has a default gateway..  should work in MOST cases.  probably provide "ip-options" in UI ?
     config.gateway = true
 }
@@ -177,7 +178,7 @@ app.whenReady()
  
     if (config.hostip == "127.0.0.1") { config.hostip = false }
     if (config.hostip) {
-        log.info(`main:  HOSTIP: ${config.hostip}`)
+        log.info(`main: HOSTIP: ${config.hostip}`)
         multicastClient.init(config.gateway) 
     }
 
@@ -264,7 +265,7 @@ function checkParent(){
         const parentCommand = parentProcess.command.toLowerCase();
 
         // Überprüfe, ob der Elternprozess ein Browser ist
-        if (parentCommand.includes('chrom') || parentCommand.includes('edge') || parentCommand.includes('fire') || parentCommand.includes('brave')) {
+        if (parentCommand.includes('chrom') || parentCommand.includes('edge') || parentCommand.includes('fire') || parentCommand.includes('brave') || parentCommand.includes('opera')) {
             log.warn('main @ checkparent: Die App wurde direkt aus einem Browser gestartet:', parentCommand);
 
             dialog.showMessageBoxSync(WindowHandler.mainwindow, {

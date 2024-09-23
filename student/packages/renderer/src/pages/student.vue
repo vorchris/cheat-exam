@@ -81,7 +81,7 @@
                 <span class="input-group-text col-3" style="width:100px;" id="inputGroup-sizing-lg">{{ $t("student.pin") }}</span>
                 <input  v-model="pincode" type="number" min="0" oninput="validity.valid||(value='')" class="form-control" id="pin" placeholder="" style="width:135px;max-width:135px;min-width:135px;">
             </div>
-            <div v-if="advanced" class="input-group  mb-1"> 
+            <div v-if="advanced || servertimeout > 2 " class="input-group  mb-1"> 
                 <span class="input-group-text col-3" style="width:100px;" id="inputGroup-sizing-lg">{{ $t("student.ip") }}</span>
                 <input  v-model="serverip" class="form-control" id="serverip" placeholder="" style="width:135px;max-width:135px;min-width:135px;">
             </div>
@@ -148,7 +148,8 @@ export default {
             biplogin: false,
             biptest:false,
             bipToken:false,
-            bipuserID: false
+            bipuserID: false,
+            servertimeout: false
         };
     },
     methods: {
@@ -272,7 +273,7 @@ export default {
             this.token = this.clientinfo.token;
             if (this.token && this.token != "0000" || !this.token) { this.localLockdown = false}  //other token than 0000 or no token.. no (local) exam mode
 
-            if (this.advanced && !this.token) {
+            if ( (this.advanced || this.servertimeout > 2 ) && !this.token) {
                 if (validator.isIP(this.serverip) || validator.isFQDN(this.serverip)){
                    
                     //give some userfeedback here
@@ -299,6 +300,7 @@ export default {
 
             if (getinfo.serverlist.length  !== 0 ) {
                 this.serverlist = getinfo.serverlist; 
+                this.servertimeout = 0 // reset servertimeout (if more than 2 requests return without servers we display serveraddress field - probably multicast blocked)
                 if (this.serverlistAdvanced.length !== 0){  // add servers coming from direct ip polling
                     this.serverlist = [...this.serverlist, ...this.serverlistAdvanced];
             
@@ -312,7 +314,7 @@ export default {
             }
             else {  // sometimes explicit is easier to read (no servers incoming via multicast)
                 if (this.serverlistAdvanced.length !== 0){ this.serverlist = this.serverlistAdvanced }  // one server coming via direct ip polling
-                else { this.serverlist = [] }  // no servers found
+                else { this.serverlist = []; this.servertimeout++ }  // no servers found
             }
 
             // check im networkconnection is still alive - otherwise exit here

@@ -30,7 +30,7 @@ import fs from 'fs'
 import os from 'os'
 import forge from 'node-forge'
 forge.options.usePureJavaScript = true; 
-import defaultGateway from'default-gateway';
+import { gateway4sync } from 'default-gateway';
 import multicastClient from '../../main/scripts/multicastclient.js'
 import cookieParser from 'cookie-parser'
 import { app } from 'electron'
@@ -63,7 +63,7 @@ if (!fs.existsSync(linkPath)) { fs.symlinkSync(config.workdirectory, linkPath, '
 
 
 try {
-    const {gateway, interface: iface} =  defaultGateway.v4.sync()
+    const {gateway, interface: iface} =  gateway4sync()
     config.hostip = ip.address(iface)    // this returns the ip of the interface that has a default gateway..  should work in MOST cases.  probably provide "ip-options" in UI ?
     config.gateway = true
 }

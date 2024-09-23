@@ -14,7 +14,7 @@
 
     <span class="fs-4 align-middle ms-3" style="float: right">Dashboard</span>
     <div class="btn btn-sm btn-danger m-0 mt-1" @click="stopserver()" @mouseover="showDescription($t('dashboard.exitexam'))" @mouseout="hideDescription"  style="float: right">{{$t('dashboard.stopserver')}}&nbsp; <img src="/src/assets/img/svg/stock_exit.svg" style="vertical-align:text-top;" class="" width="20" height="20" ></div>
-    <div class="btn btn-sm btn-secondary me-1 mt-1" style="float: right; padding:3px;" @click="showSetup()"  @mouseover="showDescription($t('dashboard.defaultprinter'))" @mouseout="hideDescription" ><img src="/src/assets/img/svg/settings-symbolic.svg" class="white" width="22" height="22" > </div>
+    <div class="btn btn-sm btn-secondary me-1 mt-1" style="float: right; padding:3px;" @click="showSetup()"  @mouseover="showDescription($t('dashboard.extendedsettings'))" @mouseout="hideDescription" ><img src="/src/assets/img/svg/settings-symbolic.svg" class="white" width="22" height="22" > </div>
     <div v-if="!hostip" id="adv" class="btn btn-danger btn-sm m-0  mt-1 me-1 " style="cursor: unset; float: right">{{ $t("general.offline") }}</div>
 </div>
  <!-- Header END -->
@@ -159,7 +159,7 @@
             </div>
 
             <!-- other options -->
-            <div class="form-check form-switch  m-1 mb-2" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledexam':''">
+            <!-- <div class="form-check form-switch  m-1 mb-2" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledexam':''">
                 <input  @click="setAbgabeInterval()" v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
                 <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
                 <span v-if="autoabgabe" class="text-white-50">|{{ abgabeintervalPause }}min</span>
@@ -174,7 +174,7 @@
                 <input v-model=directPrintAllowed @click="checkforDefaultprinter()" @mouseover="showDescription( $t('dashboard.allowdirectprint') )" @mouseout="hideDescription" checked=false class="form-check-input" type="checkbox" id="directprint">
                 <label class="form-check-label">{{$t('dashboard.directprint')}}   </label><br>
                 <div v-if="defaultPrinter" class="ellipsis text-white-50"> {{ defaultPrinter }}</div>
-            </div>
+            </div> -->
       
         </div>
         <br>
@@ -196,7 +196,43 @@
     <div :key="6" id="setupoverlay" class="fadeinslow" @click="hideSetup()">
         <div id="setupdiv">
             <!-- <div class="swal2-icon swal2-question swal2-icon-show" style="display: flex;"><div class="swal2-icon-content">?</div></div> -->
-            <span><h5 style="display: inline">{{ $t('dashboard.defaultprinter') }}</h5></span>
+            <span><h5 style="display: inline">{{ $t('dashboard.extendedsettings') }}</h5></span>
+            
+            <div class="form-check form-switch  m-1 mb-2">
+                <input v-model=serverstatus.groups @click="setupGroups()" checked=false class="form-check-input" type="checkbox" id="activategroups">
+                <label class="form-check-label">{{$t('dashboard.groups')}}   </label><br>
+            </div>
+            <div v-if="config.bipIntegration" class="form-check form-switch  m-1 mb-2" >
+                <input v-model=serverstatus.requireBiP @click="activateBiP()" :title="$t('control.biprequired')" checked=false class="form-check-input" type="checkbox" id="activatebip">
+                <label class="form-check-label">{{$t('dashboard.bildungsportal')}}   </label><br>
+            </div>
+
+            <div class="form-check form-switch  m-1 mb-2" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledexam':''">
+                <input  @click="setAbgabeInterval()" v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
+                <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
+                <span v-if="autoabgabe" class="text-black-50">|{{ abgabeintervalPause }}min</span>
+            </div>
+            <div class="form-check form-switch  m-1 mb-2">
+                <input v-if="serverstatus.screenshotinterval > 0" @change="toggleScreenshot()" @click="setScreenshotInterval()" checked class="form-check-input" type="checkbox" id="screenshotinterval">
+                <input v-if="serverstatus.screenshotinterval == 0" @change="toggleScreenshot()" @click="setScreenshotInterval()" class="form-check-input" type="checkbox" id="screenshotinterval">
+                <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.screenshot')}}</label>
+                <span v-if="serverstatus.screenshotinterval > 0" class="text-black-50">|{{ serverstatus.screenshotinterval }}s</span>
+            </div>
+            <div class="form-check form-switch  m-1 mb-2">
+                <input v-model=directPrintAllowed @click="checkforDefaultprinter()" @mouseover="showDescription( $t('dashboard.allowdirectprint') )" @mouseout="hideDescription" checked=false class="form-check-input" type="checkbox" id="directprint">
+                <label class="form-check-label">{{$t('dashboard.directprint')}}   </label><br>
+                <div v-if="defaultPrinter" class="ellipsis text-black-50"> {{ defaultPrinter }}</div>
+            </div>
+
+
+
+
+
+
+
+            <hr>
+
+            <span><h6 style="display: inline">{{ $t('dashboard.defaultprinter') }}</h6></span>
             <div v-if="(availablePrinters.length < 1)">
                 <button class="btn btn-secondary mt-1 mb-0"><img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" >  no printer found </button>
             </div>
@@ -212,16 +248,10 @@
                
 
 
-            <hr>
+            
 
-            <div class="form-check form-switch  m-1 mb-2">
-                <input v-model=serverstatus.groups @click="setupGroups()" checked=false class="form-check-input" type="checkbox" id="activategroups">
-                <label class="form-check-label">{{$t('dashboard.groups')}}   </label><br>
-            </div>
-            <div v-if="config.bipIntegration" class="form-check form-switch  m-1 mb-2" >
-                <input v-model=serverstatus.requireBiP @click="activateBiP()" :title="$t('control.biprequired')" checked=false class="form-check-input" type="checkbox" id="activatebip">
-                <label class="form-check-label">{{$t('dashboard.bildungsportal')}}   </label><br>
-            </div>
+    
+
 
             <div>  <!-- ok button resets currentpreviewPath / print button only appears if currentpreviewPath is set and defaultprinter is set -->
                 <div id="okButton" class="btn mt-3 btn-success" @click="hideSetup(); this.currentpreviewPath=null;">OK</div>
@@ -388,7 +418,7 @@ export default {
         /**
          * Microsoft OneDrive API Authentication and File Handling
          */
-        openAuthWindow(){ ipcRenderer.send('openmsauth')  },
+        openAuthWindow(){ ipcRenderer.send('openmsauth'); this.setServerStatus()  },
         onedriveUploadselect: uploadselect,
         onedriveUpload: onedriveUpload,
         onedriveUploadSingle : onedriveUploadSingle,
@@ -555,6 +585,7 @@ export default {
                     this.abgabeinterval.stop();
                     this.autoabgabe = false;
                 }
+                this.setServerStatus()
             })  
         },
 
@@ -596,6 +627,7 @@ export default {
 
                 this.abgabeinterval.stop(); 
                 this.autoabgabe = false;  // no autoabgabe in this exam mode
+                this.setServerStatus()
             })  
         },
 
@@ -624,6 +656,7 @@ export default {
                 if (!this.serverstatus.domainname) {document.getElementById('examtype2').checked = true; this.serverstatus.examtype = "math"}
                 else { this.abgabeinterval.stop(); this.autoabgabe = false;}  // no autoabgabe in this exam mode
                 //console.log( this.serverstatus.domainname )
+                this.setServerStatus()
             })  
         },
 
@@ -738,11 +771,8 @@ export default {
                     const marginValue = document.getElementById('marginValue').value;
                     const linespacingradioButtons = document.querySelectorAll('input[name="linespacing"]');
                     const fontfamilyradioButtons = document.querySelectorAll('input[name="fontfamily"]');
-
                     const audioRepeat = document.getElementById('audiorepeat').value;
      
-
-
                     let selectedMargin = '';
                     radioButtons.forEach((radio) => {
                         if (radio.checked) {
@@ -803,14 +833,10 @@ export default {
                     });
                 }
             }
-
+            this.setServerStatus()
         },
 
-
-
         extractDomainAndId(url) {
-     
-
             // Extract the full domain including subdomains
             var domainRegex = /^(https?:\/\/)?([^\/]+)/i;
             var match = url.match(domainRegex);
@@ -823,7 +849,6 @@ export default {
             var idRegex = /id=(\d+)/;
             var idMatch = url.match(idRegex);
             var testid = idMatch ? idMatch[1] : null;
-
             return { moodledomain, testid };
         },
 
@@ -832,7 +857,6 @@ export default {
             var regex = /^(https?:\/\/)?(([a-z0-9-]+\.)+[a-z]{2,})(\/.*)?$/i;
             return regex.test(url);
         },
-
 
         isValidDomainName(str) {
             // Regex for matching a simple domain name structure
@@ -984,9 +1008,9 @@ export default {
             }).then(async (result) => {
                 if (result.isConfirmed) {
                     console.log(this.serverstatus)
-                   this.serverstatus.requireBiP = true
-                   document.getElementById('activatebip').checked = true
-                   this.setServerStatus()
+                    this.serverstatus.requireBiP = true
+                    document.getElementById('activatebip').checked = true
+                    this.setServerStatus()
                 }
                 else {
                     this.serverstatus.requireBiP = false
@@ -995,10 +1019,7 @@ export default {
                     this.setServerStatus()
                 }
             })    
-
-
         },
-
 
         truncatedClientName(value, len=18) {
             if (!value) return
@@ -1079,8 +1100,6 @@ export default {
                 this.serverstatus.groupA = []
                 this.serverstatus.groupB = []
             }
-
-
             // prepopulate group A
             if (this.serverstatus.groupA.length == 0){
                 for (let student of this.studentlist) {

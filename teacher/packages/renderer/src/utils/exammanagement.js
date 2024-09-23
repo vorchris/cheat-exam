@@ -145,12 +145,13 @@ function setAbgabeInterval(){
             log.info("exammanagment @ setAbgabeInterval: starting submission intervall", this.abgabeintervalPause)
             this.abgabeinterval.interval = 60000 * this.abgabeintervalPause
             this.abgabeinterval.start();
-
+            this.setServerStatus()
         })
     }
     else {
         log.info("exammanagment @ setAbgabeInterval: stopping submission interval")
         this.abgabeinterval.stop();
+        this.setServerStatus()
     }
 }
 
@@ -201,12 +202,8 @@ function getFiles(who='all', feedback=false, quiet=false){
         input: 'range',
         html: `${this.$t("dashboard.screenshotquestion")} <br>  ${this.$t("dashboard.screenshothint")}
         <br><br>
-
         <input class="form-check-input" type="checkbox" id="screenshotocr">
         <label class="form-check-label" for="screenshotocer"> ${this.$t("dashboard.ocr")} </label> <br>
-
-
-        
         `,
         inputAttributes: {
             min: 0,
@@ -220,7 +217,6 @@ function getFiles(who='all', feedback=false, quiet=false){
     }).then((result) => {
         const inputInteger = parseInt(result.value, 10); // Convert to integer
         this.serverstatus.screenshotinterval = inputInteger
-       
         this.serverstatus.screenshotocr = document.getElementById('screenshotocr').checked;
 
         if (!this.serverstatus.screenshotinterval || !Number.isInteger(this.serverstatus.screenshotinterval)){
@@ -363,11 +359,9 @@ function toggleScreenshot(){
 function delfolderquestion(token="all"){
     if (this.studentlist.length === 0) { this.status(this.$t("dashboard.noclients")); return;}
     let text =  this.$t("dashboard.delsure")
-    
     if (token !== "all"){ 
         text = this.$t("dashboard.delsinglesure")
     }
-
     this.$swal.fire({
         title: this.$t("dashboard.attention"),
         text:  text,
@@ -375,13 +369,9 @@ function delfolderquestion(token="all"){
         showCancelButton: true,
         cancelButtonText: this.$t("dashboard.cancel"),
         reverseButtons: true,
-        
     })
-
-
     .then((result) => {
         if (result.isConfirmed) {
-        
                 // inform student that folder needs to be deleted
             fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/setstudentstatus/${this.servername}/${this.servertoken}/${token}`, { 
                 method: 'POST',
@@ -405,7 +395,6 @@ function delfolderquestion(token="all"){
  * der editor (frontend) sieht dann allowspellcheck und aktiviert mittels IPC invoke (ipchandler.js) dann nodehun() und macht den spellcheckbutton sichtbar
  */
 async function activateSpellcheckForStudent(token, clientname){
- 
     const student = this.studentlist.find(obj => obj.token === token);  //get specific student (status)
     console.log(student.status)
     await this.$swal.fire({
@@ -435,9 +424,7 @@ async function activateSpellcheckForStudent(token, clientname){
             else {
                 document.getElementById('checkboxLT').checked = false
                 document.getElementById('checkboxsuggestions').checked = false
-            }
-  
-             
+            }   
         }
     }).then(async (input) => {
         if (!input.isConfirmed) {return}

@@ -33,7 +33,7 @@
         "name": "Prüfungsname",
         "pin": "Pincode",
         "connected": "verbunden",
-        "stopserver": "Exam beenden",
+        "stopserver": "Exam verlassen",
         "filesend": "Dateien senden",
         "filesendtext": "Bitte wählen sie eine oder mehrere Dateien",
         "officefilesend": "Datei hochladen",
@@ -117,7 +117,7 @@
         "eduvidualid": "Eduvidual / Moodle",
         "eduvidualidhint": "Bitte geben sie eine gültige Test URL ein!",
         "eduvidualdomain": "Sollte ihre Moodleinstanz unter einer anderen Domain erreichbar sein geben sie diese an",
-        "lock":"Bildschirme abdunkeln",
+        "lock":"Bildschirme sperren",
         "unlock":"Bildschirme freigeben",
         "freespacewarning" : "Freier Speicherplatz zu gering!",
         "invalid_file" : "Falscher Dateityp",
@@ -148,7 +148,8 @@
         "audiorepeat1": "Wiederholung",
         "audiorepeat2": "Wiederholungen",
         "bildungsportal": "Bildungsportal",
-        "groups": "Gruppen aktivieren"
+        "groups": "Gruppen aktivieren",
+        "extendedsettings": "Erweiterte Einstellungen"
     },
     "control": {
         "tokennotvalid": "Das Token ist ungültig",

@@ -148,7 +148,8 @@
         "audiorepeat1": "repetition",
         "audiorepeat2": "repetitions",
         "bildungsportal": "Bildungsportal",
-        "groups":"activate groups"
+        "groups":"activate groups",
+        "extendedsettings": "Extended Settings"
     },
     "control": {
         "tokennotvalid": "token is not valid",

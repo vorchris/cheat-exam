@@ -198,6 +198,7 @@ export default {
             
             // Event abfangen, wenn eine Navigation beginnt
             webview.addEventListener('will-navigate', (event) => {
+                console.log(event.url)
                 if (!event.url.includes(this.serverstatus.moodleTestId)){  //we block everything whithout testID except pages that contain the following keyword-combinations
                     console.log(event.url)
                     //check if this an exception (login, init) - if URL doesn't include either of these combinations - block! EXPLICIT is easier to read ;-)
