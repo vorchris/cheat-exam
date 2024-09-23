@@ -3,7 +3,7 @@
         "exams": "Aktive Prüfungen",
         "username": "Benutzername",
         "pin": "Pincode",
-        "ip":"IP Adresse",
+        "ip":"Server Adresse",
         "examname":"Prüfungsname",
         "advanced": "fortgeschritten",
         "simple": "einfach",
@@ -42,6 +42,7 @@
         "nofiles": "Es wurden keine Dateien hochgeladen"
     },
     "editor": {
+        "splitview": "Spaltenansicht",
         "leftkiosk": "Sie haben den abgesicherten Modus verlassen!",
         "tellsomeone": "Melden Sie sich umgehend bei der Aufsichtsperson!",
         "replacecontent1": "Wollen Sie den Inhalt des Editors durch den Inhalt der Datei",

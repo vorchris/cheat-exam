@@ -65,12 +65,12 @@
 
         <div class="col-8 mb-2" :class="(token)? 'disabledtext':''">
             <div v-if="!biplogin" class="input-group  mb-1">
-                <span class="input-group-text col-3" style="width:100px;" id="inputGroup-sizing-lg">{{ $t("student.name") }}</span>
+                <span class="input-group-text col-3" style="width:135px;" id="inputGroup-sizing-lg">{{ $t("student.name") }}</span>
                 <input v-model="username" type="text" required="required" maxlength="25" class="form-control" id="user" placeholder="" style="width:200px;max-width:200px;min-width:135px;">
             </div> 
 
             <div v-if="biplogin" class="input-group  mb-1">
-                <span class="input-group-text col-3" style="width:100px;" id="inputGroup-sizing-lg">{{ $t("student.name") }}</span>
+                <span class="input-group-text col-3" style="width:135px;" id="inputGroup-sizing-lg">{{ $t("student.name") }}</span>
                
                 <span v-if="username" class="input-group-text col-3" style="width:200px;" id="inputGroup-sizing-lg"> {{ username  }} </span>
                 <span v-else class="input-group-text col-3 " style="width:200px;" id="inputGroup-sizing-lg">  </span>
@@ -78,11 +78,11 @@
             </div> 
       
             <div class="input-group  mb-1"> 
-                <span class="input-group-text col-3" style="width:100px;" id="inputGroup-sizing-lg">{{ $t("student.pin") }}</span>
+                <span class="input-group-text col-3" style="width:135px;" id="inputGroup-sizing-lg">{{ $t("student.pin") }}</span>
                 <input  v-model="pincode" type="number" min="0" oninput="validity.valid||(value='')" class="form-control" id="pin" placeholder="" style="width:135px;max-width:135px;min-width:135px;">
             </div>
             <div v-if="advanced || servertimeout > 2 " class="input-group  mb-1"> 
-                <span class="input-group-text col-3" style="width:100px;" id="inputGroup-sizing-lg">{{ $t("student.ip") }}</span>
+                <span class="input-group-text col-3" style="width:135px;" id="inputGroup-sizing-lg">{{ $t("student.ip") }}</span>
                 <input  v-model="serverip" class="form-control" id="serverip" placeholder="" style="width:135px;max-width:135px;min-width:135px;">
             </div>
         </div>

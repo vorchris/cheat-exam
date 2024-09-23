@@ -35,10 +35,12 @@
         <div id="previous" class="mt-4" v-if="previousExams && previousExams.length > 0">
             <span class="small">{{$t("startserver.previousexams")}}</span>
             <div v-for="exam of previousExams">
-                <div class="input-group">
+                <div class="input-group" style="display:inline;">
                     <div class="btn btn-sm btn-warning mt-1" @click="delPreviousExam(exam)">x</div>
-                    <div class="btn btn-sm btn-secondary mt-1" :id="exam" @click="setPreviousExam(exam)">{{exam}}</div>
+                    <div v-if="servername !== exam" class="btn btn-sm btn-secondary mt-1" :id="exam" @click="setPreviousExam(exam)">{{exam}}</div>
+                    <div v-if="servername === exam" class="btn btn-sm btn-info mt-1" :id="exam" @click="setPreviousExam(exam)">{{exam}}</div>  
                 </div>
+                <img v-if="servername === exam" src="/src/assets/img/svg/games-solve.svg" class="printercheck" width="22" height="22" >
                 
             </div>
         </div>
@@ -344,6 +346,11 @@ export default {
     background-color:  #dc3545c7;
 }
 
+#previous .printercheck {
+    margin-left:4px;
+    margin-top: 4px;
+    filter: saturate(100%) hue-rotate(90deg) ;
+}
 
 /* CSS classes for fade-in and fade-out */
 .fade-in {
