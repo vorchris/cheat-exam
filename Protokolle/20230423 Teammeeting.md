@@ -8,7 +8,7 @@
 * Kommunikation mit den Schulen (Ticketsystem? Vorschlag: Github)
 # Jour fixe Termine
 # Kommunikation Teamintern
-* Entwicklungsarbeit auf Github verlegt
+* Entwicklungsarbeit auf Github verlegt?
 * Telefonnummernaustausch (Signalgruppe ?)
 * Aufgaben Rene und Gerald
     * Pilotschulenbetreuung
