@@ -62,6 +62,7 @@
            
             <button :title="$t('editor.specialchar')"  @click="showInsertSpecial();this.LTdisable()" class="invisible-button btn btn-outline-warning p-1 me-0 mb-1 btn-sm"><img src="/src/assets/img/svg/sign.svg" class="" width="22" height="22" ></button>
             <button :title="$t('editor.insertmug')"  @click="showInsertMugshot();this.LTdisable()" class="invisible-button btn btn-outline-warning p-1 me-2 mb-1 btn-sm"><img src="/src/assets/img/svg/person-fill.svg" class="" width="22" height="22" ></button>
+           
 
 
    
@@ -90,7 +91,8 @@
 
 
             <br>
-           <div v-for="file in localfiles" :key="file.name" class="d-inline" style="text-align:left">
+            <button :title="$t('editor.splitview')"  @click="toggleSplitview()" style="vertical-align: top;" class="invisible-button btn btn-outline-warning p-0 ms-1 me-2 mb-0 btn-sm"><img src="/src/assets/img/svg/view-split-left-right.svg" class="white" width="22" height="22" ></button>
+            <div v-for="file in localfiles" :key="file.name" class="d-inline" style="text-align:left">
                 <div v-if="(file.type == 'bak')" class="btn btn-mediumlight p-0  pe-2 ps-1 me-1 mb-0 btn-sm"   @click="selectedFile=file.name; loadHTML(file.name)"><img src="/src/assets/img/svg/games-solve.svg" class="" width="22" height="22" style="vertical-align: top;"> {{file.name}}     ({{ new Date(this.now - file.mod).toISOString().substr(11, 5) }})</div>
                 <div v-if="(file.type == 'docx')" class="btn btn-success p-0  pe-2 ps-1 me-1 mb-0 btn-sm"   @click="selectedFile=file.name; loadDOCX(file.name)"><img src="/src/assets/img/svg/games-solve.svg" class="" width="22" height="22" style="vertical-align: top;"> {{file.name}}</div>
                 
@@ -102,17 +104,6 @@
         </div>
         <!-- toolbar end -->
     </div>
-
-    <!-- angabe/pdf preview start -->
-    <div id="preview" class="fadeinfast p-4">
-        <div class="embed-container">
-        <embed src="" id="pdfembed"></embed>
-        <div class="btn btn-warning shadow " id="insert-button" @click="insertImage(selectedFile)" :title="$t('editor.insert')">
-            <img src="/src/assets/img/svg/edit-download.svg" class="white" width="22" height="32">
-        </div>
-        </div>
-    </div>
-    <!-- angabe/pdf preview end -->
 
 
 
@@ -161,9 +152,23 @@
     <!-- AUDIO Player end -->
 
 
+    <!-- angabe/pdf preview start -->
+    <div v-if="!splitview" id="preview" class="fadeinfast p-4">
+        <div class="embed-container">
+        <embed src="" id="pdfembed"></embed>
+        <div class="btn btn-warning shadow " id="insert-button" @click="insertImage(selectedFile)" :title="$t('editor.insert')">
+            <img src="/src/assets/img/svg/edit-download.svg" class="white" width="22" height="32">
+        </div>
+            <div id="pdfZoom" style="display:none; position: absolute; top:20px; right: 100px;">
+                <button class="btn btn-warning btn-small" style="width:28px;" id="zoomIn"><img src="/src/assets/img/svg/zoom-in.svg">  </button>
+                <button class="btn btn-warning btn-small" style="width:28px;" id="zoomOut"><img src="/src/assets/img/svg/zoom-out.svg"></button>
+            </div>
+        </div>
+    </div>
+    <!-- angabe/pdf preview end -->
 
     <!-- EDITOR START -->
-    <div id="editormaincontainer" style="height: 100%; overflow-x:auto; overflow-y: scroll; background-color: #eeeefa;">
+    <div v-if="!splitview" id="editormaincontainer" style="height: 100%; overflow-x:auto; overflow-y: scroll; background-color: #eeeefa;">
         <div id="editorcontainer" class="shadow" style="">
             <editor-content :editor="editor" class='p-0' id="editorcontent" style="background-color: #fff; border-radius:0;" />
             <canvas id="highlight-layer"></canvas>
@@ -171,6 +176,37 @@
     </div>
     <!-- EDITOR END -->
 
+
+    <div v-if="splitview" class="split-view-container" style="overflow: hidden; display: flex !important; flex-direction: row !important; height: 100% !important;">
+        <!-- PDF Preview Container -->
+        <div id="preview" class="fadeinfast" style="flex: 1 !important; display: block !important; position: static !important; top: auto !important; left: auto !important; width: auto !important; height: auto !important; background-color: transparent !important; z-index: auto !important; backdrop-filter: none !important;">
+            <div class="embed-container" style="position: relative !important; top: 0 !important; left: 0 !important; transform: none !important; display: block !important; height:100% !important">
+                <embed src="" id="pdfembed" style="border-radius:0 !important; background-size:contain; width:100% !important; height: 100% !important; background-color:transparent !important;"></embed>
+                <div class="btn btn-warning shadow" id="insert-button" @click="insertImage(selectedFile)" :title="$t('editor.insert')" style="position: absolute; top: 20px; right:30px; z-index:100000; height: 100px; border: none !important; border-radius: 0 !important; border-top-right-radius: 6px !important; border-top-left-radius: 6px !important; box-shadow: 0px -10px 0px rgba(0, 0, 0, 0) !important; padding: 20px !important; cursor: pointer !important; display: none !important; align-items: center !important; justify-content: center !important; margin-top: 0px !important; background-image: url('/src/assets/img/svg/edit-download.svg'); background-size: 28px; background-repeat: no-repeat; background-position: center; transform: rotate(-90deg);"></div>
+                <div id="pdfZoom" style="display:none; position: absolute; top:20px;">
+                    <button class="btn btn-warning btn-small shadow" style="width:32px; margin:2px;" id="zoomIn">+</button><br>
+                    <button class="btn btn-warning btn-small shadow" style="width:32px; margin:2px;" id="zoomOut">-</button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Editor Container -->
+        <div id="editormaincontainer" style="flex: 1 1 33% !important; overflow-x: auto !important; overflow-y: scroll !important; background-color: #eeeefa !important;">
+            <div id="editorcontainer" class="shadow">
+                <editor-content :editor="editor" class="p-0" id="editorcontent" style="background-color: #fff !important; border-radius: 0 !important;" />
+                <canvas id="highlight-layer"></canvas>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+    
     <!-- LANGUAGE TOOL START -->
     <div id="languagetool" v-if="serverstatus.languagetool || privateSpellcheck.activated">
         <div id="ltcheck" @click="LTcheckAllWords();">
@@ -335,8 +371,9 @@ export default {
             LTinfo: "searching...",
             LTactive: false,
             hunspellFallback: false,
-            
-
+            splitview: false,
+            currentPDFZoom: 80,
+            currentPDFData: null
         }
     },
     computed: {
@@ -768,13 +805,48 @@ export default {
             }
 
             this.currentpreview =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
-
+            
             const pdfEmbed = document.querySelector("#pdfembed");
-            pdfEmbed.style.backgroundImage = '';
-            pdfEmbed.style.height = "95vh";
-            pdfEmbed.style.width = "67vh";
+          
+            if (this.splitview) {
+                this.currentPDFData = data
+                const zoomInButton = document.getElementById("zoomIn");
+                const zoomOutButton = document.getElementById("zoomOut");
+                const pdfZoom = document.getElementById("pdfZoom");
+                pdfZoom.style.display = "block"
+
+                // Entferne bestehende Event-Listener, bevor neue hinzugefügt werden
+                zoomInButton.removeEventListener('click', this.zoomInHandler);
+                zoomOutButton.removeEventListener('click', this.zoomOutHandler);
+
+                // Definiere neue Event-Listener
+                this.zoomInHandler = () => {
+                    let pdfEmbed = document.querySelector("#pdfembed");
+                    this.currentPDFZoom += 10; // Erhöht den Zoom um 10%
+                    URL.revokeObjectURL(this.currentpreview);
+                    this.currentpreview = URL.createObjectURL(new Blob([this.currentPDFData], { type: 'application/pdf' }));
+                    pdfEmbed.setAttribute("src", `${this.currentpreview}#toolbar=0&navpanes=0&scrollbar=0&zoom=${this.currentPDFZoom}`);
+                };
+                this.zoomOutHandler = () => {
+                    let pdfEmbed = document.querySelector("#pdfembed");
+                    this.currentPDFZoom = Math.max(10, this.currentPDFZoom - 10); // Verhindert, dass der Zoom unter 10% geht
+                    URL.revokeObjectURL(this.currentpreview);
+                    this.currentpreview = URL.createObjectURL(new Blob([this.currentPDFData], { type: 'application/pdf' }));
+                    pdfEmbed.setAttribute("src", `${this.currentpreview}#toolbar=0&navpanes=0&scrollbar=0&zoom=${this.currentPDFZoom}`);
+                };
+
+                // Füge die Event-Listener erneut hinzu
+                zoomInButton.addEventListener('click', this.zoomInHandler);
+                zoomOutButton.addEventListener('click', this.zoomOutHandler);
+            }
+            
             pdfEmbed.setAttribute("src", `${this.currentpreview}#toolbar=0&navpanes=0&scrollbar=0`);
 
+            if(!this.splitview){
+                pdfEmbed.style.backgroundImage = '';
+                pdfEmbed.style.height = "95vh";
+                pdfEmbed.style.width = "67vh";  
+            }
             document.querySelector("#preview").style.display = 'block';
             document.querySelector("#insert-button").style.display = 'none';
         },
@@ -802,13 +874,16 @@ export default {
                 const containerHeight = window.innerHeight * 0.8;
                 const containerAspectRatio = containerWidth / containerHeight;
 
-                if (aspectRatio > containerAspectRatio) {
-                    pdfEmbed.style.width = '80vw';
-                    pdfEmbed.style.height = `calc(80vw / ${aspectRatio})`;
-                } else {
-                    pdfEmbed.style.height = '80vh';
-                    pdfEmbed.style.width = `calc(80vh * ${aspectRatio})`;
+                if(!this.splitview){
+                    if (aspectRatio > containerAspectRatio) {
+                        pdfEmbed.style.width = '80vw';
+                        pdfEmbed.style.height = `calc(80vw / ${aspectRatio})`;
+                    } else {
+                        pdfEmbed.style.height = '80vh';
+                        pdfEmbed.style.width = `calc(80vh * ${aspectRatio})`;
+                    }
                 }
+
                 pdfEmbed.style.backgroundImage = `url(${this.currentpreview})`;
 
             }.bind(this);
@@ -817,7 +892,8 @@ export default {
             // clear the pdf viewer
             pdfEmbed.setAttribute("src", "about:blank");
             document.querySelector("#insert-button").style.display = 'flex';
-            document.querySelector("#preview").style.display = 'block';    
+            document.querySelector("#preview").style.display = 'block';  
+            document.querySelector("#pdfZoom").style.display = 'none';
 
         },
 
@@ -842,12 +918,20 @@ export default {
         // insert image from workfolder into editor
         async insertImage(file){
             let data = await ipcRenderer.invoke('getpdfasync', file, true )   //fileurl, image=true > delivers an image as base64string
-            const imgSrc = `data:image/png;base64,${data}`;
+            const base64String = this.uint8ArrayToBase64(data);
+            const imgSrc = `data:image/png;base64,${base64String}`;
            // this.editor.chain().focus().setImage({ src: imgSrc }).run()
             const tableHtml = `<table style="width: 100%; height: 100%;"><tr><td style="max-width: 100%; max-height: 100%;"><img src="${imgSrc}" style="max-width: 100%; max-height: 100%;" class="img-max-size" /></td></tr></table>`;
             this.editor.chain().focus().insertContent(tableHtml).run();
         },
-
+        uint8ArrayToBase64(uint8Array) {
+            let binary = '';
+            const len = uint8Array.byteLength;
+            for (let i = 0; i < len; i++) {
+                binary += String.fromCharCode(uint8Array[i]);
+            }
+            return btoa(binary);
+        },
 
         // display the table part of the toolbar
         showMore(){
@@ -1001,6 +1085,20 @@ export default {
                 var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
                 return v.toString(16);
             });
+        },
+        //switch from ovewlay pdf/jpg preview zu splitview mode
+        async toggleSplitview(){
+            this.splitview = !this.splitview;
+
+
+            if (this.splitview === false){
+                await this.sleep(1000) //wait for re-rendering of #preview div 
+                document.querySelector("#preview").addEventListener("click", function() {  
+                    this.style.display = 'none';
+                    this.setAttribute("src", "about:blank");
+                    URL.revokeObjectURL(this.currentpreview);
+                });
+            }
         },
         reloadAll(){
             this.$swal.fire({
@@ -1168,6 +1266,7 @@ export default {
             this.setAttribute("src", "about:blank");
             URL.revokeObjectURL(this.currentpreview);
         });
+
         document.querySelector("#mugshotpreview").addEventListener("click", function() {  
             this.style.display = 'none';
         });

@@ -25,11 +25,11 @@
         "select": "Arbeitsverzeichnis wählen",
         "freespacewarning" : "Zu wenig freier Speicherplatz",
         "directoryerror": "Fehlende Schreibrechte im gewählten Verzeichnis",
-        "previousexams": "Vergangene Prüfungen",
+        "previousexams": "Gesicherte Prüfungen",
         "folderdelete": "Wollen sie die den lokalen Prüfungsordner löschen?"
     },
     "dashboard":{
-        "server": "Server",
+        "server": "Server Adresse",
         "name": "Prüfungsname",
         "pin": "Pincode",
         "connected": "verbunden",

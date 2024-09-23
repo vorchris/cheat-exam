@@ -157,25 +157,6 @@
                 </button>
 
             </div>
-
-            <!-- other options -->
-            <!-- <div class="form-check form-switch  m-1 mb-2" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledexam':''">
-                <input  @click="setAbgabeInterval()" v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
-                <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
-                <span v-if="autoabgabe" class="text-white-50">|{{ abgabeintervalPause }}min</span>
-            </div>
-            <div class="form-check form-switch  m-1 mb-2">
-                <input v-if="serverstatus.screenshotinterval > 0" @change="toggleScreenshot()" @click="setScreenshotInterval()" checked class="form-check-input" type="checkbox" id="screenshotinterval">
-                <input v-if="serverstatus.screenshotinterval == 0" @change="toggleScreenshot()" @click="setScreenshotInterval()" class="form-check-input" type="checkbox" id="screenshotinterval">
-                <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.screenshot')}}</label>
-                <span v-if="serverstatus.screenshotinterval > 0" class="text-white-50">|{{ serverstatus.screenshotinterval }}s</span>
-            </div>
-            <div class="form-check form-switch  m-1 mb-2">
-                <input v-model=directPrintAllowed @click="checkforDefaultprinter()" @mouseover="showDescription( $t('dashboard.allowdirectprint') )" @mouseout="hideDescription" checked=false class="form-check-input" type="checkbox" id="directprint">
-                <label class="form-check-label">{{$t('dashboard.directprint')}}   </label><br>
-                <div v-if="defaultPrinter" class="ellipsis text-white-50"> {{ defaultPrinter }}</div>
-            </div> -->
-      
         </div>
         <br>
 
@@ -224,12 +205,6 @@
                 <div v-if="defaultPrinter" class="ellipsis text-black-50"> {{ defaultPrinter }}</div>
             </div>
 
-
-
-
-
-
-
             <hr>
 
             <span><h6 style="display: inline">{{ $t('dashboard.defaultprinter') }}</h6></span>
@@ -246,16 +221,8 @@
                 <button id="printButton" class="btn btn-dark mt-1 mb-0" @click="print();hideSetup()"><img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" > Print: {{ currentpreviewname }} </button>
             </div> 
                
-
-
-            
-
-    
-
-
             <div>  <!-- ok button resets currentpreviewPath / print button only appears if currentpreviewPath is set and defaultprinter is set -->
                 <div id="okButton" class="btn mt-3 btn-success" @click="hideSetup(); this.currentpreviewPath=null;">OK</div>
-                
             </div>
         </div>
     </div>
@@ -924,13 +891,14 @@ export default {
             let info = `<span> IP: <strong>${this.serverip}</strong> \nName: ${this.servername}  \nPin: ${this.serverstatus.pin} </span>`
             this.$swal.fire({ 
                 title: `<div style="display: flex; margin-top:0; justify-content: center">
-                            <div style="text-align: right; margin-right: 10px; font-weight:normal; font-size: 0.8em;">Prüfungsname:
-                            Pincode:
-                            Server:
+                            <div style="text-align: right; margin-right: 10px; font-weight:normal; font-size: 0.8em;">${this.$t("dashboard.name")}:
+                            ${this.$t("dashboard.server")}:
+                            ${this.$t("dashboard.pin")}:
                             </div>
                             <div style="text-align: left;font-size: 0.8em;">${this.servername}
-                            ${this.serverstatus.pin}
                             ${this.serverip}
+                            ${this.serverstatus.pin}
+                            
 
                             </div>
                         </div>`,
