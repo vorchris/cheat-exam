@@ -42,6 +42,7 @@
         "nofiles": "no files were uploaded"
     },
     "editor": {
+        "update": "Update",
         "splitview": "Splitview",
         "leftkiosk": "You have left the safe exam mode!",
         "tellsomeone": "Please inform a teacher!",

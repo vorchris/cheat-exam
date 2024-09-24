@@ -47,7 +47,7 @@ function LTdisable(){
 }
 
 
-async function LTcheckAllWords(){
+async function LTcheckAllWords(closeLT = true){
     this.textContainer =  document.querySelector('#editorcontent > div');
     this.canvas = document.getElementById('highlight-layer');
     this.ctx = this.canvas.getContext('2d');
@@ -58,7 +58,7 @@ async function LTcheckAllWords(){
     let ltdiv = document.getElementById(`languagetool`)
     let eye = document.getElementById('eye')
    
-    if (this.LTactive){
+    if (this.LTactive && closeLT){
         this.LTdisable()
         return 
     }
@@ -90,7 +90,7 @@ async function LTcheckAllWords(){
     .then(response => response.json())
     .then(async (data) => {
         if (data.status == "error" || !Array.isArray(data.data)){
-            console.warn('languagetool.js @ LTcheckAllwords:', data.data)
+            console.warn('languagetool.js @ LTcheckAllwords: using hunspell fallback')
             // FALLBACK to HUNSPELL if LanguageTool is not reachable
             const hunspelldata = ipcRenderer.sendSync('checktext', this.text);
             this.LThandleMisspelled("hunspell", hunspelldata)  // generiert misspelled object dass ähnlich verarbeitet werden kann wie das lt object

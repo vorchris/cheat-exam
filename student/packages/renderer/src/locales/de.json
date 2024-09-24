@@ -42,6 +42,7 @@
         "nofiles": "Es wurden keine Dateien hochgeladen"
     },
     "editor": {
+        "update": "Aktualisieren",
         "splitview": "Spaltenansicht",
         "leftkiosk": "Sie haben den abgesicherten Modus verlassen!",
         "tellsomeone": "Melden Sie sich umgehend bei der Aufsichtsperson!",

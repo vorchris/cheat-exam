@@ -210,7 +210,9 @@
     <!-- LANGUAGE TOOL START -->
     <div id="languagetool" v-if="serverstatus.languagetool || privateSpellcheck.activated">
         <div id="ltcheck" @click="LTcheckAllWords();"> <div id="eye" class="darkgreen eyeopen"></div> &nbsp;LanguageTool</div>
-        <div class="ltscrollarea">      
+        <div class="ltscrollarea"> 
+            <div @click="LTcheckAllWords(false);" class="btn btn-sm btn-success center" style="text-align: center;  margin-left:10px;"> {{$t('editor.update')}}</div> 
+
             <div v-if="hunspellFallback"  style="text-align: center; font-size: 0.8em;"> Hunspell Fallback <br> LanguageTool nicht verfügbar </div> 
             <div v-if="misspelledWords.length == 0"  style="text-align: center; font-size: 0.8em;"> {{this.LTinfo}}</div> 
             <div v-for="entry in misspelledWords" :key="entry.wrongWord" class="error-entry" @click="LTshowWord(entry)">
@@ -830,9 +832,6 @@ export default {
                 // pdf anzeigen
                 pdfEmbed.setAttribute("src", `${this.currentpreview}#toolbar=0&navpanes=0&scrollbar=0&zoom=${this.currentPDFZoom}`);
             }
-            
-            
-
             if(!this.splitview){
                 pdfEmbed.style.backgroundImage = '';
                 pdfEmbed.style.height = "95vh";
@@ -841,9 +840,6 @@ export default {
             document.querySelector("#preview").style.display = 'block';
             document.querySelector("#insert-button").style.display = 'none';
         },
-
-
-
 
 
         // fetch file from disc - show preview
@@ -874,9 +870,7 @@ export default {
                         pdfEmbed.style.width = `calc(80vh * ${aspectRatio})`;
                     }
                 }
-
                 pdfEmbed.style.backgroundImage = `url(${this.currentpreview})`;
-
             }.bind(this);
             img.src = this.currentpreview;
 
@@ -885,7 +879,6 @@ export default {
             document.querySelector("#insert-button").style.display = 'flex';
             document.querySelector("#preview").style.display = 'block';  
             document.querySelector("#pdfZoom").style.display = 'none';
-
         },
 
         // show mugshot preview panel

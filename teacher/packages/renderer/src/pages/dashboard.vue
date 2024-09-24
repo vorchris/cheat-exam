@@ -200,9 +200,10 @@
                 <span v-if="serverstatus.screenshotinterval > 0" class="text-black-50">|{{ serverstatus.screenshotinterval }}s</span>
             </div>
             <div class="form-check form-switch  m-1 mb-2">
-                <input v-model=directPrintAllowed @click="checkforDefaultprinter()" @mouseover="showDescription( $t('dashboard.allowdirectprint') )" @mouseout="hideDescription" checked=false class="form-check-input" type="checkbox" id="directprint">
+                <input v-model=directPrintAllowed @click="checkforDefaultprinter()" checked=false class="form-check-input" type="checkbox" id="directprint">
                 <label class="form-check-label">{{$t('dashboard.directprint')}}   </label><br>
                 <div v-if="defaultPrinter" class="ellipsis text-black-50"> {{ defaultPrinter }}</div>
+                <div v-if="!defaultPrinter" class="ellipsis text-black-50"> kein Drucker gewählt</div>
             </div>
 
             <hr>
@@ -1190,7 +1191,7 @@ export default {
             console.log(`dashboard: allow direct print: ${this.directPrintAllowed}`)
         },
         checkforDefaultprinter(){
-            if (!this.defaultPrinter){ this.showSetup()}
+            if (!this.defaultPrinter){ document.getElementById('directprint').checked = false }
         },
         async hideSetup(){
             if (!this.defaultPrinter){ document.getElementById('directprint').checked = false  }
