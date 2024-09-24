@@ -40,12 +40,10 @@ import os from 'os'
 import ip from 'ip'
 import log from 'electron-log/main';
 import { gateway4sync } from 'default-gateway';
-
+import ps from 'ps-node'
 
 const __dirname = import.meta.dirname;
-
 config.electron = true
-
 
 config.homedirectory = os.homedir();
 config.workdirectory = path.join(config.homedirectory, config.clientdirectory);
@@ -91,14 +89,10 @@ try { //bind to the correct interface
 app.commandLine.appendSwitch('lang', 'de')
 fsExtra.emptyDirSync(config.tempdirectory)  // clean temp directory
 
-WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow
-CommHandler.init(multicastClient, config)    // starts "beacon" intervall and fetches information from the teacher - acts on it (startexam, stopexam, sendfile, getfile)
-IpcHandler.init(multicastClient, config, WindowHandler, CommHandler)  //controll all Inter Process Communication
-
 
 
 log.initialize(); // initialize the logger for any renderer process
-let logfile = `${WindowHandler.config.workdirectory}/next-exam-student.log`
+let logfile = `${config.workdirectory}/next-exam-student.log`
 log.transports.file.resolvePathFn = (config) => { return logfile  }
 log.eventLogger.startLogging();
 log.errorHandler.startCatching();
@@ -106,6 +100,14 @@ log.warn(`-------------------`)
 log.warn(`main: starting Next-Exam "${config.version} ${config.info}" (${process.platform})`)
 log.info(`main: Logfilelocation at ${logfile}`)
 log.info('main: Next-Exam Logger initialized...');
+
+
+WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow
+CommHandler.init(multicastClient, config)    // starts "beacon" intervall and fetches information from the teacher - acts on it (startexam, stopexam, sendfile, getfile)
+IpcHandler.init(multicastClient, config, WindowHandler, CommHandler)  //controll all Inter Process Communication
+
+
+
 
 let tray = null;
 
@@ -140,8 +142,8 @@ process.emitWarning = (warning, options) => {
 
 
 
-
-
+ // Optionale zusätzliche Kontrolle über Konsolenfehler
+app.commandLine.appendSwitch('log-level', '3'); // 3 = WARN, 2 = ERROR, 1 = INFO
 
 
 
@@ -173,17 +175,15 @@ app.on('activate', () => {
 
 app.whenReady()
 .then(async ()=>{
-    nativeTheme.themeSource = 'light'
+    nativeTheme.themeSource = 'light'  // verhindere dass theme einstellungen von windows übernommen werden
 
- 
     if (config.hostip == "127.0.0.1") { config.hostip = false }
     if (config.hostip) {
         log.info(`main: HOSTIP: ${config.hostip}`)
         multicastClient.init(config.gateway) 
     }
 
-    powerSaveBlocker.start('prevent-display-sleep')
-
+    powerSaveBlocker.start('prevent-display-sleep')   // verhindere dass das gerät einschläft
    
     //WindowHandler.createSplashWin()
     WindowHandler.createMainWindow()
@@ -208,10 +208,8 @@ app.whenReady()
         WindowHandler.mainwindow.isVisible() ?  WindowHandler.mainwindow.hide() :  WindowHandler.mainwindow.show();
     });
 
+    checkParent()  // this checks if the app was started from within a browser (directly after download)
 
-    checkParent()  // thischecks if the app was started from within a browser (directly after download)
-
-  
     //these are some shortcuts we try to capture
     globalShortcut.register('CommandOrControl+R', () => {});
     globalShortcut.register('F5', () => {});  //reload page
@@ -225,7 +223,6 @@ app.whenReady()
     globalShortcut.register('CommandOrControl+P', () => {});  //change screen layout
  
 
-   
     if (!config.development){
     }
     else { 
@@ -241,25 +238,16 @@ app.whenReady()
     globalShortcut.register('Alt+Left', () => {
         console.log('Versuch, mit Alt+Left zurückzunavigieren, wurde blockiert.');
     });
-   
-
-
-
 })
 
 
-import ps from 'ps-node'
 
 
 //block starting the app from a browser 
 function checkParent(){
     const parentPid = process.ppid; // Parent Process ID
-
     ps.lookup({ pid: parentPid }, (err, resultList) => {
-      if (err) {
-        throw new Error(err);
-      }
-  
+      if (err) {throw new Error(err); }
       if (resultList.length > 0) {
         const parentProcess = resultList[0];
         const parentCommand = parentProcess.command.toLowerCase();

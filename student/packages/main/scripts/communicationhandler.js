@@ -59,7 +59,7 @@ let TesseractWorker = false
         this.updateScheduler.start()
         this.screenshotScheduler = new SchedulerService(this.sendScreenshot.bind(this), this.multicastClient.clientinfo.screenshotinterval)
         this.screenshotScheduler.start()
-        if (process.platform !== 'linux' || (  !this.isWayland() && this.imagemagickAvailable()  )){ this.screenshotAbility = true } // only on linux we need to check for wayland or the absence of imagemagick - other os have other problems ^^
+        if (process.platform !== 'linux' || (  !this.isWayland() && this.imagemagickAvailable() || (this.isWayland() && this.flameshotAvailable() )  )){ this.screenshotAbility = true } // only on linux we need to check for wayland or the absence of imagemagick - other os have other problems ^^
     }
  
     /**
@@ -67,14 +67,7 @@ let TesseractWorker = false
      * @returns true or false
      */
     isWayland(){
-        try{ 
-            let output = shell(`loginctl show-session $(loginctl | grep $(whoami) | awk '{print $1}') -p Type`); 
-            if (output.includes('wayland')){ return true } 
-            return false
-        } catch(error){
-            log.error("Next-Exam detected a Wayland Session - Screenshots are not supported yet")
-            return false
-        }
+        return process.env.XDG_SESSION_TYPE === 'wayland'; 
     }
     
     /**
@@ -84,10 +77,18 @@ let TesseractWorker = false
     imagemagickAvailable(){
         try{ shell(`which import`); return true}
         catch(error){
-            log.error("ImageMagick is required to take screenshots on linux")
+            log.error("communicationhandler @ imagemagickAvailable: ImageMagick is required to take screenshots on linux")
             return false
         }
     }
+    flameshotAvailable(){
+        try{ shell(`which flameshot`); return true}
+        catch(error){
+            log.error("communicationhandler @ flameshotAvailable: flameshot is required to take screenshots on wayland")
+            return false
+        }
+    }
+
 
     /** 
      * SEND HEARTBEAT in order to set Online/Offline Status 
@@ -178,6 +179,7 @@ let TesseractWorker = false
 
     /** 
      * Update Screenshot on Server  (every 4 seconds - or depending on the server setting)
+     * if no screenshot is possible (wayland) capture application window via electron webcontents
      */
     async sendScreenshot(){
         if (this.multicastClient.clientinfo.localLockdown){return}

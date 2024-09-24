@@ -5,14 +5,14 @@ the next iteration of the [life-exam](https://gitlab.com/valueerror/life-exam) p
 # technologies used
 * electron
 * vite
-* node.js
+* node
 * node-express
-* vue.js
-* bootstrap.css
+* vue
+* bootstrap
 
 
 
-Node v20.12.1
+Node v22.8.0
 
 ## install necessary modules 
 

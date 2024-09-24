@@ -177,29 +177,29 @@
     <!-- EDITOR END -->
 
 
+    <!-- SPLITVIEW START -->
     <div v-if="splitview" class="split-view-container" style="overflow: hidden; display: flex !important; flex-direction: row !important; height: 100% !important;">
         <!-- PDF Preview Container -->
-        <div id="preview" class="fadeinfast" style="flex: 1 !important; display: block !important; position: static !important; top: auto !important; left: auto !important; width: auto !important; height: auto !important; background-color: transparent !important; z-index: auto !important; backdrop-filter: none !important;">
+        <div id="preview" class="fadeinfast" style="background-image: url(/src/assets/img/svg/edit-copy-light.svg); background-repeat: no-repeat; background-position: center; flex-grow: 1 !important; display: block !important; position: static !important; top: auto !important; left: auto !important; width: auto !important; height: auto !important; background-color: transparent !important; z-index: auto !important; backdrop-filter: none !important;">
             <div class="embed-container" style="position: relative !important; top: 0 !important; left: 0 !important; transform: none !important; display: block !important; height:100% !important">
                 <embed src="" id="pdfembed" style="border-radius:0 !important; background-size:contain; width:100% !important; height: 100% !important; background-color:transparent !important;"></embed>
-                <div class="btn btn-warning shadow" id="insert-button" @click="insertImage(selectedFile)" :title="$t('editor.insert')" style="position: absolute; top: 20px; right:30px; z-index:100000; height: 100px; border: none !important; border-radius: 0 !important; border-top-right-radius: 6px !important; border-top-left-radius: 6px !important; box-shadow: 0px -10px 0px rgba(0, 0, 0, 0) !important; padding: 20px !important; cursor: pointer !important; display: none !important; align-items: center !important; justify-content: center !important; margin-top: 0px !important; background-image: url('/src/assets/img/svg/edit-download.svg'); background-size: 28px; background-repeat: no-repeat; background-position: center; transform: rotate(-90deg);"></div>
-                <div id="pdfZoom" style="display:none; position: absolute; top:20px;">
-                    <button class="btn btn-warning btn-small shadow" style="width:32px; margin:2px;" id="zoomIn">+</button><br>
-                    <button class="btn btn-warning btn-small shadow" style="width:32px; margin:2px;" id="zoomOut">-</button>
+                <div class="btn btn-warning shadow" id="insert-button" @click="insertImage(selectedFile)" :title="$t('editor.insert')" style="position: absolute; top: 40px; right:20px; z-index:100000; width: 70px; border: none !important; border-radius: 0.2rem !important; box-shadow: 0px -10px 0px rgba(0, 0, 0, 0) !important; padding: 16px !important; cursor: pointer !important; display: none !important; align-items: center !important; justify-content: center !important; margin-top: 0px !important; background-image: url('/src/assets/img/svg/edit-download-black.svg'); background-size: 28px; background-repeat: no-repeat; background-position: center;"></div>
+                <div id="pdfZoom" style="display:none; position: absolute; top:40px; right:20px; z-index:100000; height: 100px;">
+                    <button class="btn btn-warning btn-small shadow" style="width:70px; height: 32px; margin-bottom:2px; background-image: url(/src/assets/img/svg/zoom-in.svg); background-repeat: no-repeat; background-position: center; " id="zoomIn"></button><br>
+                    <button class="btn btn-warning btn-small shadow" style="width:70px; height: 32px; margin-bottom:2px; background-image: url(/src/assets/img/svg/zoom-out.svg); background-repeat: no-repeat; background-position: center;" id="zoomOut"></button>
                 </div>
 
             </div>
         </div>
-
         <!-- Editor Container -->
-        <div id="editormaincontainer" style="flex: 1 1 33% !important; overflow-x: auto !important; overflow-y: scroll !important; background-color: #eeeefa !important;">
+        <div id="editormaincontainer" style="min-width:230mm!important;padding:10px; overflow-x: auto !important; overflow-y: scroll !important; background-color: #eeeefa !important;">
             <div id="editorcontainer" class="shadow">
                 <editor-content :editor="editor" class="p-0" id="editorcontent" style="background-color: #fff !important; border-radius: 0 !important;" />
                 <canvas id="highlight-layer"></canvas>
             </div>
         </div>
     </div>
-
+    <!-- SPLITVIEW END -->
 
 
 
@@ -209,25 +209,14 @@
     
     <!-- LANGUAGE TOOL START -->
     <div id="languagetool" v-if="serverstatus.languagetool || privateSpellcheck.activated">
-        <div id="ltcheck" @click="LTcheckAllWords();">
-            <!-- <img src="/src/assets/img/svg/eye-fill.svg" class="darkgreen eyeopen" width="22" height="22" > -->
-            <div id="eye" class="darkgreen eyeopen"></div> &nbsp;LanguageTool
-        
-        </div>
+        <div id="ltcheck" @click="LTcheckAllWords();"> <div id="eye" class="darkgreen eyeopen"></div> &nbsp;LanguageTool</div>
         <div class="ltscrollarea">      
-            <div v-if="hunspellFallback"  style="text-align: center; font-size: 0.8em;">
-                Hunspell Fallback <br> LanguageTool nicht verfügbar
-            </div> 
-            <div v-if="misspelledWords.length == 0"  style="text-align: center; font-size: 0.8em;">
-                {{this.LTinfo}}
-            </div> 
-
+            <div v-if="hunspellFallback"  style="text-align: center; font-size: 0.8em;"> Hunspell Fallback <br> LanguageTool nicht verfügbar </div> 
+            <div v-if="misspelledWords.length == 0"  style="text-align: center; font-size: 0.8em;"> {{this.LTinfo}}</div> 
             <div v-for="entry in misspelledWords" :key="entry.wrongWord" class="error-entry" @click="LTshowWord(entry)">
                 <div :style="'background-color:' + entry.color " class="color-circle"></div>
                 <div class="error-word">{{ entry.wrongWord }}  <span v-if="entry.whitespace">' &nbsp;  '</span></div>
-                
                 <div v-if="entry.message" class="fw-bold">{{ entry.rule.category.name}}</div>
-
                 <div v-if="serverstatus.suggestions || privateSpellcheck.suggestions">
                   <div v-if="entry.message">{{ entry.message}}</div>
                      <div v-if="entry.replacements" class="replacement">
@@ -237,10 +226,7 @@
                         <span v-if="entry.replacements[3]">, {{ entry.replacements[3].value }}</span>
                     </div>
                 </div>
-                
             </div>
-            
-      
         </div>
     </div>
     <!-- LANGUAGE TOOL END -->
@@ -807,9 +793,11 @@ export default {
             this.currentpreview =  URL.createObjectURL(new Blob([data], {type: "application/pdf"})) 
             
             const pdfEmbed = document.querySelector("#pdfembed");
-          
+            pdfEmbed.setAttribute("src", `${this.currentpreview}#toolbar=0&navpanes=0&scrollbar=0`);
+
             if (this.splitview) {
                 this.currentPDFData = data
+                this.currentPDFZoom = 80
                 const zoomInButton = document.getElementById("zoomIn");
                 const zoomOutButton = document.getElementById("zoomOut");
                 const pdfZoom = document.getElementById("pdfZoom");
@@ -838,9 +826,12 @@ export default {
                 // Füge die Event-Listener erneut hinzu
                 zoomInButton.addEventListener('click', this.zoomInHandler);
                 zoomOutButton.addEventListener('click', this.zoomOutHandler);
+
+                // pdf anzeigen
+                pdfEmbed.setAttribute("src", `${this.currentpreview}#toolbar=0&navpanes=0&scrollbar=0&zoom=${this.currentPDFZoom}`);
             }
             
-            pdfEmbed.setAttribute("src", `${this.currentpreview}#toolbar=0&navpanes=0&scrollbar=0`);
+            
 
             if(!this.splitview){
                 pdfEmbed.style.backgroundImage = '';
