@@ -50,7 +50,7 @@
             <button id="closefilebrowser" type="button" class=" btn-close pt-2 pe-2 float-end" title="close"></button>
             <h4>{{$t('dashboard.filesfolder')}}: <br> <span class="ms-3 mb-3"><strong> {{currentdirectory}}</strong>  </span></h4>
             <div class="btn btn-dark pe-3 ps-3 me-1 mb-3 btn-sm" @click="loadFilelist(workdirectory) "><img src="/src/assets/img/svg/go-home.svg" class="" width="22" height="22" > </div>
-            <div :class="( serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'website' )? 'disabledblue':''" class="btn btn-primary pe-3 ps-3 me-1 mb-3 btn-sm" style="float: right;" :title="$t('dashboard.summarizepdf')" @click="getLatest() "><img src="/src/assets/img/svg/edit-copy.svg" class="" width="22" height="22" >{{$t('dashboard.summarizepdfshort')}}</div>
+            <div :class="( serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'website'|| serverstatus.examtype === 'math' )? 'disabledblue':''" class="btn btn-primary pe-3 ps-3 me-1 mb-3 btn-sm" style="float: right;" :title="$t('dashboard.summarizepdf')" @click="getLatest() "><img src="/src/assets/img/svg/edit-copy.svg" class="" width="22" height="22" >{{$t('dashboard.summarizepdfshort')}}</div>
             <div  v-if="(currentdirectory !== workdirectory)" class="btn btn-dark pe-3 ps-3 me-1 mb-3 btn-sm" @click="loadFilelist(currentdirectoryparent) "><img src="/src/assets/img/svg/edit-undo.svg" class="" width="22" height="22" >up </div>
             <div :key="3" style="height: 76vh; overflow-y:auto;">
                 <div v-for="file in localfiles" :key="file.path" class="d-inline">
@@ -1531,13 +1531,13 @@ export default {
 }
 
 .disabledblue {
-    filter: contrast(100%) grayscale(50%) brightness(120%) blur(0.9px);
+    filter: contrast(140%) grayscale(80%) brightness(150%) blur(0.9px);
    pointer-events: none;
    color: #adebff;
 }
 
 .disabledgreen {
-    filter: contrast(100%) grayscale(50%) brightness(120%) blur(0.9px);
+    filter: contrast(140%) grayscale(80%) brightness(150%) blur(0.9px);
    pointer-events: none;
    color: #d6ffe1
 }
