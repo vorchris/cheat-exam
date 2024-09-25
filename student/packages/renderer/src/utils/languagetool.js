@@ -75,7 +75,7 @@ async function LTcheckAllWords(closeLT = true){
 
 
     if (this.text.length == 0) { 
-        this.LTinfo = "keine Fehler gefunden"
+        this.LTinfo = "Keine Fehler gefunden"
         return; 
     }
 
@@ -90,32 +90,27 @@ async function LTcheckAllWords(closeLT = true){
     .then(response => response.json())
     .then(async (data) => {
         if (data.status == "error" || !Array.isArray(data.data)){
-            console.warn('languagetool.js @ LTcheckAllwords: using hunspell fallback')
-            // FALLBACK to HUNSPELL if LanguageTool is not reachable
-            const hunspelldata = ipcRenderer.sendSync('checktext', this.text);
-            this.LThandleMisspelled("hunspell", hunspelldata)  // generiert misspelled object dass ähnlich verarbeitet werden kann wie das lt object
+            console.warn('languagetool.js @ LTcheckAllwords: LanguageTool is not reachable ')
+            this.spellcheckFallback = true;
         }
         else {
             this.LThandleMisspelled("languagetool", data)   //bereitet die liste auf - entfernt duplikate
         }
 
         if (!this.misspelledWords.length) {
-            this.LTinfo = "keine Fehler gefunden"
+            this.LTinfo = "Keine Fehler gefunden"
             return;
         }
 
-        this.LTinfo = "closing..."
+       // this.LTinfo = "closing..."
         let positions = await this.LTfindWordPositions();  //finde wörter im text und erzeuge highlights
         this.LThighlightWords(positions)
 
     })
     .catch(async (error) => {
         console.warn('languagetool.js @ LTcheckAllwords (catch):', error.message)  
-         // FALLBACK to HUNSPELL if LanguageTool (Next-Exam-Teacher) is not reachable
-        const hunspelldata = ipcRenderer.sendSync('checktext', this.text);
-        this.LThandleMisspelled("hunspell", hunspelldata) 
-
-        this.LTinfo = "closing..."
+        this.spellcheckFallback = true;
+        this.LTinfo = "Keine Fehler gefunden"
         let positions = await this.LTfindWordPositions();  //finde wörter im text und erzeuge highlights
         this.LThighlightWords(positions)
     })
@@ -124,36 +119,10 @@ async function LTcheckAllWords(closeLT = true){
 
 
 function LThandleMisspelled(backend, data){
-    if (backend == "hunspell"){
-        this.hunspellFallback = true;
-        this.misspelledWords = []
-        if (data.misspelledWords){
-            data.misspelledWords.forEach( word => {
-                //generate LT like replacements array of objects
-                let suggestions = []
-                word.suggestions.forEach(sugg =>{
-                    suggestions.push({value: sugg})
-                } )
-               
-                this.misspelledWords.push( {
-                    wrongWord: word.wrongWord, 
-                    rule: {
-                        issueType:"misspelling"
-                    },
-                    color: "rgba( 211, 84, 0, 0.3)",
-                    replacements: suggestions
-                } )
-            })
-        }
-        else if (data.error){
-            console.error("languagetool.js @ LTcheckAllwords: Hunspell backend nicht verfügbar")
-            this.LTinfo = "Hunspell nicht verfügbar"
-            return
-        }
-    }
+
 
     if (backend == "languagetool"){
-        this.hunspellFallback = false;
+        this.spellcheckFallback = false;
         // Verarbeiten der Antwort, um das fehlerhafte Wort zu extrahieren und Duplikate zu entfernen
         const uniqueWords = new Set(); // Ein Set, um die Einzigartigkeit der Wörter zu gewährleisten
        
@@ -258,9 +227,8 @@ function isUnique(position, currentWord, allWords) {
 
 
 function LThighlightWords() {
-    if (!this.textContainer || this.misspelledWords.length == 0 || (!this.serverstatus.languagetool && !this.privateSpellcheck.activated)){
+    if (!this.textContainer ||  (!this.serverstatus.languagetool && !this.privateSpellcheck.activated)){
         console.log(this.privateSpellcheck)
-        console.log(this.languagetool)
         this.LTdisable(); 
          return 
     }

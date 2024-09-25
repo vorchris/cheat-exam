@@ -15,49 +15,6 @@
  * If not, see <http://www.gnu.org/licenses/>
  */
 
-// /**
-// NodeHun Custom Spellchecker Styles 
-// */
-// #suggestion-menu{
-//     z-index:100000;
-//     padding: 4px;
-//     background-color: #f3f8fd;
-//     border: 1px solid #d3e5ff;
-//     cursor: pointer;
-//     border-radius: 4px;
-//     box-shadow: 0px 0px 10px #00000047;
-// }
-// #suggestion-menu div {
-//     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-//     font-size: 0.8em;
-//     padding: 2px 6px 2px 6px;
-//     transition:0.2s;
-//     border-radius:4px;
-    
-// }
-// #suggestion-menu div:hover {
-//     box-shadow: 0px 0px 10px inset #bacbe4;
-// }
-
-// span.NXTEhighlight {
-//     position: relative;
-// }
-// /* Create the glowing underline */
-// span.NXTEhighlight::after {
-//     content: "";
-//     position: absolute;
-//     left: 0;
-//     bottom: 0;
-//     width: 100%;
-//     height: 1px;
-//     background: lightcoral; /* Light red color */
-//     box-shadow: 0 0 5px lightcoral;
-// }
-// .menu-separator {
-//     border-top: 1px solid #ccc;
-//     margin: 5px 0;
-// }
-
 
 
 class SpellChecker {

@@ -38,7 +38,7 @@ import { join } from 'path'
 import childProcess from 'child_process'   //needed to run bash commands on linux 
 import { app, TouchBar, clipboard, globalShortcut} from 'electron'
 import config from '../config.js';
-import log from 'electron-log/main';
+import log from 'electron-log';
 import {SchedulerService} from './schedulerservice.ts'
 
 // unfortunately there is no convenient way for gnome-shell to un-set ALL shortcuts at once

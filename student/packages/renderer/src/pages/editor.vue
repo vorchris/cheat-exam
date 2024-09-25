@@ -180,13 +180,13 @@
     <!-- SPLITVIEW START -->
     <div v-if="splitview" class="split-view-container" style="overflow: hidden; display: flex !important; flex-direction: row !important; height: 100% !important;">
         <!-- PDF Preview Container -->
-        <div id="preview" class="fadeinfast" style="background-image: url(/src/assets/img/svg/edit-copy-light.svg); background-repeat: no-repeat; background-position: center; flex-grow: 1 !important; display: block !important; position: static !important; top: auto !important; left: auto !important; width: auto !important; height: auto !important; background-color: transparent !important; z-index: auto !important; backdrop-filter: none !important;">
+        <div id="preview" class="fadeinfast splitback" style="background-repeat: no-repeat; background-position: center; flex-grow: 1 !important; display: block !important; position: static !important; top: auto !important; left: auto !important; width: auto !important; height: auto !important; background-color: transparent !important; z-index: auto !important; backdrop-filter: none !important;">
             <div class="embed-container" style="position: relative !important; top: 0 !important; left: 0 !important; transform: none !important; display: block !important; height:100% !important">
                 <embed src="" id="pdfembed" style="border-radius:0 !important; background-size:contain; width:100% !important; height: 100% !important; background-color:transparent !important;"></embed>
-                <div class="btn btn-warning shadow" id="insert-button" @click="insertImage(selectedFile)" :title="$t('editor.insert')" style="position: absolute; top: 40px; right:20px; z-index:100000; width: 70px; border: none !important; border-radius: 0.2rem !important; box-shadow: 0px -10px 0px rgba(0, 0, 0, 0) !important; padding: 16px !important; cursor: pointer !important; display: none !important; align-items: center !important; justify-content: center !important; margin-top: 0px !important; background-image: url('/src/assets/img/svg/edit-download-black.svg'); background-size: 28px; background-repeat: no-repeat; background-position: center;"></div>
+                <div class="btn btn-warning shadow splitinsert" id="insert-button" @click="insertImage(selectedFile)" :title="$t('editor.insert')" style="position: absolute; top: 40px; right:20px; z-index:100000; width: 70px; border: none !important; border-radius: 0.2rem !important; box-shadow: 0px -10px 0px rgba(0, 0, 0, 0) !important; padding: 16px !important; cursor: pointer !important; display: none !important; align-items: center !important; justify-content: center !important; margin-top: 0px !important; background-size: 28px; background-repeat: no-repeat; background-position: center;"></div>
                 <div id="pdfZoom" style="display:none; position: absolute; top:40px; right:20px; z-index:100000; height: 100px;">
-                    <button class="btn btn-warning btn-small shadow" style="width:70px; height: 32px; margin-bottom:2px; background-image: url(/src/assets/img/svg/zoom-in.svg); background-repeat: no-repeat; background-position: center; " id="zoomIn"></button><br>
-                    <button class="btn btn-warning btn-small shadow" style="width:70px; height: 32px; margin-bottom:2px; background-image: url(/src/assets/img/svg/zoom-out.svg); background-repeat: no-repeat; background-position: center;" id="zoomOut"></button>
+                    <button class="btn btn-warning btn-small shadow splitzoomin" style="width:70px; height: 32px; margin-bottom:2px;  background-repeat: no-repeat; background-position: center; " id="zoomIn"></button><br>
+                    <button class="btn btn-warning btn-small shadow splitzoomout" style="width:70px; height: 32px; margin-bottom:2px; background-repeat: no-repeat; background-position: center;" id="zoomOut"></button>
                 </div>
 
             </div>
@@ -211,10 +211,11 @@
     <div id="languagetool" v-if="serverstatus.languagetool || privateSpellcheck.activated">
         <div id="ltcheck" @click="LTcheckAllWords();"> <div id="eye" class="darkgreen eyeopen"></div> &nbsp;LanguageTool</div>
         <div class="ltscrollarea"> 
-            <div @click="LTcheckAllWords(false);" class="btn btn-sm btn-success center" style="text-align: center;  margin-left:10px;"> {{$t('editor.update')}}</div> 
+            <div @click="LTcheckAllWords(false);" class="btn btn-sm btn-success center" style="text-align: center;  margin-left:10px; margin-bottom:10px;"> {{$t('editor.update')}}</div> 
 
-            <div v-if="hunspellFallback"  style="text-align: center; font-size: 0.8em;"> Hunspell Fallback <br> LanguageTool nicht verfügbar </div> 
-            <div v-if="misspelledWords.length == 0"  style="text-align: center; font-size: 0.8em;"> {{this.LTinfo}}</div> 
+            <div v-if="spellcheckFallback"  style="text-align: left; font-size: 0.8em;margin-left:10px;"> LanguageTool nicht verfügbar </div> 
+            
+            <div v-if="misspelledWords.length == 0"  style="text-align: left; font-size: 0.8em; margin-left:10px;"> {{this.LTinfo}}</div> 
             <div v-for="entry in misspelledWords" :key="entry.wrongWord" class="error-entry" @click="LTshowWord(entry)">
                 <div :style="'background-color:' + entry.color " class="color-circle"></div>
                 <div class="error-word">{{ entry.wrongWord }}  <span v-if="entry.whitespace">' &nbsp;  '</span></div>
@@ -358,7 +359,7 @@ export default {
             currentLTwordPos:null,
             LTinfo: "searching...",
             LTactive: false,
-            hunspellFallback: false,
+            spellcheckFallback: false,
             splitview: false,
             currentPDFZoom: 80,
             currentPDFData: null
@@ -837,6 +838,8 @@ export default {
                 pdfEmbed.style.height = "95vh";
                 pdfEmbed.style.width = "67vh";  
             }
+            pdfEmbed.style.backgroundImage = ``;
+
             document.querySelector("#preview").style.display = 'block';
             document.querySelector("#insert-button").style.display = 'none';
         },
@@ -1074,16 +1077,25 @@ export default {
         async toggleSplitview(){
             this.splitview = !this.splitview;
 
-
             if (this.splitview === false){
                 await this.sleep(1000) //wait for re-rendering of #preview div 
-                document.querySelector("#preview").addEventListener("click", function() {  
-                    this.style.display = 'none';
-                    this.setAttribute("src", "about:blank");
-                    URL.revokeObjectURL(this.currentpreview);
-                });
+                document.querySelector("#preview").addEventListener("click", this.hidepreview );
+            }
+            if (this.splitview === true){
+                await this.sleep(1000) //wait for re-rendering of #preview div 
+                document.querySelector("#preview").removeEventListener("click", this.hidepreview );
             }
         },
+
+        hidepreview(){
+            let preview = document.querySelector("#preview")
+            preview.style.display = 'none';
+            preview.setAttribute("src", "about:blank");
+            URL.revokeObjectURL(this.currentpreview);
+        },
+
+
+
         reloadAll(){
             this.$swal.fire({
                 title: this.$t("editor.reload"),
@@ -1893,11 +1905,27 @@ Other Styles
 
 #ltcheck .eyeopen {
     background-image: url('/src/assets/img/svg/eye-fill.svg');
-   
 }
 #ltcheck .eyeclose {
     background-image: url('/src/assets/img/svg/eye-slash-fill.svg');
 }
+
+//mus integrate images this way otherwise they won't be integrated in the final build
+.splitback {
+    background-image: url('/src/assets/img/svg/edit-copy-light.svg');
+}
+
+.splitzoomin {
+    background-image: url('/src/assets/img/svg/zoom-in.svg');
+
+}
+.splitzoomout {
+    background-image: url('/src/assets/img/svg/zoom-out.svg');
+}
+.splitinsert {
+    background-image: url('/src/assets/img/svg/edit-download-black.svg');
+}
+
 
 #languagetool .ltscrollarea {
     height: calc(100vh - 52px);

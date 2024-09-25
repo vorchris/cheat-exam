@@ -35,10 +35,11 @@ import config from './config.js';
 import multicastClient from './scripts/multicastclient.js'
 import path from 'path'
 import fs from 'fs'
-import fsExtra from "fs-extra"
+
+import * as fsExtra from 'fs-extra';
 import os from 'os'
 import ip from 'ip'
-import log from 'electron-log/main';
+import log from 'electron-log';
 import { gateway4sync } from 'default-gateway';
 import ps from 'ps-node'
 

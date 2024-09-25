@@ -22,15 +22,9 @@ import ip from 'ip'
 import i18n from '../../renderer/src/locales/locales.js'
 const {t} = i18n.global
 import{ipcMain, clipboard} from 'electron'
-import defaultGateway from'default-gateway';
+import { gateway4sync } from 'default-gateway';
 import os from 'os'
-import log from 'electron-log/main';
-
-
-//import Nodehun from 'nodehun'   
-const NodehunModule = await import('./native-loader.cjs');  // npm rebuild nodehun --update-binary  on mac after build to run in dev mode
-const { default: Nodehun } = NodehunModule;  // Access the default export
-
+import log from 'electron-log';
 import {disableRestrictions} from './platformrestrictions.js';
 import mammoth from 'mammoth';
 
@@ -195,7 +189,7 @@ class IpcHandler {
 
 
             try { //bind to the correct interface
-                const {gateway, interface: iface} =  defaultGateway.v4.sync()
+                const { gateway, interface: iface} = gateway4sync(); 
                 this.config.hostip = ip.address(iface)    // this returns the ip of the interface that has a default gateway..  should work in MOST cases.  probably provide "ip-options" in UI ?
                 this.config.gateway = true
             }
@@ -352,48 +346,12 @@ class IpcHandler {
 
 
         /**
-         * activate spellcheck on demand for specific student
+         * activate spellcheck on demand for specific student NODEHUN
          */ 
         ipcMain.on('activatespellcheck', (event, spellchecklang) => {  
-            const dictionaryPath = path.join( __dirname,'../../public/dictionaries');
-            let language = "de-DE"
-            if (spellchecklang){ language = spellchecklang }
-            if (spellchecklang == "none"){return}  // "other" language selected 
-            
-            let affix = null;
-            let dictionary = null;
-
-            log.info(`ipchandler @ activatespellcheck: activating Hunspell Fallback Backend for lang: ${language}`)
-
-            try {
-                if (language === "en" || language === "en-GB") {
-                    affix       = fs.readFileSync(path.join(dictionaryPath, 'en_US.aff'))
-                    dictionary  = fs.readFileSync(path.join(dictionaryPath, 'en_US.dic'))
-                }
-                else if (language === "de" || language === "de-DE"){
-                    affix       = fs.readFileSync(path.join(dictionaryPath, 'de_DE_frami.aff'))
-                    dictionary  = fs.readFileSync(path.join(dictionaryPath, 'de_DE_frami.dic'))
-                }
-                else if (language === "it" || language === "it-IT"){
-                    affix       = fs.readFileSync(path.join(dictionaryPath, 'it_IT.aff'))
-                    dictionary  = fs.readFileSync(path.join(dictionaryPath, 'it_IT.dic'))
-                }
-                else if (language === "fr" || language === "fr-FR"){
-                    affix       = fs.readFileSync(path.join(dictionaryPath, 'fr.aff'))
-                    dictionary  = fs.readFileSync(path.join(dictionaryPath, 'fr.dic'))
-                }
-                else if (language === "es" || language === "es-ES"){
-                    affix       = fs.readFileSync(path.join(dictionaryPath, 'es_ES.aff'))
-                    dictionary  = fs.readFileSync(path.join(dictionaryPath, 'es_ES.dic'))
-                }
-                this.WindowHandler.nodehun  = new Nodehun(affix, dictionary)
-                
-                //this.multicastClient.clientinfo.privateSpellcheck.activated = true // this is set because communication handler needs to know if this already happened
-                
+  
                 return true
-            }
-            catch (e) { log.error(e); return false}
-            
+      
         })
     
 
@@ -703,24 +661,10 @@ class IpcHandler {
 
 
         /**
-         * this is our manually implemented Hunspell spellchecker for the editor (fallback for languagetool)
+         * this is our manually implemented NODEHUN spellchecker for the editor (fallback for languagetool)
          */
         ipcMain.on('checktext', async (event, selectedText) => {
-            const words = selectedText.split(/[^a-zA-ZäöüÄÖÜßéèêëôûüÔÛÜáíóúñÁÍÓÚÑàèéìòùÀÈÉÌÒÙçÇ]+/);
             const misspelledWords = [];
-            for (const word of words) {
-                if (this.WindowHandler.nodehun){
-                    const correct = await this.WindowHandler.nodehun.spell(word);
-
-                    if (!correct) {
-                        const suggestions = await this.WindowHandler.nodehun.suggest(word)
-                        misspelledWords.push( { wrongWord: word, suggestions: suggestions });
-                    }
-                }
-                else {
-                    event.returnValue = {error: "error"};
-                }
-            }
             event.returnValue = { misspelledWords };
         });
 

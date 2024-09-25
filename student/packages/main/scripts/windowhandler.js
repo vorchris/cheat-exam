@@ -23,13 +23,7 @@ import childProcess from 'child_process'
 import screenshot from 'screenshot-desktop'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 import fs from 'fs' 
-
-
-//import Nodehun from 'nodehun'   
-const NodehunModule = await import('./native-loader.cjs');  // npm rebuild nodehun --update-binary  on mac after build to run in dev mode
-const { default: Nodehun } = NodehunModule;  // Access the default export
-
-import log from 'electron-log/main'
+import log from 'electron-log'
 import {SchedulerService} from './schedulerservice.ts'
 
 const __dirname = import.meta.dirname;
@@ -53,7 +47,6 @@ class WindowHandler {
       this.bipwindow = null
       this.config = null
       this.multicastClient = null
-      this.nodehun = null  //needed for manual spellchecker
     }
 
     init (mc, config) {
@@ -457,54 +450,6 @@ class WindowHandler {
                 this.examwindow.loadURL(url)
             }
         }
-
-
-
-
-
-        /**
-         * HANDLE SPELLCHECK 
-         */ 
-      
-        if (serverstatus.languagetool && serverstatus.spellchecklang){  
-            const dictionaryPath = join( __dirname,'../../public/dictionaries');
-            let language = serverstatus.spellchecklang
-            let affix = null;
-            let dictionary = null;
-
-            log.info(`windowhandler @ Handle Spellcheck: activating Hunspell Fallback Backend for lang: ${language}`)
-
-            try {
-                if (language === "en" || language === "en-GB") {
-                    affix       = fs.readFileSync(join(dictionaryPath, 'en_US.aff'))
-                    dictionary  = fs.readFileSync(join(dictionaryPath, 'en_US.dic'))
-                }
-                else if (language === "de" || language === "de-DE"){
-                    affix       = fs.readFileSync(join(dictionaryPath, 'de_DE_frami.aff'))
-                    dictionary  = fs.readFileSync(join(dictionaryPath, 'de_DE_frami.dic'))
-                }
-                else if (language === "it" || language === "it-IT"){
-                    affix       = fs.readFileSync(join(dictionaryPath, 'it_IT.aff'))
-                    dictionary  = fs.readFileSync(join(dictionaryPath, 'it_IT.dic'))
-                }
-                else if (language === "fr" || language === "fr-FR"){
-                    affix       = fs.readFileSync(join(dictionaryPath, 'fr.aff'))
-                    dictionary  = fs.readFileSync(join(dictionaryPath, 'fr.dic'))
-                }
-                else if (language === "es" || language === "es-ES"){
-                    affix       = fs.readFileSync(join(dictionaryPath, 'es_ES.aff'))
-                    dictionary  = fs.readFileSync(join(dictionaryPath, 'es_ES.dic'))
-                }
-                this.nodehun  = new Nodehun(affix, dictionary)
-            }
-            catch (e) { log.error(e);}
-
-
-
-
-
-        }
-        
 
 
 

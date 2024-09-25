@@ -19,17 +19,16 @@
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 import fs from 'fs' 
 import crypto from 'crypto';
-import archiver from 'archiver'
+import archiver from 'archiver'   // das macht krasseste racecoditions mit electron eigenen versionen - unbedingt die selbe version behalten wie electron
 import extract from 'extract-zip'
 import screenshot from 'screenshot-desktop'
-// import FormData from 'form-data/lib/form_data.js';     //we need to import the file directly otherwise it will introduce a "window" variable in the backend and fail
 import { join } from 'path'
 import { screen, ipcMain } from 'electron'
 import WindowHandler from './windowhandler.js'
 import sharp from 'sharp'
 import { execSync } from 'child_process';
 const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
-import log from 'electron-log/main';
+import log from 'electron-log';
 
 import {SchedulerService} from './schedulerservice.ts'
 import Tesseract from 'tesseract.js';
@@ -746,8 +745,8 @@ let TesseractWorker = false
             body: JSON.stringify({ file: base64File, filename: zipfilename }),
         })
         .then(response => response.json())
-        .then(data => { console.log(`communicationhandler @ sendExamToTeacher: teacher response: ${data.message}`); })
-        .catch(error => {console.error(`communicationhandler @ sendExamToTeacher: ${error}`); });
+        .then(data => { log.info(`communicationhandler @ sendExamToTeacher: teacher response: ${data.message}`); })
+        .catch(error => {log.error(`communicationhandler @ sendExamToTeacher: ${error}`); });
      }
 
 
