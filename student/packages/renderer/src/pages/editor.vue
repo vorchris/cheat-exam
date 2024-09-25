@@ -832,12 +832,6 @@ export default {
                 // pdf anzeigen
                 pdfEmbed.setAttribute("src", `${this.currentpreview}#toolbar=0&navpanes=0&scrollbar=0&zoom=${this.currentPDFZoom}`);
             }
-<<<<<<< HEAD
-=======
-            
-            
-
->>>>>>> 8407679ed0b6f2883e83c25e860c9bba1f448ca8
             if(!this.splitview){
                 pdfEmbed.style.backgroundImage = '';
                 pdfEmbed.style.height = "95vh";
@@ -876,7 +870,6 @@ export default {
                         pdfEmbed.style.width = `calc(80vh * ${aspectRatio})`;
                     }
                 }
-
                 pdfEmbed.style.backgroundImage = `url(${this.currentpreview})`;
             }.bind(this);
             img.src = this.currentpreview;
@@ -886,10 +879,6 @@ export default {
             document.querySelector("#insert-button").style.display = 'flex';
             document.querySelector("#preview").style.display = 'block';  
             document.querySelector("#pdfZoom").style.display = 'none';
-<<<<<<< HEAD
-=======
-
->>>>>>> 8407679ed0b6f2883e83c25e860c9bba1f448ca8
         },
 
         // show mugshot preview panel

@@ -72,12 +72,25 @@ const gnomeDashToDockKeybindings = ['app-ctrl-hotkey-1','app-ctrl-hotkey-10','ap
 
 const gnomeWaylandKeybindings = ['switch-to-session-1','switch-to-session-2','switch-to-session-3','switch-to-session-4','switch-to-session-5','switch-to-session-6','switch-to-session-7','switch-to-session-8','switch-to-session-9','switch-to-session-10','switch-to-session-11','switch-to-session-12' ]
 
-let clipboardInterval;
+let clipboardInterval
+let configStore = {
+    linux: {},
+    windows: {},
+    macos: {}
+}
+
+// list of apps we do not want to run in background
+const appsToClose = ['Teams','ms-teams', 'zoom.us', 'Google Chrome', 'Microsoft Edge', 'Microsoft Teams','firefox', 'discord', 'zoom', 'chrome', 'msedge', 'teams', 'teamviewer', 'google-chrome','skypeforlinux','skype','brave','opera','anydesk','safari'];
+
+
+   
+
+
 
 function enableRestrictions(winhandler){
-  
+    if (config.development) {return}
+    
     log.info("enabling platform restrictions")
-
 
     globalShortcut.register('CommandOrControl+V', () => {console.log('no clipboard')});
     globalShortcut.register('CommandOrControl+Shift+V', () => {console.log('no clipboard')});
@@ -88,36 +101,33 @@ function enableRestrictions(winhandler){
 
 
 
-
-
-   // if (config.development) {return}
-
-
-
-
-
-
-
-    // list of apps we do not want to run in background
-    const appsToClose = ['Teams','ms-teams', 'zoom.us', 'Google Chrome', 'Microsoft Edge', 'Microsoft Teams','firefox', 'discord', 'zoom', 'chrome', 'msedge', 'teams', 'teamviewer', 'google-chrome','skypeforlinux','skype','brave','opera','anydesk','safari'];
-   // const appsToClose = [ 'Teams','ms-teams','zoom.us', 'Microsoft Teams', 'discord', 'zoom', 'teams', 'teamviewer','skypeforlinux','skype','anydesk'];
-    // students tend to download and start the app directly from the browser.. if we kill the browser we kill the app ???
-
-
-   
     /********************
      * L I N U X
      ****************************************/
     if (process.platform === 'linux') {
         
+       
+
+        appsToClose.forEach(app => {
+            childProcess.exec(`pgrep ${app} | xargs kill -9`, (error) => { }); // pgrep zum Finden der PID, dann kill zum Beenden des Prozesses
+        });
+
+
+
         //////////////
         // PLASMASHELL
         //////////////
 
-    
-        appsToClose.forEach(app => {
-            childProcess.exec(`pgrep ${app} | xargs kill -9`, (error) => { }); // pgrep zum Finden der PID, dann kill zum Beenden des Prozesses
+        // read and save current config
+        childProcess.execFile('kreadconfig5', ['--file', 'kwinrc', '--group', 'Desktops', '--key', 'Number'], (error, stdout, stderr) => {
+            if (error) {
+                log.error(`platformrestrictions @ enableRestrictions (kreadconfig): ${error.message}`);
+                configStore.linux.numberOfDesktops = 1
+                return;
+            }
+            configStore.linux.numberOfDesktops = stdout.trim();
         });
+
 
 
         
@@ -151,46 +161,33 @@ function enableRestrictions(winhandler){
 
         //we probably should do it the "windows - way" and just kill gnomeshell for as long as the exam-mode is active
         //but it seems there is no convenient way to kill gnome-shell without all applications started on top of it 
+         // for gnome3 we need to set every key individually => reset will obviously set defaults (so we may mess up customized shortcuts here)
+        // possible fix: instead of set > reset we could use get - set - set.. first get the current bindings and store them - then set to nothing - then set to previous setting
         
-
-
-
         try {
-            // for gnome3 we need to set every key individually => reset will obviously set defaults (so we may mess up customized shortcuts here)
-            // possible fix: instead of set > reset we could use get - set - set.. first get the current bindings and store them - then set to nothing - then set to previous setting
             for (let binding of gnomeKeybindings){
                 childProcess.execFile('gsettings', ['set' ,'org.gnome.desktop.wm.keybindings', `${binding}`, `['']`])
             }
-
-            //disable ttys ? 
             for (let binding of gnomeWaylandKeybindings){
                 childProcess.execFile('gsettings', ['set' ,'org.gnome.mutter.wayland.keybindings', `${binding}`, `['']`])
             }
-
-
             for (let binding of gnomeShellKeybindings){
                 childProcess.execFile('gsettings', ['set' ,'org.gnome.shell.keybindings', `${binding}`, `['']`])
             }
-
             for (let binding of gnomeMutterKeybindings){
                 childProcess.execFile('gsettings', ['set' ,'org.gnome.mutter.keybindings', `${binding}`, `['']`])
             }
-
             for (let binding of gnomeDashToDockKeybindings){  // we could use gsettings reset-recursively org.gnome.shell to reset everything
                 childProcess.execFile('gsettings', ['set' ,'org.gnome.shell.extensions.dash-to-dock', `${binding}`, `['']`])
             }
 
-            childProcess.execFile('gsettings', ['set' ,'org.gnome.mutter', `overlay-key`, `''`])
-            
-            // deactivate multiple desktops
-            childProcess.exec('gsettings set org.gnome.mutter dynamic-workspaces false')
-            childProcess.exec('gsettings set org.gnome.desktop.wm.preferences num-workspaces 1')
+            childProcess.execFile('gsettings', ['set' ,'org.gnome.mutter', `overlay-key`, `''`])  // kind of the menu key
+            childProcess.exec('gsettings set org.gnome.mutter dynamic-workspaces false')  // deactivate multiple desktops
+            childProcess.exec('gsettings set org.gnome.desktop.wm.preferences num-workspaces 1')  
         }
         catch(err){
             log.error(`platformrestrictions @ enableRestrictions (gsettings): ${err}`);
         }
-
-
 
         // clear clipboard gnome and x11  (this will fail unless xclip or xsell are installed)
         childProcess.exec('xclip -i /dev/null')
@@ -201,34 +198,36 @@ function enableRestrictions(winhandler){
 
 
 
+
+
+
+
     /**
      *  W I N D O W S
      */
     if (process.platform === 'win32') {
 
-    try {    
-        //block important keyboard shortcuts (disable-shortcuts.exe is a selfmade C application - shortcuts are hardcoded there - need to rebuild if adding shortcuts)
-        let executable1 = join(__dirname, '../../public/disable-shortcuts.exe')
-        childProcess.execFile(executable1, [], { detached: true, shell: false, windowsHide: true}, (error, stdout, stderr) => {
-            if (error)  {  
-                log.error(`platformrestrictions @ enableRestrictions (win): ${error}`);
-            }
-        })
-        log.info("platformrestrictions @ enableRestrictions: windows shortcuts disabled")
+        try {    
+            //block important keyboard shortcuts (disable-shortcuts.exe is a selfmade C application - shortcuts are hardcoded there - need to rebuild if adding shortcuts)
+            let executable1 = join(__dirname, '../../public/disable-shortcuts.exe')
+            childProcess.execFile(executable1, [], { detached: true, shell: false, windowsHide: true}, (error, stdout, stderr) => {
+                if (error)  {  
+                    log.error(`platformrestrictions @ enableRestrictions (win): ${error}`);
+                }
+            })
+            log.info("platformrestrictions @ enableRestrictions: windows shortcuts disabled")
 
-        //clear clipboard - stop copy before and paste after examstart
-        let executable0 = join(__dirname, '../../public/clear-clipboard.bat')
-        childProcess.execFile(executable0, [], (error, stdout, stderr) => {
-            if (error)  {  
-                log.error(`platformrestrictions @ enableRestrictions (win): ${error}`);
-            }
-        })
-    }
-    catch (err){
-        log.error(`platformrestrictions @ enableRestrictions (win): ${err}`);
-    }
-
-
+            //clear clipboard - stop copy before and paste after examstart
+            let executable0 = join(__dirname, '../../public/clear-clipboard.bat')
+            childProcess.execFile(executable0, [], (error, stdout, stderr) => {
+                if (error)  {  
+                    log.error(`platformrestrictions @ enableRestrictions (win): ${error}`);
+                }
+            })
+        }
+        catch (err){
+            log.error(`platformrestrictions @ enableRestrictions (win): ${err}`);
+        }
 
         // kill windowsbutton and swipe gestures - kill everything else
         childProcess.exec('taskkill /f /im explorer.exe', (error, stdout, stderr) => {
@@ -246,12 +245,10 @@ function enableRestrictions(winhandler){
           
             });
         });
-
-
-
-
-
     }
+
+
+
 
 
 
@@ -302,9 +299,7 @@ function enableRestrictions(winhandler){
 
 
 function disableRestrictions(){
-    
     if (config.development) {return}
-
     log.info("removing restrictions...")
 
     clipboardInterval.stop()
@@ -315,7 +310,6 @@ function disableRestrictions(){
     // disable global keyboardshortcuts on PLASMA/KDE
     if (process.platform === 'linux') {
 
-       
         // on wayland
         childProcess.execFile('wl-copy', ['-c'])
         // clear clipboard gnome and x11  (this will fail unless xclip or xsell are installed)
@@ -329,8 +323,6 @@ function disableRestrictions(){
         //childProcess.exec('kwin --replace &')
 
 
-        
-   
         childProcess.exec('echo $XDG_CURRENT_DESKTOP', (error, stdout, stderr) => {
             if (error) {
               console.error(`exec error: ${error}`);
@@ -348,12 +340,12 @@ function disableRestrictions(){
                 childProcess.exec('kstart5 kglobalaccel5&')
                 // enable meta key, kwin and restart plasmashell
                 childProcess.execFile('kwriteconfig5', ['--file',`${config.homedirectory}/.config/kwinrc`,'--group','ModifierOnlyShortcuts','--key','Meta','--delete']) 
+                childProcess.execFile('kwriteconfig5', ['--file',`kwinrc`,'--group','Desktops','--key','Number',configStore.linux.numberOfDesktops])  //add previous virtual desktops
+
                 childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
                 childProcess.exec('kstart5 plasmashell&')
             } 
         });
-
-
 
 
         // reset specific shortcuts GNOME
@@ -369,8 +361,8 @@ function disableRestrictions(){
         for (let binding of gnomeDashToDockKeybindings){
             childProcess.execFile('gsettings', ['reset' ,'org.gnome.shell.extensions.dash-to-dock', `${binding}`])
         }
-
         childProcess.execFile('gsettings', ['reset' ,'org.gnome.mutter', `overlay-key`])
+
     }
 
 
@@ -411,11 +403,6 @@ function disableRestrictions(){
             }
         });
 
-
-
-
-
-
         //clear clipboard - stop keeping screenshots of exam in clipboard
         let executable0 = join(__dirname, '../../public/clear-clipboard.bat')
         childProcess.execFile(executable0, [], (error, stdout, stderr) => {
@@ -423,7 +410,6 @@ function disableRestrictions(){
             if (error) { log.info(error) }
         })
     }
-
 
     // TODO: undo restrictions mac (currently only touchbar which should be reset once we close next-exam)
 }

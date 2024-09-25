@@ -180,27 +180,26 @@
             <span><h5 style="display: inline">{{ $t('dashboard.extendedsettings') }}</h5></span>
             
             <div class="form-check form-switch  m-1 mb-2">
-                <input v-model=serverstatus.groups @click="setupGroups()" checked=false class="form-check-input" type="checkbox" id="activategroups">
+                <input v-model=serverstatus.groups @click="setupGroups()" :title="$t('dashboard.groupinfo')" checked=false class="form-check-input" type="checkbox" id="activategroups">
                 <label class="form-check-label">{{$t('dashboard.groups')}}   </label><br>
             </div>
             <div v-if="config.bipIntegration" class="form-check form-switch  m-1 mb-2" >
-                <input v-model=serverstatus.requireBiP @click="activateBiP()" :title="$t('control.biprequired')" checked=false class="form-check-input" type="checkbox" id="activatebip">
+                <input v-model=serverstatus.requireBiP :title="$t('control.biprequired')" checked=false class="form-check-input" type="checkbox" id="activatebip">
                 <label class="form-check-label">{{$t('dashboard.bildungsportal')}}   </label><br>
             </div>
 
             <div class="form-check form-switch  m-1 mb-2" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledexam':''">
-                <input  @click="setAbgabeInterval()" v-model="autoabgabe" class="form-check-input" type="checkbox" id="autoabgabe">
+                <input  @click="setAbgabeInterval()" v-model="autoabgabe" :title="$t('dashboard.abgabeautoquestion')" class="form-check-input" type="checkbox" id="autoabgabe">
                 <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
                 <span v-if="autoabgabe" class="text-black-50">|{{ abgabeintervalPause }}min</span>
             </div>
             <div class="form-check form-switch  m-1 mb-2">
-                <input v-if="serverstatus.screenshotinterval > 0" @change="toggleScreenshot()" @click="setScreenshotInterval()" checked class="form-check-input" type="checkbox" id="screenshotinterval">
-                <input v-if="serverstatus.screenshotinterval == 0" @change="toggleScreenshot()" @click="setScreenshotInterval()" class="form-check-input" type="checkbox" id="screenshotinterval">
+                <input @click="setScreenshotInterval()" v-model="autoscreenshot" :title="$t('dashboard.screenshotquestion')"  class="form-check-input" type="checkbox" id="screenshotinterval">
                 <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.screenshot')}}</label>
                 <span v-if="serverstatus.screenshotinterval > 0" class="text-black-50">|{{ serverstatus.screenshotinterval }}s</span>
             </div>
             <div class="form-check form-switch  m-1 mb-2">
-                <input v-model=directPrintAllowed @click="checkforDefaultprinter()" checked=false class="form-check-input" type="checkbox" id="directprint">
+                <input v-model=directPrintAllowed @click="checkforDefaultprinter()" :title="$t('dashboard.allowdirectprint')" checked=false class="form-check-input" type="checkbox" id="directprint">
                 <label class="form-check-label">{{$t('dashboard.directprint')}}   </label><br>
                 <div v-if="defaultPrinter" class="ellipsis text-black-50"> {{ defaultPrinter }}</div>
                 <div v-if="!defaultPrinter" class="ellipsis text-black-50"> kein Drucker gewählt</div>
@@ -232,7 +231,9 @@
    
     <div :key="7" id="content" class="fadeinslow p-3">
         <!-- control buttons start -->        
-        <div v-if="(serverstatus.exammode)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:128px; height:62px;" @click="endExam();hideDescription();"  @mouseover="showDescription($t('dashboard.exitkiosk'))" @mouseout="hideDescription"  >                                                                                                                                         <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" width="28" height="28" style="vertical-align: top;"> <div style="display:inline-block; margin-top:4px; margin-left:4px; width:60px; font-size:0.8em;"> {{numberOfConnections}} {{$t('dashboard.stopexam')}} </div></div>
+        <div v-if="(serverstatus.exammode && numberOfConnections == 1)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:128px; height:62px;" @click="endExam();hideDescription();"  @mouseover="showDescription($t('dashboard.exitkiosk'))" @mouseout="hideDescription"  >                                                                                                                                         <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" width="28" height="28" style="vertical-align: top;"> <div style="display:inline-block; margin-top:4px; margin-left:4px; width:60px; font-size:0.8em;"> {{numberOfConnections}} {{$t('dashboard.stopexamsingle')}} </div></div>
+        <div v-if="(serverstatus.exammode && numberOfConnections != 1)" class="btn btn-danger m-1 mt-0 text-start ms-0 " style="width:128px; height:62px;" @click="endExam();hideDescription();"  @mouseover="showDescription($t('dashboard.exitkiosk'))" @mouseout="hideDescription"  >                                                                                                                                         <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" width="28" height="28" style="vertical-align: top;"> <div style="display:inline-block; margin-top:4px; margin-left:4px; width:60px; font-size:0.8em;"> {{numberOfConnections}} {{$t('dashboard.stopexam')}} </div></div>
+
         <div v-if="(!serverstatus.exammode)" class="btn btn-teal m-1 mt-0 text-start ms-0"  @click="startExam();hideDescription();"  @mouseover="showDescription($t('dashboard.startexamdesc'))" @mouseout="hideDescription" :class="(serverstatus.examtype === 'microsoft365' && (!this.config.accessToken || !serverstatus.msOfficeFile))? 'disabledgreen':''" style="width:128px; height:62px;">  <img src="/src/assets/img/svg/shield-lock.svg" class="white mt-2" width="28" height="28" style="vertical-align: top;"> <div style="display:inline-block; margin-top:4px; margin-left:4px; width:60px; font-size:0.8em;"> {{numberOfConnections}} {{$t('dashboard.startexam')}}</div></div>
         <div class="btn btn-cyan m-1 mt-0 text-start ms-0" @click="sendFiles('all');hideDescription();"   @mouseover="showDescription($t('dashboard.sendfile'))" @mouseout="hideDescription"  style="width:62px; height:62px;"><img src="/src/assets/img/svg/document-send.svg" class="mt-2" width="32" height="32"></div>
         <div class="btn btn-cyan m-1 mt-0 text-start ms-0" @click="getFiles('all', true);hideDescription();"  @mouseover="showDescription($t('dashboard.getfile'))" @mouseout="hideDescription"  :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms'|| serverstatus.examtype === 'website')? 'disabledblue':''"  style="width:62px; height:62px;" ><img src="/src/assets/img/svg/edit-download.svg" class="mt-2" width="32" height="32"></div>
@@ -298,7 +299,7 @@ import { VueDraggableNext } from 'vue-draggable-next'
 import { uploadselect, onedriveUpload, onedriveUploadSingle, uploadAndShareFile, createSharingLink, fileExistsInAppFolder, downloadFilesFromOneDrive} from '../msalutils/onedrive'
 import { handleDragEndItem, handleMoveItem, sortStudentWidgets, initializeStudentwidgets} from '../utils/dragndrop'
 import { loadFilelist, print, getLatest, getLatestFromStudent,  loadImage, loadPDF, dashboardExplorerSendFile, downloadFile, showWorkfolder, fdelete,  openLatestFolder } from '../utils/filemanager'
-import { activateSpellcheckForStudent, delfolderquestion, stopserver, toggleScreenshot, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, setAbgabeInterval } from '../utils/exammanagement.js'
+import { activateSpellcheckForStudent, delfolderquestion, stopserver, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, setAbgabeInterval } from '../utils/exammanagement.js'
 import { v4 as uuidv4 } from 'uuid'
 import {SchedulerService} from '../utils/schedulerservice.js'
 
@@ -339,6 +340,7 @@ export default {
             now : null,
             files: null,
             autoabgabe: true,
+            autoscreenshot: true,
             activestudent: null,
             localfiles: null,
             currentpreview: null,
@@ -430,7 +432,6 @@ export default {
         restore: restore,                            //restore focus state for specific student -- we tell the client that his status is restored which will then (on the next update) update it's focus state on the server 
         setAbgabeInterval:setAbgabeInterval,         // set abgabe interval
         getFiles:getFiles,                           // get finished exams (ABGABE) from students
-        toggleScreenshot:toggleScreenshot,           //this just keeps the state of the toggle
         setScreenshotInterval:setScreenshotInterval, //sets a new screenshot update interval - the value is sent to the students and then used to update the screenshots
         lockscreens:lockscreens,                     // temporarily lock screens
         sendFiles:sendFiles,                         //upload files to all students
@@ -964,31 +965,6 @@ export default {
             })    
         },
 
-        activateBiP(){
-            this.$swal.fire({
-                title: "Bildungsportal",
-                icon: 'info',
-                text: 'Dies erzwingt die Authentifizierung der Schüler:innen durch das Bildungsportal.',
-                showCancelButton: true,
-                cancelButtonText: this.$t("dashboard.cancel"),
-                confirmButtonText:  this.$t("dashboard.Activate"),
-                reverseButtons: true,
-          
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    console.log(this.serverstatus)
-                    this.serverstatus.requireBiP = true
-                    document.getElementById('activatebip').checked = true
-                    this.setServerStatus()
-                }
-                else {
-                    this.serverstatus.requireBiP = false
-                    document.getElementById('activatebip').checked = false
-                    console.log(this.serverstatus)
-                    this.setServerStatus()
-                }
-            })    
-        },
 
         truncatedClientName(value, len=18) {
             if (!value) return
@@ -1202,6 +1178,7 @@ export default {
            
             await this.sleep(200)  //the transition setting is set to .3s
             document.getElementById("setupoverlay").style.display = "none";
+            this.setServerStatus()
         },
         async showSetup(){
             this.availablePrinters = await ipcRenderer.invoke("getprinters")

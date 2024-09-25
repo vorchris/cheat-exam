@@ -55,6 +55,7 @@
         "getfile": "Fetch Work of all students",
         "getfileSingle": "Fetch Work",
         "stopexam": "Release devices",
+        "stopexamsingle": "Release device",
         "sure": "Are you sure?",
         "exitexamsure": "Close Exam Server?",
         "exitexam": "This kills the connection to all students \nDid you backup everything?",
@@ -149,6 +150,7 @@
         "audiorepeat2": "repetitions",
         "bildungsportal": "Bildungsportal",
         "groups":"activate groups",
+        "groupinfo": "Divide students in two groups",
         "extendedsettings": "Extended Settings"
     },
     "control": {

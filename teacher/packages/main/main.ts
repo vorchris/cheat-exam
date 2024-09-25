@@ -58,6 +58,8 @@ if (!app.requestSingleInstanceLock()) {
     process.exit(0)
 }
 
+ // Optionale zusätzliche Kontrolle über Konsolenfehler
+app.commandLine.appendSwitch('log-level', '3'); // 3 = WARN, 2 = ERROR, 1 = INFO
 
 // hide certificate warnings in console.. we know we use a self signed cert and do not validate it
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";

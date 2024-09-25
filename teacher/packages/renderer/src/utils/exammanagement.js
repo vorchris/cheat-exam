@@ -196,21 +196,29 @@ function getFiles(who='all', feedback=false, quiet=false){
 
  //sets a new screenshot update interval - the value is sent to the students and then used to update the screenshots
  function setScreenshotInterval(){
+    if (this.autoscreenshot) { 
+        console.log("deactivating screenshots");
+        this.serverstatus.screenshotinterval = 0
+        this.serverstatus.screenshotocr = false
+        this.autoscreenshot = false
+        this.setServerStatus()
+        return 
+    }
     this.$swal.fire({
         title: this.$t("dashboard.screenshottitle"),
         icon: 'question',
         input: 'range',
-        html: `${this.$t("dashboard.screenshotquestion")} <br>  ${this.$t("dashboard.screenshothint")}
+        html: `${this.$t("dashboard.screenshotquestion")}
         <br><br>
         <input class="form-check-input" type="checkbox" id="screenshotocr">
-        <label class="form-check-label" for="screenshotocer"> ${this.$t("dashboard.ocr")} </label> <br>
+        <label class="form-check-label" for="screenshotocr"> ${this.$t("dashboard.ocr")} </label> <br>
         `,
         inputAttributes: {
-            min: 0,
+            min: 2,
             max: 60,
             step: 2
         },
-        inputValue: this.serverstatus.screenshotinterval,
+        inputValue: 2,
         didOpen: () => {
             document.getElementById('screenshotocr').checked =  this.serverstatus.screenshotocr
         },
@@ -218,15 +226,15 @@ function getFiles(who='all', feedback=false, quiet=false){
         const inputInteger = parseInt(result.value, 10); // Convert to integer
         this.serverstatus.screenshotinterval = inputInteger
         this.serverstatus.screenshotocr = document.getElementById('screenshotocr').checked;
+        
 
-        if (!this.serverstatus.screenshotinterval || !Number.isInteger(this.serverstatus.screenshotinterval)){
+        if (!this.serverstatus.screenshotinterval || !Number.isInteger(this.serverstatus.screenshotinterval)){  // catch quirks
             console.log("deactivating screenshots");
             this.serverstatus.screenshotinterval = 0
+            this.autoscreenshot = false
             this.serverstatus.screenshotocr = false
         }
 
-        if (this.serverstatus.screenshotinterval == 0) { document.getElementById("screenshotinterval").checked = false }
-        else { document.getElementById("screenshotinterval").checked = true}
 
         // WRITE screenshotinterval serverstatus ojbect so it can be retrieved on the next student update 
         this.setServerStatus()
@@ -341,13 +349,6 @@ function sendFiles(who) {
         .then( (response) => {log.info("exmmmanagment @ sendFiles:", response.data) })
         .catch( err =>{ log.error(`${err}`) })
     });    
-}
-
-
-//this just keeps the state of the toggle
-function toggleScreenshot(){
-    if (this.screenshotinterval == 0) { document.getElementById("screenshotinterval").checked = false }
-    else { document.getElementById("screenshotinterval").checked = true}
 }
 
 
@@ -494,4 +495,4 @@ async function activateSpellcheckForStudent(token, clientname){
 
 
 
-export {activateSpellcheckForStudent, delfolderquestion, stopserver, toggleScreenshot, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, setAbgabeInterval  }
+export {activateSpellcheckForStudent, delfolderquestion, stopserver, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, setAbgabeInterval  }
