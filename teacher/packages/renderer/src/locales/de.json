@@ -151,7 +151,8 @@
         "bildungsportal": "Bildungsportal",
         "groups": "Gruppen aktivieren",
         "groupinfo": "Schüler:innen in zwei Gruppen aufteilen",
-        "extendedsettings": "Erweiterte Einstellungen"
+        "extendedsettings": "Erweiterte Einstellungen",
+        "save": "speichern"
     },
     "control": {
         "tokennotvalid": "Das Token ist ungültig",

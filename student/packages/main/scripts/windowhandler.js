@@ -20,11 +20,13 @@
 import { app, BrowserWindow, BrowserView, dialog, screen} from 'electron'
 import { join } from 'path'
 import childProcess from 'child_process' 
-import screenshot from 'screenshot-desktop'
+import screenshot from 'screenshot-desktop-wayland'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
-import fs from 'fs' 
+
 import log from 'electron-log'
 import {SchedulerService} from './schedulerservice.ts'
+import { activeWindow } from 'get-windows';
+
 
 const __dirname = import.meta.dirname;
 
@@ -574,9 +576,11 @@ class WindowHandler {
                 this.examwindow.focus()
                 this.addBlurListener()
                 
-                this.checkWindowInterval.start() //checks if the active window is next-exam (introduces exceptions for windows)
+                if (!this.isWayland){
+                    this.checkWindowInterval.start() //checks if the active window is next-exam (introduces exceptions for windows)
+                }
             }
-            // this.checkWindowInterval.start()
+            // if (!this.isWayland){ this.checkWindowInterval.start() }
             // this.addBlurListener() // just for dev purposes in order to test blur
 
         })
@@ -773,28 +777,23 @@ class WindowHandler {
      */
 
 
-    async getActiveWindow() {
 
-        let activewinPath = "active-win"
-        if (app.isPackaged) { activewinPath = join(process.resourcesPath, 'app.asar.unpacked', 'node_modules', 'active-win', 'index.js') }
-
-        const getwin = await import(activewinPath);  // https://www.npmjs.com/package/get-windows
-        return getwin;
+    isWayland(){
+        return process.env.XDG_SESSION_TYPE === 'wayland'; 
     }
-
 
     // this function uses active-win to receive name and url from active window - yet another way to figure out if the focus is still on nextexam
     // this is used to introduce exemptions for the blur listener
     // (downgraded from get-windows because of napi v9 issue) https://github.com/sindresorhus/get-windows/issues/186
     async windowTracker(){
         try{
-            const getwin = await this.getActiveWindow();
-            const activeWindow = await getwin.default()
-            
-            if (activeWindow && activeWindow.owner && activeWindow.owner.name) {
-                let name = activeWindow.owner.name
-                let wpath = activeWindow.owner.path
-               
+            // const getwin = await this.getActiveWindow();
+            const activeWin = await activeWindow()
+         
+            if (activeWin && activeWin.owner && activeWin.owner.name) {
+                let name = activeWin.owner.name
+                let wpath = activeWin.owner.path
+         
                 if (name.includes("exam") || name.includes("next")  || name.includes("Electron")|| name.includes("electron") ||  wpath.includes("EaseOfAccessDialog")  ){  
                     // fokus is on allowed window instance
                     this.focusTargetAllowed = true
@@ -844,9 +843,11 @@ class WindowHandler {
     async blurevent(winhandler) { 
 
         log.info("windowhandler @ blurevent: student tried to leave exam window")
-        await this.windowTracker()  //checks if new focus window is allowed
-        log.info("windowtracker check done...")
-        
+
+        if (!this.isWayland){
+            await this.windowTracker()  //checks if new focus window is allowed
+            log.info("windowtracker check done...")
+        }
         if (winhandler.screenlockwindows.length > 0) { return }// do nothing if screenlockwindow stole focus // do not trigger an infinite loop between exam window and screenlock window (stealing each others focus)
         if (winhandler.focusTargetAllowed){ 
             winhandler.examwindow.moveTop();

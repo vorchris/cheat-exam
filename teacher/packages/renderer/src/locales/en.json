@@ -151,7 +151,8 @@
         "bildungsportal": "Bildungsportal",
         "groups":"activate groups",
         "groupinfo": "Divide students in two groups",
-        "extendedsettings": "Extended Settings"
+        "extendedsettings": "Extended Settings",
+        "save": "speichern"
     },
     "control": {
         "tokennotvalid": "token is not valid",

@@ -21,7 +21,7 @@ import fs from 'fs'
 import crypto from 'crypto';
 import archiver from 'archiver'   // das macht krasseste racecoditions mit electron eigenen versionen - unbedingt die selbe version behalten wie electron
 import extract from 'extract-zip'
-import screenshot from 'screenshot-desktop'
+import screenshot from 'screenshot-desktop-wayland'
 import { join } from 'path'
 import { screen, ipcMain } from 'electron'
 import WindowHandler from './windowhandler.js'
