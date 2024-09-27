@@ -172,7 +172,6 @@
         "moment": "^2.30.1",
         "node-forge": "^1.3.1",
         "node-notifier": "^10.0.1",
-        "node-prevent-sleep": "^0.0.4",
         "os": "^0.1.2",
         "pdf-lib": "^1.17.1",
         "pdf-parse": "^1.1.1",

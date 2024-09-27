@@ -103,11 +103,6 @@ app.whenReady().then(()=>{
     if (config.hostip == "127.0.0.1") { config.hostip = false }
     if (config.hostip) { multicastClient.init(config.gateway)  } //multicast client only tracks other exam instances on the net
     powerSaveBlocker.start('prevent-display-sleep')
-    
-    if (process.platform === 'win32') {
-        const preventSleep = require('node-prevent-sleep')
-        preventSleep.enable();
-    }
   
     app.commandLine.appendSwitch('allow-file-access-from-files');
     app.commandLine.appendSwitch('user-data-dir', config.workdirectory);
