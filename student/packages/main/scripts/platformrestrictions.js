@@ -208,45 +208,53 @@ function enableRestrictions(winhandler){
      *  W I N D O W S
      */
     if (process.platform === 'win32') {
-
+            
+        //block important keyboard shortcuts (disable-shortcuts.exe is a selfmade C application - shortcuts are hardcoded there - need to rebuild if adding shortcuts)
         try {    
-            //block important keyboard shortcuts (disable-shortcuts.exe is a selfmade C application - shortcuts are hardcoded there - need to rebuild if adding shortcuts)
-            let executable1 = join(__dirname, '../../public/disable-shortcuts.exe')
+            let executable1 = join(__dirname, '../../../public/disable-shortcuts.exe')
             childProcess.execFile(executable1, [], { detached: true, shell: false, windowsHide: true}, (error, stdout, stderr) => {
                 if (error)  {  
                     log.error(`platformrestrictions @ enableRestrictions (win shortcuts): ${error.message}`);
                 }
             })
             log.info("platformrestrictions @ enableRestrictions: windows shortcuts disabled")
+        } catch (err){log.error(`platformrestrictions @ enableRestrictions (win shortcuts): ${err}`);}
+        
 
-            //clear clipboard - stop copy before and paste after examstart
-            let executable0 = join(__dirname, '../../public/clear-clipboard.bat')
+
+        //clear clipboard - stop copy before and paste after examstart
+        try {
+            let executable0 = join(__dirname, '../../../public/clear-clipboard.bat')
             childProcess.execFile(executable0, [], (error, stdout, stderr) => {
                 if (error)  {  
                     log.error(`platformrestrictions @ enableRestrictions (win clipboard): ${error.message}`);
                 }
             })
-        }
-        catch (err){
-            log.error(`platformrestrictions @ enableRestrictions (win): ${err}`);
-        }
+        } catch (err){log.error(`platformrestrictions @ enableRestrictions (win clipboard): ${err}`);}
+       
 
         // kill windowsbutton and swipe gestures - kill everything else
-        childProcess.exec('taskkill /f /im explorer.exe', (error, stdout, stderr) => {
-            if (error) {
-              log.error(`platformrestrictions @ enableRestrictions (win explorer): ${error.message}`);
-              return;
-            }
-            log.info(`stdout: ${stdout}`);
-           
-        });
-
-        appsToClose.forEach(app => {
-            // taskkill-Befehl für Windows
-            childProcess.exec(`taskkill /F /IM "${app}.exe" /T`, (error, stderr, stdout) => {
-          
+        try {
+            childProcess.exec('taskkill /f /im explorer.exe', (error, stdout, stderr) => {
+                if (error) {
+                log.error(`platformrestrictions @ enableRestrictions (win explorer): ${error.message}`);
+                return;
+                }
+                log.info(`stdout: ${stdout}`);
+            
             });
-        });
+        } catch (err){log.error(`platformrestrictions @ enableRestrictions (win explorer): ${err}`);}
+
+
+        try {
+            appsToClose.forEach(app => {
+                // taskkill-Befehl für Windows
+                childProcess.exec(`taskkill /F /IM "${app}.exe" /T`, (error, stderr, stdout) => {
+            
+                });
+            });
+        } catch (err){log.error(`platformrestrictions @ enableRestrictions (win taskkill): ${err}`);}
+   
     }
 
 
@@ -374,43 +382,50 @@ function disableRestrictions(){
     if (process.platform === 'win32') {
         //unblock important keyboard shortcuts (disable-shortcuts.exe)
         log.info("platformrestrictions @ disableRestrictions (win): unblocking shortcuts...")
-        childProcess.exec(`taskkill /F /IM "disable-shortcuts.exe" /T`, (error, stderr, stdout) => { 
-            if (error) {
-                log.error(`platformrestrictions @ disableRestrictions (win disableshortcuts): ${error.message}`);
-                return;
-            }
-        });
-      
+        try { 
+            childProcess.exec(`taskkill /F /IM "disable-shortcuts.exe" /T`, (error, stderr, stdout) => { 
+                if (error) {
+                    log.error(`platformrestrictions @ disableRestrictions (win disableshortcuts): ${error.message}`);
+                    return;
+                }
+            });
+        }catch(e){log.error(`platformrestrictions @ disablerestrictions (win shortcuts): ${e.message}`)}
 
         // start explorer.exe windowsshell again
         // Überprüfe, ob explorer.exe läuft
-        childProcess.exec('tasklist /FI "IMAGENAME eq explorer.exe"', (error, stdout, stderr) => {
-            if (error) {
-                log.error(`tasklist error: ${error}`);
-                return;
-            }
+        try { 
+            childProcess.exec('tasklist /FI "IMAGENAME eq explorer.exe"', (error, stdout, stderr) => {
+                if (error) {
+                    log.error(`tasklist error: ${error}`);
+                    return;
+                }
 
-            // Prüfe, ob "explorer.exe" in der Ausgabe vorhanden ist
-            if (!stdout.includes('explorer.exe')) {
-                // Starte explorer.exe, wenn es nicht läuft
-                log.info("platformrestrictions @ disableRestrictions (win): restarting explorer...")
-                childProcess.exec('start explorer.exe', (error, stdout, stderr) => {
-                    if (error) {
-                        log.error(`platformrestrictions @ disableRestrictions (win explorer): ${error.message}`);
-                        return;
-                    }
-                    // log.info(`stdout: ${stdout}`);
-                    // log.error(`stderr: ${stderr}`);
-                });
-            }
-        });
+                // Prüfe, ob "explorer.exe" in der Ausgabe vorhanden ist
+                if (!stdout.includes('explorer.exe')) {
+                    // Starte explorer.exe, wenn es nicht läuft
+                    log.info("platformrestrictions @ disableRestrictions (win): restarting explorer...")
+                    childProcess.exec('start explorer.exe', (error, stdout, stderr) => {
+                        if (error) {
+                            log.error(`platformrestrictions @ disableRestrictions (win explorer): ${error.message}`);
+                            return;
+                        }
+                        // log.info(`stdout: ${stdout}`);
+                        // log.error(`stderr: ${stderr}`);
+                    });
+                }
+            });
+        }catch(e){log.error(`platformrestrictions @ disablerestrictions (win explorer): ${e.message}`)}
 
-        //clear clipboard - stop keeping screenshots of exam in clipboard
-        let executable0 = join(__dirname, '../../public/clear-clipboard.bat')
-        childProcess.execFile(executable0, [], (error, stdout, stderr) => {
-            if (stderr) { log.info(stderr) }
-            if (error) { log.info(error) }
-        })
+
+        try{
+            //clear clipboard - stop keeping screenshots of exam in clipboard
+            let executable0 = join(__dirname, '../../public/clear-clipboard.bat')
+            childProcess.execFile(executable0, [], (error, stdout, stderr) => {
+                if (stderr) { log.info(stderr) }
+                if (error) { log.info(error) }
+            })
+        }catch(e){log.error(`platformrestrictions @ disablerestrictions (win clipboard): ${e.message}`)}
+
     }
 
     // TODO: undo restrictions mac (currently only touchbar which should be reset once we close next-exam)
