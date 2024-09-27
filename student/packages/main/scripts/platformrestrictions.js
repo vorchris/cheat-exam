@@ -214,7 +214,7 @@ function enableRestrictions(winhandler){
             let executable1 = join(__dirname, '../../public/disable-shortcuts.exe')
             childProcess.execFile(executable1, [], { detached: true, shell: false, windowsHide: true}, (error, stdout, stderr) => {
                 if (error)  {  
-                    log.error(`platformrestrictions @ enableRestrictions (win): ${error}`);
+                    log.error(`platformrestrictions @ enableRestrictions (win shortcuts): ${error.message}`);
                 }
             })
             log.info("platformrestrictions @ enableRestrictions: windows shortcuts disabled")
@@ -223,7 +223,7 @@ function enableRestrictions(winhandler){
             let executable0 = join(__dirname, '../../public/clear-clipboard.bat')
             childProcess.execFile(executable0, [], (error, stdout, stderr) => {
                 if (error)  {  
-                    log.error(`platformrestrictions @ enableRestrictions (win): ${error}`);
+                    log.error(`platformrestrictions @ enableRestrictions (win clipboard): ${error.message}`);
                 }
             })
         }
@@ -234,7 +234,7 @@ function enableRestrictions(winhandler){
         // kill windowsbutton and swipe gestures - kill everything else
         childProcess.exec('taskkill /f /im explorer.exe', (error, stdout, stderr) => {
             if (error) {
-              log.error(`platformrestrictions @ enableRestrictions (win): ${error}`);
+              log.error(`platformrestrictions @ enableRestrictions (win explorer): ${error.message}`);
               return;
             }
             log.info(`stdout: ${stdout}`);
