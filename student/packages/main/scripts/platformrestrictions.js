@@ -108,13 +108,7 @@ function enableRestrictions(winhandler){
      ****************************************/
     if (process.platform === 'linux') {
         
-       
-
-        appsToClose.forEach(app => {
-            childProcess.exec(`pgrep ${app} | xargs kill -9`, (error) => { }); // pgrep zum Finden der PID, dann kill zum Beenden des Prozesses
-        });
-
-
+        appsToClose.forEach(app => { childProcess.exec(`pgrep ${app} | xargs kill -9`, (error) => { }); });  // pgrep zum Finden der PID, dann kill zum Beenden des Prozesses
 
         //////////////
         // PLASMASHELL
@@ -129,34 +123,18 @@ function enableRestrictions(winhandler){
             }
             configStore.linux.numberOfDesktops = stdout.trim();
         });
-
-
-
-        
         //disable META Key for Launchermenu
-        //childProcess.execFile('sed', ['-i', '-e', 's/global=Alt+F1/global=/g', `${config.homedirectory}/.config/plasma-org.kde.plasma.desktop-appletsrc` ])   // alt+f1 or f2 is translated by "kickoff" to meta/win/cmd shortcut (wtf)
-        //childProcess.execFile('qdbus', ['org.kde.plasmashell','/PlasmaShell','refreshCurrentShell'])    // i really dont like that but this is the fastest way i found to disable the windows/meta key
         childProcess.execFile('kwriteconfig5', ['--file',`${config.homedirectory}/.config/kwinrc`,'--group','ModifierOnlyShortcuts','--key','Meta','""']) 
         childProcess.execFile('kwriteconfig5', ['--file',`kwinrc`,'--group','Desktops','--key','Number','1'])  //remove virtual desktops
         childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','setCurrentDesktop','1'])
         childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
-        
-        //childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','replace'])
-        //childProcess.exec('kwin --replace &')
-
-        
         childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'true']) // Temporarily deactivate ALL global keyboardshortcuts 
         childProcess.execFile('qdbus', ['org.kde.KWin' ,'/Compositor', 'org.kde.kwin.Compositing.suspend'])   // Temporarily deactivate ALL 3d Effects (present window, change desktop, etc.) 
         childProcess.execFile('qdbus', ['org.kde.klipper' ,'/klipper', 'org.kde.klipper.klipper.clearClipboardHistory']) // Clear Clipboard history 
         childProcess.execFile('wl-copy', ['-c'])   // wayland
-
-
         childProcess.execFile('kquitapp5', ['kglobalaccel'])  // quitapp nees kglobalaccel while startapp needs kglobalaccel5
-
-      
         childProcess.execFile('killall', ['plasmashell'])
         
-
         //////////
         // GNOME
         ///////////
@@ -165,7 +143,6 @@ function enableRestrictions(winhandler){
         //but it seems there is no convenient way to kill gnome-shell without all applications started on top of it 
          // for gnome3 we need to set every key individually => reset will obviously set defaults (so we may mess up customized shortcuts here)
         // possible fix: instead of set > reset we could use get - set - set.. first get the current bindings and store them - then set to nothing - then set to previous setting
-        
         try {
             for (let binding of gnomeKeybindings){
                 childProcess.execFile('gsettings', ['set' ,'org.gnome.desktop.wm.keybindings', `${binding}`, `['']`])
@@ -182,14 +159,11 @@ function enableRestrictions(winhandler){
             for (let binding of gnomeDashToDockKeybindings){  // we could use gsettings reset-recursively org.gnome.shell to reset everything
                 childProcess.execFile('gsettings', ['set' ,'org.gnome.shell.extensions.dash-to-dock', `${binding}`, `['']`])
             }
-
             childProcess.execFile('gsettings', ['set' ,'org.gnome.mutter', `overlay-key`, `''`])  // kind of the menu key
             childProcess.exec('gsettings set org.gnome.mutter dynamic-workspaces false')  // deactivate multiple desktops
             childProcess.exec('gsettings set org.gnome.desktop.wm.preferences num-workspaces 1')  
         }
-        catch(err){
-            log.error(`platformrestrictions @ enableRestrictions (gsettings): ${err}`);
-        }
+        catch(err){ log.error(`platformrestrictions @ enableRestrictions (gsettings): ${err}`); }
 
         // clear clipboard gnome and x11  (this will fail unless xclip or xsell are installed)
         childProcess.exec('xclip -i /dev/null')
@@ -211,10 +185,13 @@ function enableRestrictions(winhandler){
             
         //block important keyboard shortcuts (disable-shortcuts.exe is a selfmade C application - shortcuts are hardcoded there - need to rebuild if adding shortcuts)
         try {    
-            let executable1 = join(__dirname, '../../../public/disable-shortcuts.exe')
+            let executable1 = join(__dirname, '../../public/disable-shortcuts.exe')
             childProcess.execFile(executable1, [], { detached: true, shell: false, windowsHide: true}, (error, stdout, stderr) => {
                 if (error)  {  
                     log.error(`platformrestrictions @ enableRestrictions (win shortcuts): ${error.message}`);
+                }
+                if (stderr)  {  
+                    log.error(`platformrestrictions @ enableRestrictions (win shortcuts): ${stderr}`);
                 }
             })
             log.info("platformrestrictions @ enableRestrictions: windows shortcuts disabled")
@@ -224,7 +201,7 @@ function enableRestrictions(winhandler){
 
         //clear clipboard - stop copy before and paste after examstart
         try {
-            let executable0 = join(__dirname, '../../../public/clear-clipboard.bat')
+            let executable0 = join(__dirname, '../../public/clear-clipboard.bat')
             childProcess.execFile(executable0, [], (error, stdout, stderr) => {
                 if (error)  {  
                     log.error(`platformrestrictions @ enableRestrictions (win clipboard): ${error.message}`);
@@ -233,17 +210,6 @@ function enableRestrictions(winhandler){
         } catch (err){log.error(`platformrestrictions @ enableRestrictions (win clipboard): ${err}`);}
        
 
-        // kill windowsbutton and swipe gestures - kill everything else
-        try {
-            childProcess.exec('taskkill /f /im explorer.exe', (error, stdout, stderr) => {
-                if (error) {
-                log.error(`platformrestrictions @ enableRestrictions (win explorer): ${error.message}`);
-                return;
-                }
-                log.info(`stdout: ${stdout}`);
-            
-            });
-        } catch (err){log.error(`platformrestrictions @ enableRestrictions (win explorer): ${err}`);}
 
 
         try {
@@ -254,7 +220,19 @@ function enableRestrictions(winhandler){
                 });
             });
         } catch (err){log.error(`platformrestrictions @ enableRestrictions (win taskkill): ${err}`);}
-   
+          
+
+        // kill EXPLORER windowsbutton and swipe gestures - kill everything else
+        try {
+            childProcess.exec('taskkill /f /im explorer.exe', (error, stdout, stderr) => {
+                if (error) {
+                log.error(`platformrestrictions @ enableRestrictions (win explorer): ${error.message}`);
+                return;
+                }
+                log.info(`stdout: ${stdout}`);
+            
+            });
+        } catch (err){log.error(`platformrestrictions @ enableRestrictions (win explorer): ${err}`);}
     }
 
 
@@ -385,11 +363,11 @@ function disableRestrictions(){
         try { 
             childProcess.exec(`taskkill /F /IM "disable-shortcuts.exe" /T`, (error, stderr, stdout) => { 
                 if (error) {
-                    log.error(`platformrestrictions @ disableRestrictions (win disableshortcuts): ${error.message}`);
+                    log.error(`platformrestrictions @ disableRestrictions (win enableshortcuts): ${error.message}`);
                     return;
                 }
             });
-        }catch(e){log.error(`platformrestrictions @ disablerestrictions (win shortcuts): ${e.message}`)}
+        }catch(e){log.error(`platformrestrictions @ disablerestrictions (win enableshortcuts): ${e.message}`)}
 
         // start explorer.exe windowsshell again
         // Überprüfe, ob explorer.exe läuft
