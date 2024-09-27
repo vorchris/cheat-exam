@@ -376,7 +376,7 @@ function disableRestrictions(){
         log.info("platformrestrictions @ disableRestrictions (win): unblocking shortcuts...")
         childProcess.exec(`taskkill /F /IM "disable-shortcuts.exe" /T`, (error, stderr, stdout) => { 
             if (error) {
-                log.error(`platformrestrictions @ disableRestrictions (win): ${error}`);
+                log.error(`platformrestrictions @ disableRestrictions (win disableshortcuts): ${error.message}`);
                 return;
             }
         });
@@ -396,7 +396,7 @@ function disableRestrictions(){
                 log.info("platformrestrictions @ disableRestrictions (win): restarting explorer...")
                 childProcess.exec('start explorer.exe', (error, stdout, stderr) => {
                     if (error) {
-                        log.error(`platformrestrictions @ disableRestrictions (win): ${error}`);
+                        log.error(`platformrestrictions @ disableRestrictions (win explorer): ${error.message}`);
                         return;
                     }
                     // log.info(`stdout: ${stdout}`);
