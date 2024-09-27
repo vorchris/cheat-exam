@@ -56,8 +56,14 @@ if (!fs.existsSync(desktopPath)) {  fs.mkdirSync(desktopPath, { recursive: true 
 // Define the path for the symbolic link
 const linkPath = path.join(desktopPath, config.serverdirectory);
 // Create the symbolic link
-if (!fs.existsSync(linkPath)) { fs.symlinkSync(config.workdirectory, linkPath, 'junction'); }
+try {
+    fs.unlinkSync(linkPath); 
+    if (!fs.existsSync(linkPath)) { fs.symlinkSync(config.workdirectory, linkPath, 'junction'); }
 
+}
+catch(e){
+    log.error("main: can't create symlink")
+}
 
 
 
