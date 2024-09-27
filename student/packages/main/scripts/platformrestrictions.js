@@ -102,7 +102,6 @@ function enableRestrictions(winhandler){
     clipboardInterval.start()
 
 
-
     /********************
      * L I N U X
      ****************************************/
@@ -180,34 +179,34 @@ function enableRestrictions(winhandler){
 
     /**
      *  W I N D O W S
-     */
+     ****************************************/
     if (process.platform === 'win32') {
             
         //block important keyboard shortcuts (disable-shortcuts.exe is a selfmade C application - shortcuts are hardcoded there - need to rebuild if adding shortcuts)
-        try {    
-            let executable1 = join(__dirname, '../../public/disable-shortcuts.exe')
-            childProcess.execFile(executable1, [], { detached: true, shell: false, windowsHide: true}, (error, stdout, stderr) => {
-                if (error)  {  
-                    log.error(`platformrestrictions @ enableRestrictions (win shortcuts): ${error.message}`);
-                }
-                if (stderr)  {  
-                    log.error(`platformrestrictions @ enableRestrictions (win shortcuts): ${stderr}`);
-                }
-            })
-            log.info("platformrestrictions @ enableRestrictions: windows shortcuts disabled")
-        } catch (err){log.error(`platformrestrictions @ enableRestrictions (win shortcuts): ${err}`);}
+        // try {    
+        //     let executable1 = join(__dirname, '../../public/disable-shortcuts.exe')
+        //     childProcess.execFile(executable1, [], { detached: true, shell: false, windowsHide: true}, (error, stdout, stderr) => {
+        //         if (error)  {  
+        //             log.error(`platformrestrictions @ enableRestrictions (win shortcuts): ${error.message}`);
+        //         }
+        //         if (stderr)  {  
+        //             log.error(`platformrestrictions @ enableRestrictions (win shortcuts): ${stderr}`);
+        //         }
+        //     })
+        //     log.info("platformrestrictions @ enableRestrictions: windows shortcuts disabled")
+        // } catch (err){log.error(`platformrestrictions @ enableRestrictions (win shortcuts): ${err}`);}
         
 
 
         //clear clipboard - stop copy before and paste after examstart
-        try {
-            let executable0 = join(__dirname, '../../public/clear-clipboard.bat')
-            childProcess.execFile(executable0, [], (error, stdout, stderr) => {
-                if (error)  {  
-                    log.error(`platformrestrictions @ enableRestrictions (win clipboard): ${error.message}`);
-                }
-            })
-        } catch (err){log.error(`platformrestrictions @ enableRestrictions (win clipboard): ${err}`);}
+        // try {
+        //     let executable0 = join(__dirname, '../../public/clear-clipboard.bat')
+        //     childProcess.execFile(executable0, [], (error, stdout, stderr) => {
+        //         if (error)  {  
+        //             log.error(`platformrestrictions @ enableRestrictions (win clipboard): ${error.message}`);
+        //         }
+        //     })
+        // } catch (err){log.error(`platformrestrictions @ enableRestrictions (win clipboard): ${err}`);}
        
 
 
@@ -238,13 +237,9 @@ function enableRestrictions(winhandler){
 
 
 
-
-
-
-
     /**
      * M A C O S  
-     */
+     ****************************************/
     if (process.platform === 'darwin') {
         const { TouchBarLabel, TouchBarButton, TouchBarSpacer } = TouchBar
         const textlabel = new TouchBarLabel({label: "Next-Exam"})
@@ -305,11 +300,9 @@ function disableRestrictions(){
         childProcess.exec('xclip -selection clipboard')
         childProcess.exec('xsel -bc')
 
-
         //enable META Key for Launchermenu
         //childProcess.execFile('sed', ['-i', '-e', 's/global=.*/global=Alt+F1/g', `${config.homedirectory}/.config/plasma-org.kde.plasma.desktop-appletsrc` ])
         //childProcess.exec('kwin --replace &')
-
 
         childProcess.exec('echo $XDG_CURRENT_DESKTOP', (error, stdout, stderr) => {
             if (error) {
@@ -317,9 +310,8 @@ function disableRestrictions(){
               return;
             }
             if (stdout.trim() === 'KDE') {
-
-                 // Clear Clipboard history 
-                 childProcess.execFile('qdbus', ['org.kde.klipper' ,'/klipper', 'org.kde.klipper.klipper.clearClipboardHistory'])
+                // Clear Clipboard history 
+                childProcess.execFile('qdbus', ['org.kde.klipper' ,'/klipper', 'org.kde.klipper.klipper.clearClipboardHistory'])
                 // reset all shortcuts KDE
                 childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'false'])
                 // activate ALL 3d Effects (present window, change desktop, etc.) 
@@ -359,15 +351,15 @@ function disableRestrictions(){
      */
     if (process.platform === 'win32') {
         //unblock important keyboard shortcuts (disable-shortcuts.exe)
-        log.info("platformrestrictions @ disableRestrictions (win): unblocking shortcuts...")
-        try { 
-            childProcess.exec(`taskkill /F /IM "disable-shortcuts.exe" /T`, (error, stderr, stdout) => { 
-                if (error) {
-                    log.error(`platformrestrictions @ disableRestrictions (win enableshortcuts): ${error.message}`);
-                    return;
-                }
-            });
-        }catch(e){log.error(`platformrestrictions @ disablerestrictions (win enableshortcuts): ${e.message}`)}
+        // log.info("platformrestrictions @ disableRestrictions (win): unblocking shortcuts...")
+        // try { 
+        //     childProcess.exec(`taskkill /F /IM "disable-shortcuts.exe" /T`, (error, stderr, stdout) => { 
+        //         if (error) {
+        //             log.error(`platformrestrictions @ disableRestrictions (win enableshortcuts): ${error.message}`);
+        //             return;
+        //         }
+        //     });
+        // }catch(e){log.error(`platformrestrictions @ disablerestrictions (win enableshortcuts): ${e.message}`)}
 
         // start explorer.exe windowsshell again
         // Überprüfe, ob explorer.exe läuft
@@ -384,7 +376,7 @@ function disableRestrictions(){
                     log.info("platformrestrictions @ disableRestrictions (win): restarting explorer...")
                     childProcess.exec('start explorer.exe', (error, stdout, stderr) => {
                         if (error) {
-                            log.error(`platformrestrictions @ disableRestrictions (win explorer): ${error.message}`);
+                            log.error(`platformrestrictions @ disableRestrictions (start win explorer): ${error.message}`);
                             return;
                         }
                         // log.info(`stdout: ${stdout}`);
@@ -395,14 +387,14 @@ function disableRestrictions(){
         }catch(e){log.error(`platformrestrictions @ disablerestrictions (win explorer): ${e.message}`)}
 
 
-        try{
-            //clear clipboard - stop keeping screenshots of exam in clipboard
-            let executable0 = join(__dirname, '../../public/clear-clipboard.bat')
-            childProcess.execFile(executable0, [], (error, stdout, stderr) => {
-                if (stderr) { log.info(stderr) }
-                if (error) { log.info(error) }
-            })
-        }catch(e){log.error(`platformrestrictions @ disablerestrictions (win clipboard): ${e.message}`)}
+        // try{
+        //     //clear clipboard - stop keeping screenshots of exam in clipboard
+        //     let executable0 = join(__dirname, '../../public/clear-clipboard.bat')
+        //     childProcess.execFile(executable0, [], (error, stdout, stderr) => {
+        //         if (stderr) { log.info(stderr) }
+        //         if (error) { log.info(error) }
+        //     })
+        // }catch(e){log.error(`platformrestrictions @ disablerestrictions (win clipboard): ${e.message}`)}
 
     }
 
