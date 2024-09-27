@@ -28,7 +28,7 @@ import log from 'electron-log';
 import {disableRestrictions} from './platformrestrictions.js';
 import mammoth from 'mammoth';
 
-
+const __dirname = import.meta.dirname;
 
   ////////////////////////////////
  // IPC handling (Backend) START

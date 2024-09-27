@@ -74,8 +74,8 @@
             "splashImage": "public/splash.bmp"
         },
         "msi": {
-            "perMachine": true,           
-            "upgradeCode": "77234b48-9292-4b75-acfe-e5645ad97c46" 
+            "perMachine": true,
+            "upgradeCode": "77234b48-9292-4b75-acfe-e5645ad97c46"
         },
         "win": {
             "icon": "public/icons/icon.ico",
@@ -111,6 +111,7 @@
     },
     "devDependencies": {
         "@intlify/unplugin-vue-i18n": "^5.0.0",
+        "@rollup/plugin-commonjs": "^28.0.0",
         "@types/jquery": "^3.5.30",
         "@types/screenshot-desktop": "^1.12.3",
         "@vitejs/plugin-vue": "^5.1.4",

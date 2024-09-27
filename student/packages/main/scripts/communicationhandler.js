@@ -33,6 +33,7 @@ import log from 'electron-log';
 import {SchedulerService} from './schedulerservice.ts'
 import Tesseract from 'tesseract.js';
 let TesseractWorker = false
+const __dirname = import.meta.dirname;
 
  /**
   * Handles information fetching from the server and acts on status updates

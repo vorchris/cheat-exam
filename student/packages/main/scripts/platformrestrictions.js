@@ -41,6 +41,8 @@ import config from '../config.js';
 import log from 'electron-log';
 import {SchedulerService} from './schedulerservice.ts'
 
+const __dirname = import.meta.dirname;
+
 // unfortunately there is no convenient way for gnome-shell to un-set ALL shortcuts at once
 const gnomeKeybindings = [  
     'activate-window-menu','maximize-horizontally','move-to-side-n','move-to-workspace-8','switch-applications','switch-to-workspace-3','switch-windows-backward',
