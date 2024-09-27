@@ -183,18 +183,18 @@ function enableRestrictions(winhandler){
     if (process.platform === 'win32') {
             
         //block important keyboard shortcuts (disable-shortcuts.exe is a selfmade C application - shortcuts are hardcoded there - need to rebuild if adding shortcuts)
-        // try {    
-        //     let executable1 = join(__dirname, '../../public/disable-shortcuts.exe')
-        //     childProcess.execFile(executable1, [], { detached: true, shell: false, windowsHide: true}, (error, stdout, stderr) => {
-        //         if (error)  {  
-        //             log.error(`platformrestrictions @ enableRestrictions (win shortcuts): ${error.message}`);
-        //         }
-        //         if (stderr)  {  
-        //             log.error(`platformrestrictions @ enableRestrictions (win shortcuts): ${stderr}`);
-        //         }
-        //     })
-        //     log.info("platformrestrictions @ enableRestrictions: windows shortcuts disabled")
-        // } catch (err){log.error(`platformrestrictions @ enableRestrictions (win shortcuts): ${err}`);}
+        try {    
+            let executable1 = join(__dirname, '../../public/disable-shortcuts.exe')
+            childProcess.execFile(executable1, [], { detached: true, shell: false, windowsHide: true}, (error, stdout, stderr) => {
+                if (error)  {  
+                    log.error(`platformrestrictions @ enableRestrictions (win shortcuts): ${error.message}`);
+                }
+                if (stderr)  {  
+                    log.error(`platformrestrictions @ enableRestrictions (win shortcuts): ${stderr}`);
+                }
+            })
+            log.info("platformrestrictions @ enableRestrictions: windows shortcuts disabled")
+        } catch (err){log.error(`platformrestrictions @ enableRestrictions (win shortcuts): ${err}`);}
         
 
 
@@ -350,16 +350,16 @@ function disableRestrictions(){
      *  W I N D O W S
      */
     if (process.platform === 'win32') {
-        //unblock important keyboard shortcuts (disable-shortcuts.exe)
-        // log.info("platformrestrictions @ disableRestrictions (win): unblocking shortcuts...")
-        // try { 
-        //     childProcess.exec(`taskkill /F /IM "disable-shortcuts.exe" /T`, (error, stderr, stdout) => { 
-        //         if (error) {
-        //             log.error(`platformrestrictions @ disableRestrictions (win enableshortcuts): ${error.message}`);
-        //             return;
-        //         }
-        //     });
-        // }catch(e){log.error(`platformrestrictions @ disablerestrictions (win enableshortcuts): ${e.message}`)}
+        // unblock important keyboard shortcuts (disable-shortcuts.exe)
+        log.info("platformrestrictions @ disableRestrictions (win): unblocking shortcuts...")
+        try { 
+            childProcess.exec(`taskkill  /IM "disable-shortcuts.exe" /T /F`, (error, stderr, stdout) => { 
+                if (error) {
+                    log.error(`platformrestrictions @ disableRestrictions (win enableshortcuts): ${error.message}`);
+                    return;
+                }
+            });
+        }catch(e){log.error(`platformrestrictions @ disablerestrictions (win enableshortcuts): ${e.message}`)}
 
         // start explorer.exe windowsshell again
         // Überprüfe, ob explorer.exe läuft
