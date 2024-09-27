@@ -178,5 +178,5 @@
         "vue-router": "^4.4.5",
         "vue-sweetalert2": "^5.0.11"
     },
-    "overrides": {}
+    "overrides": {"signal-exit": "3.0.7"}
 }
