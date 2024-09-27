@@ -192,8 +192,9 @@ function enableRestrictions(winhandler){
                 if (stderr)  {  
                     log.error(`platformrestrictions @ enableRestrictions (win shortcuts): ${stderr}`);
                 }
+                log.info("platformrestrictions @ enableRestrictions: windows shortcuts disabled")
             })
-            log.info("platformrestrictions @ enableRestrictions: windows shortcuts disabled")
+            
         } catch (err){log.error(`platformrestrictions @ enableRestrictions (win shortcuts): ${err}`);}
         
 
@@ -220,6 +221,22 @@ function enableRestrictions(winhandler){
             });
         } catch (err){log.error(`platformrestrictions @ enableRestrictions (win taskkill): ${err}`);}
           
+
+        // disable shortcuts probably sometimes fails because we kill explorer.exe first
+        // implement timeout here
+
+        // Starte disable-shortcuts.exe im detached Modus
+        // const subprocess = spawn('disable-shortcuts.exe', [], {
+        //     detached: true, // Startet den Prozess unabhängig
+        //     stdio: 'ignore' // Ignoriert alle Standard-I/O-Streams
+        //   });
+        
+        //   // Löst die Verbindung des subprocess vom Hauptprozess
+        //   subprocess.unref();
+
+
+
+
 
         // kill EXPLORER windowsbutton and swipe gestures - kill everything else
         try {
@@ -351,6 +368,8 @@ function disableRestrictions(){
      */
     if (process.platform === 'win32') {
         // unblock important keyboard shortcuts (disable-shortcuts.exe)
+        // hier gibt es irgendeine race condition oder abhängigkeit von explorer.exe.  einfach reihenfolge umkehren und ein timeout setzen
+
         log.info("platformrestrictions @ disableRestrictions (win): unblocking shortcuts...")
         try { 
             childProcess.exec(`taskkill  /IM "disable-shortcuts.exe" /T /F`, (error, stderr, stdout) => { 
