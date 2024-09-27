@@ -73,11 +73,21 @@
             "unpackDirName": "next-exam-teacher",
             "splashImage": "public/splash.bmp"
         },
+        "msi": {
+            "perMachine": true,           
+            "upgradeCode": "77234b48-9292-4b75-acfe-e5645ad97c46" 
+        },
         "win": {
             "icon": "public/icons/icon.ico",
             "target": [
                 {
                     "target": "portable",
+                    "arch": [
+                        "x64"
+                    ]
+                },
+                {
+                    "target": "msi",
                     "arch": [
                         "x64"
                     ]
