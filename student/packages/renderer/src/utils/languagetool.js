@@ -226,7 +226,7 @@ function isUnique(position, currentWord, allWords) {
 
 
 
-function LThighlightWords() {
+function LThighlightWordsOld() {
     if (!this.textContainer ||  (!this.serverstatus.languagetool && !this.privateSpellcheck.activated)){
         console.log(this.privateSpellcheck)
         this.LTdisable(); 
@@ -261,8 +261,53 @@ function LThighlightWords() {
     });
 }
     
+function LThighlightWords() {
+    if (!this.textContainer || (!this.serverstatus.languagetool && !this.privateSpellcheck.activated)) {
+        console.log(this.privateSpellcheck);
+        this.LTdisable(); 
+        return;
+    }
 
+    // Set canvas dimensions and position, adjusting for zoom
+    this.canvas.width = this.textContainer.offsetWidth * this.zoom 
+    this.canvas.height = this.textContainer.offsetHeight * this.zoom
+    this.canvas.style.width = this.textContainer.offsetWidth * this.zoom + 'px';
+    this.canvas.style.height = this.textContainer.offsetHeight * this.zoom + 'px';
+    this.canvas.style.top = this.textContainer.offsetTop * this.zoom+ 'px';
+    this.canvas.style.left = this.textContainer.offsetLeft * this.zoom+ 'px';
 
+    // Clear the previous highlights
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    // Filter out misspelled words without 'position' attribute
+    this.misspelledWords = this.misspelledWords.filter(word => word.hasOwnProperty('position') && word.position);
+
+    // Iterate over the misspelled words
+    this.misspelledWords.forEach(word => {
+        if (!word.position) return; // Skip if no position data available
+
+        let height = 3* this.zoom;
+        let translate = word.position.height;
+
+        // Check if the current word is the selected LanguageTool word
+        if (this.currentLTword && this.currentLTword.position && word.position.top === this.currentLTword.position.top) {
+            if (word === this.currentLTword) {
+                height = word.position.height + 3* this.zoom;
+                translate = 0;
+            }
+        }
+
+        // Adjust for zoom, scrolling, and container offset
+        const adjustedLeft = (word.position.left - this.textContainer.offsetLeft* this.zoom + window.scrollX) 
+        const adjustedTop = (word.position.top - this.textContainer.offsetTop* this.zoom + window.scrollY) 
+        const adjustedWidth = word.position.width 
+        const adjustedHeight = height 
+
+        // Set highlight color and draw the rectangle
+        this.ctx.fillStyle = word.color;
+        this.ctx.fillRect(adjustedLeft, adjustedTop + translate, adjustedWidth, adjustedHeight);
+    });
+}
 
 
 

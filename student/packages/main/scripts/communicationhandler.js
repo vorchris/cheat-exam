@@ -187,7 +187,7 @@ const __dirname = import.meta.dirname;
             if (this.screenshotAbility){   // "imagemagick" has to be installed for linux - wayland is not (yet) supported by imagemagick !!
                 img = await screenshot()   //grab "screenshot" with screenshot node module
                 .then( (res) => { this.screenshotFails=0; return res} )
-                .catch((err) => { this.screenshotFails+=1; if(this.screenshotFails > 4){ this.screenshotAbility=false;log.error(`requestUpdate Screenshot: switching to PageCapture`) } log.error(`requestUpdate Screenshot: ${err}`) });
+                .catch((err) => { this.screenshotFails+=1; if(this.screenshotFails > 4){ this.screenshotAbility=false;log.error(`communicationhandler @ sendScreenshot: switching to PageCapture`) } log.error(`communicationhandler @ sendScreenshot: ${err}`) });
             }
             else {
                 //grab "screenshot" from appwindow
@@ -257,7 +257,7 @@ const __dirname = import.meta.dirname;
                         body: JSON.stringify(payload),
                     })
                     .then(response => {
-                        if (!response.ok) { throw new Error('Network response was not ok');  }
+                        if (!response.ok) { throw new Error('communicationhandler @ sendScreenshot: Network response was not ok');  }
                         return response.json();
                     })
                     .then(data => {
@@ -267,11 +267,11 @@ const __dirname = import.meta.dirname;
                         log.error(`communicationhandler @ sendScreenshot: ${error}`);
                     });
                 } catch (error) {
-                    console.error('Error resizing image:', error);
+                    console.error('communicationhandler @ sendScreenshot: Error resizing image:', error);
                     throw error; // Fehler weitergeben für weitere Fehlerbehandlung
                 }
             } else {
-                log.error("Image is not a buffer:", img);
+                log.error("communicationhandler @ sendScreenshot: Image is not a buffer:", img);
             }
         }
     }

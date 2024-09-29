@@ -62,20 +62,13 @@ const desktopPath = process.platform === 'win32'
     : path.join(config.homedirectory, 'Desktop');
 
 
-// Check if the desktop folder exists and create if it doesn't
-if (!fs.existsSync(desktopPath)) {  fs.mkdirSync(desktopPath, { recursive: true }); }
-// Define the path for the symbolic link
-const linkPath = path.join(desktopPath, config.clientdirectory);
 
 // Create the symbolic link
-try {
-    fs.unlinkSync(linkPath); 
-    if (!fs.existsSync(linkPath)) { fs.symlinkSync(config.workdirectory, linkPath, 'junction'); }
-
-}
-catch(e){
-    log.error("main: can't create symlink")
-}
+if (!fs.existsSync(desktopPath)) {  fs.mkdirSync(desktopPath, { recursive: true }); }  // Check if the desktop folder exists and create if it doesn't
+const linkPath = path.join(desktopPath, config.clientdirectory);  // Define the path for the symbolic link
+try {fs.unlinkSync(linkPath) }catch(e){}
+try {   if (!fs.existsSync(linkPath)) { fs.symlinkSync(config.workdirectory, linkPath, 'junction'); }}
+catch(e){log.error("main: can't create symlink")}
 
 
 

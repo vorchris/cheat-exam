@@ -170,9 +170,9 @@
     <!-- EDITOR START -->
     <div v-if="!splitview" id="editormaincontainer" style="height: 100%; overflow-x:auto; overflow-y: scroll; background-color: #eeeefa;">
         <div id="editorcontainer" class="shadow" style="">
-            <editor-content :editor="editor" class='p-0' id="editorcontent" style="background-color: #fff; border-radius:0;" />
-            <canvas id="highlight-layer"></canvas>
+            <editor-content :editor="editor" class='p-0' id="editorcontent" style="background-color: #fff; border-radius:0;" /> 
         </div>
+        <canvas id="highlight-layer"></canvas>
     </div>
     <!-- EDITOR END -->
 
@@ -195,8 +195,9 @@
         <div id="editormaincontainer" style="min-width:230mm!important;padding:10px; overflow-x: auto !important; overflow-y: scroll !important; background-color: #eeeefa !important;">
             <div id="editorcontainer" class="shadow">
                 <editor-content :editor="editor" class="p-0" id="editorcontent" style="background-color: #fff !important; border-radius: 0 !important;" />
-                <canvas id="highlight-layer"></canvas>
+                
             </div>
+            <canvas id="highlight-layer"></canvas>
         </div>
     </div>
     <!-- SPLITVIEW END -->
@@ -1076,14 +1077,22 @@ export default {
         //switch from ovewlay pdf/jpg preview zu splitview mode
         async toggleSplitview(){
             this.splitview = !this.splitview;
+            this.zoom = 1
+            document.getElementById(`editorcontainer`).style.zoom = this.zoom
+            this.LTcheckAllWords();  //close lt
+
 
             if (this.splitview === false){
                 await this.sleep(1000) //wait for re-rendering of #preview div 
                 document.querySelector("#preview").addEventListener("click", this.hidepreview );
+                // update LThighlights positions on scroll - reset on repaint
+                document.getElementById('editormaincontainer').addEventListener('scroll', this.LTupdateHighlights, { passive: true });
             }
             if (this.splitview === true){
                 await this.sleep(1000) //wait for re-rendering of #preview div 
                 document.querySelector("#preview").removeEventListener("click", this.hidepreview );
+                // update LThighlights positions on scroll - reset on repaint
+                document.getElementById('editormaincontainer').addEventListener('scroll', this.LTupdateHighlights, { passive: true });
             }
         },
 
@@ -1850,9 +1859,14 @@ Other Styles
 /** LANGUAGE TOOL STYLES */
 #highlight-layer {
     position: absolute; 
-    top: 20px ;
-    left: 50% ;
-    width: var(--js-editorWidth) !important;
+    top: 0px ;
+    left: 0px ;
+   
+    margin-left: auto;
+    margin-right: auto;
+    zoom:1;
+   // width: var(--js-editorWidth) !important;
+    width: var(--js-editorWidth);
     min-height: 60vh;
     pointer-events: none;
 }
