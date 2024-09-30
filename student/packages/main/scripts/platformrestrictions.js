@@ -185,19 +185,11 @@ function enableRestrictions(winhandler){
         //block important keyboard shortcuts (disable-shortcuts.exe is a selfmade C application - shortcuts are hardcoded there - need to rebuild if adding shortcuts)
         try {    
             let executable1 = join(__dirname, '../../public/disable-shortcuts.exe')
-            childProcess.execFile(executable1, [], { detached: true, shell: false, windowsHide: true}, (error, stdout, stderr) => {
-                if (error)  {  
-                    log.error(`platformrestrictions @ enableRestrictions (win shortcuts): ${error.message}`);
-                }
-                if (stderr)  {  
-                    log.error(`platformrestrictions @ enableRestrictions (win shortcuts): ${stderr}`);
-                }
-                log.info("platformrestrictions @ enableRestrictions: windows shortcuts disabled")
-            })
-            
+            const subprocess = childProcess.spawn(executable1, [], { detached: true, stdio: 'ignore', shell: false, windowsHide: true})
+            log.info("platformrestrictions @ enableRestrictions: windows shortcuts disabled")
+            subprocess.unref();  //completely detach
         } catch (err){log.error(`platformrestrictions @ enableRestrictions (win shortcuts): ${err}`);}
         
-
 
         //clear clipboard - stop copy before and paste after examstart
         // try {
@@ -210,43 +202,21 @@ function enableRestrictions(winhandler){
         // } catch (err){log.error(`platformrestrictions @ enableRestrictions (win clipboard): ${err}`);}
        
 
-
-
         try {
             appsToClose.forEach(app => {
-                // taskkill-Befehl für Windows
-                childProcess.exec(`taskkill /F /IM "${app}.exe" /T`, (error, stderr, stdout) => {
-            
-                });
+                childProcess.exec(`taskkill /F /IM "${app}.exe" /T`, (error, stderr, stdout) => {}); // taskkill-Befehl für Windows
             });
         } catch (err){log.error(`platformrestrictions @ enableRestrictions (win taskkill): ${err}`);}
           
-
-        // disable shortcuts probably sometimes fails because we kill explorer.exe first
-        // implement timeout here
-
-        // Starte disable-shortcuts.exe im detached Modus
-        // const subprocess = spawn('disable-shortcuts.exe', [], {
-        //     detached: true, // Startet den Prozess unabhängig
-        //     stdio: 'ignore' // Ignoriert alle Standard-I/O-Streams
-        //   });
-        
-        //   // Löst die Verbindung des subprocess vom Hauptprozess
-        //   subprocess.unref();
-
-
-
-
 
         // kill EXPLORER windowsbutton and swipe gestures - kill everything else
         try {
             childProcess.exec('taskkill /f /im explorer.exe', (error, stdout, stderr) => {
                 if (error) {
-                log.error(`platformrestrictions @ enableRestrictions (win explorer): ${error.message}`);
-                return;
+                    log.error(`platformrestrictions @ enableRestrictions (win explorer): ${error.message}`);
+                    return;
                 }
                 log.info(`stdout: ${stdout}`);
-            
             });
         } catch (err){log.error(`platformrestrictions @ enableRestrictions (win explorer): ${err}`);}
     }
