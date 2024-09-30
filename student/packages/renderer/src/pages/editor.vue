@@ -1037,6 +1037,7 @@ export default {
             const { from, to } = this.editor.state.selection;
             const textInSelection = this.editor.state.doc.textBetween(from, to, ' ');
             this.selectedCharCount = textInSelection ? textInSelection.replace(/\s/g, '').length : 0;
+            this.selectedWordCount = textInSelection ? textInSelection.split(/\s+/).filter(Boolean).length : 0;
             return
         },
         // manual copy and paste because we disabled clipboard
@@ -1078,22 +1079,20 @@ export default {
         async toggleSplitview(){
             this.splitview = !this.splitview;
             this.zoom = 1
-            document.getElementById(`editorcontainer`).style.zoom = this.zoom
-            this.LTcheckAllWords();  //close lt
+            this.LTdisable();  //close lt
+            await this.sleep(1000) //wait for re-rendering of #preview div 
+         
+            
+            if (this.splitview === false){ document.querySelector("#preview").addEventListener("click", this.hidepreview );      }
+            if (this.splitview === true){  document.querySelector("#preview").removeEventListener("click", this.hidepreview );   }
+
+               // re-activate eventlisteners on repaint of the editor frame
+            document.getElementById(`editorcontainer`).style.zoom = this.zoom      
+            document.getElementById('editorcontent').addEventListener('mouseup',  this.getSelectedTextInfo );   // show amount of words and characters
+            document.getElementById('editorcontent').addEventListener('keydown', this.insertSpaceInsteadOfTab)   //this changes the tab behaviour and allows tabstops  
+            document.getElementById('editormaincontainer').addEventListener('scroll', this.LTupdateHighlights, { passive: true });
 
 
-            if (this.splitview === false){
-                await this.sleep(1000) //wait for re-rendering of #preview div 
-                document.querySelector("#preview").addEventListener("click", this.hidepreview );
-                // update LThighlights positions on scroll - reset on repaint
-                document.getElementById('editormaincontainer').addEventListener('scroll', this.LTupdateHighlights, { passive: true });
-            }
-            if (this.splitview === true){
-                await this.sleep(1000) //wait for re-rendering of #preview div 
-                document.querySelector("#preview").removeEventListener("click", this.hidepreview );
-                // update LThighlights positions on scroll - reset on repaint
-                document.getElementById('editormaincontainer').addEventListener('scroll', this.LTupdateHighlights, { passive: true });
-            }
         },
 
         hidepreview(){

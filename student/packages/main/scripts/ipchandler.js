@@ -73,7 +73,7 @@ class IpcHandler {
                 unlockonexit: false,
                 fontfamily: 'sans-serif',
                 moodleTestId: '',
-                languagetool: true,
+                languagetool: false,
                 password: args.password,
                 audioRepeat: 4
             }
