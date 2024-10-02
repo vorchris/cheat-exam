@@ -90,6 +90,7 @@ Im ersten Schritt wird hier, bis zur Implementierung im Client, immer nur Eintra
 * Im Array ```exam-instruction-files``` können mehrer Angabedateien im BiP hinterlegt werden, die an die Lernenden verteilt werden. In diesem Beispiel eine mp3-Datei für eine Hörverständnisüberprüfung.
 * TODO: Klärungsbedarf: Nachdem in der neuesten Version des Clients Gruppen möglich sind, stellt sich die Frage ob auch unterschiedliche Angaben pro Gruppe definierbar sein sollen?
 * TODO: Diskusion welche Features im ersten Schritt noch abgedeckt werden sollen.
+* TODO: Prüfungsübermittlung im Falle der Matura zu einem spätern Zeitpunkt definieren.
 
 ```javascript
 {
