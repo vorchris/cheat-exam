@@ -6,7 +6,7 @@ Jede:r Lehrer:in hat in BiP (Bildungsportal) die Möglichkeit seine Prüfungen z
 * Lehrperson
 * Teilnehmende
 ## Ablauf aus Sicht der Lehrperson
-### Vorbereitung
+### Vorbereitungen
 Die folgendne Schritte werden im BiP durchgeführt:
 1. Login im BiP
 2. Erstellen/Bearbeiten einer Prüfung
