@@ -10,11 +10,14 @@ Jede:r Lehrer:in hat in BiP (Bildungsportal) die Möglichkeit seine Prüfungen z
 Die folgendne Schritte werden im BiP durchgeführt:
 1. Login im BiP
 2. Erstellen/Bearbeiten einer Prüfung
+    * Modus->Regeln->Prüfungsdaten->Sicherheit
+      + Modi: Kurs, Sprachen, Mathe, M365, Google, Link, SRDP, RDP (Azure und Co.) 
     * Name der Prüfung
     * Datum und Uhrzeit des Beginns
     * Dauer
     * Auswahl der Teilnehmenden (Klassen oder einzelne Teilnehmende)
     * Prüfungskonfiguration
+    * Sitzplan kann erstellt werden
 3. Speichern
 ### Prüfungsdurchführung
 Die Durchführung der Prüfung erfolgt mit dem Next-Exam Teacher Programm.
@@ -27,6 +30,10 @@ Die Durchführung der Prüfung erfolgt mit dem Next-Exam Teacher Programm.
 5. Prüfung starten
 5. Kontrolle der Teilnehmenden
 6. Durchführung der Prüfung
+7. Lehrperson kann während der Prüfung ein Foto der Teilnehmenden machen (integrierte Kamera des Notebooks)
+### Wechsel der Aufsicht während der Prüfung
+* Im BIP können je Prüfung mehrere Lehrpersonen angegeben werden
+* Die aktuelle Aufsicht übergibt die Prüfung beim Wechsel an die nächste Lehrperson (über einen Button)
 ## Ablauf aus Sicht der Teilnehmenden
 ### Vorbereitung
 Für dies Rollen nicht notwendig. (solange kein Einschreib- bzw. Anmeldeprozess abgebildet werden soll. Solche Prozesse werden dann im BiP abgebildet.)
