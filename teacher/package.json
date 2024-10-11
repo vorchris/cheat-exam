@@ -49,13 +49,14 @@
             "artifactName": "${productName}_${version}_${arch}.${ext}",
             "hardenedRuntime": true,
             "gatekeeperAssess": false,
-            "entitlements": "entitlements.mac.plist",
-            "entitlementsInherit": "entitlements.mac.plist",
+            "entitlements": "scripts/entitlements.mac.plist",
+            "entitlementsInherit": "scripts/entitlements.mac.plist",
             "category": "public.app-category.utilities",
             "target": {
                 "target": "dmg",
                 "arch": [
-                    "universal"
+                    "x64",
+                    "arm64"
                 ]
             },
             "files": [
@@ -107,7 +108,7 @@
         }
     },
     "engines": {
-        "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
+        "node": ">=22.0.0"
     },
     "devDependencies": {
         "@intlify/unplugin-vue-i18n": "^5.0.0",
