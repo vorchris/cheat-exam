@@ -41,7 +41,7 @@ class JreHandler {
 
         // we obviously need a different jre installation for every plattform build... damn languagetool.. why java?
         switch (this._platform) {  
-            case 'darwin': this._platform = 'macosx'; this._driver = ['Contents', 'Home', 'bin', 'java']; break;
+            case 'darwin': this._platform = 'macosx'; this._driver = ['bin', 'java']; break;
             case 'win32': this._platform = 'windows'; this._driver = ['bin', 'javaw.exe']; break;
             case 'linux': this._driver = ['bin', 'java']; break;
             default:
