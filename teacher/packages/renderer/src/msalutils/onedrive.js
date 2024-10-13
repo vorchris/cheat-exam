@@ -183,12 +183,22 @@ async function createSharingLink(fileId){
         body: JSON.stringify(sharingData)
     })
     .then(response => response.json())
-    .catch(error => {log.error(error)});
+    .catch(error => { log.error(error) });
     
-    log.warn(sharingResponse)
 
     //if (!sharingResponse.link && sharingResponse.link.webUrl) {return false}
-    if (!sharingResponse.link) {return false}
+    if (!sharingResponse.link) {
+        log.warn(sharingResponse.error)
+        this.$swal.fire({
+            title: `Microsoft Onedrive API - ${sharingResponse.error.innerError.code}` ,
+            text: `${sharingResponse.error.message} Contact your Administrator!`,
+            icon: 'error',
+            timer: 5000,
+            showCancelButton: false,
+            didOpen: () => { this.$swal.showLoading(); },
+        })
+        return false
+    }
     const sharingLink = sharingResponse.link.webUrl;
     return sharingLink;
 }
