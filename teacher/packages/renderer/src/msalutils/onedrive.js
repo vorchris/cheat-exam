@@ -184,6 +184,8 @@ async function createSharingLink(fileId){
     })
     .then(response => response.json())
     .catch(error => {log.error(error)});
+    
+    log.warn(sharingResponse)
 
     //if (!sharingResponse.link && sharingResponse.link.webUrl) {return false}
     if (!sharingResponse.link) {return false}

@@ -219,8 +219,8 @@ const __dirname = import.meta.dirname;
                     const header = await sharp(resized).extract({ width: sWidth, height: 100, left: 0, top: 0 }).toBuffer();
                     const headerBase64 = header.toString('base64');
 
-              
-                    if ( this.multicastClient.clientinfo.exammode && this.multicastClient.clientinfo.screenshotocr && !this.config.development ){
+                    //to not run tesseract if already locked
+                    if ( this.multicastClient.clientinfo.exammode && this.multicastClient.clientinfo.screenshotocr && !this.config.development && this.multicastClient.clientinfo.focus){
                         try{
 
                             if (!TesseractWorker){

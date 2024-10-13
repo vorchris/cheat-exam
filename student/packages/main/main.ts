@@ -218,7 +218,7 @@ app.whenReady()
     globalShortcut.register('F5', () => {});  //reload page
     globalShortcut.register('CommandOrControl+Shift+R', () => {});
     globalShortcut.register('Alt+F4', () => {console.log("Alt+F4")});  //exit app
-      
+ 
     globalShortcut.register('CommandOrControl+W', () => {});
     globalShortcut.register('CommandOrControl+Q', () => {});  //quit
     globalShortcut.register('CommandOrControl+D', () => {});  //show desktop

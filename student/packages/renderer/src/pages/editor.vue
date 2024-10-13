@@ -1146,6 +1146,10 @@ export default {
                 editableDiv.blur()  // remove text cursor (carret)
             }  
         },
+        handleCtrlAlt(event) {
+            if (event.ctrlKey && event.altKey) { this.sendFocuslost();   }
+        },
+
         createEditor(){
             this.editor = new Editor({
                 extensions: [
@@ -1318,7 +1322,7 @@ export default {
 
         // block editor on escape
         document.body.addEventListener('mouseleave', this.sendFocuslost);
-
+        document.body.addEventListener('keydown', this.handleCtrlAlt);
 
     },
     beforeMount(){ },
@@ -1332,6 +1336,7 @@ export default {
 
         //document.removeEventListener('input', this.checkAllWordsOnSpacebar)
         document.body.removeEventListener('mouseleave', this.sendFocuslost);
+        document.body.removeEventListener('keydown', this.handleCtrlAlt);
 
         document.removeEventListener('click', this.hideSpellcheckMenu);
         this.editorcontentcontainer.removeEventListener('mouseup',  this.getSelectedTextInfo );
