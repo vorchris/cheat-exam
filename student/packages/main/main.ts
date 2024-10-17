@@ -192,7 +192,7 @@ app.whenReady()
     WindowHandler.createMainWindow()
 
     // Tray-Icon erstellen
-    const iconPath = path.join(__dirname, '../../public/icons','icon.png'); // Pfad zum Icon der App
+    const iconPath = path.join(__dirname, '../../public/icons','icon24x24.png'); // Pfad zum Icon der App
     tray = new Tray(iconPath);
     const contextMenu = Menu.buildFromTemplate([ 
         { label: 'Wiederherstellen', click: function () { WindowHandler.mainwindow.show(); }   },

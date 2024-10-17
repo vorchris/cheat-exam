@@ -47,6 +47,7 @@ const __dirname = import.meta.dirname;
         this.WindowHandler = null
         this.screenshotAbility = false
         this.screenshotFails = 0 // we count fails and deactivate on 4 consequent fails
+        this.firstCheckScreenshot = true
     }
  
     init (mc, config) {
@@ -211,6 +212,31 @@ const __dirname = import.meta.dirname;
                         .jpeg({ quality: 65, mozjpeg: true }) // Gewünschte JPEG-Qualität setzen
                         .toBuffer();
                     
+
+                    //MACOS WORKAROUND - switch to pagecapture if no permissons are granted
+                    if (process.platform === "darwin" && this.firstCheckScreenshot){  //this is for macOS because it delivers a blank background screenshot without permissions. we catch that case with a workaround
+                        this.firstCheckScreenshot = false   //never do this again
+                        try{
+                            if (!TesseractWorker){
+                                TesseractWorker = await Tesseract.createWorker('eng');
+                            }
+
+                            const { data: { text } }   = await Tesseract.recognize(img , 'eng' );
+                            let appWindowVisible = text.includes("Exam")
+                            console.log(text)
+        
+                            if (!appWindowVisible){
+                                this.screenshotAbility=false;
+                                log.error(`communicationhandler @ sendScreenshot: switching to PageCapture`)
+                                log.info("communicationhandler @ sendScreenshot (ocr): Student Screenshot does not fit requirements");
+                            }
+                        }
+                        catch(err){
+                            log.info(`communicationhandler @ sendScreenshot (ocr): ${err}`);
+                        }
+                    }
+
+
                     const screenshotBase64 = resized.toString('base64');
                     const screenshotfilename = this.multicastClient.clientinfo.token + ".jpg";
                     const hash = crypto.createHash('md5').update(resized).digest("hex");
