@@ -69,8 +69,8 @@
             "splashImage": "public/splash.bmp"
         },
         "msi": {
-            "perMachine": true,           
-            "upgradeCode": "95a8e931-7946-44c5-9a9c-ec31d1553b03" 
+            "perMachine": true,
+            "upgradeCode": "95a8e931-7946-44c5-9a9c-ec31d1553b03"
         },
         "win": {
             "icon": "public/icons/icon24x24.png",
@@ -188,5 +188,7 @@
         "vue-router": "^4.4.5",
         "vue-sweetalert2": "^5.0.11"
     },
-    "overrides": {"signal-exit": "3.0.7"}
+    "overrides": {
+        "signal-exit": "3.0.7"
+    }
 }
