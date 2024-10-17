@@ -268,7 +268,7 @@ const __dirname = import.meta.dirname;
                     });
                 } catch (error) {
                     console.error('communicationhandler @ sendScreenshot: Error resizing image:', error);
-                    throw error; // Fehler weitergeben für weitere Fehlerbehandlung
+                    //throw error; // Fehler weitergeben für weitere Fehlerbehandlung
                 }
             } else {
                 log.error("communicationhandler @ sendScreenshot: Image is not a buffer:", img);

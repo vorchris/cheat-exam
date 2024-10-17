@@ -1322,6 +1322,7 @@ export default {
 
         // block editor on escape
         document.body.addEventListener('mouseleave', this.sendFocuslost);
+        
         document.body.addEventListener('keydown', this.handleCtrlAlt);
 
     },

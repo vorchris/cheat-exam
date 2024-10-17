@@ -150,6 +150,7 @@ function LThandleMisspelled(backend, data){
 
 async function LTfindWordPositions() {
     if (!this.misspelledWords || !this.textContainer || this.misspelledWords.length === 0) {
+        this.LTinfo = "Keine Fehler gefunden"
         return [];
     }
 
