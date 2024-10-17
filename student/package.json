@@ -73,7 +73,7 @@
             "upgradeCode": "95a8e931-7946-44c5-9a9c-ec31d1553b03" 
         },
         "win": {
-            "icon": "public/icons/icon.ico",
+            "icon": "public/icons/icon24x24.png",
             "target": [
                 {
                     "target": "portable",
