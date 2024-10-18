@@ -35,7 +35,6 @@ import config from './config.js';
 import multicastClient from './scripts/multicastclient.js'
 import path from 'path'
 import fs from 'fs'
-
 import * as fsExtra from 'fs-extra';
 import os from 'os'
 import ip from 'ip'
@@ -247,11 +246,10 @@ app.whenReady()
 
 
 
-import psTree from 'ps-tree';
-import ps from 'ps-node';
+
 
 function checkParent() {
-    const parentPid = process.ppid;
+    const parentPid = process.ppid;  //parent pid des hauptprozesses festlegen für den start (next-exam.exe)
 
     findParentRecursively(parentPid, (err, foundBrowser) => {
         if (err) {
@@ -262,6 +260,15 @@ function checkParent() {
         if (foundBrowser) {
             log.warn('main @ checkparent: Die App wurde direkt aus einem Browser gestartet');
             log.info('main @ checkparent: Next-Exam wird beendet.');
+
+            dialog.showMessageBoxSync(WindowHandler.mainwindow, {
+                type: 'question',
+                buttons: ['OK'],
+                title: 'Programm beenden',
+                message: 'Unerlaubter Programmstart aus einem Webbrowser erkannt.\nNext-Exam wird beendet!',
+                cancelId: 1,
+            });
+
 
             WindowHandler.mainwindow.closetriggered = true;
             app.quit();
@@ -274,38 +281,25 @@ function checkParent() {
 function findParentRecursively(pid, callback) {
     const numericPid = parseInt(pid, 10);
     if (!numericPid || numericPid === 1) {
-        // Root-Prozess erreicht, kein Browser gefunden
         log.info('main @ findParentRecursively: Root-Prozess erreicht, kein Browser erkannt.');
         callback(null, false);
         return;
     }
 
     findParentCommand(numericPid, (err, parentCommand, parentPid) => {
-        if (err) {
-            log.error(`main @ findParentRecursively: Fehler beim Abrufen des Elternprozesses: ${err.message}`);
-            callback(err, null);
-            return;
-        }
+        if (err) { callback(err, null); return; }
 
         const browserKeywords = ['chrom', 'edge', 'fire', 'brave', 'opera'];
-        if (browserKeywords.some(browser => parentCommand.includes(browser))) {
-            log.info(`main @ findParentRecursively: Browser-Prozess erkannt: ${parentCommand}`);
-            callback(null, true);
-        } else {
-            log.info(`main @ findParentRecursively: Kein Browser erkannt, weiter mit Parent PID: ${parentPid}`);
-            // Weiter den Prozessbaum nach oben durchsuchen
-            findParentRecursively(parentPid, callback);
-        }
+
+        if (parentCommand.includes('explorer.exe')) {  callback(null, false); } //explorer.exe gefunden - reicht auf windows schon
+        else if (browserKeywords.some(browser => parentCommand.includes(browser))) { callback(null, true); } 
+        else {   findParentRecursively(parentPid, callback);  } // Weiter den Prozessbaum nach oben durchsuchen
     });
 }
 
 function findParentCommand(pid, callback) {
     ps.lookup({ pid: pid }, (err, resultList) => {
-        if (err) {
-            log.error(`main @ findParentCommand: Fehler beim Abrufen des Prozesses mit PID ${pid}: ${err.message}`);
-            callback(err, null, null);
-            return;
-        }
+        if (err) { callback(err, null, null); return; }
 
         if (resultList.length > 0) {
             const parentProcess = resultList[0];

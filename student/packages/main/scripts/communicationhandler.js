@@ -25,8 +25,8 @@ import screenshot from 'screenshot-desktop-wayland'
 import { join } from 'path'
 import { screen, ipcMain } from 'electron'
 import WindowHandler from './windowhandler.js'
-import { Image } from 'image-js';
-import { execSync } from 'child_process';
+//import { Image } from 'image-js';
+//import { execSync } from 'child_process';
 const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
 import log from 'electron-log';
 
@@ -34,6 +34,21 @@ import {SchedulerService} from './schedulerservice.ts'
 import Tesseract from 'tesseract.js';
 let TesseractWorker = false
 const __dirname = import.meta.dirname;
+
+
+
+let Image = null 
+async function loadImageJs() {
+    const { Image } = await import('image-js');  // Dynamischer Import
+    return Image;
+ }
+
+
+loadImageJs().then((image) => {
+   Image = image
+});
+
+
 
  /**
   * Handles information fetching from the server and acts on status updates
