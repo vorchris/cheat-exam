@@ -256,7 +256,9 @@ function checkParent() {
   
       // Alle Prozesse (inkl. Parent) in Kleinbuchstaben überprüfen
       const processCommands = children.map(child => child.COMMAND.toLowerCase());
-  
+      log.info('main @ checkparent: Alle gefundenen Prozesse:',processCommands );
+
+
       if (processCommands.some(command => command.includes('chrom') || command.includes('edge') || command.includes('fire') || command.includes('brave') || command.includes('opera'))) {
         log.warn('main @ checkparent: Die App wurde direkt aus einem Browser gestartet');
   
