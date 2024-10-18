@@ -28,7 +28,7 @@
         "asarUnpack": [
             "node_modules/screenshot-desktop-wayland/lib/win32",
             "public",
-            "node_modules/active-win/**/*"
+            "node_modules/get-windows/**/*"
         ],
         "directories": {
             "output": "../release/${version}"
