@@ -286,7 +286,7 @@ function checkParentOld(){
         const parentProcess = resultList[0];
         const parentCommand = parentProcess.command.toLowerCase();
 
-        console.log(parentCommand)
+        log.warn(`PARENT: ${parentCommand}`)
 
         // Überprüfe, ob der Elternprozess ein Browser ist
         if (parentCommand.includes('chrom') || parentCommand.includes('edge') || parentCommand.includes('fire') || parentCommand.includes('brave') || parentCommand.includes('opera')) {
