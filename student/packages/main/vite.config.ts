@@ -29,7 +29,7 @@ export default defineConfig({
     rollupOptions: {
       external: [
         'electron',
-        'image-js',
+        'image-js','fast-bmp','ml-regression-exponential', 'ml-regression-simple-linear',
         ...builtinModules,
         ...Object.keys(pkg.dependencies || {}),
       ],

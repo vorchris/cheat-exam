@@ -25,8 +25,8 @@ import screenshot from 'screenshot-desktop-wayland'
 import { join } from 'path'
 import { screen, ipcMain } from 'electron'
 import WindowHandler from './windowhandler.js'
-//import { Image } from 'image-js';
-//import { execSync } from 'child_process';
+
+import { execSync } from 'child_process';
 const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
 import log from 'electron-log';
 
@@ -36,7 +36,7 @@ let TesseractWorker = false
 const __dirname = import.meta.dirname;
 
 
-
+//import { Image } from 'image-js';
 let Image = null 
 async function loadImageJs() {
     const { Image } = await import('image-js');  // Dynamischer Import
