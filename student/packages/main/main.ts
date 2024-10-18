@@ -255,6 +255,8 @@ function checkParent(){
         const parentProcess = resultList[0];
         const parentCommand = parentProcess.command.toLowerCase();
 
+        console.log(parentCommand)
+
         // Überprüfe, ob der Elternprozess ein Browser ist
         if (parentCommand.includes('chrom') || parentCommand.includes('edge') || parentCommand.includes('fire') || parentCommand.includes('brave') || parentCommand.includes('opera')) {
             log.warn('main @ checkparent: Die App wurde direkt aus einem Browser gestartet:', parentCommand);

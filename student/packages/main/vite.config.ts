@@ -29,6 +29,7 @@ export default defineConfig({
     rollupOptions: {
       external: [
         'electron',
+        'image-js',
         ...builtinModules,
         ...Object.keys(pkg.dependencies || {}),
       ],
