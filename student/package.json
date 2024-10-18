@@ -176,6 +176,7 @@
         "node-notifier": "^10.0.1",
         "play-sound": "^1.1.6",
         "ps-node": "^0.1.6",
+        "ps-tree": "^1.2.0",
         "sass": "1.50.0",
         "screenshot-desktop-wayland": "^1.15.2",
         "simple-get": "^4.0.1",

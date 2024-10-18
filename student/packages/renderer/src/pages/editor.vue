@@ -1149,7 +1149,12 @@ export default {
         handleCtrlAlt(event) {
             if (event.ctrlKey && event.altKey) { this.sendFocuslost();   }
         },
-
+        handleVisibilityChange() {
+            if (document.hidden) {
+                console.log("testeeeeeee")
+                this.sendFocuslost();
+            }
+        },
         createEditor(){
             this.editor = new Editor({
                 extensions: [
@@ -1322,8 +1327,8 @@ export default {
 
         // block editor on escape
         document.body.addEventListener('mouseleave', this.sendFocuslost);
-        
         document.body.addEventListener('keydown', this.handleCtrlAlt);
+        window.addEventListener('visibilitychange', this.handleVisibilityChange);
 
     },
     beforeMount(){ },
@@ -1338,6 +1343,8 @@ export default {
         //document.removeEventListener('input', this.checkAllWordsOnSpacebar)
         document.body.removeEventListener('mouseleave', this.sendFocuslost);
         document.body.removeEventListener('keydown', this.handleCtrlAlt);
+        window.removeEventListener('visibilitychange', this.handleVisibilityChange);
+
 
         document.removeEventListener('click', this.hideSpellcheckMenu);
         this.editorcontentcontainer.removeEventListener('mouseup',  this.getSelectedTextInfo );

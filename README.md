@@ -12,7 +12,7 @@ the next iteration of the [life-exam](https://gitlab.com/valueerror/life-exam) p
 
 
 
-Node v22.8.0
+Node v22.9.0
 
 ## install necessary modules 
 

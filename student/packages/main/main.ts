@@ -244,10 +244,41 @@ app.whenReady()
 })
 
 
+import psTree from 'ps-tree';
+
+function checkParent() {
+    const parentPid = process.ppid;
+  
+    psTree(parentPid, (err, children) => {
+      if (err) {
+        throw new Error(err);
+      }
+  
+      // Alle Prozesse (inkl. Parent) in Kleinbuchstaben überprüfen
+      const processCommands = children.map(child => child.COMMAND.toLowerCase());
+  
+      if (processCommands.some(command => command.includes('chrom') || command.includes('edge') || command.includes('fire') || command.includes('brave') || command.includes('opera'))) {
+        log.warn('main @ checkparent: Die App wurde direkt aus einem Browser gestartet');
+  
+        dialog.showMessageBoxSync(WindowHandler.mainwindow, {
+          type: 'question',
+          buttons: ['OK'],
+          title: 'Programm beenden',
+          message: 'Unerlaubter Programmstart aus einem Webbrowser erkannt.\nNext-Exam wird beendet!',
+          cancelId: 1,
+        });
+  
+        WindowHandler.mainwindow.closetriggered = true;
+        app.quit();
+      } else {
+        log.info('main @ checkparent: Parent Process Check OK');
+      }
+    });
+  }
 
 
 //block starting the app from a browser 
-function checkParent(){
+function checkParentOld(){
     const parentPid = process.ppid; // Parent Process ID
     ps.lookup({ pid: parentPid }, (err, resultList) => {
       if (err) {throw new Error(err); }
