@@ -185,9 +185,9 @@ function enableRestrictions(winhandler){
         //block important keyboard shortcuts (disable-shortcuts.exe is a selfmade C application - shortcuts are hardcoded there - need to rebuild if adding shortcuts)
         try {    
             let executable1 = join(__dirname, '../../public/disable-shortcuts.exe')
-            const subprocess = childProcess.spawn(executable1, [], { detached: true, stdio: 'ignore', shell: false, windowsHide: true})
+            childProcess.execFile(executable1, [], { detached: true, stdio: 'ignore', shell: false, windowsHide: true})
             log.info("platformrestrictions @ enableRestrictions: windows shortcuts disabled")
-            subprocess.unref();  //completely detach
+            //subprocess.unref();  //completely detach
         } catch (err){log.error(`platformrestrictions @ enableRestrictions (win shortcuts): ${err}`);}
         
 

@@ -11,14 +11,17 @@ LRESULT CALLBACK HookProc(int nCode, WPARAM wParam, LPARAM lParam) {
            wParam == WM_SYSKEYDOWN || wParam == WM_SYSKEYUP);
 
     DWORD vkCode = ((KBDLLHOOKSTRUCT *)lParam)->vkCode;
+    KBDLLHOOKSTRUCT *pKeyBoard = (KBDLLHOOKSTRUCT *)lParam;
 
-    // If it's the Windows key or alt tab or something else
     if (vkCode == VK_LWIN || vkCode == VK_RWIN ||
-        (vkCode == VK_TAB && LLKHF_ALTDOWN) ||
-        (vkCode == VK_ESCAPE && LLKHF_ALTDOWN ) ||
-        (vkCode == VK_CONTROL && LLKHF_ALTDOWN && VK_DELETE) ||
-        (vkCode == VK_CONTROL && VK_MENU && VK_DELETE)
-        ) {
+        (vkCode == VK_TAB && (pKeyBoard->flags & LLKHF_ALTDOWN)) || // Alt + Tab
+        (vkCode == VK_ESCAPE &&
+         (pKeyBoard->flags & LLKHF_ALTDOWN)) || // Alt + Escape
+        ((vkCode == VK_CONTROL && (pKeyBoard->flags & LLKHF_ALTDOWN)) &&
+         vkCode == VK_DELETE) || // Ctrl + Alt + Delete
+        ((vkCode == VK_CONTROL && vkCode == VK_MENU &&
+          vkCode == VK_DELETE)) // Ctrl + Alt + Delete
+    ) {
 
       // Notify app
       if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
@@ -30,6 +33,7 @@ LRESULT CALLBACK HookProc(int nCode, WPARAM wParam, LPARAM lParam) {
       // Stop propagation
       return 1;
     }
+   
   }
 
   // Propagate the event
