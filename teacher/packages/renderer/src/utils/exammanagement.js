@@ -218,7 +218,7 @@ function getFiles(who='all', feedback=false, quiet=false){
             max: 60,
             step: 2
         },
-        inputValue: 2,
+        inputValue: 4,
         didOpen: () => {
             document.getElementById('screenshotocr').checked =  this.serverstatus.screenshotocr
         },

@@ -743,17 +743,17 @@ class WindowHandler {
                 
 
                 // attention ! das neue macos erlaubt auch ohne berechtiung screenshots aber diese beinhalten dann keine apps (sind quasi nur der background)
-                screenshot()   //grab "screenshot" with screenshot node module 
-                .then( (res) => { 
-                    log.info("screenshot allowed") 
-                 })
-                .catch((err) => {   
-                    log.error(`requestUpdate Screenshot: ${err}`) 
-                    let message = "Sie müssen die Berechtigungen zur Bildschirmaufnahme erteilen!"
-                    //childProcess.exec('tccutil reset ScreenCapture com.nextexam-student.app') 
-                    //childProcess.exec('tccutil reset ScreenCapture com.vscodium') 
-                    this.showExitWarning(message) 
-                });
+                // screenshot()   //grab "screenshot" with screenshot node module 
+                // .then( (res) => { 
+                //     log.info("screenshot allowed") 
+                //  })
+                // .catch((err) => {   
+                //     log.error(`requestUpdate Screenshot: ${err}`) 
+                //     let message = "Sie müssen die Berechtigungen zur Bildschirmaufnahme erteilen!"
+                //     //childProcess.exec('tccutil reset ScreenCapture com.nextexam-student.app') 
+                //     //childProcess.exec('tccutil reset ScreenCapture com.vscodium') 
+                //     this.showExitWarning(message) 
+                // });
             }
         })
     }

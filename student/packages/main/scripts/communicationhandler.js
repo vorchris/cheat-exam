@@ -25,7 +25,9 @@ import screenshot from 'screenshot-desktop-wayland'
 import { join } from 'path'
 import { screen, ipcMain } from 'electron'
 import WindowHandler from './windowhandler.js'
-import sharp from 'sharp'
+// import sharp from 'sharp'
+import { Image } from 'image-js';
+
 import { execSync } from 'child_process';
 const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
 import log from 'electron-log';
@@ -205,45 +207,45 @@ const __dirname = import.meta.dirname;
 
             if (Buffer.isBuffer(img)) {
                 try {
-                    let sWidth = 1440
-                    const resized = await sharp(img)
-                        .resize(sWidth) // Gewünschte Breite setzen; Höhe wird proportional skaliert
-                        .toFormat('jpeg')
-                        .jpeg({ quality: 65, mozjpeg: true }) // Gewünschte JPEG-Qualität setzen
-                        .toBuffer();
+                    let targetWidth = 1200
+
+                    const image = await Image.load(img); // Bild aus Buffer laden
                     
+                    //resize image first, convert the result to image buffer again and store
+                    const resizedImage = image.resize({ width: targetWidth }); // Breite auf 1440 setzen
+                    const resized = Buffer.from(resizedImage.toBuffer('image/jpeg', { quality: 65 })); // Buffer mit Qualität 65
+                    
+
+                    // now crop the resized image (to the topmost 100px) and convert the result to image buffer and store
+                    const imageHeader = image.crop({ x: 0, y: 0, width: 1000, height: 100 }); // Zuschneiden
+                    const header = Buffer.from(imageHeader.toBuffer('image/jpeg', { quality: 100 })); // Buffer mit Qualität 100
+                   
+
+                
 
                     //MACOS WORKAROUND - switch to pagecapture if no permissons are granted
                     if (process.platform === "darwin" && this.firstCheckScreenshot){  //this is for macOS because it delivers a blank background screenshot without permissions. we catch that case with a workaround
                         this.firstCheckScreenshot = false   //never do this again
                         try{
-                            if (!TesseractWorker){
-                                TesseractWorker = await Tesseract.createWorker('eng');
-                            }
-
+                            if (!TesseractWorker){ TesseractWorker = await Tesseract.createWorker('eng'); }
                             const { data: { text } }   = await Tesseract.recognize(img , 'eng' );
-                            let appWindowVisible = text.includes("Exam")
-                            console.log(text)
-        
+                            let appWindowVisible = text.includes("Exam")   //check if the word "Exam" can be found in screenshot - otherwise it is most likely a blank desktop - macos quirk
                             if (!appWindowVisible){
                                 this.screenshotAbility=false;
                                 log.error(`communicationhandler @ sendScreenshot: switching to PageCapture`)
                                 log.info("communicationhandler @ sendScreenshot (ocr): Student Screenshot does not fit requirements");
                             }
                         }
-                        catch(err){
-                            log.info(`communicationhandler @ sendScreenshot (ocr): ${err}`);
-                        }
+                        catch(err){  log.info(`communicationhandler @ sendScreenshot (ocr): ${err}`); }
                     }
 
-
+                    // prepare screenshot for transmission
                     const screenshotBase64 = resized.toString('base64');
                     const screenshotfilename = this.multicastClient.clientinfo.token + ".jpg";
                     const hash = crypto.createHash('md5').update(resized).digest("hex");
-                    
-                    // send the top 64 px (next-exam header) for OCR scan
-                    const header = await sharp(resized).extract({ width: sWidth, height: 100, left: 0, top: 0 }).toBuffer();
+                    // prepare to send the top 100 px (next-exam header) for OCR scan
                     const headerBase64 = header.toString('base64');
+
 
                     //to not run tesseract if already locked
                     if ( this.multicastClient.clientinfo.exammode && this.multicastClient.clientinfo.screenshotocr && !this.config.development && this.multicastClient.clientinfo.focus){
@@ -324,8 +326,10 @@ const __dirname = import.meta.dirname;
      * could also handle kick, focusrestore, and even trigger file requests
      */
     processUpdatedServerstatus(serverstatus, studentstatus){
-
+       
+        ///////////////////////////////
         // individual status updates
+
         if ( studentstatus && Object.keys(studentstatus).length !== 0) {  // we have status updates (tasks) - do it!
             if (studentstatus.printdenied) {
                 WindowHandler.examwindow.webContents.send('denied','toomany')   //trigger, why
@@ -364,19 +368,20 @@ const __dirname = import.meta.dirname;
                 }
                 if (WindowHandler.examwindow) {  WindowHandler.examwindow.webContents.send('loadfilelist');   }
             }
+
+
+            if (studentstatus.focus == false){
+                this.multicastClient.clientinfo.focus = false
+            }
+
             if (studentstatus.restorefocusstate === true){
                 log.info("communicationhandler @ processUpdatedServerstatus: restoring focus state for student")
                 this.multicastClient.clientinfo.focus = true
-                
                 if (WindowHandler.examwindow && !this.config.development){ 
                     WindowHandler.examwindow.setKiosk(true)
                     WindowHandler.examwindow.focus()
                 }
-
-               
-
             }
-           
             if (studentstatus.activatePrivateSpellcheck == true && this.multicastClient.clientinfo.privateSpellcheck.activated == false  ){
                 log.info("communicationhandler @ processUpdatedServerstatus: activating spellcheck for student")
                 this.multicastClient.clientinfo.privateSpellcheck.activate = true  //clientinfo.privateSpellcheck will be put on this.privateSpellcheck in editor updated via fetchInfo()
@@ -407,8 +412,12 @@ const __dirname = import.meta.dirname;
                 this.multicastClient.clientinfo.group = studentstatus.group  
             }
 
+        
+
         }
 
+
+        ////////////////////////////////
         // global status updates
         if (serverstatus.screenslocked && !this.multicastClient.clientinfo.screenlock) {  this.activateScreenlock() }
         else if (!serverstatus.screenslocked ) { this.killScreenlock() }

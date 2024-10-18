@@ -27,9 +27,7 @@
         "asarUnpack": [
             "node_modules/screenshot-desktop-wayland/lib/win32",
             "public",
-            "node_modules/sharp/**/*",
-            "node_modules/active-win/**/*",
-            "node_modules/@img/**/*"
+            "node_modules/active-win/**/*"
         ],
         "directories": {
             "output": "../release/${version}"
@@ -168,7 +166,9 @@
         "fs": "^0.0.1-security",
         "get-windows": "^9.2.0",
         "html2pdf-jspdf2": "^0.1.2",
+        "image-js": "^0.35.6",
         "ip": "^2.0.1",
+        "jimp": "^1.6.0",
         "lowlight": "^3.1.0",
         "mammoth": "^1.8.0",
         "moment-timezone": "^0.5.45",
@@ -179,7 +179,6 @@
         "ps-node": "^0.1.6",
         "sass": "1.50.0",
         "screenshot-desktop-wayland": "^1.15.2",
-        "sharp": "^0.33.5",
         "simple-get": "^4.0.1",
         "tesseract.js": "^5.1.1",
         "validator": "^13.12.0",

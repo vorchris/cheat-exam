@@ -791,6 +791,7 @@ router.post('/setstudentstatus/:servername/:csrfservertoken/:studenttoken', func
     student.status.printdenied = false 
     student.status.delfolder = false 
     student.status.sendexam = false // request only once
+    student.status.focus = true
     //student.status.activatePrivateSpellcheck = false   // activate only once - when student retrieved "studentstatus" we can reset some values of "student.status"
 
     // return current serverinformation to process on clientside
@@ -824,7 +825,7 @@ router.post('/updatescreenshot', async function (req, res, next) {
         if (hash === req.body.screenshothash) {
             student.imageurl = 'data:image/jpeg;base64,' + screenshotBase64; // oder 'data:image/png;base64,' je nach tatsächlichem Bildformat  
             
-            if (mcServer.serverstatus.exammode && mcServer.serverstatus.screenshotocr){
+            if (mcServer.serverstatus.exammode && mcServer.serverstatus.screenshotocr && !student.status.restorefocusstate){
                 try{
                     const header = req.body.header.split(';base64,').pop();
                     const headerimageBuffer = Buffer.from(header, 'base64');
@@ -837,7 +838,8 @@ router.post('/updatescreenshot', async function (req, res, next) {
                     let pincodeVisible = text.includes(mcServer.serverinfo.pin)
 
                     if (!pincodeVisible){
-                        student.focus = pincodeVisible
+                        student.focus = pincodeVisible  // this is the local student object for the frontend
+                        student.status.focus = pincodeVisible  // this sets the studentstatus object which is fetched on every update - the students react on this
                         log.info("control @ updatescreenshot (ocr): Student Screenshot does not include Exam PIN");
                     }
                 }

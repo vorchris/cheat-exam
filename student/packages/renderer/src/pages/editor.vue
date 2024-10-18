@@ -1624,6 +1624,7 @@ Other Styles
   position: absolute;
   top: 50%;
   left: 50%;
+  margin-top: 30px;
   transform: translate(-50%, -50%);
   display: flex;
   align-items: flex-start;
