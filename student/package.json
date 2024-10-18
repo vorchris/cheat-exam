@@ -13,9 +13,9 @@
     "type": "module",
     "scripts": {
         "dev": "node scripts/watch.mjs",
-        "build": "node scripts/build.mjs && electron-builder -l",
-        "build:mac": "node scripts/build.mjs && electron-builder -m",
-        "build:win": "node scripts/build.mjs && electron-builder -w"
+        "build": "npm run clean && node scripts/build.mjs && electron-builder -l",
+        "build:mac": "npm run clean && node scripts/build.mjs && electron-builder -m",
+        "build:win": "npm run clean && node scripts/build.mjs && electron-builder -w"
     },
     "build": {
         "productName": "Next-Exam-Student",
