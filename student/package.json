@@ -168,7 +168,6 @@
         "html2pdf-jspdf2": "^0.1.2",
         "image-js": "^0.35.6",
         "ip": "^2.0.1",
-        "jimp": "^1.6.0",
         "lowlight": "^3.1.0",
         "mammoth": "^1.8.0",
         "moment-timezone": "^0.5.45",

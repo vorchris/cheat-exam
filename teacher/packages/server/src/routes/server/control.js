@@ -825,6 +825,7 @@ router.post('/updatescreenshot', async function (req, res, next) {
         if (hash === req.body.screenshothash) {
             student.imageurl = 'data:image/jpeg;base64,' + screenshotBase64; // oder 'data:image/png;base64,' je nach tatsächlichem Bildformat  
             
+            // only scan screenshot in exam mode and NOT if a restoring/unlocking operation is already in process (otherwise it will lock the unlocked again)
             if (mcServer.serverstatus.exammode && mcServer.serverstatus.screenshotocr && !student.status.restorefocusstate){
                 try{
                     const header = req.body.header.split(';base64,').pop();
@@ -833,7 +834,6 @@ router.post('/updatescreenshot', async function (req, res, next) {
                         TesseractWorker = await Tesseract.createWorker('eng');
                     }
                      
-
                     const { data: { text } }  = await TesseractWorker.recognize(headerimageBuffer);
                     let pincodeVisible = text.includes(mcServer.serverinfo.pin)
 
@@ -843,13 +843,8 @@ router.post('/updatescreenshot', async function (req, res, next) {
                         log.info("control @ updatescreenshot (ocr): Student Screenshot does not include Exam PIN");
                     }
                 }
-                catch(err){
-                    log.info(`control @ updatescreenshot (ocr): ${err}`);
-                }
-                
+                catch(err){ log.info(`control @ updatescreenshot (ocr): ${err}`); }
             }
-
-   
 
             if (!student.focus) { // Archiviere Screenshot, wenn Student nicht fokussiert ist
                 log.info("control @ updatescreenshot: Student out of focus - securing screenshots");

@@ -25,9 +25,7 @@ import screenshot from 'screenshot-desktop-wayland'
 import { join } from 'path'
 import { screen, ipcMain } from 'electron'
 import WindowHandler from './windowhandler.js'
-// import sharp from 'sharp'
 import { Image } from 'image-js';
-
 import { execSync } from 'child_process';
 const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
 import log from 'electron-log';
@@ -208,20 +206,16 @@ const __dirname = import.meta.dirname;
             if (Buffer.isBuffer(img)) {
                 try {
                     let targetWidth = 1200
-
                     const image = await Image.load(img); // Bild aus Buffer laden
-                    
+            
                     //resize image first, convert the result to image buffer again and store
                     const resizedImage = image.resize({ width: targetWidth }); // Breite auf 1440 setzen
                     const resized = Buffer.from(resizedImage.toBuffer('image/jpeg', { quality: 65 })); // Buffer mit Qualität 65
-                    
-
+            
                     // now crop the resized image (to the topmost 100px) and convert the result to image buffer and store
                     const imageHeader = image.crop({ x: 0, y: 0, width: 1000, height: 100 }); // Zuschneiden
                     const header = Buffer.from(imageHeader.toBuffer('image/jpeg', { quality: 100 })); // Buffer mit Qualität 100
                    
-
-                
 
                     //MACOS WORKAROUND - switch to pagecapture if no permissons are granted
                     if (process.platform === "darwin" && this.firstCheckScreenshot){  //this is for macOS because it delivers a blank background screenshot without permissions. we catch that case with a workaround
@@ -250,22 +244,17 @@ const __dirname = import.meta.dirname;
                     //to not run tesseract if already locked
                     if ( this.multicastClient.clientinfo.exammode && this.multicastClient.clientinfo.screenshotocr && !this.config.development && this.multicastClient.clientinfo.focus){
                         try{
-
                             if (!TesseractWorker){
                                 TesseractWorker = await Tesseract.createWorker('eng');
                             }
-
                             const { data: { text } }   = await Tesseract.recognize(header , 'eng' );
                             let pincodeVisible = text.includes(this.multicastClient.clientinfo.pin)
-        
                             if (!pincodeVisible){
                                 this.multicastClient.clientinfo.focus = pincodeVisible
                                 log.info("communicationhandler @ sendScreenshot (ocr): Student Screenshot does not fit requirements");
                             }
                         }
-                        catch(err){
-                            log.info(`communicationhandler @ sendScreenshot (ocr): ${err}`);
-                        }
+                        catch(err){ log.info(`communicationhandler @ sendScreenshot (ocr): ${err}`);  }
                     }
         
                     const payload = {

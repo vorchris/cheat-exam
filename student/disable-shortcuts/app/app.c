@@ -6,6 +6,7 @@
 #include "resource.h"
 #include "shared.h"
 #include "stdafx.h"
+#include <windows.h>
 
 LPCTSTR hookDllName = TEXT("disable-shortcuts-hook.dll");
 LPCSTR hookProcName = "HookProc";
@@ -28,6 +29,18 @@ void ShowErrorF(HINSTANCE hInstance, LPCTSTR format, ...) {
 
   va_end(args);
 }
+
+
+void DisableStickyKeys() {
+  // Sticky Keys deaktivieren
+  STICKYKEYS stickyKeys;
+  stickyKeys.cbSize = sizeof(STICKYKEYS);
+  stickyKeys.dwFlags = 0;  // StickyKeys auf 'aus' setzen
+  
+  // StickyKeys über Systemparameter deaktivieren
+  SystemParametersInfo(SPI_SETSTICKYKEYS, sizeof(STICKYKEYS), &stickyKeys, 0);
+}
+
 
 int WINAPI _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance,
                      __in LPTSTR lpCmdLine, __in int nShowCmd) {
@@ -71,11 +84,13 @@ int WINAPI _tWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance,
     return 1;
   }
 
+
   // Create window
   RegisterMainWindowClass(hInstance);
   HWND hwnd = CreateMainWindow(hInstance);
   ShowWindow(hwnd, nShowCmd);
   UpdateWindow(hwnd);
+  DisableStickyKeys();
 
   MSG msg;
   while (GetMessage(&msg, NULL, 0, 0)) {
