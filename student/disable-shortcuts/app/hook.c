@@ -19,7 +19,7 @@ LRESULT CALLBACK HookProc(int nCode, WPARAM wParam, LPARAM lParam) {
         ((vkCode == VK_CONTROL && (pKeyBoard->flags & LLKHF_ALTDOWN)) && vkCode == VK_DELETE) || // Ctrl + Alt + Delete - WONT WORK because of windows limitations !!!
         ((vkCode == VK_CONTROL && vkCode == VK_MENU && vkCode == VK_DELETE)) // Ctrl + Alt + Delete
     ) {
-
+                    
       // Notify app
       if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
         HWND hwnd = FindWindow(MAIN_WINDOW_CLASS, 0);
