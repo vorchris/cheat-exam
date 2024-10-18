@@ -13,6 +13,7 @@
     "type": "module",
     "scripts": {
         "dev": "node scripts/watch.mjs",
+        "clean": "rm -rf ./dist",
         "build": "npm run clean && node scripts/build.mjs && electron-builder -l",
         "build:mac": "npm run clean && node scripts/build.mjs && electron-builder -m",
         "build:win": "npm run clean && node scripts/build.mjs && electron-builder -w"
