@@ -22,10 +22,14 @@ class JreHandler {
 
     init(){
         
-        if (os.platform() == "linux") {  this.jre = "minimal-jre-11-lin"  }
-        else if (os.platform() == "win32") {  this.jre = "minimal-jre-11-win"  }
-        else if (os.platform() == "darwin") {  this.jre = "minimal-jre-11-mac"  }
+        if (os.platform() == "linux") {        this.jre = "minimal-jre-11-lin"  }
+        else if (os.platform() == "win32") {   this.jre = "minimal-jre-11-win"  }
+        else if (os.platform() == "darwin") {  
+            if (os.arch() == "arm64") {  this.jre = "minimal-jre-11-mac-arm64";  } 
+            else {                       this.jre = "minimal-jre-11-mac";        }
+        }
 
+        
 
         if (app.isPackaged) { this.jreDir = path.join(process.resourcesPath, 'app.asar.unpacked', 'public', this.jre)   }
         else {                this.jreDir = path.join(__dirname, '../../public', this.jre)  }
@@ -87,6 +91,7 @@ class JreHandler {
         let javaargs = this.getArgs(classpath, classname, args)
         let javacmdline =  `${javapath} ${javaargs.join(' ')} `
 
+        log.info(`jre-handler @ init: '${this.jre}' selected`)
         log.info(`jre-handler @ jSpawn: spawning java process: ${javacmdline}`)
         return spawn(javapath, javaargs);
        // return spawn(javacmdline);

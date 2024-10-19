@@ -13,10 +13,10 @@ PS C:\Program Files\OpenLogic\jdk-11.0.23.9-hotspot\bin> .\jlink.exe --module-pa
 macos
 jlink --module-path $JAVA_HOME/jmods --add-modules java.base,jdk.httpserver,java.xml,java.naming,java.desktop --strip-debug --compress=2 --output minimaljre
 
+macos arm64  (hier die jdk 11 aarch64 runterladen und dann als JAVA_HOME das entpackte aarch64 verzeichnis nehmen (auf einem x64 mac))
+https://adoptium.net/de/download/
+
+
 
 hint:
-
-auf macos müssen für languagetool alle binaries entpackt und einzeln signiert werden 
-ausserdem benötigen wir vermutlich eine jre für arm64 - ich probiere zunächst mit dem macos kompatibilitäts modus "Rosettta 2" nur mit 
-der x64 architektur zu fahren.. 
-leider besitze ich kein arm64 macbook 
+auf macos müssen für languagetool alle binaries entpackt und einzeln signiert werden - daher das komplexe sign script in notarize

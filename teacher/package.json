@@ -41,7 +41,8 @@
                 "dist",
                 "public",
                 "!public/minimal-jre-11-win/**/*",
-                "!public/minimal-jre-11-mac/**/*"
+                "!public/minimal-jre-11-mac/**/*",
+                "!public/minimal-jre-11-mac-arm64/**/*"
             ]
         },
         "mac": {
@@ -63,7 +64,15 @@
                 "dist",
                 "public",
                 "!public/minimal-jre-11-win/**/*",
-                "!public/minimal-jre-11-lin/**/*"
+                "!public/minimal-jre-11-lin/**/*",
+                {
+                    "filter": "!public/minimal-jre-11-mac/**/*",
+                    "condition": "arch == arm64"
+                },
+                {
+                    "filter": "!public/minimal-jre-11-mac-arm64/**/*",
+                    "condition": "arch == x64"
+                }
             ]
         },
         "dmg": {
@@ -103,6 +112,7 @@
                 "dist",
                 "public",
                 "!public/minimal-jre-11-mac/**/*",
+                "!public/minimal-jre-11-mac-arm64/**/*",
                 "!public/minimal-jre-11-lin/**/*"
             ]
         }
