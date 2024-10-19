@@ -336,7 +336,7 @@ export default {
         },  
         
         toggleAdvanced(){
-            if (this.advanced) {this.advanced = false} else {this.advanced = true}
+            if (this.advanced) {this.advanced = false; this.biplogin = false;} else {this.advanced = true}
             this.serverip = ""
         },
         
