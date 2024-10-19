@@ -27,6 +27,7 @@
         "asarUnpack": [
             "public"
         ],
+        "afterPack": "scripts/afterpack.js",
         "afterSign": "scripts/notarize.cjs",
         "directories": {
             "output": "../release/${version}"
@@ -64,15 +65,7 @@
                 "dist",
                 "public",
                 "!public/minimal-jre-11-win/**/*",
-                "!public/minimal-jre-11-lin/**/*",
-                {
-                    "filter": "!public/minimal-jre-11-mac/**/*",
-                    "condition": "arch == arm64"
-                },
-                {
-                    "filter": "!public/minimal-jre-11-mac-arm64/**/*",
-                    "condition": "arch == x64"
-                }
+                "!public/minimal-jre-11-lin/**/*"
             ]
         },
         "dmg": {
