@@ -28,8 +28,8 @@ import WindowHandler from './windowhandler.js'
 
 import { execSync } from 'child_process';
 const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
+
 import log from 'electron-log';
-import childProcess from 'child_process'
 import {SchedulerService} from './schedulerservice.ts'
 import Tesseract from 'tesseract.js';
 let TesseractWorker = false
@@ -74,6 +74,7 @@ loadImageJs().then((image) => {
         this.updateScheduler.start()
         this.screenshotScheduler = new SchedulerService(this.sendScreenshot.bind(this), this.multicastClient.clientinfo.screenshotinterval)
         this.screenshotScheduler.start()
+
         if (process.platform !== 'linux' || (  !this.isWayland() && this.imagemagickAvailable() || (this.isKDE() && this.isWayland() && this.flameshotAvailable() )  )){ this.screenshotAbility = true } // only on linux we need to check for wayland or the absence of imagemagick - other os have other problems ^^
     }
  
@@ -87,11 +88,11 @@ loadImageJs().then((image) => {
 
 
     isKDE(){
-        childProcess.exec('echo $XDG_CURRENT_DESKTOP', (error, stdout, stderr) => {
-            if (error) { return false }
-            if (stdout.trim() === 'KDE') { return true } 
-            return false
-        });
+        try{ 
+            let output = shell('echo $XDG_CURRENT_DESKTOP')
+            return output.trim() === 'KDE'
+        }
+        catch(error){ console.log("eeeeeeeeeeeeeeeeee"); return false }
     }
     
     /**
