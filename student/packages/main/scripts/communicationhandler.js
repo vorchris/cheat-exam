@@ -233,13 +233,22 @@ loadImageJs().then((image) => {
                     let targetWidth = 1200
                     const image = await Image.load(img); // Bild aus Buffer laden
             
-                    //resize image first, convert the result to image buffer again and store
-                    const resizedImage = image.resize({ width: targetWidth }); // Breite auf 1440 setzen
-                    const resized = Buffer.from(resizedImage.toBuffer('image/jpeg', { quality: 65 })); // Buffer mit Qualität 65
-            
-                    // now crop the resized image (to the topmost 100px) and convert the result to image buffer and store
-                    const imageHeader = image.crop({ x: 0, y: 0, width: 1000, height: 100 }); // Zuschneiden
-                    const header = Buffer.from(imageHeader.toBuffer('image/jpeg', { quality: 100 })); // Buffer mit Qualität 100
+                   
+                    const resized = Buffer.from(image.toBuffer('image/jpeg', { quality: 65 }));  // resize and crop sometimes fails in pagecapture mode
+                    const header = Buffer.from(image.toBuffer('image/jpeg', { quality: 65 }));   // if the windows is currently being closed
+                    
+
+                    try { 
+                        //resize image first, convert the result to image buffer again and store
+                        const resizedImage = image.resize({ width: targetWidth }); // Breite auf 1440 setzen
+                        resized = Buffer.from(resizedImage.toBuffer('image/jpeg', { quality: 65 })); // Buffer mit Qualität 65
+                        // now crop the resized image (to the topmost 100px) and convert the result to image buffer and store
+                        const cropWidth = Math.min(900, image.width)
+                        const imageHeader = image.crop({ x: 0, y: 0, width: cropWidth, height: 100 }); // Zuschneiden
+                        header = Buffer.from(imageHeader.toBuffer('image/jpeg', { quality: 100 })); // Buffer mit Qualität 100
+                    }
+                    catch(err){ /** i don't care */ }
+                    
                    
 
                     //MACOS WORKAROUND - switch to pagecapture if no permissons are granted
@@ -309,7 +318,7 @@ loadImageJs().then((image) => {
                         log.error(`communicationhandler @ sendScreenshot: ${error}`);
                     });
                 } catch (error) {
-                    console.error('communicationhandler @ sendScreenshot: Error resizing image:', error);
+                    console.warn('communicationhandler @ sendScreenshot: Error resizing image:', error.message);
                     //throw error; // Fehler weitergeben für weitere Fehlerbehandlung
                 }
             } else {

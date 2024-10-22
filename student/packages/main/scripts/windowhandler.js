@@ -330,16 +330,22 @@ class WindowHandler {
         this.examwindow = new BrowserWindow({
             x: px + 0,
             y: py + 0,
+            title: 'Exam',
+            width: 1,
+            height: 1,
             // parent: win,  //this doesnt work together with kiosk on ubuntu gnome ?? wtf
             // modal: true,  // this blocks the main window on windows while the exam window is open
+            // closable: false,  // if we can't define 'parent' this window has to be closable - why?
+            //alwaysOnTop: true,
+            opacity: 0,
             skipTaskbar:true,
             autoHideMenuBar: true,
-            title: 'Exam',
-            width: 800,
-            height: 600,
-            // closable: false,  // if we can't define 'parent' this window has to be closable - why?
-            alwaysOnTop: true,
+            minimizable: false,
+            fullscreen: true,
+            visibleOnAllWorkspaces: true,
+            kiosk: true,
             show: false,
+            transparent: true,
             icon: join(__dirname, '../../public/icons/icon.png'),
             webPreferences: {
                 preload: join(__dirname, '../preload/preload.cjs'),
@@ -351,6 +357,34 @@ class WindowHandler {
 
 
 
+        this.examwindow.once('ready-to-show', async () => {
+            if (this.config.showdevtools) { this.examwindow.webContents.openDevTools()  }
+            
+            if (!this.config.development) {
+                this.examwindow.removeMenu() 
+                this.examwindow.show()
+                this.examwindow.focus()
+            }
+            
+            if (!this.config.development) { 
+            
+                if (process.platform ==='darwin') { this.examwindow.setAlwaysOnTop(true, "pop-up-menu", 0)  }  // do not display above popup because of colorpicker in editor (fix that!)
+                else {                              this.examwindow.setAlwaysOnTop(true, "screen-saver", 1) }
+
+                // this.examwindow.setMinimizable(false)
+                // this.examwindow.setVisibleOnAllWorkspaces(true); 
+                
+                this.examwindow.focus();
+                this.examwindow.setKiosk(true); 
+                this.examwindow.setOpacity(1)
+                //restrictions
+                this.addBlurListener();  // detects if window gets out of focus 
+                if (!this.isWayland){ this.checkWindowInterval.start() }  // checks if the active window is next-exam (introduces exceptions for windows) 
+                enableRestrictions(this)  // enable restriction only when exam window is fully loaded and in focus
+                await this.sleep(2000)    // wait an additional 2 sec for windows restrictions to kick in (they steal focus)
+                this.examwindow.focus();  // focus again just to be sure
+            }
+        })
 
 
 
@@ -540,9 +574,6 @@ class WindowHandler {
             });
         }
 
-       
-
- 
         this.examwindow.on('app-command', (e, cmd) => {
             // 'browser-backward' und 'browser-forward' sind die Befehle, die beim Klick auf die Maustasten gesendet werden
             if (cmd === 'browser-backward' || cmd === 'browser-forward') {
@@ -550,40 +581,6 @@ class WindowHandler {
                 e.preventDefault(); // Verhindern Sie das Standardverhalten
             }
         });
-
-
-
-
-
-        this.examwindow.once('ready-to-show', async () => {
-
-            this.examwindow.removeMenu() 
-            if (this.config.showdevtools) { this.examwindow.webContents.openDevTools()  }
-            this.examwindow.show()
-            this.examwindow.focus()
-
-            if (!this.config.development) { 
-                this.examwindow.setKiosk(true)
-                this.examwindow.setMinimizable(false)
-                this.examwindow.moveTop();
-                if (process.platform ==='darwin') {  this.examwindow.setAlwaysOnTop(true, "pop-up-menu", 0)  }  // do not display above popup because of colorpicker in editor (fix that!)
-                else { this.examwindow.setAlwaysOnTop(true, "screen-saver", 1)   }
-                
-                this.examwindow.setVisibleOnAllWorkspaces(true); 
-
-                enableRestrictions(this)  // enable restriction only when exam window is fully loaded and in focus
-                await this.sleep(2000) // wait an additional 2 sec for windows restrictions to kick in (they steal focus)
-                this.examwindow.focus()
-                this.addBlurListener()
-                
-                if (!this.isWayland){
-                    this.checkWindowInterval.start() //checks if the active window is next-exam (introduces exceptions for windows)
-                }
-            }
-            // if (!this.isWayland){ this.checkWindowInterval.start() }
-            // this.addBlurListener() // just for dev purposes in order to test blur
-
-        })
 
         this.examwindow.on('close', async  (e) => {   // window should not be closed manually.. ever! but if you do make sure to clean examwindow variable and end exam for the client
             if (this.multicastClient.clientinfo.exammode) {
@@ -636,7 +633,7 @@ class WindowHandler {
             title: 'Main window',
             icon: join(__dirname, '../../public/icons/icon.png'),
             center:true,
-            width: 1000,
+            width: 1024,
             height: 600,
             minWidth: 850,
             minHeight: 600,

@@ -84,8 +84,15 @@ let configStore = {
 // list of apps we do not want to run in background
 const appsToClose = ['Teams','ms-teams', 'zoom.us', 'Google Chrome', 'Microsoft Edge', 'Microsoft Teams','firefox', 'discord', 'zoom', 'chrome', 'msedge', 'teams', 'teamviewer', 'google-chrome','skypeforlinux','skype','brave','opera','anydesk','safari'];
 
+let isKDE = false
 
-   
+childProcess.exec('echo $XDG_CURRENT_DESKTOP', (error, stdout, stderr) => {
+    if (error) {
+      console.error(`exec error: ${error}`);
+      return;
+    }
+    if (stdout.trim() === 'KDE') { isKDE = true } 
+});
 
 
 
@@ -116,27 +123,35 @@ function enableRestrictions(winhandler){
         // PLASMASHELL
         //////////////
 
-        // read and save current config
-        childProcess.execFile('kreadconfig5', ['--file', 'kwinrc', '--group', 'Desktops', '--key', 'Number'], (error, stdout, stderr) => {
-            if (error) {
-                log.error(`platformrestrictions @ enableRestrictions (kreadconfig): ${error.message}`);
-                configStore.linux.numberOfDesktops = 1
-                return;
-            }
-            configStore.linux.numberOfDesktops = stdout.trim();
-        });
-        //disable META Key for Launchermenu
-        childProcess.execFile('kwriteconfig5', ['--file',`${config.homedirectory}/.config/kwinrc`,'--group','ModifierOnlyShortcuts','--key','Meta','""']) 
-        childProcess.execFile('kwriteconfig5', ['--file',`kwinrc`,'--group','Desktops','--key','Number','1'])  //remove virtual desktops
-        childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','setCurrentDesktop','1'])
-        childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
-        childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'true']) // Temporarily deactivate ALL global keyboardshortcuts 
-        childProcess.execFile('qdbus', ['org.kde.KWin' ,'/Compositor', 'org.kde.kwin.Compositing.suspend'])   // Temporarily deactivate ALL 3d Effects (present window, change desktop, etc.) 
-        childProcess.execFile('qdbus', ['org.kde.klipper' ,'/klipper', 'org.kde.klipper.klipper.clearClipboardHistory']) // Clear Clipboard history 
-        childProcess.execFile('wl-copy', ['-c'])   // wayland
-        childProcess.execFile('kquitapp5', ['kglobalaccel'])  // quitapp nees kglobalaccel while startapp needs kglobalaccel5
-        childProcess.execFile('killall', ['plasmashell'])
+        if (isKDE) {
+            // read and save current config
+            log.warn("enabling KDE restrictions")
+            childProcess.execFile('kreadconfig5', ['--file', 'kwinrc', '--group', 'Desktops', '--key', 'Number'], (error, stdout, stderr) => {
+                if (error) {
+                    log.error(`platformrestrictions @ enableRestrictions (kreadconfig): ${error.message}`);
+                    configStore.linux.numberOfDesktops = 1
+                    return;
+                }
+                configStore.linux.numberOfDesktops = stdout.trim();
+            });
+            //disable META Key for Launchermenu
+            childProcess.execFile('kwriteconfig5', ['--file',`${config.homedirectory}/.config/kwinrc`,'--group','ModifierOnlyShortcuts','--key','Meta','""']) 
+            childProcess.execFile('kwriteconfig5', ['--file',`kwinrc`,'--group','Desktops','--key','Number','1'])  //remove virtual desktops
+            childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','setCurrentDesktop','1'])
+            childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
+            childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'true']) // Temporarily deactivate ALL global keyboardshortcuts 
+            childProcess.execFile('qdbus', ['org.kde.KWin' ,'/Compositor', 'org.kde.kwin.Compositing.suspend'])   // Temporarily deactivate ALL 3d Effects (present window, change desktop, etc.) 
+            childProcess.execFile('qdbus', ['org.kde.klipper' ,'/klipper', 'org.kde.klipper.klipper.clearClipboardHistory']) // Clear Clipboard history 
+            childProcess.execFile('kquitapp5', ['kglobalaccel'])  // quitapp nees kglobalaccel while startapp needs kglobalaccel5
+            childProcess.execFile('killall', ['plasmashell'])
+        }
+  
         
+
+   
+       
+
+
         //////////
         // GNOME
         ///////////
@@ -167,7 +182,10 @@ function enableRestrictions(winhandler){
         }
         catch(err){ log.error(`platformrestrictions @ enableRestrictions (gsettings): ${err}`); }
 
-        // clear clipboard gnome and x11  (this will fail unless xclip or xsell are installed)
+
+
+        // clear clipboard  (this will fail unless xclip or xsell are installed)
+        childProcess.execFile('wl-copy', ['-c'])   // wayland
         childProcess.exec('xclip -i /dev/null')
         childProcess.exec('xclip -selection clipboard')
         childProcess.exec('xsel -bc')
@@ -277,9 +295,11 @@ function disableRestrictions(){
 
     clipboardInterval.stop()
 
-    globalShortcut.unregister('CommandOrControl+V', () => {console.log('no clipboard')});
-    globalShortcut.unregister('CommandOrControl+Shift+V', () => {console.log('no clipboard')});
-    
+    globalShortcut.unregister('CommandOrControl+V', () => {console.log('activate clipboard')});
+    globalShortcut.unregister('CommandOrControl+Shift+V', () => {console.log('activate clipboard')});
+    globalShortcut.unregister('CommandOrControl+C', () => {console.log('activate clipboard')});
+    globalShortcut.unregister('CommandOrControl+X', () => {console.log('activate clipboard')});
+
     // disable global keyboardshortcuts on PLASMA/KDE
     if (process.platform === 'linux') {
 
