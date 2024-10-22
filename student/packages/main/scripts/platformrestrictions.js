@@ -96,6 +96,9 @@ function enableRestrictions(winhandler){
 
     globalShortcut.register('CommandOrControl+V', () => {console.log('no clipboard')});
     globalShortcut.register('CommandOrControl+Shift+V', () => {console.log('no clipboard')});
+    globalShortcut.register('CommandOrControl+X', () => {console.log('no clipboard')});
+    globalShortcut.register('CommandOrControl+C', () => {console.log('no clipboard')});
+    
     clipboard.clear()  //this should clean the clipboard for the electron app
   
     clipboardInterval = new SchedulerService( ()=> {  clipboard.clear();}  , 1000)
