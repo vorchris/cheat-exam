@@ -1151,7 +1151,6 @@ export default {
         },
         handleVisibilityChange() {
             if (document.hidden) {
-                console.log("testeeeeeee")
                 this.sendFocuslost();
             }
         },

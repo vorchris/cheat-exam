@@ -331,8 +331,8 @@ class WindowHandler {
             x: px + 0,
             y: py + 0,
             title: 'Exam',
-            width: 1,
-            height: 1,
+            width: 1024,
+            height: 768,
             // parent: win,  //this doesnt work together with kiosk on ubuntu gnome ?? wtf
             // modal: true,  // this blocks the main window on windows while the exam window is open
             // closable: false,  // if we can't define 'parent' this window has to be closable - why?

@@ -649,6 +649,7 @@ loadImageJs().then((image) => {
 
 
     // this is manually  triggered if connection is lost during exam - we allow the student to get out of the kiosk mode but keep his work in the editor
+    // for some reason i changed this function to also kill the exam window and therefore exit the exam completely so this is basically redundant
     gracefullyEndExam(){
         disableRestrictions()
 
@@ -659,12 +660,12 @@ loadImageJs().then((image) => {
                 // remove listener
                 WindowHandler.removeBlurListener();
                 WindowHandler.examwindow.close(); 
-                WindowHandler.examwindow.destroy(); 
+                if (WindowHandler.examwindow){ WindowHandler.examwindow.destroy(); }
                 WindowHandler.examwindow = null
               
             } catch (e) { 
                 WindowHandler.examwindow = null
-                console.error("communicationhandler @ gracefullyEndExam: no functional examwindow to handle")
+                log.error("communicationhandler @ gracefullyEndExam: no functional examwindow to handle")
             }
           
             try {
@@ -675,7 +676,7 @@ loadImageJs().then((image) => {
                 }
             } catch (e) { 
                 WindowHandler.blockwindows = []
-                console.error("communicationhandler @ gracefullyEndExam: no functional blockwindow to handle")
+                log.error("communicationhandler @ gracefullyEndExam: no functional blockwindow to handle")
             }   
         }
       
