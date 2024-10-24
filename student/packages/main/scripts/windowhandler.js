@@ -666,6 +666,7 @@ class WindowHandler {
             if (!this.config.development && !this.mainwindow.allowexit) {  // allowexit ist ein override vom context menu oder screenshot test. dieser kann die app schliessen
                 this.mainwindow.hide();
                 e.preventDefault();
+                log.warn(`windowhandler @ createMainWindow: Minimizing Next-Exam to Systemtray`) 
                 return
             }
      

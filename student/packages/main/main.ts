@@ -23,9 +23,23 @@
 import { app, BrowserWindow, powerSaveBlocker, nativeTheme, globalShortcut, Tray, Menu, dialog} from 'electron'
 
 if (!app.requestSingleInstanceLock()) {  // allow only one instance of the app per client
+    log.warn("main: next-exam already running.")
     app.quit()
     process.exit(0)
- }
+}
+
+app.on('second-instance', () => {
+    log.warn("main: prevented second start of next-exam. Restoring existing Next-Exam window.")
+    if (WindowHandler.mainwindow) {
+        if (WindowHandler.mainwindow.isMinimized() || !WindowHandler.mainwindow.isVisible()) {
+            WindowHandler.mainwindow.show()
+            WindowHandler.mainwindow.restore()
+        } 
+        WindowHandler.mainwindow.focus() // Focus on the main window if the user tried to open another
+    }
+})
+
+
 
 import { release } from 'os'
 import WindowHandler from './scripts/windowhandler.js'
@@ -164,12 +178,8 @@ app.on('window-all-closed', () => {  // if window is closed
     app.quit()   
 })
 
-app.on('second-instance', () => {
-    if (WindowHandler.mainwindow) {
-        if (WindowHandler.mainwindow.isMinimized()) WindowHandler.mainwindow.restore() // Focus on the main window if the user tried to open another
-        WindowHandler.mainwindow.focus()
-    }
-})
+
+
 
 app.on('activate', () => {
     const allWindows = BrowserWindow.getAllWindows()
