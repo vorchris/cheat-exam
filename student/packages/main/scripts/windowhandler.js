@@ -360,14 +360,16 @@ class WindowHandler {
         this.examwindow.once('ready-to-show', async () => {
             if (this.config.showdevtools) { this.examwindow.webContents.openDevTools()  }
             
+            if (this.config.development) {
+                this.examwindow.setOpacity(1)
+                this.examwindow.show()
+                this.examwindow.focus()
+            }
             if (!this.config.development) {
                 this.examwindow.removeMenu() 
                 this.examwindow.show()
                 this.examwindow.focus()
-            }
-            
-            if (!this.config.development) { 
-            
+     
                 if (process.platform ==='darwin') { this.examwindow.setAlwaysOnTop(true, "pop-up-menu", 0)  }  // do not display above popup because of colorpicker in editor (fix that!)
                 else {                              this.examwindow.setAlwaysOnTop(true, "screen-saver", 1) }
 

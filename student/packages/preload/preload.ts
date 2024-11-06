@@ -39,7 +39,7 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
     send: (channel, data) => ipcRenderer.send(channel, data),
     sendSync: (channel, data) => ipcRenderer.sendSync(channel, data),
     on: (channel, func) => ipcRenderer.on(channel, (event, ...args) => func(event, ...args)),
-    invoke: (channel, data) => ipcRenderer.invoke(channel, data), // invoke für asynchrone IPC-Kommunikation
+    invoke: (channel, ...data) => ipcRenderer.invoke(channel, ...data), // Hier mit Spread-Operator
     removeListener: (channel, listener) => ipcRenderer.removeListener(channel, listener), // Entfernt einen Listener
     removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel), // Entfernt alle Listener für einen Channel
   });
