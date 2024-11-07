@@ -60,7 +60,7 @@ class IpcHandler {
                 examtype: args.exammode,
                 delfolderonexit: false,
                 spellcheck: true,
-                spellchecklang: 'de',
+                spellchecklang: 'de-DE',
                 suggestions: false,
                 moodleTestType: '',
                 moodleDomain: '',
