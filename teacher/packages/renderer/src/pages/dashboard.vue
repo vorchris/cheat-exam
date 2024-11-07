@@ -361,7 +361,7 @@ export default {
             serverstatus:{   // this object contains all neccessary information for students about the current exam settings
                 exammode: false,
                 examtype: 'math',
-                delfolderonexit: false,
+                delfolderonexit: true,
                 spellchecklang: 'de-DE',
                 suggestions: false,
                 moodleTestId: null,
