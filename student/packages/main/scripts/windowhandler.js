@@ -643,6 +643,9 @@ class WindowHandler {
             height: 600,
             minWidth: 850,
             minHeight: 600,
+            resizable: false, // verhindert das Ändern der Größe
+            fullscreenable: false, // verhindert den Vollbildmodus - wichtig für macos denn wenn auf macos das mainwindow auf fullscreen ist greift beim examwindow der kiosk mode nicht
+        
             show: false,
             webPreferences: {
                 preload: join(__dirname, '../preload/preload.cjs'),
