@@ -6,17 +6,17 @@ npm run build:win
 npm run bulid
 
 ###### MAC OS ######
-macos hat das problem dass es zwei architekturen unterstützen muss x64 und arm64
-native libraries wie get-windows lassen sich problemlos für beide plattformen builden "sharp" (imagemanipulation) nicht (wurde daher ersetzt durch reines js)
+macos hat das problem dass es zwei architekturen unterstützen muss x64 und arm64 (x64 kann dank rosetta zwar ausgeführt werden ist jedoch sehr langsam)
+native libraries wie get-windows (student) lassen sich problemlos für beide plattformen builden "sharp" (imagemanipulation) nicht (wurde daher ersetzt durch reines js)
 language tool benötigt eine eigene jre für arm !!!!
 alle binaries (auch java) müssen einzeln signiert werden. diese werden daher entpackt, signiert, repacked und am ende wird das gesamt paket nochmal signiert..
 
-xcode mit buildtools und python muss installiert sein
+xcode mit buildtools und python3 muss installiert sein
 
 
 ###### WINDOWS ######
 visual studio code muss mit c++ buildtools und python 3 am system vorhanden sein
-distutils von python muss installiert sein > pip install setuptools  (metapackage)
+dist-utils von python muss installiert sein > pip install setuptools  (metapackage)
 
 
 

@@ -288,28 +288,58 @@ function checkParent() {
     });
 }
 
-function findParentRecursively(pid, callback) {
+function findParentRecursively(pid, callback, depth = 0) {
+    const maxDepth = 3; // Maximale Tiefe der Rekursion
     const numericPid = parseInt(pid, 10);
+
     if (!numericPid || numericPid === 1) {
         log.info('main @ findParentRecursively: Root-Prozess erreicht, kein Browser erkannt.');
         callback(null, false);
         return;
     }
 
+    if (depth > maxDepth) {
+        log.warn('main @ findParentRecursively: Maximale Rekursionstiefe erreicht, Suche wird abgebrochen.');
+        callback(null, false); // Kein Fehler, Browser nicht gefunden
+        return;
+    }
+
+
+
     findParentCommand(numericPid, (err, parentCommand, parentPid) => {
-        if (err) { callback(err, null); return; }
+        if (err) {
+            callback(err, null);
+            return;
+        }
 
         const browserKeywords = ['chrom', 'edge', 'fire', 'brave', 'opera'];
 
-        if (parentCommand.includes('explorer.exe')) {  callback(null, false); } //explorer.exe gefunden - reicht auf windows schon
-        else if (browserKeywords.some(browser => parentCommand.includes(browser))) { callback(null, true); } 
-        else {   findParentRecursively(parentPid, callback);  } // Weiter den Prozessbaum nach oben durchsuchen
+        if (parentCommand.includes('explorer.exe')) { // Explorer.exe ist erlaubt
+            callback(null, false);
+        } else if (browserKeywords.some(browser => parentCommand.includes(browser))) {
+            callback(null, true); // Browser gefunden
+        } else {
+            findParentRecursively(parentPid, callback, depth + 1); // Weiter nach oben suchen
+        }
     });
 }
 
+
+
 function findParentCommand(pid, callback) {
+    const timeout = setTimeout(() => { // Timeout für `ps.lookup`
+        log.error(`main @ findParentCommand: Timeout beim Abrufen des Prozesses mit PID ${pid}.`);
+        callback(new Error('Timeout beim Abrufen des Prozesses'), null, null);
+    }, 5000); // 5 Sekunden Timeout
+
     ps.lookup({ pid: pid }, (err, resultList) => {
-        if (err) { callback(err, null, null); return; }
+        clearTimeout(timeout); // Timeout abbrechen
+
+        if (err) {
+            log.warn(`main @ findParentCommand: Fehler beim Abrufen des Prozesses mit PID ${pid}: ${err.message}`);
+            callback(err, null, null);
+            return;
+        }
 
         if (resultList.length > 0) {
             const parentProcess = resultList[0];
@@ -323,9 +353,6 @@ function findParentCommand(pid, callback) {
         }
     });
 }
-
-
-
 
 
 
