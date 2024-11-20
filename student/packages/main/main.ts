@@ -280,7 +280,7 @@ function checkParent() {
             });
 
 
-            WindowHandler.mainwindow.closetriggered = true;
+            WindowHandler.mainwindow.allowexit = true;
             app.quit();
         } else {
             log.info('main @ checkparent: Parent Process Check OK');

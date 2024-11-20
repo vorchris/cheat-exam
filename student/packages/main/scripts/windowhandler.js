@@ -345,7 +345,7 @@ class WindowHandler {
             visibleOnAllWorkspaces: true,
             kiosk: true,
             show: false,
-            transparent: true,
+            //transparent: true,
             icon: join(__dirname, '../../public/icons/icon.png'),
             webPreferences: {
                 preload: join(__dirname, '../preload/preload.cjs'),
@@ -360,29 +360,35 @@ class WindowHandler {
         this.examwindow.once('ready-to-show', async () => {
             if (this.config.showdevtools) { this.examwindow.webContents.openDevTools()  }
             
+            if (this.config.development) {
+                this.examwindow.setOpacity(1)
+                this.examwindow.show()
+                this.examwindow.focus()
+            }
             if (!this.config.development) {
                 this.examwindow.removeMenu() 
                 this.examwindow.show()
                 this.examwindow.focus()
-            }
-            
-            if (!this.config.development) { 
-            
+     
                 if (process.platform ==='darwin') { this.examwindow.setAlwaysOnTop(true, "pop-up-menu", 0)  }  // do not display above popup because of colorpicker in editor (fix that!)
                 else {                              this.examwindow.setAlwaysOnTop(true, "screen-saver", 1) }
 
                 // this.examwindow.setMinimizable(false)
                 // this.examwindow.setVisibleOnAllWorkspaces(true); 
-                
+                // this.examwindow.setFullScreen(true)
+
                 this.examwindow.focus();
                 this.examwindow.setKiosk(true); 
                 this.examwindow.setOpacity(1)
+
                 //restrictions
                 this.addBlurListener();  // detects if window gets out of focus 
                 if (!this.isWayland){ this.checkWindowInterval.start() }  // checks if the active window is next-exam (introduces exceptions for windows) 
                 enableRestrictions(this)  // enable restriction only when exam window is fully loaded and in focus
                 await this.sleep(2000)    // wait an additional 2 sec for windows restrictions to kick in (they steal focus)
                 this.examwindow.focus();  // focus again just to be sure
+               
+
             }
         })
 
