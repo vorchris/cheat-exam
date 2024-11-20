@@ -114,7 +114,7 @@ class IpcHandler {
         /**
          * Set FOCUS state to false (mouse left exam window)
          */ 
-        ipcMain.handle('focuslost', (event) => { 
+        ipcMain.handle('focuslost', (event, ctrlalt=false) => { 
             let answer = false 
             if (this.config.development || !this.multicastClient.exammode) { 
                 answer = { sender: "client", focus: true}
@@ -124,7 +124,7 @@ class IpcHandler {
                 answer = { sender: "client", focus: true }
                 
             }
-            else if (this.WindowHandler.focusTargetAllowed){ 
+            else if (this.WindowHandler.focusTargetAllowed && ctrlalt == false){ 
                 log.warn(`ipchandler @ focuslost: mouseleave event was triggered but target is allowed`)
                 answer = { sender: "client", focus: true }
                 

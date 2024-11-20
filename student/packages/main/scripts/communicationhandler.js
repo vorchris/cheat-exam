@@ -314,7 +314,7 @@ import path from 'path';
                     if ( this.multicastClient.clientinfo.exammode && !this.config.development && this.multicastClient.clientinfo.focus){
                         if (isblack){
                             this.multicastClient.clientinfo.focus = false
-                            log.info("communicationhandler @ sendScreenshot (ocr): Student Screenshot does not fit requirements");
+                            log.info("communicationhandler @ sendScreenshot: Student Screenshot does not fit requirements");
                         }   
                     }
         

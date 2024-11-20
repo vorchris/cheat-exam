@@ -1136,8 +1136,8 @@ export default {
             }); 
 
         },
-        async sendFocuslost(){
-            let response = await ipcRenderer.invoke('focuslost')  // refocus, go back to kiosk, inform teacher
+        async sendFocuslost(ctrlalt = false){
+            let response = await ipcRenderer.invoke('focuslost', ctrlalt)  // refocus, go back to kiosk, inform teacher
             if (!this.config.development && !response.focus){  //immediately block frontend
                 this.focus = false 
                 const editorcontentcontainer = document.getElementById('editorcontent');
@@ -1146,7 +1146,7 @@ export default {
             }  
         },
         handleCtrlAlt(event) {
-            if (event.ctrlKey && event.altKey) { this.sendFocuslost();   }
+            if (event.ctrlKey && event.altKey) { this.sendFocuslost(true);   }
         },
         handleVisibilityChange() {
             if (document.hidden) {
