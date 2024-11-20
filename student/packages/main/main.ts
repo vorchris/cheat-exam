@@ -289,7 +289,7 @@ function checkParent() {
 }
 
 function findParentRecursively(pid, callback, depth = 0) {
-    const maxDepth = 3; // Maximale Tiefe der Rekursion
+    const maxDepth = 4; // Maximale Tiefe der Rekursion
     const numericPid = parseInt(pid, 10);
 
     if (!numericPid || numericPid === 1) {
