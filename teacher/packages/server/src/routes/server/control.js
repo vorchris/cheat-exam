@@ -400,10 +400,6 @@ for (let i = 0; i<16; i++ ){
                 console.log(`control @ registerclient: Creating ${studentfolder}`);
             }
 
-           
-
-
-
             if (!fs.existsSync(config.tempdirectory)){ fs.mkdirSync(config.tempdirectory, { recursive: true }); }
 
             mcServer.studentList.push(client)
@@ -418,7 +414,6 @@ for (let i = 0; i<16; i++ ){
 
                 //inform frontend about re-connection
                 WindowHandler.mainwindow.webContents.send("reconnected", registeredClient)
-
                 return res.json({sender: "server", message:t("control.registered"), status: "success", token: registeredClient.token})  //send back old token
             }
             else {

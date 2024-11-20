@@ -25,7 +25,6 @@ import screenshot from 'screenshot-desktop-wayland'
 import { join } from 'path'
 import { screen, ipcMain } from 'electron'
 import WindowHandler from './windowhandler.js'
-
 import { execSync } from 'child_process';
 const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
 
@@ -36,17 +35,20 @@ let TesseractWorker = false
 const __dirname = import.meta.dirname;
 
 
+import { Worker } from 'worker_threads';
+import path from 'path';
+
 //import { Image } from 'image-js';
-let Image = null 
-async function loadImageJs() {
-    const { Image } = await import('image-js');  // Dynamischer Import
-    return Image;
- }
+// let Image = null 
+// async function loadImageJs() {
+//     const { Image } = await import('image-js');  // Dynamischer Import
+//     return Image;
+//  }
 
 
-loadImageJs().then((image) => {
-   Image = image
-});
+// loadImageJs().then((image) => {
+//    Image = image
+// });
 
 
 
@@ -63,6 +65,21 @@ loadImageJs().then((image) => {
         this.screenshotAbility = false
         this.screenshotFails = 0 // we count fails and deactivate on 4 consequent fails
         this.firstCheckScreenshot = true
+
+        this.worker = new Worker(path.join(__dirname, '../../public/imageWorker.js'));
+        this.worker.on('message', (result) => {
+            if (result.success) {
+                this.resolvePromise(result);
+            } else {
+                this.rejectPromise(new Error(result.error));
+            }
+        });
+
+        this.worker.on('error', error => console.error('Worker error:', error));
+        this.worker.on('exit', code => console.log(`Worker stopped with exit code ${code}`));
+
+
+
     }
  
     init (mc, config) {
@@ -92,7 +109,7 @@ loadImageJs().then((image) => {
             let output = shell('echo $XDG_CURRENT_DESKTOP')
             return output.trim() === 'KDE'
         }
-        catch(error){ console.log("eeeeeeeeeeeeeeeeee"); return false }
+        catch(error){ log.warn("communicationhandler @ isKDE: no data "); return false }
     }
     
     /**
@@ -206,12 +223,27 @@ loadImageJs().then((image) => {
      * Update Screenshot on Server  (every 4 seconds - or depending on the server setting)
      * if no screenshot is possible (wayland) capture application window via electron webcontents
      */
+
+    processImage(imgBuffer) {
+        return new Promise((resolve, reject) => {
+            this.resolvePromise = resolve;
+            this.rejectPromise = reject;
+            this.worker.postMessage({ img: imgBuffer });
+        });
+    }
+
+
+    terminate() {
+        this.worker.terminate();
+    }
+
+
     async sendScreenshot(){
         if (this.multicastClient.clientinfo.localLockdown){return}
         if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip
             let img = null
             if (this.screenshotAbility){   // "imagemagick" has to be installed for linux - wayland is not (yet) supported by imagemagick !!
-                img = await screenshot()   //grab "screenshot" with screenshot node module
+                img = await screenshot()
                 .then( (res) => { this.screenshotFails=0; return res} )
                 .catch((err) => { this.screenshotFails+=1; if(this.screenshotFails > 4){ this.screenshotAbility=false;log.error(`communicationhandler @ sendScreenshot: switching to PageCapture`) } log.error(`communicationhandler @ sendScreenshot: ${err}`) });
             }
@@ -230,26 +262,14 @@ loadImageJs().then((image) => {
 
             if (Buffer.isBuffer(img)) {
                 try {
-                    let targetWidth = 1200
-                    const image = await Image.load(img); // Bild aus Buffer laden
             
-                   
-                    const resized = Buffer.from(image.toBuffer('image/jpeg', { quality: 65 }));  // resize and crop sometimes fails in pagecapture mode
-                    const header = Buffer.from(image.toBuffer('image/jpeg', { quality: 65 }));   // if the windows is currently being closed
+                    // wir lagern das image processing in einen worker thread aus weil sonst das frontend 
+                    // alle 4s einen performance hit bekommt
+                    let { resized, header, isblack } = await this.processImage(img);              
+                    header = Buffer.from(header);
+                    resized = Buffer.from(resized);
+                 
                     
-
-                    try { 
-                        //resize image first, convert the result to image buffer again and store
-                        const resizedImage = image.resize({ width: targetWidth }); // Breite auf 1440 setzen
-                        resized = Buffer.from(resizedImage.toBuffer('image/jpeg', { quality: 65 })); // Buffer mit Qualität 65
-                        // now crop the resized image (to the topmost 100px) and convert the result to image buffer and store
-                        const cropWidth = Math.min(900, image.width)
-                        const imageHeader = image.crop({ x: 0, y: 0, width: cropWidth, height: 100 }); // Zuschneiden
-                        header = Buffer.from(imageHeader.toBuffer('image/jpeg', { quality: 100 })); // Buffer mit Qualität 100
-                    }
-                    catch(err){ /** i don't care */ }
-                    
-                   
 
                     //MACOS WORKAROUND - switch to pagecapture if no permissons are granted
                     if (process.platform === "darwin" && this.firstCheckScreenshot){  //this is for macOS because it delivers a blank background screenshot without permissions. we catch that case with a workaround
@@ -275,7 +295,7 @@ loadImageJs().then((image) => {
                     const headerBase64 = header.toString('base64');
 
 
-                    //to not run tesseract if already locked
+                    //do not run tesseract if already locked
                     if ( this.multicastClient.clientinfo.exammode && this.multicastClient.clientinfo.screenshotocr && !this.config.development && this.multicastClient.clientinfo.focus){
                         try{
                             if (!TesseractWorker){
@@ -289,6 +309,13 @@ loadImageJs().then((image) => {
                             }
                         }
                         catch(err){ log.info(`communicationhandler @ sendScreenshot (ocr): ${err}`);  }
+                    }
+                    //do not run colorcheck if already locked
+                    if ( this.multicastClient.clientinfo.exammode && !this.config.development && this.multicastClient.clientinfo.focus){
+                        if (isblack){
+                            this.multicastClient.clientinfo.focus = false
+                            log.info("communicationhandler @ sendScreenshot (ocr): Student Screenshot does not fit requirements");
+                        }   
                     }
         
                     const payload = {
@@ -318,11 +345,11 @@ loadImageJs().then((image) => {
                         log.error(`communicationhandler @ sendScreenshot: ${error}`);
                     });
                 } catch (error) {
-                    console.warn('communicationhandler @ sendScreenshot: Error resizing image:', error.message);
+                    log.warn('communicationhandler @ sendScreenshot: Error resizing image:', error.message);
                     //throw error; // Fehler weitergeben für weitere Fehlerbehandlung
                 }
             } else {
-                log.error("communicationhandler @ sendScreenshot: Image is not a buffer:", img);
+                log.error("communicationhandler @ sendScreenshot: Image is not a buffer:");
             }
         }
     }
@@ -509,7 +536,7 @@ loadImageJs().then((image) => {
             }
         } catch (e) { 
             WindowHandler.screenlockwindows = []
-            console.error("communicationhandler @ killScreenlock: no functional screenlockwindow to handle")
+            log.error("communicationhandler @ killScreenlock: no functional screenlockwindow to handle")
         } 
         WindowHandler.screenlockwindows = []
         this.multicastClient.clientinfo.screenlock = false
@@ -553,7 +580,7 @@ loadImageJs().then((image) => {
             WindowHandler.createExamWindow(serverstatus.examtype, this.multicastClient.clientinfo.token, serverstatus, primary);
         }
         else if (WindowHandler.examwindow){  //reconnect into active exam session with exam window already open
-            console.error("communicationhandler @ startExam: found existing Examwindow..")
+            log.error("communicationhandler @ startExam: found existing Examwindow..")
             try {  // switch existing window back to exam mode
                 WindowHandler.examwindow.show() 
                 if (!this.config.development) { 
@@ -565,7 +592,7 @@ loadImageJs().then((image) => {
                 }   
             }
             catch (e) { //examwindow variable is still set but the window is not managable anymore (manually closed in dev mode?)
-                console.error("communicationhandler @ startExam: no functional examwindow found.. resetting")
+                log.error("communicationhandler @ startExam: no functional examwindow found.. resetting")
                 
                 disableRestrictions(WindowHandler.examwindow)  //examwindow is given but not used in disableRestrictions
                 WindowHandler.examwindow = null;

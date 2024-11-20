@@ -34,7 +34,7 @@ contextBridge.exposeInMainWorld('config', config);
 contextBridge.exposeInMainWorld('ipcRenderer', {
     send: (channel, data) => ipcRenderer.send(channel, data),
     sendSync: (channel, data) => ipcRenderer.sendSync(channel, data),
-    on: (channel, func) => ipcRenderer.on(channel, (event, ...args) => func(...args)),
+    on: (channel, func) => ipcRenderer.on(channel, (event, ...args) => func(event, ...args)),
     invoke: (channel, ...data) => ipcRenderer.invoke(channel, ...data), 
     removeListener: (channel, listener) => ipcRenderer.removeListener(channel, listener), // Entfernt einen Listener
     removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel), // Entfernt alle Listener für einen Channel

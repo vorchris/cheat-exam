@@ -1231,14 +1231,20 @@ export default {
             this.currentdirectory = ipcRenderer.sendSync('getCurrentWorkdir')  //in case user changed it to different location
             this.workdirectory= `${this.currentdirectory}/${this.servername}`
 
+           
             ipcRenderer.on('reconnected', (event, student) => {  
+               
                 this.$swal.fire({
                         title: this.$t("dashboard.attention"),
                         text: `${student.clientname} hat sich neu verbunden!`,
                         icon: "info"
                     })  
             }); 
+
         }
+
+
+
     },
     beforeUnmount() {  //when leaving
         this.fetchinterval.removeEventListener('action', this.fetchInfo);
