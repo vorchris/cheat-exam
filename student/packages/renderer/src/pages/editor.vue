@@ -498,9 +498,8 @@ export default {
                 try {
                     const base64Data = await ipcRenderer.invoke('getfilesasync', filename, true);
                     if (base64Data) {
-                        this.audioSource = `data:audio/mp3;base64,${base64Data}`;
+                        this.audioSource = `data:audio/mpeg;base64,${base64Data}`;
                         audioPlayer.load(); // Lädt die neue Quelle
-                       
                     } else { console.error('Keine Daten empfangen'); }
                 } catch (error) { console.error('Fehler beim Empfangen der MP3-Datei:', error); } 
             }

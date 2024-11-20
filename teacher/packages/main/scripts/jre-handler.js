@@ -38,6 +38,7 @@ class JreHandler {
 
         switch (this._arch) {
             case 'x64': break;
+            case 'arm64': break;
             case 'ia32': this._arch = 'i586'; break;
             default:
                 this.fail('unsupported architecture: ' + this._arch);

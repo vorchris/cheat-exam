@@ -60,7 +60,7 @@ class IpcHandler {
                 examtype: args.exammode,
                 delfolderonexit: false,
                 spellcheck: true,
-                spellchecklang: 'de',
+                spellchecklang: 'de-DE',
                 suggestions: false,
                 moodleTestType: '',
                 moodleDomain: '',
@@ -75,7 +75,7 @@ class IpcHandler {
                 moodleTestId: '',
                 languagetool: false,
                 password: args.password,
-                audioRepeat: 4
+                audioRepeat: 3
             }
             
             this.multicastClient.clientinfo.name = args.clientname;
@@ -583,9 +583,11 @@ class IpcHandler {
             const workdir = path.join(config.examdirectory,"/")
 
             if (filename) { //return content of specific file as string (html) to replace in editor)
+                // console.log("Received arguments:", filename, audio, docx);
+
                 let filepath = path.join(workdir,filename)
-                //log.info(filepath)
-                if (audio){ // audio file
+
+                if (audio == true){ // audio file
                     const audioData = fs.readFileSync(filepath);
                     return audioData.toString('base64');
                 }
