@@ -117,6 +117,13 @@ async function LTcheckAllWords(closeLT = true){
 }
 
 
+function LTignoreWord(word) {
+    console.log(`Adding '${word.wrongWord}' to ignorelist`)
+    this.ignoreList.add(word.wrongWord); // Convert to lowercase to make it case-insensitive
+}
+function LTresetIgnorelist() {
+    this.ignoreList= new Set()
+}
 
 function LThandleMisspelled(backend, data){
 
@@ -129,6 +136,12 @@ function LThandleMisspelled(backend, data){
         this.misspelledWords = data.data.filter(match => {
             let wrongWord = this.text.substring(match.offset, match.offset + match.length);
          
+
+            // Check if the word is in the ignore list
+            if (this.ignoreList.has(wrongWord)) {
+                return false; // Ignore this word
+            }
+
             if (!uniqueWords.has(wrongWord)) {
                 uniqueWords.add(wrongWord);
                 return true; // Behalte dieses Match, da das Wort noch nicht hinzugefügt wurde
@@ -227,40 +240,40 @@ function isUnique(position, currentWord, allWords) {
 
 
 
-function LThighlightWordsOld() {
-    if (!this.textContainer ||  (!this.serverstatus.languagetool && !this.privateSpellcheck.activated)){
-        console.log(this.privateSpellcheck)
-        this.LTdisable(); 
-         return 
-    }
+// function LThighlightWordsOld() {
+//     if (!this.textContainer ||  (!this.serverstatus.languagetool && !this.privateSpellcheck.activated)){
+//         console.log(this.privateSpellcheck)
+//         this.LTdisable(); 
+//          return 
+//     }
 
-    this.canvas.width = this.textContainer.offsetWidth;
-    this.canvas.height = this.textContainer.offsetHeight;
-    this.canvas.style.top = this.textContainer.offsetTop + 'px';
-    this.canvas.style.left = this.textContainer.offsetLeft + 'px';
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); // Vorheriges Highlighting löschen
+//     this.canvas.width = this.textContainer.offsetWidth;
+//     this.canvas.height = this.textContainer.offsetHeight;
+//     this.canvas.style.top = this.textContainer.offsetTop + 'px';
+//     this.canvas.style.left = this.textContainer.offsetLeft + 'px';
+//     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); // Vorheriges Highlighting löschen
     
-     // Check if the 'position' attribute exists in the 'word' object - if not remove word object from misspelled array -  don't know if that's a good idea????
-    // this.misspelledWords = this.misspelledWords.filter(word => {
-    //     return word.hasOwnProperty('position') && word.position;
-    // });
+//      // Check if the 'position' attribute exists in the 'word' object - if not remove word object from misspelled array -  don't know if that's a good idea????
+//     // this.misspelledWords = this.misspelledWords.filter(word => {
+//     //     return word.hasOwnProperty('position') && word.position;
+//     // });
 
-    this.misspelledWords.forEach(word => {
-        if (!word.position){return}  // student could delete word without requesting a new check so it's still in this.misspelled words but nothing to highlight anymore
-        let height = 3
-        let translate = word.position.height
-        if (this.currentLTword && this.currentLTword.position && word.position.top == this.currentLTword.position.top){ 
-            if (word === this.currentLTword) {
-                height = word.position.height + 3;
-                translate = -3;
-            }
-        }
-        const adjustedLeft = word.position.left - this.textContainer.offsetLeft + window.scrollX;
-        const adjustedTop = word.position.top - this.textContainer.offsetTop + window.scrollY;
-        this.ctx.fillStyle = word.color; // Farbe und Transparenz des Highlights
-        this.ctx.fillRect(adjustedLeft, adjustedTop+translate, word.position.width, height); // Angepasste Position und Größe
-    });
-}
+//     this.misspelledWords.forEach(word => {
+//         if (!word.position){return}  // student could delete word without requesting a new check so it's still in this.misspelled words but nothing to highlight anymore
+//         let height = 3
+//         let translate = word.position.height
+//         if (this.currentLTword && this.currentLTword.position && word.position.top == this.currentLTword.position.top){ 
+//             if (word === this.currentLTword) {
+//                 height = word.position.height + 3;
+//                 translate = -3;
+//             }
+//         }
+//         const adjustedLeft = word.position.left - this.textContainer.offsetLeft + window.scrollX;
+//         const adjustedTop = word.position.top - this.textContainer.offsetTop + window.scrollY;
+//         this.ctx.fillStyle = word.color; // Farbe und Transparenz des Highlights
+//         this.ctx.fillRect(adjustedLeft, adjustedTop+translate, word.position.width, height); // Angepasste Position und Größe
+//     });
+// }
     
 function LThighlightWords() {
     if (!this.textContainer || (!this.serverstatus.languagetool && !this.privateSpellcheck.activated)) {
@@ -312,4 +325,4 @@ function LThighlightWords() {
 
 
 
-export { LTcheckAllWords, LTfindWordPositions, LThighlightWords, LTdisable, LThandleMisspelled }
+export { LTcheckAllWords, LTfindWordPositions, LThighlightWords, LTdisable, LThandleMisspelled, LTignoreWord, LTresetIgnorelist}

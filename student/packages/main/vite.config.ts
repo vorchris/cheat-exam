@@ -20,7 +20,7 @@ export default defineConfig({
     outDir: '../../dist/main',
     emptyOutDir: true,
     lib: {
-      entry: 'main.ts',
+      entry: 'main.js',
       formats: ['es'],
       fileName: () => '[name].mjs',
     },

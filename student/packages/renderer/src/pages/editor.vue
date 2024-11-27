@@ -212,14 +212,27 @@
     <div id="languagetool" v-if="serverstatus.languagetool || privateSpellcheck.activated">
         <div id="ltcheck" @click="LTcheckAllWords();"> <div id="eye" class="darkgreen eyeopen"></div> &nbsp;LanguageTool</div>
         <div class="ltscrollarea"> 
-            <div @click="LTcheckAllWords(false);" class="btn btn-sm btn-success center" style="text-align: center;  margin-left:10px; margin-bottom:10px;"> {{$t('editor.update')}}</div> 
+            
+            <div style="display:flex;align-items: center; width:100%;  margin-bottom:20px;">
+                <div @click="LTcheckAllWords(false);" class="btn btn-sm btn-success center" style=" display: inline-block; text-align: center;  margin-left:10px;"> {{$t('editor.update')}}</div> 
+                <div class="" style=" width:100%;display: inline-block; text-align:right;  " @click="LTresetIgnorelist();LTcheckAllWords(false);" title="IgnoreList löschen">
+                    <img class="white" width=20 height=20 src="/src/assets/img/svg/dialog-cancel.svg" style=" cursor: pointer;"> 
+                </div>
+            </div>
 
             <div v-if="spellcheckFallback"  style="text-align: left; font-size: 0.8em;margin-left:10px;"> LanguageTool nicht verfügbar </div> 
             
             <div v-if="misspelledWords.length == 0"  style="text-align: left; font-size: 0.8em; margin-left:10px;"> {{this.LTinfo}}</div> 
             <div v-for="entry in misspelledWords" :key="entry.wrongWord" class="error-entry" @click="LTshowWord(entry)">
-                <div :style="'background-color:' + entry.color " class="color-circle"></div>
-                <div class="error-word">{{ entry.wrongWord }}  <span v-if="entry.whitespace">' &nbsp;  '</span></div>
+                
+                <div style="display:flex;align-items: center; width:100%; ">
+                    <div :style="'background-color:' + entry.color " class="color-circle" style="width: 10px; height: 10px;"></div>
+                    <div class="error-word" style="flex:1">{{ entry.wrongWord }} <span v-if="entry.whitespace">' &nbsp;  '</span></div>
+                    <div class="" style=" flex: 0; cursor: not-allowed;  text-align:right; " @click="LTignoreWord(entry);LTcheckAllWords(false);" title="ignore">
+                        <img class="white" width=18 height=18 src="/src/assets/img/svg/dialog-cancel.svg"> 
+                    </div>
+                </div>   
+                
                 <div v-if="entry.message" class="fw-bold">{{ entry.rule.category.name}}</div>
                 <div v-if="serverstatus.suggestions || privateSpellcheck.suggestions">
                   <div v-if="entry.message">{{ entry.message}}</div>
@@ -292,7 +305,7 @@ import TextStyle from '@tiptap/extension-text-style'
 import moment from 'moment-timezone';
 import ExamHeader from '../components/ExamHeader.vue';
 import {SchedulerService} from '../utils/schedulerservice.js'
-import { LTcheckAllWords, LTfindWordPositions, LThighlightWords, LTdisable, LThandleMisspelled } from '../utils/languagetool.js'
+import { LTcheckAllWords, LTfindWordPositions, LThighlightWords, LTdisable, LThandleMisspelled, LTignoreWord, LTresetIgnorelist } from '../utils/languagetool.js'
 import DOMPurify from 'dompurify';
 
 export default {
@@ -363,7 +376,8 @@ export default {
             spellcheckFallback: false,
             splitview: false,
             currentPDFZoom: 80,
-            currentPDFData: null
+            currentPDFData: null,
+            ignoreList: new Set()
         }
     },
     computed: {
@@ -383,6 +397,8 @@ export default {
         LThighlightWords:LThighlightWords,
         LTdisable:LTdisable,
         LThandleMisspelled: LThandleMisspelled,
+        LTignoreWord:LTignoreWord,
+        LTresetIgnorelist:LTresetIgnorelist,
 
         LTshowWord(word){
             this.currentLTword = word

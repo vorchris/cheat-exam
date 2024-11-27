@@ -672,6 +672,9 @@ import path from 'path';
         WindowHandler.examwindow = null;
         this.multicastClient.clientinfo.exammode = false
         this.multicastClient.clientinfo.focus = true
+
+        // ask student to quit app after finishing exam
+        WindowHandler.showExitQuestion()
     }
 
 

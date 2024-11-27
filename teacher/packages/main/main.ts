@@ -20,7 +20,7 @@
  */
 
 
-import { app, BrowserWindow, powerSaveBlocker, nativeTheme, globalShortcut  } from 'electron'
+import { app, BrowserWindow, powerSaveBlocker, nativeTheme, globalShortcut, Menu  } from 'electron'
 import { release } from 'os'
 import config from './config.js';
 import server from "../server/src/server.js"
@@ -28,6 +28,11 @@ import multicastClient from './scripts/multicastclient.js'
 import WindowHandler from './scripts/windowhandler.js'
 import IpcHandler from './scripts/ipchandler.js'
 import log from 'electron-log';
+
+// Verhindert, dass Electron das Standardmenü erstellt
+Menu.setApplicationMenu(null);
+
+
 
 WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow
 IpcHandler.init(multicastClient, config, WindowHandler)  //controll all Inter Process Communication

@@ -778,12 +778,30 @@ class WindowHandler {
         app.quit()
     }
 
+    showExitQuestion(){
+        let choice = dialog.showMessageBoxSync(this.mainwindow, {
+            type: 'question',
+            buttons: ['Ja', 'Nein'],
+            title: 'Programm beenden',
+            message: 'Wollen sie die Anwendung Next-Exam beenden?',
+            cancelId: 1
+        });
+        if(choice == 1){
+            log.info("do not close Next-Exam after finished Exam")
+        }
+        else {
+            this.mainwindow.allowexit = true
+            app.quit()
+        }
+    }
+
+
+
+
 
     /**
      * Additional Functions
      */
-
-
 
     isWayland(){
         return process.env.XDG_SESSION_TYPE === 'wayland'; 

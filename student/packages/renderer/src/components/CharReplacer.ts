@@ -7,8 +7,8 @@ export const CharReplacer = (options) => {
     addInputRules() {
       if (options.language === "de-DE") {
         return [
-          textInputRule({ find: /(^|(?<=\s))"(?=\s|$|\w)/g, replace: '„' })
-   
+          textInputRule({ find: /(^|(?<=\s))"(?=\s|$|\w)/g, replace: '„' }),
+          textInputRule({ find: /"(?=\s|$)/g, replace: '“' })
         ];
       }
       return [];
