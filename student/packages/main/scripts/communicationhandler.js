@@ -162,7 +162,7 @@ import path from 'path';
                     else if (data.message === "removed"){      log.warn('communicationhandler @ sendHeartbeat: Student registration not found!'); this.multicastClient.beaconsLost = 5} 
                     else { this.multicastClient.beaconsLost += 1;       log.warn("communicationhandler @ sendHeartbeat: heartbeat lost..") } 
                 }
-                else if (data && data.status === "success") {  this.multicastClient.beaconsLost = 0  }
+                else if (data && data.status === "success") {  this.multicastClient.beaconsLost = 0;}
             })
             .catch(error => { log.error(`communicationhandler @ sendHeartbeat: ${error}`); this.multicastClient.beaconsLost += 1; });
         }
@@ -178,6 +178,7 @@ import path from 'path';
      */
     async requestUpdate(){
         if (this.multicastClient.clientinfo.localLockdown){return}
+        if (this.multicastClient.beaconsLost >= 5 ){return}  // connection lost reset triggered
         if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip
             const clientInfo = JSON.stringify(this.multicastClient.clientinfo);
 
@@ -240,6 +241,7 @@ import path from 'path';
 
     async sendScreenshot(){
         if (this.multicastClient.clientinfo.localLockdown){return}
+        if (this.multicastClient.beaconsLost >= 5 ){return}  // connection lost reset triggered
         if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip
             let img = null
             if (this.screenshotAbility){   // "imagemagick" has to be installed for linux - wayland is not (yet) supported by imagemagick !!
