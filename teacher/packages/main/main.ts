@@ -31,7 +31,7 @@ import log from 'electron-log';
 
 // Verhindert, dass Electron das Standardmenü erstellt
 Menu.setApplicationMenu(null);
-
+//app.disableHardwareAcceleration(); 
 
 
 WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow

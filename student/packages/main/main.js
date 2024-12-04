@@ -24,8 +24,7 @@ import { app, BrowserWindow, powerSaveBlocker, nativeTheme, globalShortcut, Tray
 
 // Verhindert, dass Electron das Standardmenü erstellt
 Menu.setApplicationMenu(null);
-
-
+app.disableHardwareAcceleration(); 
 
 if (!app.requestSingleInstanceLock()) {  // allow only one instance of the app per client
     log.warn("main: next-exam already running.")
