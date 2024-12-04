@@ -29,11 +29,6 @@ import {disableRestrictions} from './platformrestrictions.js';
 import mammoth from 'mammoth';
 import wifi from 'node-wifi';
 
-// Initialisiere das WLAN-Modul
-wifi.init({
-    iface: null // Standard: null, damit das Standardinterface des Systems verwendet wird
-});
-
 const __dirname = import.meta.dirname;
 
   ////////////////////////////////
