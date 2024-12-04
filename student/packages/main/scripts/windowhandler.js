@@ -364,6 +364,7 @@ class WindowHandler {
                 this.examwindow.setOpacity(1)
                 this.examwindow.show()
                 this.examwindow.focus()
+                this.examwindow.setFullScreen(false)
             }
             if (!this.config.development) {
                 this.examwindow.removeMenu() 

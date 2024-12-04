@@ -14,6 +14,7 @@
     :timesinceentry="timesinceentry"
     :componentName="componentName"
     :localLockdown="localLockdown"
+    :wlanInfo="wlanInfo"
     @reconnect="reconnect"
     @gracefullyexit="gracefullyexit"
     ></exam-header>
@@ -89,7 +90,8 @@ export default {
             now : new Date().getTime(),
             localfiles: null,
             battery: null,
-            currentpreview: null
+            currentpreview: null,
+            wlanInfo: null
         }
     }, 
     components: { ExamHeader },  
@@ -312,6 +314,9 @@ export default {
 
             this.battery = await navigator.getBattery().then(battery => { return battery })
             .catch(error => { console.error("Error accessing the Battery API:", error);  });
+
+            this.wlanInfo = await ipcRenderer.invoke('get-wlan-info')
+
         }, 
        
     },

@@ -15,6 +15,7 @@
       :timesinceentry="timesinceentry"
       :componentName="componentName"
       :localLockdown="localLockdown"
+      :wlanInfo="wlanInfo"
       @reconnect="reconnect"
       @gracefullyexit="gracefullyexit"
     ></exam-header>
@@ -377,7 +378,8 @@ export default {
             splitview: false,
             currentPDFZoom: 80,
             currentPDFData: null,
-            ignoreList: new Set()
+            ignoreList: new Set(),
+            wlanInfo: null
         }
     },
     computed: {
@@ -457,6 +459,8 @@ export default {
                     this.privateSpellcheck.activated = false   // das wird eigentlich eh im communication handler für clientinfo bereits auf false gesetzt und bei fetchinfo() übernommen
                 }
             }
+
+            this.wlanInfo = await ipcRenderer.invoke('get-wlan-info')
         }, 
 
 

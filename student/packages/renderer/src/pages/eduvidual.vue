@@ -14,6 +14,7 @@
       :timesinceentry="timesinceentry"
       :componentName="componentName"
       :localLockdown="localLockdown"
+      :wlanInfo="wlanInfo"
       @reconnect="reconnect"
       @gracefullyexit="gracefullyexit"
     ></exam-header>
@@ -102,7 +103,8 @@ export default {
             battery: null,
             url: null,
             currentpreview: null,
-            isLoading: true
+            isLoading: true,
+            wlanInfo: null
         }
     }, 
     components: { ExamHeader },  
@@ -214,7 +216,10 @@ export default {
                     else if ( event.url.includes("lookup") && event.url.includes("google") )                                   { console.log(" url allowed") }
                     else if ( event.url.includes("login") && event.url.includes("eduvidual") )                                 { console.log(" url allowed") }
                     else if ( event.url.includes("login") && event.url.includes(this.serverstatus.moodleDomain) )              { console.log(" url allowed") }
-                    else if ( event.url.includes("policy") && event.url.includes(this.serverstatus.moodleDomain) )              { console.log(" url allowed") }
+                    else if ( event.url.includes("policy") && event.url.includes(this.serverstatus.moodleDomain) )             { console.log(" url allowed") }
+                    else if ( event.url.includes("SAML2") && event.url.includes("portal.tirol.gv.at") )                        { console.log(" url allowed") }
+                    else if ( event.url.includes("login") && event.url.includes("portal.tirol.gv.at") )                        { console.log(" url allowed") }
+                    else if ( event.url.includes("auth") && event.url.includes(this.serverstatus.moodleDomain) )           { console.log(" url allowed") }
 
                     else {
                         console.log("blocked leaving exam mode")
@@ -394,6 +399,9 @@ export default {
 
             this.battery = await navigator.getBattery().then(battery => { return battery })
             .catch(error => { console.error("Error accessing the Battery API:", error);  });
+
+            this.wlanInfo = await ipcRenderer.invoke('get-wlan-info')
+
         }, 
        
     },

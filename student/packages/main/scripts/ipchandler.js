@@ -27,6 +27,12 @@ import os from 'os'
 import log from 'electron-log';
 import {disableRestrictions} from './platformrestrictions.js';
 import mammoth from 'mammoth';
+import wifi from 'node-wifi';
+
+// Initialisiere das WLAN-Modul
+wifi.init({
+    iface: null // Standard: null, damit das Standardinterface des Systems verwendet wird
+});
 
 const __dirname = import.meta.dirname;
 
@@ -46,12 +52,17 @@ class IpcHandler {
         this.WindowHandler = wh  
         this.CommunicationHandler = ch
         
+        // Initialisiere das WLAN-Modul um informationen über das aktuell verbundene wlan zu erhalten
+        // node-wifi erlaubt es darüber hinaus nach ssids zu scannen und auch verbindungen aufzubauen (future feature)
+        wifi.init({
+            iface: null // Standard: null, damit das Standardinterface des Systems verwendet wird
+        });
+
 
 
         /**
          *  Start LOCAL Lockdown
          */
-
         ipcMain.on('locallockdown', (event, args) => {
             log.info("ipchandler @ locallockdown: locking down client without teacher connection")
             
@@ -691,6 +702,26 @@ class IpcHandler {
         });
 
 
+
+        ipcMain.handle('get-wlan-info', async (event) => {
+            const wifiInfo = await wifi.getCurrentConnections()
+            .then(connections => {
+                if (connections.length > 0) {
+                    //log.info('Aktuell verbundene SSID:', connections[0].ssid); // Die verbundene SSID
+                    return connections[0]
+
+                } else {
+                    // log.info('no wlan connection found')
+                    return false;  // nicht mit wlan verbunden
+                   
+                }
+            })
+            .catch(error => {
+                log.error('ipchandler @ get-wlan-info: Fehler beim Auslesen der WLAN-Verbindung:', error);
+                return false
+            }); 
+            return wifiInfo   
+        });
 
 
     }
