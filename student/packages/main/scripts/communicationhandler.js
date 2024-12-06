@@ -181,7 +181,8 @@ import path from 'path';
                 }
             })
             .catch(error => {
-                log.error(`communicationhandler @ requestUpdate: ${error}`);
+                this.multicastClient.beaconsLost += 1;
+                log.error(`communicationhandler @ requestUpdate: (${this.multicastClient.beaconsLost}) ${error}`);
             });
         }
         else {
@@ -230,7 +231,7 @@ import path from 'path';
                         const imageBuffer = image.toPNG();// Convert the nativeImage to a Buffer (PNG format)
                         return imageBuffer
                       })
-                    .catch((err) => {log.error(`communicationhandler @ sendScreenshot: ${err}`)   });
+                    .catch((err) => {log.error(`communicationhandler @ sendScreenshot (capturePage): ${err}`)   });
                 }
             }
 
@@ -316,7 +317,9 @@ import path from 'path';
                         if (data && data.status === "error") { log.error("communicationhandler @ sendScreenshot: status error", data.message); }
                     })
                     .catch(error => {
-                        log.error(`communicationhandler @ sendScreenshot: ${error}`);
+                        if (this.multicastClient.beaconsLost == 0){  // don't spam the log if we already record network errors via update()
+                            log.error(`communicationhandler @ sendScreenshot (updatescreenshot): ${error}`);
+                        }
                     });
                 } catch (error) {
                     log.warn('communicationhandler @ sendScreenshot: Error resizing image:', error.message);
