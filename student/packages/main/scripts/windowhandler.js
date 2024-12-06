@@ -351,7 +351,8 @@ class WindowHandler {
                 preload: join(__dirname, '../preload/preload.cjs'),
                 spellcheck: false,  
                 contextIsolation: true,
-                webviewTag: true
+                webviewTag: true,
+                webSecurity: false
             }
         });
 

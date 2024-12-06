@@ -94,7 +94,7 @@ class JreHandler {
 
         log.info(`jre-handler @ init: '${this.jre}' selected`)
         log.info(`jre-handler @ jSpawn: spawning java process: ${javacmdline}`)
-        return spawn(javapath, javaargs);
+        return spawn(javapath, javaargs, {shell:false});
        // return spawn(javacmdline);
     }
 }
