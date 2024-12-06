@@ -320,6 +320,9 @@ export default {
             // check im networkconnection is still alive - otherwise exit here
             this.hostip = ipcRenderer.sendSync('checkhostip')
             if (!this.hostip) return;  
+            if (this.clientinfo.token) return;   // stop spamming the api if already connected
+        
+            // CHECK if Server is still alive otherwise mark with attention sign
             for (let server of this.serverlist){      
                 const signal = AbortSignal.timeout(2000); // 2000 Millisekunden = 2 Sekunden
                 fetch(`https://${server.serverip}:${this.serverApiPort}/server/control/pong`, { method: 'GET', signal })

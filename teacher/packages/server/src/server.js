@@ -117,8 +117,23 @@ api.use(cors())
 api.use("/static",express.static(config.tempdirectory));
 api.use(cookieParser());
 
+// api.use((req, res, next) => {
+//     console.log(`Incoming request: ${req.method} ${req.url}`);
+//     res.on('finish', () => {
+//       //console.log(`Request to ${req.method} ${req.url} responded with status ${res.statusCode}`);
+//     });
+//     next();
+//   });
+
 api.use('/server', serverRouter)
 //api.use(limiter)  //disabled for now because this need a lot of testing to find good parameters
+
+
+
+
+
+
+
 
 
 let certs = createCACert()  // we can not use self signed certs for web (fallback to let's encrypt!)

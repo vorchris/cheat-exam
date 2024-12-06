@@ -85,8 +85,6 @@ import path from 'path';
     init (mc, config) {
         this.multicastClient = mc
         this.config = config
-        this.heartbeatScheduler = new SchedulerService(this.sendHeartbeat.bind(this), 4000)
-        this.heartbeatScheduler.start()
         this.updateScheduler = new SchedulerService(this.requestUpdate.bind(this), 5000)
         this.updateScheduler.start()
         this.screenshotScheduler = new SchedulerService(this.sendScreenshot.bind(this), this.multicastClient.clientinfo.screenshotinterval)
@@ -132,45 +130,9 @@ import path from 'path';
     }
 
 
-    /** 
-     * SEND HEARTBEAT in order to set Online/Offline Status 
-     * 5 Heartbeats lost is considered offline 
-     */
-    async sendHeartbeat(){
-        if (this.multicastClient.clientinfo.localLockdown){return}
 
-        // CONNECTION LOST - UNLOCK SCREEN
-        if (this.multicastClient.beaconsLost >= 5 ){ // no serversignal for 20 seconds
-            log.warn("communicationhandler @ sendHeartbeat: Connection to Teacher lost! Removing registration.") //remove server registration locally (same as 'kick')
-            this.multicastClient.beaconsLost = 0
-            this.resetConnection()   // this also resets serverip therefore no api calls are made afterwards
-            this.killScreenlock()       // just in case screens are blocked.. let students work
-        }
-        let heartbeatURL = `https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/heartbeat/${this.multicastClient.clientinfo.servername}/${this.multicastClient.clientinfo.token}`
 
-        // ACTIVE SERVER CONNECTION - SEND HEARTBEAT
-        if (this.multicastClient.clientinfo.serverip) { 
-            fetch(heartbeatURL, {    //probably better to use  https://developer.mozilla.org/en-US/docs/Web/API/Navigator/sendBeacon
-                method: "POST",
-                cache: "no-store",
-                body: ""
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data && data.status === "error") { 
-                    if      (data.message === "notavailable"){ log.warn('communicationhandler @ sendHeartbeat: Exam Instance not found!');        this.multicastClient.beaconsLost = 5} 
-                    else if (data.message === "removed"){      log.warn('communicationhandler @ sendHeartbeat: Student registration not found!'); this.multicastClient.beaconsLost = 5} 
-                    else { this.multicastClient.beaconsLost += 1;       log.warn("communicationhandler @ sendHeartbeat: heartbeat lost..") } 
-                }
-                else if (data && data.status === "success") {  this.multicastClient.beaconsLost = 0;}
-            })
-            .catch(error => { log.error(`communicationhandler @ sendHeartbeat: ${error}`); this.multicastClient.beaconsLost += 1; });
-        }
-        else {
-            // no focus warning block if no connection 
-            this.multicastClient.clientinfo.focus = true  // if not connected but still in exam mode you could trigger a focus warning and nobody is able to unlock you
-        }
-    }
+
 
 
     /** 
@@ -178,7 +140,15 @@ import path from 'path';
      */
     async requestUpdate(){
         if (this.multicastClient.clientinfo.localLockdown){return}
-        if (this.multicastClient.beaconsLost >= 5 ){return}  // connection lost reset triggered
+        
+        // connection lost reset triggered  no serversignal for 20 seconds
+        if (this.multicastClient.beaconsLost >= 5 ){  
+            log.warn("communicationhandler @ requestUpdate: Connection to Teacher lost! Removing registration.") //remove server registration locally (same as 'kick')
+            this.multicastClient.beaconsLost = 0
+            this.resetConnection()   // this also resets serverip therefore no api calls are made afterwards
+            this.killScreenlock()       // just in case screens are blocked.. let students work
+        }  
+
         if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip
             const clientInfo = JSON.stringify(this.multicastClient.clientinfo);
 
@@ -191,18 +161,17 @@ import path from 'path';
                 body: JSON.stringify({ clientinfo: clientInfo }),
             })
             .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
+                if (!response.ok) { throw new Error('Network response was not ok'); }
                 return response.json();
             })
             .then(data => {
                 if (data.status === "error") {
-                    log.error("communicationhandler @ requestUpdate: status error - try again in 5 seconds");
+                    if      (data.message === "notavailable"){ log.warn('communicationhandler @ requestUpdate: Exam Instance not found!');        this.multicastClient.beaconsLost = 5; } 
+                    else if (data.message === "removed"){      log.warn('communicationhandler @ requestUpdate: Student registration not found!'); this.multicastClient.beaconsLost = 5; } 
+                    else {                                     log.warn("communicationhandler @ requestUpdate: 1 Heartbeat lost..");              this.multicastClient.beaconsLost += 1;} 
                 } else if (data.status === "success") {
                     this.multicastClient.beaconsLost = 0; // Dies zählt ebenfalls als erfolgreicher Heartbeat - Verbindung halten
                     this.multicastClient.clientinfo.printrequest = false  //set this to false after the request left the client to prevent double triggering
-
 
                     // Verarbeitung der empfangenen Daten
                     const serverStatusDeepCopy = JSON.parse(JSON.stringify(data.serverstatus));
@@ -213,8 +182,11 @@ import path from 'path';
             })
             .catch(error => {
                 log.error(`communicationhandler @ requestUpdate: ${error}`);
-                log.error("communicationhandler @ requestUpdate: failed - try again in 5 seconds");
             });
+        }
+        else {
+            // prevent focus warning block if no connection 
+            this.multicastClient.clientinfo.focus = true  // if not connected but still in exam mode you could trigger a focus warning and nobody is able to unlock you
         }
     }
 

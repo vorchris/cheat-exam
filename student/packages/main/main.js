@@ -299,7 +299,7 @@ function checkParent() {
     }
 }
 
-function findParentRecursively(pid, callback, depth = 0) {
+function findParentRecursively(pid, callback, depth = 0, visitedPids = new Set()) {
     const maxDepth = 4; // Maximale Tiefe der Rekursion
     const numericPid = parseInt(pid, 10);
 
@@ -315,6 +315,16 @@ function findParentRecursively(pid, callback, depth = 0) {
         return;
     }
 
+    // windows liefert manchmal inkonsistente prozess informationen child ist gleichzeitig parent vom parent.. wtf?
+    if (visitedPids.has(numericPid)) {
+        log.error('main @ findParentRecursively: Zirkuläre Referenz erkannt, Suche wird abgebrochen.');
+        callback(null, false);
+        return;
+    }
+
+    visitedPids.add(numericPid); // Aktuelle PID zu den besuchten PIDs hinzufügen
+
+
     findParentCommand(numericPid, (err, parentCommand, parentPid) => {
         if (err) {
             log.warn(`main @ findParentRecursively: Fehler beim Abrufen des Elternprozesses mit PID ${pid}: ${err.message}`);
@@ -329,7 +339,7 @@ function findParentRecursively(pid, callback, depth = 0) {
         } else if (browserKeywords.some(browser => parentCommand.includes(browser))) {
             callback(null, true); // Browser gefunden
         } else {
-            findParentRecursively(parentPid, callback, depth + 1); // Weiter nach oben suchen
+            findParentRecursively(parentPid, callback, depth + 1, visitedPids); // Weiter nach oben suchen
         }
     });
 }

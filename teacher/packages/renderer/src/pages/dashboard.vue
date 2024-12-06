@@ -456,75 +456,73 @@ export default {
             this.hostip = ipcRenderer.sendSync('checkhostip')
             if (!this.hostip) return; 
 
-            fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/studentlist/${this.servername}/${this.servertoken}`)
-            .then(response => {
-                if (!response.ok) { throw new Error('Network response was not ok');  }
-                return response.json(); // Antwort als JSON umwandeln
-            })
-            .then(data => {
-                // Studentenliste aus der Antwort zuweisen
-                this.studentlist = data.studentlist;
-                this.numberOfConnections = this.studentlist.length
 
-                if (this.numberOfConnections >= this.studentwidgets.length){ //check if there are more students connected than empty widgets available. 
-                    this.studentwidgets.push(new EmptyWidget); 
-                    this.studentwidgets.push(new EmptyWidget); 
-                } 
+            let result = await ipcRenderer.invoke('studentlist', this.servername)
 
-                if (this.studentlist && this.studentlist.length > 0){
-                    this.studentlist.forEach( student => { 
-                      
-                        if (this.activestudent && student.token === this.activestudent.token) { this.activestudent = student}  // on studentlist-receive update active student (for student-details)
-                        if (!student.imageurl){ student.imageurl = "user-black.svg"  }
-                        
-                        // if the chosen exam mode is OFFICE and everything is Setup already check if students already got their share link (re-connect, late-connect)
-                        if (this.serverstatus.examtype === "microsoft365" && this.config.accessToken && this.serverstatus.msOfficeFile){
-                            if (!student.status.msofficeshare) {  // this one is late to the party
-                                console.log("dashboard @ fetchInfo: this student has no sharing link yet")
-                                this.onedriveUploadSingle(student, this.serverstatus.msOfficeFile)   // trigger upload of this.serverstatus.msOfficeFile, create sharelink and set student.status.msofficeshare to sharelink
-                            }
+     
+            // Studentenliste aus der Antwort zuweisen
+            this.studentlist = result.studentlist;
+            this.numberOfConnections = this.studentlist.length
+
+            if (this.numberOfConnections >= this.studentwidgets.length){ //check if there are more students connected than empty widgets available. 
+                this.studentwidgets.push(new EmptyWidget); 
+                this.studentwidgets.push(new EmptyWidget); 
+            } 
+
+            if (this.studentlist && this.studentlist.length > 0){
+                this.studentlist.forEach( student => { 
+                    
+                    if (this.activestudent && student.token === this.activestudent.token) { this.activestudent = student}  // on studentlist-receive update active student (for student-details)
+                    if (!student.imageurl){ student.imageurl = "user-black.svg"  }
+                    
+                    // if the chosen exam mode is OFFICE and everything is Setup already check if students already got their share link (re-connect, late-connect)
+                    if (this.serverstatus.examtype === "microsoft365" && this.config.accessToken && this.serverstatus.msOfficeFile){
+                        if (!student.status.msofficeshare) {  // this one is late to the party
+                            console.log("dashboard @ fetchInfo: this student has no sharing link yet")
+                            this.onedriveUploadSingle(student, this.serverstatus.msOfficeFile)   // trigger upload of this.serverstatus.msOfficeFile, create sharelink and set student.status.msofficeshare to sharelink
                         }
-                        if (student.printrequest){  // student sent a printrequest to the teacher
-                            //printrequest sollte am client auch sofort auf false gesetzt werden sobald abgeschickt jedoch könnte der client genau hier ja disconnecten
-                            this.setStudentStatus({removeprintrequest:true}, student.token)  //request received.. remove it from the servers student object
-                            if (student.clientname !== this.printrequest)  {  //this.printrequest contains the name of the student who requested
-                                this.getLatestFromStudent(student) //do not trigger twice from same student
+                    }
+                    if (student.printrequest){  // student sent a printrequest to the teacher
+                        //printrequest sollte am client auch sofort auf false gesetzt werden sobald abgeschickt jedoch könnte der client genau hier ja disconnecten
+                        this.setStudentStatus({removeprintrequest:true}, student.token)  //request received.. remove it from the servers student object
+                        if (student.clientname !== this.printrequest)  {  //this.printrequest contains the name of the student who requested
+                            this.getLatestFromStudent(student) //do not trigger twice from same student
+                        } 
+                    }   
+                });
+
+                //update widgets list here - we keep our own independent widgetlist (aka studentlist) for drag&drop 
+                for (let student of this.studentlist) {
+                    let studentWidget = this.studentwidgets.filter( el => el.token ===  student.token)  // get widget with the same token
+                    if ( studentWidget.length > 0){  //studentwidget exists -> update it
+                        for (let i = 0; i < this.studentwidgets.length; i++){  // we cant use (for .. of) or forEach because it creates a workingcopy of the original object
+                            if (student.token == this.studentwidgets[i].token){ this.studentwidgets[i] = student; }  //now update the entry in the original widgets object
+                        }
+                    }
+                    else {
+                        //replace empty widget with student
+                        for (let i = 0; i < this.studentwidgets.length; i++){  // we cant use (for .. of) or forEach because it creates a workingcopy of the original object
+                            if (!this.studentwidgets[i].clientname){ //clientname == false in an emptyWidget so we found one
+                                this.studentwidgets[i] = student; // replace emptywidget
+                                break;
                             } 
-                        }   
-                    });
-
-                    //update widgets list here - we keep our own independent widgetlist (aka studentlist) for drag&drop 
-                    for (let student of this.studentlist) {
-                        let studentWidget = this.studentwidgets.filter( el => el.token ===  student.token)  // get widget with the same token
-                        if ( studentWidget.length > 0){  //studentwidget exists -> update it
-                            for (let i = 0; i < this.studentwidgets.length; i++){  // we cant use (for .. of) or forEach because it creates a workingcopy of the original object
-                                if (student.token == this.studentwidgets[i].token){ this.studentwidgets[i] = student; }  //now update the entry in the original widgets object
-                            }
-                        }
-                        else {
-                            //replace empty widget with student
-                            for (let i = 0; i < this.studentwidgets.length; i++){  // we cant use (for .. of) or forEach because it creates a workingcopy of the original object
-                                if (!this.studentwidgets[i].clientname){ //clientname == false in an emptyWidget so we found one
-                                    this.studentwidgets[i] = student; // replace emptywidget
-                                    break;
-                                } 
-                            }
                         }
                     }
                 }
+            }
                 
-                //remove studentwidget from widgetslist if student was removed
-                for (let widget of this.studentwidgets) { //find student in studentwidgets list  
-                    let studentExists = this.studentlist.filter( el => el.token ===  widget.token).length === 0 ? false : true  // now check if a widget has a student in studentlist otherwise remove it
-                    if (!studentExists && widget.token.includes('csrf')){ //if the student the widget belongs to does not exist (and the widget actually represents a student - token starting with csrf)
-                        for (let i = 0; i < this.studentwidgets.length; i++){  // we cant use (for .. of) or forEach because it creates a workingcopy of the original object
-                             if (widget.token == this.studentwidgets[i].token){ 
-                                this.studentwidgets[i] = new EmptyWidget // replace studentwidget with emptywidget
-                            } 
-                        }
-                    } 
-                }
-            }).catch( err => {console.log(`dashboard @ fetchinfo:`,err)});
+            //remove studentwidget from widgetslist if student was removed
+            for (let widget of this.studentwidgets) { //find student in studentwidgets list  
+                let studentExists = this.studentlist.filter( el => el.token ===  widget.token).length === 0 ? false : true  // now check if a widget has a student in studentlist otherwise remove it
+                if (!studentExists && widget.token.includes('csrf')){ //if the student the widget belongs to does not exist (and the widget actually represents a student - token starting with csrf)
+                    for (let i = 0; i < this.studentwidgets.length; i++){  // we cant use (for .. of) or forEach because it creates a workingcopy of the original object
+                            if (widget.token == this.studentwidgets[i].token){ 
+                            this.studentwidgets[i] = new EmptyWidget // replace studentwidget with emptywidget
+                        } 
+                    }
+                } 
+            }
+           
         }, 
 
 

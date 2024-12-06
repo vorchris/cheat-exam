@@ -90,6 +90,20 @@ class IpcHandler {
         }) 
 
 
+        //return current studentlist
+        ipcMain.handle('studentlist', (event, servername) => { 
+            const mcServer = this.config.examServerList[servername]
+            if (mcServer ) { 
+                return {studentlist: mcServer.studentList}
+            }
+            else {  
+                return {sender: "server", message:"notfound", status: "error", studentlist: []}
+            }
+        }) 
+
+
+
+
         // opens a loginwindow for microsoft 365
         ipcMain.on('openmsauth', (event) => { this.WindowHandler.createMsauthWindow();  event.returnValue = true })  
 

@@ -279,27 +279,7 @@ for (let i = 0; i<16; i++ ){
 
 
 
-/**
- *  sends a list of all connected students { clientname: clientname, token: token, clientip: clientip }
- * @param servername the name of the exam server in question
- * @param csrfservertoken the servers csrf token needed to process the request (generated and transferred to the webbrowser on login) 
- */
- router.get('/studentlist/:servername/:csrfservertoken', function (req, res, next) {
-    const servername = req.params.servername
-    const mcServer = config.examServerList[servername]
 
-        //demo users start
-      // for (let i = 0; i<democlients.length; i++ ){ democlients[i].timestamp= new Date().getTime()  }
-      // mcServer.studentList = democlients
-        //demo users end
-
-    if (mcServer && req.params.csrfservertoken === mcServer.serverinfo.servertoken) {
-        res.send({studentlist: mcServer.studentList})
-    }
-    else {
-        res.send({sender: "server", message:t("control.notfound"), status: "error", studentlist: []} )
-    }
-})
 
 
 /**
@@ -345,7 +325,7 @@ for (let i = 0; i<16; i++ ){
         
 
         if (!registeredClient) {   // create client object
-            log.info('control @ registerclient: adding new client')
+            log.info(`control @ registerclient: adding new client '${clientname}'`)
 
             let group = false;
             if (mcServer.serverstatus.groupA?.includes(clientname)) { group = 'a'; } 
@@ -765,9 +745,10 @@ router.post('/setstudentstatus/:servername/:csrfservertoken/:studenttoken', func
 
     //check if server and student exist
     const mcServer = config.examServerList[servername]
-    if ( !mcServer) {  return res.send({sender: "server", message:"notavailable", status: "error"} )  }
+    if ( !mcServer) {  return res.send({sender: "server", message:"notavailable", status: "error"} )  }  // server is gone - disconnect student
+
     let student = mcServer.studentList.find(element => element.token === studenttoken)
-    if ( !student ) {return res.send({ sender: "server", message:"removed", status: "error" }) } //check if the student is registered on this server
+    if ( !student ) {return res.send({ sender: "server", message:"removed", status: "error" }) } // student kicked - disconnect student
 
     //update important student attributes
     student.focus = clientinfo.focus
@@ -867,7 +848,8 @@ router.post('/updatescreenshot', async function (req, res, next) {
 
 
 /**
- * HEARTBEAT ! 
+ * HEARTBEAT ! /// DEPRECATED BUT KEEP FOR 1.0.0 LTS !!!!
+ * 
  * This is used only to determine online/offline status of the students
  * @param servername the name of the server at which the student is registered
  * @param token the students token to search and update the entry in the list
