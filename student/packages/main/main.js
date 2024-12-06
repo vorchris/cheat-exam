@@ -121,6 +121,7 @@ log.eventLogger.startLogging();
 log.errorHandler.startCatching();
 log.warn(`-------------------`)
 log.warn(`main: starting Next-Exam "${config.version} ${config.info}" (${process.platform})`)
+log.warn(`-------------------`)
 log.info(`main: Logfilelocation at ${logfile}`)
 log.info('main: Next-Exam Logger initialized...');
 
@@ -215,7 +216,11 @@ app.whenReady()
             log.info("main.ts @ systemtray: removing registration ")
             CommHandler.resetConnection();
         }   },
-        { label: 'Beenden', click: function () {WindowHandler.mainwindow.allowexit = true; app.quit(); }   }
+        { label: 'Beenden', click: function () {
+            log.warn("main.ts @ systemtray: Closing Next-Exam" )
+            log.warn(`----------------------------------------`)
+            WindowHandler.mainwindow.allowexit = true; app.quit(); 
+        }   }
     ]);
 
     tray.setToolTip('Next-Exam Student');

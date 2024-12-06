@@ -190,7 +190,9 @@ async function LTfindWordPositions() {
             else { word.color = "rgba(108, 52, 131, 0.3)"; }
 
             // Erstelle Regex für das Wort
-            const pattern = word.wrongWord.trim() === '' ? '\\s\\s+' : `${word.wrongWord}`;  // Suche exakt nach dem Wort, ohne Lookbehind oder Lookahead
+           // const pattern = word.wrongWord.trim() === '' ? '\\s\\s+' : `${word.wrongWord}`;  // Suche exakt nach dem Wort, ohne Lookbehind oder Lookahead
+            
+            const pattern = word.wrongWord.trim() === '' ? '\\s\\s+' : `${word.wrongWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`;  // Escape spezielle Regex-Zeiche
             const regex = new RegExp(pattern, 'g');
 
             // Durchsuche den Text der aktuellen (text)Node nach diesem Wort
