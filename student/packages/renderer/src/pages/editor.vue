@@ -379,7 +379,8 @@ export default {
             currentPDFZoom: 80,
             currentPDFData: null,
             ignoreList: new Set(),
-            wlanInfo: null
+            wlanInfo: null,
+            ltRunning: false,
         }
     },
     computed: {
@@ -1173,6 +1174,31 @@ export default {
                 this.sendFocuslost();
             }
         },
+        async startLanguageTool(){
+            if (this.serverstatus.languagetool && !this.ltRunning){
+                let response = await ipcRenderer.invoke("startLanguageTool")
+                if (response){
+                    this.$swal.fire({
+                        text: "LanguageTool started!",
+                        timer: 1000,
+                        timerProgressBar: true,
+                        didOpen: () => { this.$swal.showLoading() }
+                    });
+                    this.ltRunning=true
+                }
+                else {
+                    this.$swal.fire({
+                        text: "LanguageTool Error!",
+                        timer: 1000,
+                        timerProgressBar: true,
+                        didOpen: () => { this.$swal.showLoading() }
+                    });
+                    this.ltRunning=false
+                }
+            }
+        },
+
+
         createEditor(){
             this.editor = new Editor({
                 extensions: [
@@ -1229,9 +1255,7 @@ export default {
             });
         }
     },
-
-
-
+    
     mounted() {
         switch (this.cmargin.size) {
             case 5:       this.proseMirrorMargin = '50mm'; this.editorWidth = '160mm'; break;
@@ -1347,6 +1371,12 @@ export default {
         document.body.addEventListener('mouseleave', this.sendFocuslost);
         document.body.addEventListener('keydown', this.handleCtrlAlt);
         window.addEventListener('visibilitychange', this.handleVisibilityChange);
+
+
+        // start language tool locally (if allowed)
+        this.startLanguageTool()
+
+    
 
     },
     beforeMount(){ },

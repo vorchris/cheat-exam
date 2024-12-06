@@ -82,38 +82,36 @@ async function LTcheckAllWords(closeLT = true){
     //request LanguageTool API
     this.LTinfo = "searching..."
 
-    fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/languagetool/${this.servername}/${this.token}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: this.text, language: this.serverstatus.spellchecklang })
-    })
-    .then(response => response.json())
-    .then(async (data) => {
-        if (data.status == "error" || !Array.isArray(data.data)){
-            console.warn('languagetool.js @ LTcheckAllwords: LanguageTool is not reachable ')
-            this.spellcheckFallback = true;
-        }
-        else {
-            this.LThandleMisspelled("languagetool", data)   //bereitet die liste auf - entfernt duplikate
-        }
-
+    try {
+        const response = await fetch('http://127.0.0.1:8088/v2/check', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+            body: new URLSearchParams({ text: this.text, language: this.serverstatus.spellchecklang}).toString() 
+        });
+        if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`);   }
+        const data = await response.json();      
+  
+        this.LThandleMisspelled(data.matches)   //bereitet die liste auf - entfernt duplikate
+        
         if (!this.misspelledWords.length) {
             this.LTinfo = "Keine Fehler gefunden"
             return;
         }
-
-       // this.LTinfo = "closing..."
+        // this.LTinfo = "closing..."
         let positions = await this.LTfindWordPositions();  //finde wörter im text und erzeuge highlights
         this.LThighlightWords(positions)
+            
 
-    })
-    .catch(async (error) => {
+
+    } catch (error) {
         console.warn('languagetool.js @ LTcheckAllwords (catch):', error.message)  
-        this.spellcheckFallback = true;
         this.LTinfo = "Keine Fehler gefunden"
         let positions = await this.LTfindWordPositions();  //finde wörter im text und erzeuge highlights
         this.LThighlightWords(positions)
-    })
+       
+    }
+
+
 }
 
 
@@ -125,37 +123,33 @@ function LTresetIgnorelist() {
     this.ignoreList= new Set()
 }
 
-function LThandleMisspelled(backend, data){
+function LThandleMisspelled(matches){
 
+    // Verarbeiten der Antwort, um das fehlerhafte Wort zu extrahieren und Duplikate zu entfernen
+    const uniqueWords = new Set(); // Ein Set, um die Einzigartigkeit der Wörter zu gewährleisten
+    
+    this.misspelledWords = matches.filter(match => {
+        let wrongWord = this.text.substring(match.offset, match.offset + match.length);
+        
 
-    if (backend == "languagetool"){
-        this.spellcheckFallback = false;
-        // Verarbeiten der Antwort, um das fehlerhafte Wort zu extrahieren und Duplikate zu entfernen
-        const uniqueWords = new Set(); // Ein Set, um die Einzigartigkeit der Wörter zu gewährleisten
-       
-        this.misspelledWords = data.data.filter(match => {
-            let wrongWord = this.text.substring(match.offset, match.offset + match.length);
-         
+        // Check if the word is in the ignore list
+        if (this.ignoreList.has(wrongWord)) {
+            return false; // Ignore this word
+        }
 
-            // Check if the word is in the ignore list
-            if (this.ignoreList.has(wrongWord)) {
-                return false; // Ignore this word
-            }
-
-            if (!uniqueWords.has(wrongWord)) {
-                uniqueWords.add(wrongWord);
-                return true; // Behalte dieses Match, da das Wort noch nicht hinzugefügt wurde
-            }
-            return true; // Entferne dieses Match, da das Wort bereits vorhanden ist
-        }).map(match => {
-            // Nachdem Duplikate entfernt wurden, füge das fehlerhafte Wort hinzu
-            const wrongWord = this.text.substring(match.offset, match.offset + match.length);
-            return {
-                ...match,
-                wrongWord,
-            };
-        });
-    }
+        if (!uniqueWords.has(wrongWord)) {
+            uniqueWords.add(wrongWord);
+            return true; // Behalte dieses Match, da das Wort noch nicht hinzugefügt wurde
+        }
+        return true; // Entferne dieses Match, da das Wort bereits vorhanden ist
+    }).map(match => {
+        // Nachdem Duplikate entfernt wurden, füge das fehlerhafte Wort hinzu
+        const wrongWord = this.text.substring(match.offset, match.offset + match.length);
+        return {
+            ...match,
+            wrongWord,
+        };
+    });
 }
 
 

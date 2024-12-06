@@ -28,6 +28,7 @@ import log from 'electron-log';
 import {disableRestrictions} from './platformrestrictions.js';
 import mammoth from 'mammoth';
 import wifi from 'node-wifi';
+import languageToolServer from './lt-server';
 
 const __dirname = import.meta.dirname;
 
@@ -53,7 +54,19 @@ class IpcHandler {
             iface: null // Standard: null, damit das Standardinterface des Systems verwendet wird
         });
 
-
+        /**
+         * Start languageTool API Server (with Java JRE)
+         * Runs at localhost 8088
+        */ 
+        ipcMain.handle('startLanguageTool', (event) => { 
+            try{
+                languageToolServer.startServer();
+            }
+            catch(err){
+                return false
+            }
+            return true
+        }) 
 
         /**
          *  Start LOCAL Lockdown

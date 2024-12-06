@@ -59,7 +59,7 @@ class IpcHandler {
         */ 
         ipcMain.handle('startLanguageTool', (event) => { 
             try{
-                languageToolServer.startServer();
+               // languageToolServer.startServer();
             }
             catch(err){
                 return false
