@@ -45,7 +45,7 @@
 
 
     <!-- dashboard EXPLORER start -->
-    <div :key="2" id=preview class="fadeinslow ">
+    <div :key="2" id=preview class="fadeinfast ">
         <div id=workfolder style="overflow-y:hidden">
             <button id="closefilebrowser" type="button" class=" btn-close pt-2 pe-2 float-end" title="close"></button>
             <h4>{{$t('dashboard.filesfolder')}}: <br> <span class="ms-3 mb-3"><strong> {{currentdirectory}}</strong>  </span></h4>
