@@ -27,7 +27,7 @@ parentPort.on('message', async ({ img }) => {
 
         let isAllBlack = true
         
-        const data = image.getRGBAData();
+        const data = imageHeader.getRGBAData();
 
         // wenn in einem der ersten 100px farbe enthalten ist dann ist das bild nicht komplett schwarz
         for (let i = 0; i < 100; i += 4) {
