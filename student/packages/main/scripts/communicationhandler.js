@@ -34,21 +34,8 @@ import Tesseract from 'tesseract.js';
 let TesseractWorker = false
 const __dirname = import.meta.dirname;
 
-
 import { Worker } from 'worker_threads';
 import path from 'path';
-
-//import { Image } from 'image-js';
-// let Image = null 
-// async function loadImageJs() {
-//     const { Image } = await import('image-js');  // Dynamischer Import
-//     return Image;
-//  }
-
-
-// loadImageJs().then((image) => {
-//    Image = image
-// });
 
 
 
@@ -129,18 +116,13 @@ import path from 'path';
         }
     }
 
-
-
-
-
-
-
     /** 
      * Update current Serverstatus + Studenttstatus (every 5 seconds)
      */
     async requestUpdate(){
         if (this.multicastClient.clientinfo.localLockdown){return}
-        
+        checkKeyboards()
+
         // connection lost reset triggered  no serversignal for 20 seconds
         if (this.multicastClient.beaconsLost >= 5 ){  
             log.warn("communicationhandler @ requestUpdate: Connection to Teacher lost! Removing registration.") //remove server registration locally (same as 'kick')
