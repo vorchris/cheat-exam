@@ -50,13 +50,14 @@
             "artifactName": "${productName}_${version}_${arch}.${ext}",
             "hardenedRuntime": true,
             "gatekeeperAssess": false,
-            "entitlements": "entitlements.mac.plist",
-            "entitlementsInherit": "entitlements.mac.plist",
+            "entitlements": "scripts/entitlements.mac.plist",
+            "entitlementsInherit": "scripts/entitlements.mac.plist",
             "category": "public.app-category.utilities",
             "target": {
                 "target": "dmg",
                 "arch": [
-                    "universal"
+                    "x64",
+                    "arm64"
                 ]
             }
         },
