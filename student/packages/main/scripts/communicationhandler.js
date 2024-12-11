@@ -121,7 +121,6 @@ import path from 'path';
      */
     async requestUpdate(){
         if (this.multicastClient.clientinfo.localLockdown){return}
-        checkKeyboards()
 
         // connection lost reset triggered  no serversignal for 20 seconds
         if (this.multicastClient.beaconsLost >= 5 ){  
@@ -395,7 +394,8 @@ import path from 'path';
                 log.info("communicationhandler @ processUpdatedServerstatus: activating spellcheck for student")
                 this.multicastClient.clientinfo.privateSpellcheck.activate = true  //clientinfo.privateSpellcheck will be put on this.privateSpellcheck in editor updated via fetchInfo()
                 this.multicastClient.clientinfo.privateSpellcheck.activated = true
-                ipcMain.emit('activatespellcheck', serverstatus.spellchecklang ) 
+               // ipcMain.emit('activatespellcheck', serverstatus.spellchecklang ) //deprecated : nodehun
+                ipcMain.emit("startLanguageTool")
             }
             if (studentstatus.activatePrivateSpellcheck == false && this.multicastClient.clientinfo.privateSpellcheck.activated == true ) {
                 log.info("communicationhandler @ processUpdatedServerstatus: de-activating spellcheck for student")

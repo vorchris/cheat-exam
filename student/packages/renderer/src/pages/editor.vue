@@ -1176,6 +1176,9 @@ export default {
         },
         async startLanguageTool(){
             if (this.serverstatus.languagetool && !this.ltRunning){
+                
+
+
                 let response = await ipcRenderer.invoke("startLanguageTool")
                 if (response){
                     this.$swal.fire({

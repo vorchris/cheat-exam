@@ -68,6 +68,23 @@ class IpcHandler {
             return true
         }) 
 
+
+        /**
+         * activate spellcheck on demand for specific student
+         */ 
+        ipcMain.on('startLanguageTool', (event) => {  
+            try{
+                languageToolServer.startServer();
+            }
+            catch(err){
+                return false
+            }
+            return true
+        })
+
+
+
+
         /**
          *  Start LOCAL Lockdown
          */
