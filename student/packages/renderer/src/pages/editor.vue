@@ -1167,7 +1167,7 @@ export default {
             }  
         },
         handleCtrlAlt(event) {
-            if (event.ctrlKey && event.altKey) { this.sendFocuslost(true);   }
+            // if (event.ctrlKey && event.altKey) { this.sendFocuslost(true);   }   // too much to prevent switching to tty or windows logon screen?
         },
         handleVisibilityChange() {
             if (document.hidden) {

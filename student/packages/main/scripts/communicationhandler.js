@@ -527,7 +527,7 @@ import path from 'path';
         let primary = screen.getPrimaryDisplay()
        
         if (!primary || primary === "" || !primary.id){ primary = displays[0] }       
-       
+
         this.multicastClient.clientinfo.exammode = true
         this.multicastClient.clientinfo.cmargin = serverstatus.cmargin  // this is used to configure margin settings for the editor
         this.multicastClient.clientinfo.linespacing = serverstatus.linespacing // we try to double linespacing on demand in pdf creation
