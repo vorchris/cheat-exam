@@ -295,8 +295,7 @@ import TableCell from '@tiptap/extension-table-cell'
 import TableRow from '@tiptap/extension-table-row'
 import TableHeader from '@tiptap/extension-table-header'
 import { SmilieReplacer } from '../components/SmilieReplacer'
-import { CharReplacer } from '../components/CharReplacer'
-
+// import { CharReplacer } from '../components/CharReplacer'
 
 import {common, createLowlight} from 'lowlight'
 const lowlight = createLowlight(common)
@@ -596,6 +595,49 @@ export default {
                 this.LTupdateHighlights()
             }
 
+            // Prüfen, ob der Cursor direkt innerhalb eines <code>-Elements ist oder ob gerade ein Code-Block erstellt wird
+            // ohne diesen block wird auch im code durch deutsche " ersetzt. hier gibt es einen bug und ein neuer codeblock
+            // bekommt ohne ersichtlichen grund ein deutsches oberes hochkomma wenn es das erste " in einer neuen zeile ist
+            // Prüfen, ob wir vl gerade erst einen Code-Block erstellen (erstes zeichen auch erkennen)
+            
+            if (this.serverstatus.spellchecklang === 'de-DE') {
+                if (e.key === '"') {
+                    const selection = window.getSelection();
+                    const range = selection.getRangeAt(0);
+                    const currentNode = range.startContainer;
+            
+                    const isInCodeBlock = () => {
+                        const parentCodeBlock = currentNode.nodeType === 3
+                            ? currentNode.parentElement.closest("code")
+                            : currentNode.closest("code");
+                        const codemode = this.editor.isActive('code');  
+                        if (parentCodeBlock || codemode) return true; 
+                    };
+        
+                    if (isInCodeBlock()) { return; }  // Text bleibt unverändert
+                    
+                    e.preventDefault();
+                    const textNode = range.startContainer;
+                    const offset = range.startOffset;
+
+                    // Text vor und nach der aktuellen Position
+                    const before = textNode.textContent.slice(0, offset);
+                    const after = textNode.textContent.slice(offset);
+
+                    // Entscheiden, ob ein unteres oder oberes Anführungszeichen verwendet wird
+                    const newQuote = before.endsWith(" ") || before === "" || /[\(\[{<]/.test(before.slice(-1)) ? "„" : "“";
+
+                    // Zeichen aktualisieren
+                    const newText = before + newQuote + after;
+                    textNode.textContent = newText;
+
+                    // Cursor hinter das eingefügte Zeichen setzen
+                    range.setStart(textNode, before.length + 1);
+                    range.setEnd(textNode, before.length + 1);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+            }
         },
         rgbToHex(rgb) {
             const [r, g, b] = rgb.match(/\d+/g).map(Number);
@@ -1167,7 +1209,7 @@ export default {
             }  
         },
         handleCtrlAlt(event) {
-            // if (event.ctrlKey && event.altKey) { this.sendFocuslost(true);   }   // too much to prevent switching to tty or windows logon screen?
+             if (event.ctrlKey && event.altKey) { this.sendFocuslost(true);   }   // too much to prevent switching to tty or windows logon screen?
         },
         handleVisibilityChange() {
             if (document.hidden) {
@@ -1212,7 +1254,7 @@ export default {
                          allowBase64: true,
                     }),
                     SmilieReplacer,
-                    this.charReplacerExtension,
+                   // this.charReplacerExtension,
                     Table.configure({
                         resizable: true,
                     }), 
@@ -1248,9 +1290,20 @@ export default {
                     }),
                     CodeBlockLowlight
                     .extend({
-                        addNodeView() {
+                      addNodeView() {
                         return VueNodeViewRenderer(CodeBlockComponent)
-                        },
+                      },
+                      addKeyboardShortcuts() {
+                        return {
+                          '"': () => {
+                            // Verhindere Ersetzung in Code-Blöcken
+                            if (this.editor.isActive('code')) {
+                              return this.editor.commands.insertContent('"')  // dieser ersetungscode garantiert dass im codeblock zusammen mit dem keydown event check keine ersetzungen stattfinden
+                            }
+                            return false
+                          }
+                        }
+                      }
                     })
                     .configure({ lowlight }),
                 ],
@@ -1286,7 +1339,7 @@ export default {
         this.setCSSVariable('--js-fontfamily', `${this.fontfamily}`); 
 
 
-        this.charReplacerExtension = CharReplacer({ language: this.serverstatus.spellchecklang });
+        //this.charReplacerExtension = CharReplacer({ language: this.serverstatus.spellchecklang });
 
         this.createEditor(); // this initializes the editor
 
@@ -1372,7 +1425,7 @@ export default {
 
         // block editor on escape
         document.body.addEventListener('mouseleave', this.sendFocuslost);
-        document.body.addEventListener('keydown', this.handleCtrlAlt);
+        // document.body.addEventListener('keydown', this.handleCtrlAlt);
         window.addEventListener('visibilitychange', this.handleVisibilityChange);
 
 
@@ -1393,7 +1446,7 @@ export default {
 
         //document.removeEventListener('input', this.checkAllWordsOnSpacebar)
         document.body.removeEventListener('mouseleave', this.sendFocuslost);
-        document.body.removeEventListener('keydown', this.handleCtrlAlt);
+        // document.body.removeEventListener('keydown', this.handleCtrlAlt);
         window.removeEventListener('visibilitychange', this.handleVisibilityChange);
 
 
@@ -1726,18 +1779,18 @@ Other Styles
 .ProseMirror {
     > * + * {
         margin-top: 0.75em;
-        quotes: "„" "“" "‚" "‘" !important;
+        // quotes: "„" "“" "‚" "‘" !important;
     }
 
-    blockquote p{
-        quotes: "„" "“" "‚" "‘" !important;
-    }
-    blockquote p::before {
-        content: open-quote;
-    }
-    blockquote p::after {
-        content: close-quote;
-    }
+    // blockquote p{
+    //     // quotes: "„" "“" "‚" "‘" !important;
+    // }
+    // blockquote p::before {
+    //     content: open-quote;
+    // }
+    // blockquote p::after {
+    //     content: close-quote;
+    // }
 
     ul,
     ol {
