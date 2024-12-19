@@ -143,6 +143,7 @@
     "dependencies": {
         "@azure/msal-browser": "^3.23.0",
         "@azure/msal-node": "^2.13.1",
+        "@bingsjs/pdf-parse": "^1.1.1",
         "@electron/notarize": "^2.5.0",
         "@tiptap/extension-bold": "^2.7.1",
         "@tiptap/extension-bullet-list": "^2.7.1",
@@ -189,7 +190,6 @@
         "node-notifier": "^10.0.1",
         "os": "^0.1.2",
         "pdf-lib": "^1.17.1",
-        "pdf-parse": "^1.1.1",
         "pdf-to-printer": "^5.6.0",
         "pino-pretty": "^11.2.2",
         "qs": "^6.13.0",

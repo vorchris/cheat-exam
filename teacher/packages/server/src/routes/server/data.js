@@ -28,7 +28,7 @@ import archiver from 'archiver'
 import { PDFDocument, rgb } from 'pdf-lib/dist/pdf-lib.js'  // we import the complied version otherwise we get 1000 sourcemap warnings
 import log from 'electron-log';
 import moment from 'moment';
-import pdf from 'pdf-parse';
+import pdf from '@bingsjs/pdf-parse';
 
 
 /**
