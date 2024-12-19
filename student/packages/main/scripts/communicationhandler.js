@@ -52,6 +52,7 @@ import path from 'path';
         this.screenshotAbility = false
         this.screenshotFails = 0 // we count fails and deactivate on 4 consequent fails
         this.firstCheckScreenshot = true
+        this.lastScreenshotBase64 = false
 
         this.worker = new Worker(path.join(__dirname, '../../public/imageWorker.js'));
         this.worker.on('message', (result) => {
@@ -193,13 +194,53 @@ import path from 'path';
     }
 
 
+    generateXORDiff(base64Bild1, base64Bild2) {
+        const bild1Data = Buffer.from(base64Bild1, 'base64');
+        const bild2Data = Buffer.from(base64Bild2, 'base64');
+    
+        const diffData = Buffer.alloc(bild1Data.length);
+    
+        for (let i = 0; i < bild1Data.length; i++) {
+            diffData[i] = bild1Data[i] ^ bild2Data[i]; // XOR für Diff
+        }
+    
+        return diffData.toString('base64'); // Diff als Base64 zurückgeben
+    }
+    generateSparseDiff(base64Bild1, base64Bild2) {
+        const bild1Data = Buffer.from(base64Bild1, 'base64');
+        const bild2Data = Buffer.from(base64Bild2, 'base64');
+    
+        const diff = []; // Speichert nur Index und RGBA-Werte
+    
+        for (let i = 0; i < bild1Data.length; i += 4) {
+            if (
+                bild1Data[i] !== bild2Data[i] ||       // R
+                bild1Data[i + 1] !== bild2Data[i + 1] || // G
+                bild1Data[i + 2] !== bild2Data[i + 2] || // B
+                bild1Data[i + 3] !== bild2Data[i + 3]    // A
+            ) {
+                // Speichere Index und RGBA-Werte
+                diff.push({
+                    index: i, // Byte-Index des ersten Kanals (R)
+                    r: bild2Data[i],
+                    g: bild2Data[i + 1],
+                    b: bild2Data[i + 2],
+                    a: bild2Data[i + 3],
+                });
+            }
+        }
+    
+        return diff; // Rückgabe des Diffs
+    }
+    
+
     async sendScreenshot(){
         if (this.multicastClient.clientinfo.localLockdown){return}
         if (this.multicastClient.beaconsLost >= 5 ){return}  // connection lost reset triggered
         if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip
-            let img = null
+            let imgBuffer = null
             if (this.screenshotAbility){   // "imagemagick" has to be installed for linux - wayland is not (yet) supported by imagemagick !!
-                img = await screenshot()
+                imgBuffer = await screenshot()
                 .then( (res) => { this.screenshotFails=0; return res} )
                 .catch((err) => { this.screenshotFails+=1; if(this.screenshotFails > 4){ this.screenshotAbility=false;log.error(`communicationhandler @ sendScreenshot: switching to PageCapture`) } log.error(`communicationhandler @ sendScreenshot: ${err}`) });
             }
@@ -207,7 +248,7 @@ import path from 'path';
                 //grab "screenshot" from appwindow
                 let currentFocusedMindow = WindowHandler.getCurrentFocusedWindow()  //returns exam window if nothing in focus or main window
                 if (currentFocusedMindow) {
-                    img = await currentFocusedMindow.webContents.capturePage()  // this should always work because it's onboard electron
+                    imgBuffer = await currentFocusedMindow.webContents.capturePage()  // this should always work because it's onboard electron
                     .then((image) => {
                         const imageBuffer = image.toPNG();// Convert the nativeImage to a Buffer (PNG format)
                         return imageBuffer
@@ -216,12 +257,44 @@ import path from 'path';
                 }
             }
 
-            if (Buffer.isBuffer(img)) {
+            if (Buffer.isBuffer(imgBuffer)) {
                 try {
             
+                    /*******************************
+                     * image-diff start
+                     * neue methode die nur den diff zum teacher sendet
+                     * dafür hier keine groben bildmanipulationen macht die zu einem performance hit
+                     * im frontend führen könnten
+                     * */ 
+
+                    let screenhotDiffBase64 = ""
+                    let currentScreenshotBase64 = imgBuffer.toString('base64');
+                    const width = imgBuffer.readUInt32BE(16);  // Bytes 16–19
+                    const height = imgBuffer.readUInt32BE(20); // Bytes 20–23
+
+
+                    if (this.lastScreenshotBase64){ 
+                        screenhotDiffBase64 = this.generateSparseDiff(this.lastScreenshotBase64,currentScreenshotBase64 );
+                        
+                    }
+                    else { 
+                        screenhotDiffBase64 =  currentScreenshotBase64  //erstes bild ever.. diff == original
+                    }  
+
+                    this.lastScreenshotBase64 = currentScreenshotBase64
+                    console.log(screenhotDiffBase64.length,  currentScreenshotBase64.length)
+
+
+                    /**
+                     * image-diff end
+                     ********************************/
+
+
+
+
                     // wir lagern das image processing in einen worker thread aus weil sonst das frontend 
                     // alle 4s einen performance hit bekommt
-                    let { resized, header, isblack } = await this.processImage(img);              
+                    let { resized, header, isblack } = await this.processImage(imgBuffer);              
                     header = Buffer.from(header);
                     resized = Buffer.from(resized);
                  
@@ -232,7 +305,7 @@ import path from 'path';
                         this.firstCheckScreenshot = false   //never do this again
                         try{
                             if (!TesseractWorker){ TesseractWorker = await Tesseract.createWorker('eng'); }
-                            const { data: { text } }   = await Tesseract.recognize(img , 'eng' );
+                            const { data: { text } }   = await Tesseract.recognize(imgBuffer , 'eng' );
                             let appWindowVisible = text.includes("Exam")   //check if the word "Exam" can be found in screenshot - otherwise it is most likely a blank desktop - macos quirk
                             if (!appWindowVisible){
                                 this.screenshotAbility=false;

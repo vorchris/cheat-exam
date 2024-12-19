@@ -921,6 +921,31 @@ router.post('/languagetool/:servername/:studenttoken', async function (req, res,
 
 export default router
 
+
+
+/**
+ * erstellt aus dem diff und dem alten screenshot ein neues aktuelles bild
+ * @param {*} base64Bild1 
+ * @param {*} diff 
+ * @returns 
+ */
+function applySparseDiff(lastScreenshotBase64, diff) {
+    const bild1Data = Buffer.from(base64Bild1, 'base64');
+
+    for (const { index, r, g, b, a } of diff) {
+        // Wende die RGBA-Werte am Index an
+        bild1Data[index] = r;     // R
+        bild1Data[index + 1] = g; // G
+        bild1Data[index + 2] = b; // B
+        bild1Data[index + 3] = a; // A
+    }
+
+    return bild1Data.toString('base64'); // Rückgabe des neuen Bildes als Base64
+}
+
+
+
+
 /**
  * Should be used before processing API requests that come from external sources
  * Checks if the student that sent the request has a valid token (is registered) on the server

@@ -425,9 +425,15 @@ async function createIndexPDF(dataArray, servername){
                 else if (docxFiles.length > 0) { selectedFile = docxFiles[0];   } 
                 else if (xlsxFiles.length > 0) { selectedFile = xlsxFiles[0];   } 
                 else if (exactMatchFile)       { selectedFile = exactMatchFile; }
-            
+        
+                log.info(`data @ getlatestfromstudent: Suche nach: ${selectedFile}`)
                 latestPDFpath = selectedFile ? path.join(latestfolderPath, selectedFile) : null;
-                log.info('data @ getlatestfromstudent: Neueste Datei gefunden: ', latestPDFpath);
+                if (latestPDFpath == null) {
+                    log.warn('data @ getlatestfromstudent: Dateipfad nicht verfügbar!');
+                }
+                else {
+                    log.info('data @ getlatestfromstudent: Neueste Datei gefunden: ', latestPDFpath);
+                }
             } 
             catch (error) {
                 log.error('data @ getlatestfromstudent: Fehler beim Lesen des Verzeichnisses:', error);
