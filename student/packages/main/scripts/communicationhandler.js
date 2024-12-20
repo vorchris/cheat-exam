@@ -37,7 +37,7 @@ const __dirname = import.meta.dirname;
 import { Worker } from 'worker_threads';
 import path from 'path';
 
-import { Jimp } from "jimp";
+//import { Jimp } from "jimp";
 
 
  /**
@@ -185,11 +185,11 @@ import { Jimp } from "jimp";
      * if no screenshot is possible (wayland) capture application window via electron webcontents
      */
 
-    processImage(imgBuffer) {
+    processImage(imgBuffer){
         return new Promise((resolve, reject) => {
             this.resolvePromise = resolve;
             this.rejectPromise = reject;
-            this.worker.postMessage({ img: imgBuffer });
+            this.worker.postMessage({ imgBuffer: imgBuffer });
         });
     }
 
@@ -199,29 +199,38 @@ import { Jimp } from "jimp";
     }
 
 
-    generateXORDiff(base64Bild1, base64Bild2) {
-        const bild1Data = Buffer.from(base64Bild1, 'base64');
-        const bild2Data = Buffer.from(base64Bild2, 'base64');
-    
-        const diffData = Buffer.alloc(bild1Data.length);
-    
-        for (let i = 0; i < bild1Data.length; i++) {
-            diffData[i] = bild1Data[i] ^ bild2Data[i]; // XOR für Diff
-        }
-    
-        return diffData.toString('base64'); // Diff als Base64 zurückgeben
-    }
-    
 
     async sendScreenshot(){
         if (this.multicastClient.clientinfo.localLockdown){return}
         if (this.multicastClient.beaconsLost >= 5 ){return}  // connection lost reset triggered
         if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip
-            let imgBuffer = null
-            if (this.screenshotAbility){   // "imagemagick" has to be installed for linux - wayland is not (yet) supported by imagemagick !!
-                imgBuffer = await screenshot({ format: 'jpg' })
-                .then( (res) => { this.screenshotFails=0; return res} )
-                .catch((err) => { this.screenshotFails+=1; if(this.screenshotFails > 4){ this.screenshotAbility=false;log.error(`communicationhandler @ sendScreenshot: switching to PageCapture`) } log.error(`communicationhandler @ sendScreenshot: ${err}`) });
+            
+            
+            // let imgBuffer = null
+            // if (this.screenshotAbility){   // "imagemagick" has to be installed for linux - wayland is not (yet) supported by imagemagick !!
+            //     imgBuffer = await screenshot({ format: 'jpg' })
+            //     .then( (res) => { this.screenshotFails=0; return res} )
+            //     .catch((err) => { this.screenshotFails+=1; if(this.screenshotFails > 4){ this.screenshotAbility=false; log.error(`communicationhandler @ sendScreenshot: switching to PageCapture`) } log.error(`communicationhandler @ sendScreenshot: ${err}`) });
+            // }
+            // else {
+            //     //grab "screenshot" from appwindow
+            //     let currentFocusedMindow = WindowHandler.getCurrentFocusedWindow()  //returns exam window if nothing in focus or main window
+            //     if (currentFocusedMindow) {
+            //         imgBuffer = await currentFocusedMindow.webContents.capturePage()  // this should always work because it's onboard electron
+            //         .then((image) => {
+            //             const imageBuffer = image.toPNG();// Convert the nativeImage to a Buffer (PNG format)
+            //             return imageBuffer
+            //           })
+            //         .catch((err) => {log.error(`communicationhandler @ sendScreenshot (capturePage): ${err}`)   });
+            //     }
+            // }
+
+      
+            let screenshotBase64, headerBase64, isblack; // Variablen außerhalb des if-Blocks definieren
+            let imgBuffer = null;
+
+            if (this.screenshotAbility){  
+                ({ screenshotBase64, headerBase64, isblack } = await this.processImage(false));  // kein imageBuffer mitgegeben bedeutet nutze screenshot-desktop im worker
             }
             else {
                 //grab "screenshot" from appwindow
@@ -234,105 +243,68 @@ import { Jimp } from "jimp";
                       })
                     .catch((err) => {log.error(`communicationhandler @ sendScreenshot (capturePage): ${err}`)   });
                 }
+                
+                ({ screenshotBase64, headerBase64, isblack } = await this.processImage(imgBuffer));
             }
+          
+             
 
-           
 
+            try {
 
-            if (Buffer.isBuffer(imgBuffer)) {
-                try {
-
-                    const image = await Jimp.read(imgBuffer);   //use jimt to crop and compress image
-
-                    let screenshot = await image.getBuffer("image/jpeg", { quality: 30 });  // screenshot quality is reduced to 30% to reduce size and speed up transmission
-                    let screenshotBase64 = screenshot.toString('base64');
-                    
-                    image.crop({x: 0, y: 100, w:500, h:100});  // reduce screenshot size to 500x100 for ocr scan
-
-                    let header = await image.getBuffer("image/jpeg", { quality: 100 })
-                    let headerBase64 =  header.toString('base64');
-                    
-
-                    //MACOS WORKAROUND - switch to pagecapture if no permissons are granted
-                    if (process.platform === "darwin" && this.firstCheckScreenshot){  //this is for macOS because it delivers a blank background screenshot without permissions. we catch that case with a workaround
-                        this.firstCheckScreenshot = false   //never do this again
-                        try{
-                            if (!TesseractWorker){ TesseractWorker = await Tesseract.createWorker('eng'); }
-                            const { data: { text } }   = await Tesseract.recognize(imgBuffer , 'eng' );
-                            let appWindowVisible = text.includes("Exam")   //check if the word "Exam" can be found in screenshot - otherwise it is most likely a blank desktop - macos quirk
-                            if (!appWindowVisible){
-                                this.screenshotAbility=false;
-                                log.error(`communicationhandler @ sendScreenshot: switching to PageCapture`)
-                                log.info("communicationhandler @ sendScreenshot (ocr): Student Screenshot does not fit requirements");
-                            }
+                //MACOS WORKAROUND - switch to pagecapture if no permissons are granted
+                if (process.platform === "darwin" && this.firstCheckScreenshot){  //this is for macOS because it delivers a blank background screenshot without permissions. we catch that case with a workaround
+                    this.firstCheckScreenshot = false   //never do this again
+                    try{
+                        if (!TesseractWorker){ TesseractWorker = await Tesseract.createWorker('eng'); }
+                        const { data: { text } }   = await Tesseract.recognize(imgBuffer , 'eng' );
+                        let appWindowVisible = text.includes("Exam")   //check if the word "Exam" can be found in screenshot - otherwise it is most likely a blank desktop - macos quirk
+                        if (!appWindowVisible){
+                            this.screenshotAbility=false;
+                            log.error(`communicationhandler @ sendScreenshot: switching to PageCapture`)
+                            log.info("communicationhandler @ sendScreenshot (ocr): Student Screenshot does not fit requirements");
                         }
-                        catch(err){  log.info(`communicationhandler @ sendScreenshot (ocr): ${err}`); }
                     }
-
-           
-                   
-                    // prepare to send the top 100 px (next-exam header) for OCR scan
-                    // const headerBase64 = header.toString('base64');
-
-
-                    //do not run tesseract if already locked
-                    // if ( this.multicastClient.clientinfo.exammode && this.multicastClient.clientinfo.screenshotocr && !this.config.development && this.multicastClient.clientinfo.focus){
-                    //     try{
-                    //         if (!TesseractWorker){
-                    //             TesseractWorker = await Tesseract.createWorker('eng');
-                    //         }
-                    //         const { data: { text } }   = await Tesseract.recognize(header , 'eng' );
-                    //         let pincodeVisible = text.includes(this.multicastClient.clientinfo.pin)
-                    //         if (!pincodeVisible){
-                    //             this.multicastClient.clientinfo.focus = pincodeVisible
-                    //             log.info("communicationhandler @ sendScreenshot (ocr): Student Screenshot does not fit requirements");
-                    //         }
-                    //     }
-                    //     catch(err){ log.info(`communicationhandler @ sendScreenshot (ocr): ${err}`);  }
-                    // }
-
-
-                    //do not run colorcheck if already locked
-                    if ( this.multicastClient.clientinfo.exammode && !this.config.development && this.multicastClient.clientinfo.focus){
-                        if (isblack){
-                            this.multicastClient.clientinfo.focus = false
-                            log.info("communicationhandler @ sendScreenshot: Student Screenshot does not fit requirements (allblack)");
-                        }   
-                    }
-        
-                    const payload = {
-                        clientinfo: {...this.multicastClient.clientinfo},
-                        screenshot: screenshotBase64,
-                        header: headerBase64,
-                        screenshotfilename: this.multicastClient.clientinfo.token + ".jpg",
-                    };
-                    
-                    fetch(`https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/updatescreenshot`, {
-                        method: "POST",
-                        cache: "no-store",
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(payload),
-                    })
-                    .then(response => {
-                        if (!response.ok) { throw new Error('communicationhandler @ sendScreenshot: Network response was not ok');  }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data && data.status === "error") { log.error("communicationhandler @ sendScreenshot: status error", data.message); }
-                    })
-                    .catch(error => {
-                        if (this.multicastClient.beaconsLost == 0){  // don't spam the log if we already record network errors via update()
-                            log.error(`communicationhandler @ sendScreenshot (updatescreenshot): ${error}`);
-                        }
-                    });
-                } catch (error) {
-                    log.warn('communicationhandler @ sendScreenshot: Error resizing image:', error);
-                    //throw error; // Fehler weitergeben für weitere Fehlerbehandlung
+                    catch(err){  log.info(`communicationhandler @ sendScreenshot (ocr): ${err}`); }
                 }
-            } else {
-                log.error("communicationhandler @ sendScreenshot: Image is not a buffer:");
+
+                //do not run colorcheck if already locked
+                if ( this.multicastClient.clientinfo.exammode && !this.config.development && this.multicastClient.clientinfo.focus){
+                    if (isblack){
+                        this.multicastClient.clientinfo.focus = false
+                        log.info("communicationhandler @ sendScreenshot: Student Screenshot does not fit requirements (allblack)");
+                    }   
+                }
+    
+                const payload = {
+                    clientinfo: {...this.multicastClient.clientinfo},
+                    screenshot: screenshotBase64,
+                    header: headerBase64,
+                    screenshotfilename: this.multicastClient.clientinfo.token + ".jpg",
+                };
+                
+                fetch(`https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/updatescreenshot`, {
+                    method: "POST",
+                    cache: "no-store",
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                })
+                .then(response => {
+                    if (!response.ok) { throw new Error('communicationhandler @ sendScreenshot: Network response was not ok');  }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data && data.status === "error") { log.error("communicationhandler @ sendScreenshot: status error", data.message); }
+                })
+                .catch(error => {
+                    if (this.multicastClient.beaconsLost == 0){  // don't spam the log if we already record network errors via update()
+                        log.error(`communicationhandler @ sendScreenshot (updatescreenshot): ${error}`);
+                    }
+                });
+            } catch (error) {
+                log.warn('communicationhandler @ sendScreenshot: Error resizing image:', error.message);
             }
         }
     }
