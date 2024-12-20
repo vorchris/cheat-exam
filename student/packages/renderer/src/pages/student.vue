@@ -332,7 +332,7 @@ export default {
                 })
                 .catch(err => {
                     if (err.name === 'AbortError') {   console.warn('student.vue @ fetchinfo (ping): Fetch request was aborted due to timeout'); } 
-                    else {  console.warn("student.vue @ fetchinfo:", err.message);  }
+                    else {  console.warn(`student.vue @ fetchinfo: ${err.message} - Server unavailable ` );  }
                     server.reachable = false; // Markieren als nicht erreichbar bei Fehlern
                 });
             }

@@ -19,11 +19,11 @@ parentPort.on('message', async ({ img }) => {
     try {
         const image = await Image.load(img);
         const targetWidth = Math.min(1200, image.width);
-        const resizedImage = image.resize({ width: targetWidth });
+        // const resizedImage = image.resize({ width: targetWidth });
         const imageHeader = image.crop({ x: 0, y: 0, width: targetWidth, height: 100 });
 
-        const resizedBuffer = resizedImage.toBuffer('image/jpeg', { format: "jpg", quality: 65 });
-        const headerBuffer = imageHeader.toBuffer('image/jpeg', { format: "jpg", quality: 100 });
+        const compressedImage = image.toBuffer('image/jpeg', { format: "jpg", quality: 50 });
+        const header = imageHeader.toBuffer('image/jpeg', { format: "jpg", quality: 100 });
 
         let isAllBlack = true
         
@@ -37,8 +37,8 @@ parentPort.on('message', async ({ img }) => {
             }
         }
 
-        parentPort.postMessage({ success: true, resized: resizedBuffer, header: headerBuffer, isblack: isAllBlack});
+        parentPort.postMessage({ compressedImage:  Buffer.from(compressedImage), header:  Buffer.from(header), isblack: isAllBlack});
     } catch (error) {
-        parentPort.postMessage({ success: false, error: error.message });
+        parentPort.postMessage({ error: error.message });
     }
 });

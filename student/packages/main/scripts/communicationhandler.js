@@ -37,6 +37,7 @@ const __dirname = import.meta.dirname;
 import { Worker } from 'worker_threads';
 import path from 'path';
 
+import { Jimp } from "jimp";
 
 
  /**
@@ -53,6 +54,7 @@ import path from 'path';
         this.screenshotFails = 0 // we count fails and deactivate on 4 consequent fails
         this.firstCheckScreenshot = true
         this.lastScreenshotBase64 = false
+        this.lastScreenshot = false
 
         this.worker = new Worker(path.join(__dirname, '../../public/imageWorker.js'));
         this.worker.on('message', (result) => {
@@ -66,6 +68,7 @@ import path from 'path';
         this.worker.on('error', error => console.error('Worker error:', error));
         this.worker.on('exit', code => console.log(`Worker stopped with exit code ${code}`));
 
+       
 
 
     }
@@ -77,6 +80,8 @@ import path from 'path';
         this.updateScheduler.start()
         this.screenshotScheduler = new SchedulerService(this.sendScreenshot.bind(this), this.multicastClient.clientinfo.screenshotinterval)
         this.screenshotScheduler.start()
+        
+
 
         if (process.platform !== 'linux' || (  !this.isWayland() && this.imagemagickAvailable() || (this.isKDE() && this.isWayland() && this.flameshotAvailable() )  )){ this.screenshotAbility = true } // only on linux we need to check for wayland or the absence of imagemagick - other os have other problems ^^
     }
@@ -206,32 +211,6 @@ import path from 'path';
     
         return diffData.toString('base64'); // Diff als Base64 zurückgeben
     }
-    generateSparseDiff(base64Bild1, base64Bild2) {
-        const bild1Data = Buffer.from(base64Bild1, 'base64');
-        const bild2Data = Buffer.from(base64Bild2, 'base64');
-    
-        const diff = []; // Speichert nur Index und RGBA-Werte
-    
-        for (let i = 0; i < bild1Data.length; i += 4) {
-            if (
-                bild1Data[i] !== bild2Data[i] ||       // R
-                bild1Data[i + 1] !== bild2Data[i + 1] || // G
-                bild1Data[i + 2] !== bild2Data[i + 2] || // B
-                bild1Data[i + 3] !== bild2Data[i + 3]    // A
-            ) {
-                // Speichere Index und RGBA-Werte
-                diff.push({
-                    index: i, // Byte-Index des ersten Kanals (R)
-                    r: bild2Data[i],
-                    g: bild2Data[i + 1],
-                    b: bild2Data[i + 2],
-                    a: bild2Data[i + 3],
-                });
-            }
-        }
-    
-        return diff; // Rückgabe des Diffs
-    }
     
 
     async sendScreenshot(){
@@ -240,7 +219,7 @@ import path from 'path';
         if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip
             let imgBuffer = null
             if (this.screenshotAbility){   // "imagemagick" has to be installed for linux - wayland is not (yet) supported by imagemagick !!
-                imgBuffer = await screenshot()
+                imgBuffer = await screenshot({ format: 'jpg' })
                 .then( (res) => { this.screenshotFails=0; return res} )
                 .catch((err) => { this.screenshotFails+=1; if(this.screenshotFails > 4){ this.screenshotAbility=false;log.error(`communicationhandler @ sendScreenshot: switching to PageCapture`) } log.error(`communicationhandler @ sendScreenshot: ${err}`) });
             }
@@ -257,47 +236,21 @@ import path from 'path';
                 }
             }
 
+           
+
+
             if (Buffer.isBuffer(imgBuffer)) {
                 try {
-            
-                    /*******************************
-                     * image-diff start
-                     * neue methode die nur den diff zum teacher sendet
-                     * dafür hier keine groben bildmanipulationen macht die zu einem performance hit
-                     * im frontend führen könnten
-                     * */ 
 
-                    let screenhotDiffBase64 = ""
-                    let currentScreenshotBase64 = imgBuffer.toString('base64');
-                    const width = imgBuffer.readUInt32BE(16);  // Bytes 16–19
-                    const height = imgBuffer.readUInt32BE(20); // Bytes 20–23
+                    const image = await Jimp.read(imgBuffer);   //use jimt to crop and compress image
 
+                    let screenshot = await image.getBuffer("image/jpeg", { quality: 30 });  // screenshot quality is reduced to 30% to reduce size and speed up transmission
+                    let screenshotBase64 = screenshot.toString('base64');
+                    
+                    image.crop({x: 0, y: 100, w:500, h:100});  // reduce screenshot size to 500x100 for ocr scan
 
-                    if (this.lastScreenshotBase64){ 
-                        screenhotDiffBase64 = this.generateSparseDiff(this.lastScreenshotBase64,currentScreenshotBase64 );
-                        
-                    }
-                    else { 
-                        screenhotDiffBase64 =  currentScreenshotBase64  //erstes bild ever.. diff == original
-                    }  
-
-                    this.lastScreenshotBase64 = currentScreenshotBase64
-                    console.log(screenhotDiffBase64.length,  currentScreenshotBase64.length)
-
-
-                    /**
-                     * image-diff end
-                     ********************************/
-
-
-
-
-                    // wir lagern das image processing in einen worker thread aus weil sonst das frontend 
-                    // alle 4s einen performance hit bekommt
-                    let { resized, header, isblack } = await this.processImage(imgBuffer);              
-                    header = Buffer.from(header);
-                    resized = Buffer.from(resized);
-                 
+                    let header = await image.getBuffer("image/jpeg", { quality: 100 })
+                    let headerBase64 =  header.toString('base64');
                     
 
                     //MACOS WORKAROUND - switch to pagecapture if no permissons are granted
@@ -316,43 +269,42 @@ import path from 'path';
                         catch(err){  log.info(`communicationhandler @ sendScreenshot (ocr): ${err}`); }
                     }
 
-                    // prepare screenshot for transmission
-                    const screenshotBase64 = resized.toString('base64');
-                    const screenshotfilename = this.multicastClient.clientinfo.token + ".jpg";
-                    const hash = crypto.createHash('md5').update(resized).digest("hex");
+           
+                   
                     // prepare to send the top 100 px (next-exam header) for OCR scan
-                    const headerBase64 = header.toString('base64');
+                    // const headerBase64 = header.toString('base64');
 
 
                     //do not run tesseract if already locked
-                    if ( this.multicastClient.clientinfo.exammode && this.multicastClient.clientinfo.screenshotocr && !this.config.development && this.multicastClient.clientinfo.focus){
-                        try{
-                            if (!TesseractWorker){
-                                TesseractWorker = await Tesseract.createWorker('eng');
-                            }
-                            const { data: { text } }   = await Tesseract.recognize(header , 'eng' );
-                            let pincodeVisible = text.includes(this.multicastClient.clientinfo.pin)
-                            if (!pincodeVisible){
-                                this.multicastClient.clientinfo.focus = pincodeVisible
-                                log.info("communicationhandler @ sendScreenshot (ocr): Student Screenshot does not fit requirements");
-                            }
-                        }
-                        catch(err){ log.info(`communicationhandler @ sendScreenshot (ocr): ${err}`);  }
-                    }
+                    // if ( this.multicastClient.clientinfo.exammode && this.multicastClient.clientinfo.screenshotocr && !this.config.development && this.multicastClient.clientinfo.focus){
+                    //     try{
+                    //         if (!TesseractWorker){
+                    //             TesseractWorker = await Tesseract.createWorker('eng');
+                    //         }
+                    //         const { data: { text } }   = await Tesseract.recognize(header , 'eng' );
+                    //         let pincodeVisible = text.includes(this.multicastClient.clientinfo.pin)
+                    //         if (!pincodeVisible){
+                    //             this.multicastClient.clientinfo.focus = pincodeVisible
+                    //             log.info("communicationhandler @ sendScreenshot (ocr): Student Screenshot does not fit requirements");
+                    //         }
+                    //     }
+                    //     catch(err){ log.info(`communicationhandler @ sendScreenshot (ocr): ${err}`);  }
+                    // }
+
+
                     //do not run colorcheck if already locked
                     if ( this.multicastClient.clientinfo.exammode && !this.config.development && this.multicastClient.clientinfo.focus){
                         if (isblack){
                             this.multicastClient.clientinfo.focus = false
-                            log.info("communicationhandler @ sendScreenshot: Student Screenshot does not fit requirements");
+                            log.info("communicationhandler @ sendScreenshot: Student Screenshot does not fit requirements (allblack)");
                         }   
                     }
         
                     const payload = {
                         clientinfo: {...this.multicastClient.clientinfo},
                         screenshot: screenshotBase64,
-                        screenshothash: hash,
-                        screenshotfilename: screenshotfilename,
-                        header : headerBase64
+                        header: headerBase64,
+                        screenshotfilename: this.multicastClient.clientinfo.token + ".jpg",
                     };
                     
                     fetch(`https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/updatescreenshot`, {
@@ -376,7 +328,7 @@ import path from 'path';
                         }
                     });
                 } catch (error) {
-                    log.warn('communicationhandler @ sendScreenshot: Error resizing image:', error.message);
+                    log.warn('communicationhandler @ sendScreenshot: Error resizing image:', error);
                     //throw error; // Fehler weitergeben für weitere Fehlerbehandlung
                 }
             } else {

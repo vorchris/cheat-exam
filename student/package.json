@@ -122,6 +122,8 @@
         "rollup"
     ],
     "dependencies": {
+        "@jimp/jpeg": "^0.22.12",
+        "@squoosh/lib": "^0.3.1",
         "@tiptap/extension-blockquote": "^2.10.3",
         "@tiptap/extension-bold": "^2.10.3",
         "@tiptap/extension-bullet-list": "^2.10.3",
@@ -171,6 +173,7 @@
         "html2pdf-jspdf2": "^0.1.2",
         "image-js": "^0.35.6",
         "ip": "^2.0.1",
+        "jimp": "^1.6.0",
         "lowlight": "^3.1.0",
         "mammoth": "^1.8.0",
         "moment-timezone": "^0.5.45",
@@ -186,6 +189,7 @@
         "simple-get": "^4.0.1",
         "tesseract.js": "^5.1.1",
         "validator": "^13.12.0",
+        "vite-plugin-top-level-await": "^1.4.4",
         "vue": "^3.5.6",
         "vue-i18n": "^10.0.1",
         "vue-router": "^4.4.5",

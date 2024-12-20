@@ -795,10 +795,10 @@ router.post('/updatescreenshot', async function (req, res, next) {
   
 
 
-    if (req.body.screenshot && req.body.screenshothash) {
+    if (req.body.screenshot ) {
         const screenshotBase64 = req.body.screenshot;   // Der Base64-String muss nicht konvertiert werden, er kann direkt verwendet werden
-        let hash = crypto.createHash('md5').update(Buffer.from(screenshotBase64, 'base64')).digest("hex");  // Berechnen des MD5-Hashs des Base64-Strings
-        if (hash === req.body.screenshothash) {
+        //let hash = crypto.createHash('md5').update(Buffer.from(screenshotBase64, 'base64')).digest("hex");  // Berechnen des MD5-Hashs des Base64-Strings
+        
             student.imageurl = 'data:image/jpeg;base64,' + screenshotBase64; // oder 'data:image/png;base64,' je nach tatsächlichem Bildformat  
             
             // only scan screenshot in exam mode and NOT if a restoring/unlocking operation is already in process (otherwise it will lock the unlocked again)
@@ -836,9 +836,7 @@ router.post('/updatescreenshot', async function (req, res, next) {
                     });
                 } catch (err) { log.error(err); }
             }
-        } else {
-            log.error('control @ updatescreenshot: Hash mismatch, screenshot possibly corrupted');
-        }
+      
     } else {
         log.warn('control @ updatescreenshot: Screenshot or hash not provided');
         student.imageurl = "person-lines-fill.svg"
@@ -916,50 +914,12 @@ router.post('/languagetool/:servername/:studenttoken', async function (req, res,
 })
 
 
-
-
-
 export default router
 
 
 
-/**
- * erstellt aus dem diff und dem alten screenshot ein neues aktuelles bild
- * @param {*} base64Bild1 
- * @param {*} diff 
- * @returns 
- */
-function applySparseDiff(lastScreenshotBase64, diff) {
-    const bild1Data = Buffer.from(base64Bild1, 'base64');
-
-    for (const { index, r, g, b, a } of diff) {
-        // Wende die RGBA-Werte am Index an
-        bild1Data[index] = r;     // R
-        bild1Data[index + 1] = g; // G
-        bild1Data[index + 2] = b; // B
-        bild1Data[index + 3] = a; // A
-    }
-
-    return bild1Data.toString('base64'); // Rückgabe des neuen Bildes als Base64
-}
 
 
-
-
-/**
- * Should be used before processing API requests that come from external sources
- * Checks if the student that sent the request has a valid token (is registered) on the server
- * in order to process api request
- */
- function checkToken(token, mcserver){
-    let tokenexists = false
-    mcserver.studentList.forEach( (student) => {
-        if (token === student.token) {
-            tokenexists = true
-        }
-    });
-    return tokenexists
-}
 
 
 
