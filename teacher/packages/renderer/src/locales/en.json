@@ -149,10 +149,12 @@
         "audiorepeat1": "repetition",
         "audiorepeat2": "repetitions",
         "bildungsportal": "Bildungsportal",
+        "bildungsportalactivate": "activate Bildungsportal",
         "groups":"activate groups",
         "groupinfo": "Divide students in two groups",
         "extendedsettings": "Extended Settings",
-        "save": "speichern"
+        "save": "speichern",
+        "disabled": "disabled"
     },
     "control": {
         "tokennotvalid": "token is not valid",

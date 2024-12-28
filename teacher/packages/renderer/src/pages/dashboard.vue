@@ -177,27 +177,58 @@
     <div :key="6" id="setupoverlay" class="fadeinslow" @click="hideSetup()">
         <div id="setupdiv">
             <!-- <div class="swal2-icon swal2-question swal2-icon-show" style="display: flex;"><div class="swal2-icon-content">?</div></div> -->
-            <span><h5 style="display: inline">{{ $t('dashboard.extendedsettings') }}</h5></span>
+            <div class="mb-3"><h5 style="display: inline">{{ $t('dashboard.extendedsettings') }}</h5></div>
             
+     
+
+
+            <div class="m-1 mb-2" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms') ? 'disabledexam' : ''">
+                <label for="abgabeintervalSlider" class="form-check-label"> {{$t('dashboard.autoget')}} </label>
+                <span class="text-black-50">| {{ abgabeintervalPause === 0 ? $t('dashboard.disabled') : abgabeintervalPause + 'min' }}</span>
+                <input id="abgabeintervalSlider" type="range" 
+                    v-model="abgabeintervalPause" 
+                    :title="$t('dashboard.abgabeautoquestion')"
+                    :min="0" :max="20" step="1" 
+                    class="form-range custom-slider" 
+                    @input="updateAbgabeInterval">
+            </div>
+
+
+
+            <div class="m-1 mb-2">
+                <label for="screenshotIntervalSlider" class="form-check-label"> {{$t('dashboard.screenshot')}} </label>
+                <span v-if="serverstatus.screenshotinterval > 0" class="ms-2 text-black-50">| {{ serverstatus.screenshotinterval }}s</span>
+                <span v-else class="ms-2 text-black-50"> | {{$t('dashboard.disabled')}}</span>
+                <div class="d-flex align-items-center">
+                    <input id="screenshotIntervalSlider" type="range"
+                        v-model="serverstatus.screenshotinterval"
+                        :title="$t('dashboard.screenshotquestion')"
+                        :min="0" :max="60" step="2"
+                        class="form-range custom-slider"
+                        @input="updateScreenshotInterval">
+                </div>
+            </div>
+
+
+            <div class="form-check form-switch m-1 mb-2">
+                <input id="screenshotOcr" type="checkbox"
+                    v-model="serverstatus.screenshotocr"
+                    class="form-check-input"
+                    @change="updateScreenshotInterval">
+                <label for="screenshotOcr" class="form-check-label">{{$t('dashboard.ocr')}}</label>
+            </div>
+
+
             <div class="form-check form-switch  m-1 mb-2">
                 <input v-model=serverstatus.groups @click="setupGroups()" :title="$t('dashboard.groupinfo')" checked=false class="form-check-input" type="checkbox" id="activategroups">
                 <label class="form-check-label">{{$t('dashboard.groups')}}   </label><br>
             </div>
+
             <div v-if="config.bipIntegration" class="form-check form-switch  m-1 mb-2" >
                 <input v-model=serverstatus.requireBiP :title="$t('control.biprequired')" checked=false class="form-check-input" type="checkbox" id="activatebip">
                 <label class="form-check-label">{{$t('dashboard.bildungsportal')}}   </label><br>
             </div>
 
-            <div class="form-check form-switch  m-1 mb-2" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms')? 'disabledexam':''">
-                <input  @click="setAbgabeInterval()" v-model="autoabgabe" :title="$t('dashboard.abgabeautoquestion')" class="form-check-input" type="checkbox" id="autoabgabe">
-                <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.autoget')}}</label>
-                <span v-if="autoabgabe" class="text-black-50">|{{ abgabeintervalPause }}min</span>
-            </div>
-            <div class="form-check form-switch  m-1 mb-2">
-                <input @click="setScreenshotInterval()" v-model="autoscreenshot" :title="$t('dashboard.screenshotquestion')"  class="form-check-input" type="checkbox" id="screenshotinterval">
-                <label class="form-check-label" for="flexSwitchCheckDefault">{{$t('dashboard.screenshot')}}</label>
-                <span v-if="serverstatus.screenshotinterval > 0" class="text-black-50">|{{ serverstatus.screenshotinterval }}s</span>
-            </div>
             <div class="form-check form-switch  m-1 mb-2">
                 <input v-model=directPrintAllowed @click="checkforDefaultprinter()" :title="$t('dashboard.allowdirectprint')" checked=false class="form-check-input" type="checkbox" id="directprint">
                 <label class="form-check-label">{{$t('dashboard.directprint')}}   </label><br>
@@ -299,7 +330,7 @@ import { VueDraggableNext } from 'vue-draggable-next'
 import { uploadselect, onedriveUpload, onedriveUploadSingle, uploadAndShareFile, createSharingLink, fileExistsInAppFolder, downloadFilesFromOneDrive} from '../msalutils/onedrive'
 import { handleDragEndItem, handleMoveItem, sortStudentWidgets, initializeStudentwidgets} from '../utils/dragndrop'
 import { loadFilelist, print, getLatest, getLatestFromStudent,  loadImage, loadPDF, dashboardExplorerSendFile, downloadFile, showWorkfolder, fdelete,  openLatestFolder } from '../utils/filemanager'
-import { activateSpellcheckForStudent, delfolderquestion, stopserver, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, setAbgabeInterval } from '../utils/exammanagement.js'
+import { activateSpellcheckForStudent, delfolderquestion, stopserver, sendFiles, lockscreens, getFiles, startExam, endExam, kick, restore } from '../utils/exammanagement.js'
 import { v4 as uuidv4 } from 'uuid'
 import {SchedulerService} from '../utils/schedulerservice.js'
 
@@ -430,9 +461,7 @@ export default {
         endExam:endExam,                             // disable exammode 
         kick: kick,                                  //remove student from exam
         restore: restore,                            //restore focus state for specific student -- we tell the client that his status is restored which will then (on the next update) update it's focus state on the server 
-        setAbgabeInterval:setAbgabeInterval,         // set abgabe interval
         getFiles:getFiles,                           // get finished exams (ABGABE) from students
-        setScreenshotInterval:setScreenshotInterval, //sets a new screenshot update interval - the value is sent to the students and then used to update the screenshots
         lockscreens:lockscreens,                     // temporarily lock screens
         sendFiles:sendFiles,                         //upload files to all students
         stopserver:stopserver,                       //Stop and Exit Exam Server Instance
@@ -526,8 +555,39 @@ export default {
         }, 
 
 
+        /**
+         * triggered when abgabe slider is used in settings dialog
+         * starts or stops the autofetch feature
+         */
+        updateAbgabeInterval() {
+            const interval = parseInt(this.abgabeintervalPause, 10); // Ensure it's an integer
+            if (interval === 0) {
+                console.info("dashboard @ updateAbgabeInterval: stopping submission interval");
+                this.abgabeinterval.stop();
+            } else {
+                console.info("dashboard @ updateAbgabeInterval: setting submission interval to", interval);
+                this.abgabeinterval.stop(); // Stop any ongoing interval
+                this.abgabeinterval.interval = 60000 * interval; // Convert minutes to milliseconds
+                this.abgabeinterval.start();
+            }
+            this.setServerStatus();
+        },
 
-   
+
+        updateScreenshotInterval() {
+            const interval = parseInt(this.serverstatus.screenshotinterval, 10); // Integer sicherstellen
+
+            if (interval === 0) { // Screenshots deaktivieren
+                console.log("dashboard @ updateScreenshotInterval: deactivating screenshots");
+                this.serverstatus.screenshotinterval = 0;
+                this.serverstatus.screenshotocr = false;
+                this.autoscreenshot = false;
+            } else {
+                console.log("dashboard @ updateScreenshotInterval: setting screenshot interval to", interval);
+                this.autoscreenshot = true; // Screenshots aktivieren
+            }
+            this.setServerStatus(); // Änderungen speichern
+        },
 
         /**
          * Google Forms
@@ -1292,7 +1352,7 @@ export default {
     border-radius: 5px;    /* Abgerundete Ecken */
     background-color: white;
     box-shadow: 0 0 1em rgba(0, 0, 0, 0.5);
-    width: 340px;
+    width: 400px;
 }
 
 
@@ -1708,7 +1768,10 @@ hr {
 }
 
 
-
+.custom-slider {
+    width: 300px; /* Feste Breite des Sliders */
+    margin-right: 10px; /* Abstand zu anderen Elementen */
+}
 
 </style>
 

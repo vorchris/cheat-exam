@@ -149,10 +149,12 @@
         "audiorepeat1": "Wiederholung",
         "audiorepeat2": "Wiederholungen",
         "bildungsportal": "Bildungsportal",
-        "groups": "Gruppen aktivieren",
+        "bildungsportalactivate": "Bildungsportal aktivieren",
+        "groups": "Gruppen",
         "groupinfo": "Schüler:innen in zwei Gruppen aufteilen",
         "extendedsettings": "Erweiterte Einstellungen",
-        "save": "speichern"
+        "save": "speichern",
+        "disabled": "deaktiviert"
     },
     "control": {
         "tokennotvalid": "Das Token ist ungültig",

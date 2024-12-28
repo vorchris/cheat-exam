@@ -120,42 +120,6 @@ function restore(studenttoken){
 
 
 
-function setAbgabeInterval(){
-    if (!this.autoabgabe) {
-        this.$swal.fire({
-            title: this.$t("dashboard.abgabeauto"),
-            icon: 'question',
-            input: 'range',
-            html: `${this.$t("dashboard.abgabeautoquestion")} <br>  ${this.$t("dashboard.abgabeautohint")}`,
-            inputAttributes: {
-                min: 1,
-                max: 20,
-                step: 1
-            },
-            inputValue: this.abgabeintervalPause
-        }).then((result) => {
-            const inputInteger = parseInt(result.value, 10); // Convert to integer
-            this.abgabeintervalPause = inputInteger
-            if (!this.abgabeintervalPause || !Number.isInteger(this.abgabeintervalPause) ){  // make sure it is set otherwise we well fetch the exams X times per second
-                log.warn("exammanagment @ setAbgabeInterval: something wrong with interval frequency - setting to default")
-                this.abgabeintervalPause = 5
-            }   
-
-            this.abgabeinterval.stop();
-            log.info("exammanagment @ setAbgabeInterval: starting submission intervall", this.abgabeintervalPause)
-            this.abgabeinterval.interval = 60000 * this.abgabeintervalPause
-            this.abgabeinterval.start();
-            this.setServerStatus()
-        })
-    }
-    else {
-        log.info("exammanagment @ setAbgabeInterval: stopping submission interval")
-        this.abgabeinterval.stop();
-        this.setServerStatus()
-    }
-}
-
-
 // get finished exams (ABGABE) from students
 function getFiles(who='all', feedback=false, quiet=false){
     this.checkDiscspace()
@@ -192,54 +156,6 @@ function getFiles(who='all', feedback=false, quiet=false){
 }
 
 
-
-
- //sets a new screenshot update interval - the value is sent to the students and then used to update the screenshots
- function setScreenshotInterval(){
-    if (this.autoscreenshot) { 
-        console.log("deactivating screenshots");
-        this.serverstatus.screenshotinterval = 0
-        this.serverstatus.screenshotocr = false
-        this.autoscreenshot = false
-        this.setServerStatus()
-        return 
-    }
-    this.$swal.fire({
-        title: this.$t("dashboard.screenshottitle"),
-        icon: 'question',
-        input: 'range',
-        html: `${this.$t("dashboard.screenshotquestion")}
-        <br><br>
-        <input class="form-check-input" type="checkbox" id="screenshotocr">
-        <label class="form-check-label" for="screenshotocr"> ${this.$t("dashboard.ocr")} </label> <br>
-        `,
-        inputAttributes: {
-            min: 2,
-            max: 60,
-            step: 2
-        },
-        inputValue: 4,
-        didOpen: () => {
-            document.getElementById('screenshotocr').checked =  this.serverstatus.screenshotocr
-        },
-    }).then((result) => {
-        const inputInteger = parseInt(result.value, 10); // Convert to integer
-        this.serverstatus.screenshotinterval = inputInteger
-        this.serverstatus.screenshotocr = document.getElementById('screenshotocr').checked;
-        
-
-        if (!this.serverstatus.screenshotinterval || !Number.isInteger(this.serverstatus.screenshotinterval)){  // catch quirks
-            console.log("deactivating screenshots");
-            this.serverstatus.screenshotinterval = 0
-            this.autoscreenshot = false
-            this.serverstatus.screenshotocr = false
-        }
-
-
-        // WRITE screenshotinterval serverstatus ojbect so it can be retrieved on the next student update 
-        this.setServerStatus()
-    })  
-}
 
 
 // temporarily lock screens
@@ -495,4 +411,4 @@ async function activateSpellcheckForStudent(token, clientname){
 
 
 
-export {activateSpellcheckForStudent, delfolderquestion, stopserver, sendFiles, lockscreens, setScreenshotInterval, getFiles, startExam, endExam, kick, restore, setAbgabeInterval  }
+export {activateSpellcheckForStudent, delfolderquestion, stopserver, sendFiles, lockscreens, getFiles, startExam, endExam, kick, restore  }
