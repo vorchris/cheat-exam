@@ -56,7 +56,7 @@ import path from 'path';
         this.lastScreenshotBase64 = false
         this.lastScreenshot = false
 
-        this.worker = new Worker(path.join(__dirname, '../../public/imageWorker.js'));
+        this.worker = new Worker(path.join(__dirname, '../../public/imageWorkerSharp.js'));  // revert back to sharp desipte native libraries that kill every other macos build because of performance issues
         this.worker.on('message', (result) => {
             if (result.success) {
                 this.resolvePromise(result);
@@ -205,32 +205,17 @@ import path from 'path';
         if (this.multicastClient.beaconsLost >= 5 ){return}  // connection lost reset triggered
         if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip
             
-            
-            // let imgBuffer = null
-            // if (this.screenshotAbility){   // "imagemagick" has to be installed for linux - wayland is not (yet) supported by imagemagick !!
-            //     imgBuffer = await screenshot({ format: 'jpg' })
-            //     .then( (res) => { this.screenshotFails=0; return res} )
-            //     .catch((err) => { this.screenshotFails+=1; if(this.screenshotFails > 4){ this.screenshotAbility=false; log.error(`communicationhandler @ sendScreenshot: switching to PageCapture`) } log.error(`communicationhandler @ sendScreenshot: ${err}`) });
-            // }
-            // else {
-            //     //grab "screenshot" from appwindow
-            //     let currentFocusedMindow = WindowHandler.getCurrentFocusedWindow()  //returns exam window if nothing in focus or main window
-            //     if (currentFocusedMindow) {
-            //         imgBuffer = await currentFocusedMindow.webContents.capturePage()  // this should always work because it's onboard electron
-            //         .then((image) => {
-            //             const imageBuffer = image.toPNG();// Convert the nativeImage to a Buffer (PNG format)
-            //             return imageBuffer
-            //           })
-            //         .catch((err) => {log.error(`communicationhandler @ sendScreenshot (capturePage): ${err}`)   });
-            //     }
-            // }
-
       
-            let screenshotBase64, headerBase64, isblack; // Variablen außerhalb des if-Blocks definieren
+            let success, screenshotBase64, headerBase64, isblack; // Variablen außerhalb des if-Blocks definieren
             let imgBuffer = null;
 
             if (this.screenshotAbility){  
-                ({ screenshotBase64, headerBase64, isblack } = await this.processImage(false));  // kein imageBuffer mitgegeben bedeutet nutze screenshot-desktop im worker
+                ({ success, screenshotBase64, headerBase64, isblack } = await this.processImage(false));  // kein imageBuffer mitgegeben bedeutet nutze screenshot-desktop im worker
+                if (success) { this.screenshotFails = 0;}
+                else { 
+                    this.screenshotFails +=1;
+                    if(this.screenshotFails > 4){ this.screenshotAbility=false; log.error(`communicationhandler @ sendScreenshot: switching to PageCapture`) } 
+                }
             }
             else {
                 //grab "screenshot" from appwindow
@@ -243,13 +228,10 @@ import path from 'path';
                       })
                     .catch((err) => {log.error(`communicationhandler @ sendScreenshot (capturePage): ${err}`)   });
                 }
-                
-                ({ screenshotBase64, headerBase64, isblack } = await this.processImage(imgBuffer));
+                ({ success, screenshotBase64, headerBase64, isblack } = await this.processImage(imgBuffer));
             }
           
              
-
-
             try {
 
                 //MACOS WORKAROUND - switch to pagecapture if no permissons are granted

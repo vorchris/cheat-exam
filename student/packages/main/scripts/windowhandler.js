@@ -677,6 +677,7 @@ class WindowHandler {
             if (!this.config.development && !this.mainwindow.allowexit) {  // allowexit ist ein override vom context menu oder screenshot test. dieser kann die app schliessen
                 this.mainwindow.hide();
                 e.preventDefault();
+                this.showMinimizeWarning()
                 log.warn(`windowhandler @ createMainWindow: Minimizing Next-Exam to Systemtray`) 
                 return
             }
@@ -797,7 +798,15 @@ class WindowHandler {
         }
     }
 
-
+    showMinimizeWarning(){
+        let choice = dialog.showMessageBoxSync(this.mainwindow, {
+            type: 'info',
+            buttons: ['OK'],
+            title: 'Minimize to System Tray',
+            message: 'Die Anwendung Next-Exam wurde minimiert!',
+    
+        });
+    }
 
 
 
