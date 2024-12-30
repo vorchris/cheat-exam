@@ -178,13 +178,10 @@
         <div id="setupdiv">
             <!-- <div class="swal2-icon swal2-question swal2-icon-show" style="display: flex;"><div class="swal2-icon-content">?</div></div> -->
             <div class="mb-3"><h5 style="display: inline">{{ $t('dashboard.extendedsettings') }}</h5></div>
-            
-     
-
-
             <div class="m-1 mb-2" :class="(serverstatus.examtype === 'eduvidual' || serverstatus.examtype === 'gforms') ? 'disabledexam' : ''">
                 <label for="abgabeintervalSlider" class="form-check-label"> {{$t('dashboard.autoget')}} </label>
-                <span class="text-black-50">| {{ abgabeintervalPause === 0 ? $t('dashboard.disabled') : abgabeintervalPause + 'min' }}</span>
+                <span v-if="abgabeintervalPause > 0" class="ms-2 text-black-50">| {{abgabeintervalPause}}min </span>
+                <span v-else class="ms-2 text-black-50">| {{$t('dashboard.disabled')}}</span>
                 <input id="abgabeintervalSlider" type="range" 
                     v-model="abgabeintervalPause" 
                     :title="$t('dashboard.abgabeautoquestion')"
@@ -192,13 +189,10 @@
                     class="form-range custom-slider" 
                     @input="updateAbgabeInterval">
             </div>
-
-
-
             <div class="m-1 mb-2">
                 <label for="screenshotIntervalSlider" class="form-check-label"> {{$t('dashboard.screenshot')}} </label>
-                <span v-if="serverstatus.screenshotinterval > 0" class="ms-2 text-black-50">| {{ serverstatus.screenshotinterval }}s</span>
-                <span v-else class="ms-2 text-black-50"> | {{$t('dashboard.disabled')}}</span>
+                <span v-if="serverstatus.screenshotinterval > 0" class="ms-2 text-black-50">| {{serverstatus.screenshotinterval}}s</span>
+                <span v-else class="ms-2 text-black-50">| {{$t('dashboard.disabled')}}</span>
                 <div class="d-flex align-items-center">
                     <input id="screenshotIntervalSlider" type="range"
                         v-model="serverstatus.screenshotinterval"
@@ -208,16 +202,10 @@
                         @input="updateScreenshotInterval">
                 </div>
             </div>
-
-
             <div class="form-check form-switch m-1 mb-2">
-                <input id="screenshotOcr" type="checkbox"
-                    v-model="serverstatus.screenshotocr"
-                    class="form-check-input"
-                    @change="updateScreenshotInterval">
+                <input id="screenshotOcr" type="checkbox" :title="$t('dashboard.ocrinfo')" v-model="serverstatus.screenshotocr" class="form-check-input" @change="updateScreenshotInterval">
                 <label for="screenshotOcr" class="form-check-label">{{$t('dashboard.ocr')}}</label>
             </div>
-
 
             <div class="form-check form-switch  m-1 mb-2">
                 <input v-model=serverstatus.groups @click="setupGroups()" :title="$t('dashboard.groupinfo')" checked=false class="form-check-input" type="checkbox" id="activategroups">
@@ -1769,7 +1757,7 @@ hr {
 
 
 .custom-slider {
-    width: 300px; /* Feste Breite des Sliders */
+    width: 345px; /* Feste Breite des Sliders */
     margin-right: 10px; /* Abstand zu anderen Elementen */
 }
 

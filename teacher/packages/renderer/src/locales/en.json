@@ -154,7 +154,8 @@
         "groupinfo": "Divide students in two groups",
         "extendedsettings": "Extended Settings",
         "save": "speichern",
-        "disabled": "disabled"
+        "disabled": "disabled",
+        "ocrinfo":"search for current exam pin in screenshots"
     },
     "control": {
         "tokennotvalid": "token is not valid",

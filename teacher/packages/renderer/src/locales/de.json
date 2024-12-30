@@ -143,7 +143,7 @@
         "noprinter": "Keine Drucker gefunden",
         "directprint": "Autonomer Druck",
         "open": "Datei in externem Betrachter öffnen",
-        "ocr": "OCR Sicherheit (Exam PIN erkennen)",
+        "ocr": "OCR Sicherheit",
         "audiorepeattitle": "Abspielen von Audiodateien einschränken",
         "audioallow": "Keine Einschränkung",
         "audiorepeat1": "Wiederholung",
@@ -154,7 +154,8 @@
         "groupinfo": "Schüler:innen in zwei Gruppen aufteilen",
         "extendedsettings": "Erweiterte Einstellungen",
         "save": "speichern",
-        "disabled": "deaktiviert"
+        "disabled": "deaktiviert",
+        "ocrinfo":"Aktuelle Exam PIN im Screenshot erkennen"
     },
     "control": {
         "tokennotvalid": "Das Token ist ungültig",

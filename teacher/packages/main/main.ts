@@ -32,7 +32,12 @@ import log from 'electron-log';
 // Verhindert, dass Electron das Standardmenü erstellt
 Menu.setApplicationMenu(null);
 //app.disableHardwareAcceleration(); 
-
+app.commandLine.appendSwitch('disable-frame-rate-limit');
+app.commandLine.appendSwitch('disable-gpu-vsync', 'false');
+app.commandLine.appendSwitch('enable-gpu-rasterization');
+app.commandLine.appendSwitch('enable-threaded-compositing');
+app.commandLine.appendSwitch('enable-features', 'Metal,CanvasOopRasterization');
+app.commandLine.appendSwitch('force-device-scale-factor', '1');
 
 WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow
 IpcHandler.init(multicastClient, config, WindowHandler)  //controll all Inter Process Communication
