@@ -98,10 +98,11 @@
             ],
             "artifactName": "${productName}_${version}.${ext}",
             "signtoolOptions": {
-                "certificateSubjectName": "OSOS Austria", 
-                "signingHashAlgorithms": ["sha256"]     
+                "certificateSubjectName": "OSOS Austria",
+                "signingHashAlgorithms": [
+                    "sha256"
+                ]
             },
-
             "files": [
                 "dist",
                 "public",
@@ -125,7 +126,6 @@
         "nodemon": "^3.1.5",
         "typescript": "^5.6.2",
         "vite": "^5.4.6",
-        "vite-electron-builder": "^0.0.0",
         "vite-plugin-electron": "^0.28.7",
         "vite-plugin-electron-renderer": "^0.14.5",
         "vite-plugin-resolve": "^2.5.2",
