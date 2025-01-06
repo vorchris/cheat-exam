@@ -280,7 +280,7 @@ import path from 'path';
                 })
                 .catch(error => {
                     if (this.multicastClient.beaconsLost == 0){  // don't spam the log if we already record network errors via update()
-                        log.error(`communicationhandler @ sendScreenshot (updatescreenshot): ${error.message}`, error}`);
+                        log.error(`communicationhandler @ sendScreenshot (updatescreenshot): ${error.message}`);
                     }
                 });
             } catch (error) {
