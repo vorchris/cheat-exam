@@ -20,7 +20,6 @@
 import { app, BrowserWindow, BrowserView, dialog, screen} from 'electron'
 import { join } from 'path'
 import childProcess from 'child_process' 
-import screenshot from 'screenshot-desktop-wayland'
 import {disableRestrictions, enableRestrictions} from './platformrestrictions.js';
 
 import log from 'electron-log'
