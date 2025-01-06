@@ -35,7 +35,10 @@ const __dirname = import.meta.dirname;
 import { Worker } from 'worker_threads';
 import path from 'path';
 
-//import { Jimp } from "jimp";
+import https from 'https';
+const agent = new https.Agent({ rejectUnauthorized: false });
+
+
 
 
  /**
@@ -263,26 +266,13 @@ import path from 'path';
                     screenshotfilename: this.multicastClient.clientinfo.token + ".jpg",
                 };
                 
-                fetch(`https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/updatescreenshot`, {
-                    method: "POST",
-                    cache: "no-store",
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload),
-                })
-                .then(response => {
-                    if (!response.ok) { throw new Error('communicationhandler @ sendScreenshot: Network response was not ok');  }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data && data.status === "error") { log.error("communicationhandler @ sendScreenshot: status error", data.message); }
-                })
-                .catch(error => {
-                    if (this.multicastClient.beaconsLost == 0){  // don't spam the log if we already record network errors via update()
-                        log.error(`communicationhandler @ sendScreenshot (updatescreenshot): ${error.message}`);
-                    }
-                });
+
+                // send screenshot to server via email fetch request
+                let attempt = 0;
+                const maxRetries = 2;
+                const url = `https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/updatescreenshot`;
+                this.doScreenshotUpdate(url, payload, agent, attempt, maxRetries); // Erste Anfrage starten
+
             } catch (error) {
                 log.warn('communicationhandler @ sendScreenshot: Error resizing image:', error.message);
             }
@@ -293,7 +283,35 @@ import path from 'path';
 
 
 
-
+    doScreenshotUpdate(url, payload, agent, attempt = 0, maxRetries) {
+        fetch(url, {
+            method: "POST",
+            cache: "no-store",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+            agent,
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('communicationhandler @ sendScreenshot: Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data && data.status === "error") {
+                log.error("communicationhandler @ sendScreenshot: status error", data.message);
+            }
+        })
+        .catch(error => {
+            if (attempt < maxRetries - 1) {
+                this.doScreenshotUpdate(url, payload, agent, attempt + 1, maxRetries); // Retry
+            } else if (attempt === maxRetries - 1 && this.multicastClient.beaconsLost === 0) {
+                log.error(`communicationhandler @ sendScreenshot (fetch): ${error.message}`);
+            }
+        });
+    }
 
 
 

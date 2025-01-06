@@ -5,7 +5,14 @@ import sharp from 'sharp';
 parentPort.on('message', async ({ imgBuffer }) => {
     try {
         if (!imgBuffer) {
-            imgBuffer = await screenshot();
+
+            try {
+                imgBuffer = await screenshot();
+            } catch (screenshotError) {
+                parentPort.postMessage({ success: false, error: "Screenshot konnte nicht erstellt werden: " + screenshotError.message });
+                return;
+            }
+            
         }
 
         if (Buffer.isBuffer(imgBuffer)) {
