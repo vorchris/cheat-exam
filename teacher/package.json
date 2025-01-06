@@ -97,10 +97,11 @@
                 }
             ],
             "artifactName": "${productName}_${version}.${ext}",
-            "certificateSubjectName": "OSOS Austria",
-            "signingHashAlgorithms": [
-                "sha256"
-            ],
+            "signtoolOptions": {
+                "subject": "OSOS Austria",
+                "digestAlgorithm": "sha256"
+            },
+
             "files": [
                 "dist",
                 "public",
