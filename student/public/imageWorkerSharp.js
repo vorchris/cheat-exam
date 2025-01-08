@@ -40,6 +40,7 @@ parentPort.on('message', async ({ imgBuffer }) => {
                 screenshotBase64,
                 headerBase64,
                 isblack: isAllBlack,
+                imgBuffer: imgBuffer
             });
 
         } else {

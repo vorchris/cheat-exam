@@ -211,7 +211,7 @@ const agent = new https.Agent({ rejectUnauthorized: false });
             let imgBuffer = null;
 
             if (this.screenshotAbility){  
-                ({ success, screenshotBase64, headerBase64, isblack } = await this.processImage(false));  // kein imageBuffer mitgegeben bedeutet nutze screenshot-desktop im worker
+                ({ success, screenshotBase64, headerBase64, isblack, imgBuffer } = await this.processImage(false));  // kein imageBuffer mitgegeben bedeutet nutze screenshot-desktop im worker
                 if (success) { this.screenshotFails = 0;}
                 else { 
                     this.screenshotFails +=1;
@@ -236,7 +236,7 @@ const agent = new https.Agent({ rejectUnauthorized: false });
             try {
 
                 //MACOS WORKAROUND - switch to pagecapture if no permissons are granted
-                if (process.platform === "darwin" && this.firstCheckScreenshot){  //this is for macOS because it delivers a blank background screenshot without permissions. we catch that case with a workaround
+                if (process.platform === "darwin" && this.firstCheckScreenshot && imgBuffer !== null){  //this is for macOS because it delivers a blank background screenshot without permissions. we catch that case with a workaround
                     this.firstCheckScreenshot = false   //never do this again
                     try{
                         if (!TesseractWorker){ TesseractWorker = await Tesseract.createWorker('eng'); }
