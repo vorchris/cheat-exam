@@ -127,7 +127,7 @@
                 <input v-model="serverstatus.examtype" @click="getTestURL()" value="website" class="form-check-input" type="radio" name="examtype" id="examtype6">
                 <label class="form-check-label" for="examtype6"> 
                     <div style="display:inline-block; overflow: hidden; text-overflow: ellipsis;">Website</div>  <!--overflow hidden with text-overflow ellipsis adds 3 pixel to the height of the sourrounding div element.. what the f..? -->
-                    <div style="width: 134px; display:inline-block; overflow: hidden; text-overflow: ellipsis;" class="text-white-50" v-if="(serverstatus.domainname)">|{{serverstatus.domainname}}</div>  
+                    <div style="width: 134px; height: 22px; display:inline-block; overflow: hidden; text-overflow: ellipsis;" class="text-white-50" v-if="(serverstatus.domainname)">|{{serverstatus.domainname}}</div>  
                 </label>
             </div>
 
@@ -880,11 +880,24 @@ export default {
             return regex.test(str);
         },
 
-        isValidFullDomainName(str) {
+        isValidFullDomainName_old(str) {
             // Regex for matching a simple domain name structure
             var regex = /^(https?:\/\/)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/i;
             return regex.test(str);
         },
+
+
+
+        isValidFullDomainName(str) {
+            try {
+                const url = new URL(str); // Versucht, die Eingabe als URL zu parsen
+                return url.protocol === "http:" || url.protocol === "https:"; // Nur HTTP/S erlauben
+            } catch (e) {
+                return false; // Wenn Parsing fehlschlägt, ist die URL ungültig
+            }
+        },
+
+
         async showDescription(description) {
             this.currentDescription = description;
             this.showDesc = true;

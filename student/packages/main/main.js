@@ -334,7 +334,7 @@ function findParentRecursively(pid, callback, depth = 0, visitedPids = new Set()
 
 
     findParentCommand(numericPid, (err, parentCommand, parentPid) => {
-        if (err) {
+        if (err||parentCommand == null) {
             log.warn(`main @ findParentRecursively: Fehler beim Abrufen des Elternprozesses mit PID ${pid}: ${err.message}`);
             callback(null, false); // Bei Fehlern einfach weitermachen, als ob kein Browser gefunden wurde
             return;
