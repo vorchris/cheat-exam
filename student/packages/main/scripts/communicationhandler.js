@@ -31,7 +31,7 @@ import {SchedulerService} from './schedulerservice.ts'
 import Tesseract from 'tesseract.js';
 let TesseractWorker = false
 const __dirname = import.meta.dirname;
-
+import crypto from 'crypto';
 import { Worker } from 'worker_threads';
 import path from 'path';
 
@@ -259,9 +259,11 @@ const agent = new https.Agent({ rejectUnauthorized: false });
                     }   
                 }
     
+                let screenshothash = crypto.createHash('md5').update(Buffer.from(screenshotBase64, 'base64')).digest("hex");  // Berechnen des MD5-Hashs des Base64-Strings
                 const payload = {
                     clientinfo: {...this.multicastClient.clientinfo},
                     screenshot: screenshotBase64,
+                    screenshothash: screenshothash,
                     header: headerBase64,
                     screenshotfilename: this.multicastClient.clientinfo.token + ".jpg",
                 };
