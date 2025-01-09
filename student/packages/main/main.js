@@ -20,7 +20,22 @@
  * This is the ELECTRON main file that actually opens the electron window
  */
 
-import { app, BrowserWindow, powerSaveBlocker, nativeTheme, globalShortcut, Tray, Menu, dialog} from 'electron'
+import { app, BrowserWindow, powerSaveBlocker, nativeTheme, globalShortcut, Tray, Menu} from 'electron'
+import { checkParent } from './scripts/checkparent.js';
+import { release } from 'os'
+import WindowHandler from './scripts/windowhandler.js'
+import CommHandler from './scripts/communicationhandler.js'
+import IpcHandler from './scripts/ipchandler.js'
+import config from './config.js';
+import multicastClient from './scripts/multicastclient.js'
+import path from 'path'
+import fs from 'fs'
+import * as fsExtra from 'fs-extra';
+import os from 'os'
+import ip from 'ip'
+import log from 'electron-log';
+import { gateway4sync } from 'default-gateway';
+
 
 // Verhindert, dass Electron das Standardmenü erstellt
 Menu.setApplicationMenu(null);
@@ -30,7 +45,6 @@ app.commandLine.appendSwitch('disable-gpu-vsync', 'false');
 app.commandLine.appendSwitch('enable-gpu-rasterization');
 app.commandLine.appendSwitch('enable-threaded-compositing');
 app.commandLine.appendSwitch('enable-features', 'Metal,CanvasOopRasterization');
-
 
 
 
@@ -50,24 +64,6 @@ app.on('second-instance', () => {
         WindowHandler.mainwindow.focus() // Focus on the main window if the user tried to open another
     }
 })
-
-
-
-import { release } from 'os'
-import WindowHandler from './scripts/windowhandler.js'
-import CommHandler from './scripts/communicationhandler.js'
-import IpcHandler from './scripts/ipchandler.js'
-import config from './config.js';
-import multicastClient from './scripts/multicastclient.js'
-import path from 'path'
-import fs from 'fs'
-import * as fsExtra from 'fs-extra';
-import os from 'os'
-import ip from 'ip'
-import log from 'electron-log';
-import { gateway4sync } from 'default-gateway';
-import ps from 'ps-node'
-
 
 
 const __dirname = import.meta.dirname;
@@ -239,7 +235,15 @@ app.whenReady()
         WindowHandler.mainwindow.isVisible() ?  WindowHandler.mainwindow.hide() :  WindowHandler.mainwindow.show();
     });
 
-    checkParent()  // this checks if the app was started from within a browser (directly after download)
+
+
+    // this checks if the app was started from within a browser (directly after download)
+    checkParent()
+    .then(() => log.info('main @ checkParent: Parent Check abgeschlossen'))
+    .catch(err => log.error('main @ checkParent: Fehler bei Parent Check:', err)    );
+
+
+
 
     //these are some shortcuts we try to capture
     globalShortcut.register('CommandOrControl+R', () => {});
@@ -273,117 +277,6 @@ app.whenReady()
 
 
 
-
-function checkParent() {
-    try {
-        const parentPid = process.ppid;  //parent pid des hauptprozesses festlegen für den start (next-exam.exe)
-
-        findParentRecursively(parentPid, (err, foundBrowser) => {
-            if (err) {
-                log.error(`main @ checkparent: Fehler beim Abrufen des Elternprozesses: ${err.message}`);
-                return;
-            }
-
-            if (foundBrowser) {
-                log.warn('main @ checkparent: Die App wurde direkt aus einem Browser gestartet');
-                log.info('main @ checkparent: Next-Exam wird beendet.');
-
-                dialog.showMessageBoxSync(WindowHandler.mainwindow, {
-                    type: 'question',
-                    buttons: ['OK'],
-                    title: 'Programm beenden',
-                    message: 'Unerlaubter Programmstart aus einem Webbrowser erkannt.\nNext-Exam wird beendet!',
-                    cancelId: 1,
-                });
-
-                WindowHandler.mainwindow.allowexit = true;
-                app.quit();
-            } else {
-                log.info('main @ checkparent: Parent Process Check OK');
-            }
-        });
-    } catch (error) {
-        log.error(`main @ checkparent: Unerwarteter Fehler: ${error.message}`);
-    }
-}
-
-function findParentRecursively(pid, callback, depth = 0, visitedPids = new Set()) {
-    const maxDepth = 4; // Maximale Tiefe der Rekursion
-    const numericPid = parseInt(pid, 10);
-
-    if (!numericPid || numericPid === 1) {
-        log.info('main @ findParentRecursively: Root-Prozess erreicht, kein Browser erkannt.');
-        callback(null, false);
-        return;
-    }
-
-    if (depth > maxDepth) {
-        log.warn('main @ findParentRecursively: Maximale Rekursionstiefe erreicht, Suche wird abgebrochen.');
-        callback(null, false); // Kein Fehler, Browser nicht gefunden
-        return;
-    }
-
-    // windows liefert manchmal inkonsistente prozess informationen child ist gleichzeitig parent vom parent.. wtf?
-    if (visitedPids.has(numericPid)) {
-        log.error('main @ findParentRecursively: Zirkuläre Referenz erkannt, Suche wird abgebrochen.');
-        callback(null, false);
-        return;
-    }
-
-    visitedPids.add(numericPid); // Aktuelle PID zu den besuchten PIDs hinzufügen
-
-
-    findParentCommand(numericPid, (err, parentCommand, parentPid) => {
-        if (err||parentCommand == null) {
-            log.warn(`main @ findParentRecursively: Fehler beim Abrufen des Elternprozesses mit PID ${pid}: ${err.message}`);
-            callback(null, false); // Bei Fehlern einfach weitermachen, als ob kein Browser gefunden wurde
-            return;
-        }
-
-        const browserKeywords = ['chrom', 'edge', 'fire', 'brave', 'opera'];
-
-        if (parentCommand.includes('explorer.exe')) { // Explorer.exe ist erlaubt
-            callback(null, false);
-        } else if (browserKeywords.some(browser => parentCommand.includes(browser))) {
-            callback(null, true); // Browser gefunden
-        } else {
-            findParentRecursively(parentPid, callback, depth + 1, visitedPids); // Weiter nach oben suchen
-        }
-    });
-}
-
-function findParentCommand(pid, callback) {
-    try {
-        const timeout = setTimeout(() => { // Timeout für `ps.lookup`
-            log.error(`main @ findParentCommand: Timeout beim Abrufen des Prozesses mit PID ${pid}.`);
-            callback(new Error('Timeout beim Abrufen des Prozesses'), null, null);
-        }, 5000); // 5 Sekunden Timeout
-
-        ps.lookup({ pid: pid }, (err, resultList) => {
-            clearTimeout(timeout); // Timeout abbrechen
-
-            if (err) {
-                log.warn(`main @ findParentCommand: Fehler beim Abrufen des Prozesses mit PID ${pid}: ${err.message}`);
-                callback(null, null, null); // Bei Fehlern einfach weitermachen, als ob kein Prozess gefunden wurde
-                return;
-            }
-
-            if (resultList.length > 0) {
-                const parentProcess = resultList[0];
-                const parentCommand = parentProcess.command.toLowerCase();
-                const parentPid = parseInt(parentProcess.ppid, 10);
-                log.info(`main @ findParentCommand: Prozess gefunden - Command: ${parentCommand}, Parent PID: ${parentPid}`);
-                callback(null, parentCommand, parentPid);
-            } else {
-                log.warn(`main @ findParentCommand: Prozess mit PID ${pid} nicht gefunden.`);
-                callback(null, null, null); // Kein Fehler, sondern weiter, als ob kein Prozess gefunden wurde
-            }
-        });
-    } catch (error) {
-        log.error(`main @ findParentCommand: Unerwarteter Fehler: ${error.message}`);
-        callback(null, null, null); // Bei Fehlern einfach weitermachen, als ob kein Prozess gefunden wurde
-    }
-}
 
 
 
