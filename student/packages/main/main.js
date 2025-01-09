@@ -120,9 +120,49 @@ fsExtra.emptyDirSync(config.tempdirectory)  // clean temp directory
 
 log.initialize(); // initialize the logger for any renderer process
 let logfile = `${config.workdirectory}/next-exam-student.log`
-log.transports.file.resolvePathFn = (config) => { return logfile  }
+log.transports.file.resolvePathFn = () => { return logfile  }
 log.eventLogger.startLogging();
 log.errorHandler.startCatching();
+
+//log.transports.console.level = false;
+
+
+
+
+
+
+
+log.transports.console.writeFn = (formattedMessage) => {
+    try {
+        // Stelle sicher, dass die Nachricht ein String ist
+       
+    
+        const message = Array.isArray(formattedMessage.message.data)
+        ? formattedMessage.message.data.join(' ')
+        : String(formattedMessage);
+
+
+        // Schreibe in stdout
+        process.stdout.write(message + '\n');
+    } catch (err) {
+        // Schreibe Fehler in die Konsole
+        console.log('Unbekannter Fehler bei Console-Transport: ' + err.message + '\n');
+    }
+};
+
+process.stdout.on('error', (err) => {
+    if (err.code === 'EPIPE') {
+        log.warn('main: EPIPE-Fehler: Der stdout-Stream für den ElectronLogger wird deaktiviert.');
+        log.transports.console.level = false;
+    }
+});
+
+
+
+
+
+
+
 log.warn(`-------------------`)
 log.warn(`main: starting Next-Exam "${config.version} ${config.info}" (${process.platform})`)
 log.warn(`-------------------`)
