@@ -124,41 +124,18 @@ log.transports.file.resolvePathFn = () => { return logfile  }
 log.eventLogger.startLogging();
 log.errorHandler.startCatching();
 
-//log.transports.console.level = false;
 
 
-
-
-
-
-
-log.transports.console.writeFn = (formattedMessage) => {
-    try {
-        // Stelle sicher, dass die Nachricht ein String ist
-       
-    
-        const message = Array.isArray(formattedMessage.message.data)
-        ? formattedMessage.message.data.join(' ')
-        : String(formattedMessage);
-
-
-        // Schreibe in stdout
-        process.stdout.write(message + '\n');
-    } catch (err) {
-        // Schreibe Fehler in die Konsole
-        console.log('Unbekannter Fehler bei Console-Transport: ' + err.message + '\n');
-    }
-};
-
+/**
+ * This function specifically checks for EPIPE errors and disables the console transport for the ElectronLogger if such an error occurs.
+ * EPIPE errors typically happen when trying to write to a closed pipe, which can occur if the stdout stream is unexpectedly closed.
+ */
 process.stdout.on('error', (err) => {
     if (err.code === 'EPIPE') {
         log.warn('main: EPIPE-Fehler: Der stdout-Stream für den ElectronLogger wird deaktiviert.');
         log.transports.console.level = false;
     }
 });
-
-
-
 
 
 
