@@ -31,6 +31,11 @@ export async function checkParent() {
 export async function findParentProcess(pid, maxDepth, visitedPids) {
     const browserKeywords = ['chrom', 'edge', 'fire', 'brave', 'opera'];
 
+    if (pid == 1) {
+        log.info('main @ findParentProcess: PID 1 erreicht. Kein Webbrowser gefunden.');
+        return false; 
+    }
+
     if (maxDepth <= 0) {
         log.warn('checkparent @ findParentProcess: Maximale Rekursionstiefe erreicht.');
         return false;
@@ -47,22 +52,29 @@ export async function findParentProcess(pid, maxDepth, visitedPids) {
         const timeout = setTimeout(() => {
             log.error(`checkparent @ findParentProcess: Timeout bei PID ${pid}.`);
             resolve(false);
-        }, 5000); // 5 Sekunden Timeout für den Versuch einen Prozess zu finden - Windows liefert manchmal keine, inkonsistente oder zirkuläre Referenzen hier - abbruch!
+        }, 4000); // 4 Sekunden Timeout für den Versuch einen Prozess zu finden - Windows liefert manchmal keine, inkonsistente oder zirkuläre Referenzen hier - abbruch!
 
         ps.lookup({ pid }, (err, resultList) => {
             clearTimeout(timeout);
 
-            if (err || !resultList.length) {
-                log.warn(`checkparent @ findParentProcess: Prozess mit PID ${pid} nicht gefunden oder Fehler: ${err?.message}`);
+             if (err) {
+                log.error(`checkparent @ findParentProcess: Fehler bei der Prozessabfrage für PID ${pid}: ${err.message}`);
                 resolve(false);
                 return;
             }
-
+            
+            if (!resultList.length) {
+                log.warn(`checkparent @ findParentProcess: Keine Ergebnisse für Prozess mit PID ${pid} gefunden.`);
+                resolve(false);
+                return;
+            }
+            
+            
             const parentProcess = resultList[0];
             const parentCommand = parentProcess.command.toLowerCase();
 
             if (browserKeywords.some(browser => parentCommand.includes(browser)))        { resolve(true);  }    // Browser gefunden
-            else if (parentCommand.includes('explorer.exe') || parentProcess.ppid === 1) { resolve(false); }    // Erlaubter Prozess oder Root erreicht
+            else if (parentCommand.includes('explorer.exe') || parentProcess.ppid == 1) { resolve(false); }    // Auf Windows ist Explorer quasi root
             else { resolve(findParentProcess(parentProcess.ppid, maxDepth - 1, visitedPids)); }                 // Weiter nach oben
            
         });

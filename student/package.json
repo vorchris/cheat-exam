@@ -1,6 +1,6 @@
 {
     "name": "next-exam-student",
-    "version": "1.0.1-250108",
+    "version": "1.0.1-250109",
     "main": "dist/main/main.mjs",
     "author": {
         "name": "Thomas Michael Weissel",
@@ -29,7 +29,8 @@
         "asarUnpack": [
             "node_modules/screenshot-desktop-wayland/lib/win32",
             "public",
-            "node_modules/get-windows/**/*"
+            "node_modules/get-windows/**/*",
+            "node_modules/@img/**/*"
         ],
         "directories": {
             "output": "../release/${version}"
