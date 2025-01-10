@@ -21,7 +21,7 @@ import fs from 'fs'
 import archiver from 'archiver'   // das macht krasseste racecoditions mit electron eigenen versionen - unbedingt die selbe version behalten wie electron
 import extract from 'extract-zip'
 import { join } from 'path'
-import { screen, ipcMain } from 'electron'
+import { screen, ipcMain, app } from 'electron'
 import WindowHandler from './windowhandler.js'
 import { execSync } from 'child_process';
 const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
@@ -235,13 +235,23 @@ const agent = new https.Agent({ rejectUnauthorized: false });
 
           
             
-            //MACOS WORKAROUND - switch to pagecapture if no permissons are granted
+            /**
+             * MACOS WORKAROUND - switch to pagecapture if no permissons are granted
+             */
             if (process.platform === "darwin" && this.firstCheckScreenshot && imgBuffer !== null){  //this is for macOS because it delivers a blank background screenshot without permissions. we catch that case with a workaround
                 this.firstCheckScreenshot = false   //never do this again
+
+                const publicPath = app.isPackaged
+                ? path.join(process.resourcesPath,'app.asar.unpacked', 'public')
+                : path.resolve(__dirname, '../../public');
+
                 try{
-                    if (!TesseractWorker){ TesseractWorker = await Tesseract.createWorker('eng'); }
+                    if (!TesseractWorker){ //use local language file
+                        TesseractWorker = await Tesseract.createWorker('eng',1,{ langPath: publicPath });
+                    }
                     const { data: { text } }   = await Tesseract.recognize(imgBuffer , 'eng' );
                     let appWindowVisible = text.includes("Exam")   //check if the word "Exam" can be found in screenshot - otherwise it is most likely a blank desktop - macos quirk
+                   
                     if (!appWindowVisible){
                         this.screenshotAbility=false;
                         log.error(`communicationhandler @ sendScreenshot: switching to PageCapture`)
@@ -250,6 +260,9 @@ const agent = new https.Agent({ rejectUnauthorized: false });
                 }
                 catch(err){  log.info(`communicationhandler @ sendScreenshot (ocr): ${err}`); }
             }
+
+
+
 
             //do not run colorcheck if already locked
             if ( this.multicastClient.clientinfo.exammode && !this.config.development && this.multicastClient.clientinfo.focus){

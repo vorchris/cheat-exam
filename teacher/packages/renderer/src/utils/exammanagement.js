@@ -101,9 +101,9 @@ function kick(studenttoken, studentip){
                 //unregister locally
             axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/kick/${this.servername}/${this.servertoken}/${studenttoken}`)
             .then( response => {
-                log.info(response.data);
+                log.info("exmmmanagment @ kick:", response.data.message) 
                 this.status(response.data.message);
-            }).catch(error => {log.error(error)});
+            }).catch(error => {log.error("exmmmanagment @ kick:", error)});
         } 
     });  
 }

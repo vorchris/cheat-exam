@@ -818,7 +818,7 @@ router.post('/updatescreenshot', async function (req, res, next) {
                     
                     if (!TesseractWorker){
                         TesseractWorker = await Tesseract.createWorker('eng',1,{
-                            langPath: publicPath , // Verweis auf das `/public/`-Verzeichnis
+                            langPath: publicPath , 
                         });
                     }
                      
