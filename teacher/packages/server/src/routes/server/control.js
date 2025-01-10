@@ -34,8 +34,8 @@ import WindowHandler from '../../../../main/scripts/windowhandler.js'
 import Tesseract from 'tesseract.js';
 let TesseractWorker = false
 
-
-
+import { app } from 'electron'
+const __dirname = import.meta.dirname;
 
 /**
  * this route generates the nessesary codeVerifier and codeChallenge für PKCE 
@@ -801,13 +801,25 @@ router.post('/updatescreenshot', async function (req, res, next) {
         
             student.imageurl = 'data:image/jpeg;base64,' + screenshotBase64; // oder 'data:image/png;base64,' je nach tatsächlichem Bildformat  
             
+
+
+
+
             // only scan screenshot in exam mode and NOT if a restoring/unlocking operation is already in process (otherwise it will lock the unlocked again)
-            if (mcServer.serverstatus.exammode && mcServer.serverstatus.screenshotocr && !student.status.restorefocusstate){
+            if (mcServer.serverstatus.exammode && mcServer.serverstatus.screenshotocr && !student.status.restorefocusstate && student.focus){
                 try{
                     const header = req.body.header.split(';base64,').pop();
                     const headerimageBuffer = Buffer.from(header, 'base64');
+
+
+                    const publicPath = app.isPackaged
+                    ? path.join(process.resourcesPath,'app.asar.unpacked', 'public')
+                    : path.resolve(__dirname, '../../public');
+                    
                     if (!TesseractWorker){
-                        TesseractWorker = await Tesseract.createWorker('eng');
+                        TesseractWorker = await Tesseract.createWorker('eng',1,{
+                            langPath: publicPath , // Verweis auf das `/public/`-Verzeichnis
+                        });
                     }
                      
                     const { data: { text } }  = await TesseractWorker.recognize(headerimageBuffer);
