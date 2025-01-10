@@ -194,90 +194,86 @@ const agent = new https.Agent({ rejectUnauthorized: false });
         });
     }
 
-
     terminate() {
         this.worker.terminate();
     }
-
-
 
     async sendScreenshot(){
         if (this.multicastClient.clientinfo.localLockdown){return}
         if (this.multicastClient.beaconsLost >= 5 ){return}  // connection lost reset triggered
         if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip
             
-      
             let success, screenshotBase64, headerBase64, isblack; // Variablen außerhalb des if-Blocks definieren
             let imgBuffer = null;
 
-            if (this.screenshotAbility){  
-                ({ success, screenshotBase64, headerBase64, isblack, imgBuffer } = await this.processImage(false));  // kein imageBuffer mitgegeben bedeutet nutze screenshot-desktop im worker
-                if (success) { this.screenshotFails = 0;}
-                else { 
-                    this.screenshotFails +=1;
-                    if(this.screenshotFails > 4){ this.screenshotAbility=false; log.error(`communicationhandler @ sendScreenshot: switching to PageCapture`) } 
-                }
-            }
-            else {
-                //grab "screenshot" from appwindow
-                let currentFocusedMindow = WindowHandler.getCurrentFocusedWindow()  //returns exam window if nothing in focus or main window
-                if (currentFocusedMindow) {
-                    imgBuffer = await currentFocusedMindow.webContents.capturePage()  // this should always work because it's onboard electron
-                    .then((image) => {
-                        const imageBuffer = image.toPNG();// Convert the nativeImage to a Buffer (PNG format)
-                        return imageBuffer
-                      })
-                    .catch((err) => {log.error(`communicationhandler @ sendScreenshot (capturePage): ${err}`)   });
-                }
-                ({ success, screenshotBase64, headerBase64, isblack } = await this.processImage(imgBuffer));
-            }
-          
-             
             try {
-
-                //MACOS WORKAROUND - switch to pagecapture if no permissons are granted
-                if (process.platform === "darwin" && this.firstCheckScreenshot && imgBuffer !== null){  //this is for macOS because it delivers a blank background screenshot without permissions. we catch that case with a workaround
-                    this.firstCheckScreenshot = false   //never do this again
-                    try{
-                        if (!TesseractWorker){ TesseractWorker = await Tesseract.createWorker('eng'); }
-                        const { data: { text } }   = await Tesseract.recognize(imgBuffer , 'eng' );
-                        let appWindowVisible = text.includes("Exam")   //check if the word "Exam" can be found in screenshot - otherwise it is most likely a blank desktop - macos quirk
-                        if (!appWindowVisible){
-                            this.screenshotAbility=false;
-                            log.error(`communicationhandler @ sendScreenshot: switching to PageCapture`)
-                            log.info("communicationhandler @ sendScreenshot (ocr): Student Screenshot does not fit requirements");
-                        }
+                if (this.screenshotAbility){  
+                    ({ success, screenshotBase64, headerBase64, isblack, imgBuffer } = await this.processImage(false));  // kein imageBuffer mitgegeben bedeutet nutze screenshot-desktop im worker
+                    if (success) { this.screenshotFails = 0;}
+                    else { 
+                        this.screenshotFails +=1;
+                        if(this.screenshotFails > 4){ this.screenshotAbility=false; log.error(`communicationhandler @ sendScreenshot: switching to PageCapture`) } 
                     }
-                    catch(err){  log.info(`communicationhandler @ sendScreenshot (ocr): ${err}`); }
                 }
+                else {
+                    //grab "screenshot" from appwindow
+                    let currentFocusedMindow = WindowHandler.getCurrentFocusedWindow()  //returns exam window if nothing in focus or main window
+                    if (currentFocusedMindow) {
+                        imgBuffer = await currentFocusedMindow.webContents.capturePage()  // this should always work because it's onboard electron
+                        .then((image) => {
+                            const imageBuffer = image.toPNG();// Convert the nativeImage to a Buffer (PNG format)
+                            return imageBuffer
+                        })
+                        .catch((err) => {log.error(`communicationhandler @ sendScreenshot (capturePage): ${err}`)   });
+                    }
+                    ({ success, screenshotBase64, headerBase64, isblack } = await this.processImage(imgBuffer));
+                }
+            }
+            catch(err){
+                log.error(`communicationhandler @ sendScreenshot: processImage failed: ${err}`)
+            }
 
-                //do not run colorcheck if already locked
-                if ( this.multicastClient.clientinfo.exammode && !this.config.development && this.multicastClient.clientinfo.focus){
-                    if (isblack){
-                        this.multicastClient.clientinfo.focus = false
-                        log.info("communicationhandler @ sendScreenshot: Student Screenshot does not fit requirements (allblack)");
-                    }   
+          
+            
+            //MACOS WORKAROUND - switch to pagecapture if no permissons are granted
+            if (process.platform === "darwin" && this.firstCheckScreenshot && imgBuffer !== null){  //this is for macOS because it delivers a blank background screenshot without permissions. we catch that case with a workaround
+                this.firstCheckScreenshot = false   //never do this again
+                try{
+                    if (!TesseractWorker){ TesseractWorker = await Tesseract.createWorker('eng'); }
+                    const { data: { text } }   = await Tesseract.recognize(imgBuffer , 'eng' );
+                    let appWindowVisible = text.includes("Exam")   //check if the word "Exam" can be found in screenshot - otherwise it is most likely a blank desktop - macos quirk
+                    if (!appWindowVisible){
+                        this.screenshotAbility=false;
+                        log.error(`communicationhandler @ sendScreenshot: switching to PageCapture`)
+                        log.info("communicationhandler @ sendScreenshot (ocr): Student Screenshot does not fit requirements");
+                    }
                 }
+                catch(err){  log.info(`communicationhandler @ sendScreenshot (ocr): ${err}`); }
+            }
+
+            //do not run colorcheck if already locked
+            if ( this.multicastClient.clientinfo.exammode && !this.config.development && this.multicastClient.clientinfo.focus){
+                if (isblack){
+                    this.multicastClient.clientinfo.focus = false
+                    log.info("communicationhandler @ sendScreenshot: Student Screenshot does not fit requirements (allblack)");
+                }   
+            }
     
-                let screenshothash = crypto.createHash('md5').update(Buffer.from(screenshotBase64, 'base64')).digest("hex");  // Berechnen des MD5-Hashs des Base64-Strings
-                const payload = {
-                    clientinfo: {...this.multicastClient.clientinfo},
-                    screenshot: screenshotBase64,
-                    screenshothash: screenshothash,
-                    header: headerBase64,
-                    screenshotfilename: this.multicastClient.clientinfo.token + ".jpg",
-                };
+            let screenshothash = crypto.createHash('md5').update(Buffer.from(screenshotBase64, 'base64')).digest("hex");  // Berechnen des MD5-Hashs des Base64-Strings
+            const payload = {
+                clientinfo: {...this.multicastClient.clientinfo},
+                screenshot: screenshotBase64,
+                screenshothash: screenshothash,
+                header: headerBase64,
+                screenshotfilename: this.multicastClient.clientinfo.token + ".jpg",
+            };
                 
 
-                // send screenshot to server via email fetch request
-                let attempt = 0;
-                const maxRetries = 2;
-                const url = `https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/updatescreenshot`;
-                this.doScreenshotUpdate(url, payload, agent, attempt, maxRetries); // Erste Anfrage starten
-
-            } catch (error) {
-                log.warn('communicationhandler @ sendScreenshot: Error resizing image:', error.message);
-            }
+            // send screenshot to server via email fetch request
+            let attempt = 0;
+            const maxRetries = 2;
+            const url = `https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/updatescreenshot`;
+            this.doScreenshotUpdate(url, payload, agent, attempt, maxRetries); // Erste Anfrage starten
         }
     }
 

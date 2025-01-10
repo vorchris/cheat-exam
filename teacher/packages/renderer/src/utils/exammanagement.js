@@ -114,8 +114,8 @@ function kick(studenttoken, studentip){
 function restore(studenttoken){
     this.visualfeedback(this.$t("dashboard.restore"),2000)
     axios.get(`https://${this.serverip}:${this.serverApiPort}/server/control/restore/${this.servername}/${this.servertoken}/${studenttoken}`)
-        .then( response => { log.info(response.data)  })
-        .catch( err => {log.error(err)});
+        .then( response => { log.info(`exammanagment @ restore:  ${response.data.message}`)  })
+        .catch( err => {log.error(`exammanagment @ restore:  ${err}`)});
 }
 
 

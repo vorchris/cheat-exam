@@ -256,7 +256,7 @@ app.whenReady()
 
     // this checks if the app was started from within a browser (directly after download)
     checkParent()
-    .then(() => log.info('main @ checkParent: Parent Check abgeschlossen'))
+    .then(() => {})
     .catch(err => log.error('main @ checkParent: Fehler bei Parent Check:', err)    );
 
 
