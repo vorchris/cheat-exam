@@ -42,14 +42,31 @@ app.commandLine.appendSwitch('force-device-scale-factor', '1');
 WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow
 IpcHandler.init(multicastClient, config, WindowHandler)  //controll all Inter Process Communication
 
+/**
+ * This function specifically checks for EPIPE errors and disables the console transport for the ElectronLogger if such an error occurs.
+ * EPIPE errors typically happen when trying to write to a closed pipe, which can occur if the stdout stream is unexpectedly closed.
+ */
+
+process.stdout.on('error', (err) => { if (err.code === 'EPIPE') { log.transports.console.level = false } });
+
+process.on('uncaughtException', (err) => {
+    if (err.code === 'EPIPE') {
+        log.transports.console.level = false;
+        log.warn('main: EPIPE Error: Der stdout-Stream des ElectronLoggers wird deaktiviert.');
+    } 
+    else {  log.error('main:', err.message); }  // Andere Fehler protokollieren oder anzeigen
+});
+
 
 log.initialize(); // initialize the logger for any renderer process
 let logfile = `${WindowHandler.config.workdirectory}/next-exam-teacher.log`
-log.transports.file.resolvePathFn = (config) => { return logfile  }
+log.transports.file.resolvePathFn = () => { return logfile  }
 log.eventLogger.startLogging();
 log.errorHandler.startCatching();
+
 log.warn(`-------------------`)
-log.warn(`main: starting Next-Exam "${config.version} ${config.info}" (${process.platform})`)
+log.warn(`main: starting Next-Exam Teacher "${config.version} ${config.info}" (${process.platform})`)
+log.warn(`-------------------`)
 log.info(`main: Logfilelocation at ${logfile}`)
 log.info('main: Next-Exam Logger initialized...');
 

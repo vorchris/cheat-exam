@@ -46,8 +46,6 @@ app.commandLine.appendSwitch('enable-gpu-rasterization');
 app.commandLine.appendSwitch('enable-threaded-compositing');
 app.commandLine.appendSwitch('enable-features', 'Metal,CanvasOopRasterization');
 
-
-
 if (!app.requestSingleInstanceLock()) {  // allow only one instance of the app per client
     log.warn("main: next-exam already running.")
     app.quit()
@@ -94,8 +92,6 @@ try {   if (!fs.existsSync(linkPath)) { fs.symlinkSync(config.workdirectory, lin
 catch(e){log.error("main: can't create symlink")}
 
 
-
-
 try { //bind to the correct interface
     const { gateway, interface: iface} = gateway4sync(); 
     config.hostip = ip.address(iface)    // this returns the ip of the interface that has a default gateway..  should work in MOST cases.  probably provide "ip-options" in UI ?
@@ -108,13 +104,23 @@ try { //bind to the correct interface
    config.gateway = false
  }
 
-
-
-
-
-
 app.commandLine.appendSwitch('lang', 'de')
 fsExtra.emptyDirSync(config.tempdirectory)  // clean temp directory
+
+/**
+ * This function specifically checks for EPIPE errors and disables the console transport for the ElectronLogger if such an error occurs.
+ * EPIPE errors typically happen when trying to write to a closed pipe, which can occur if the stdout stream is unexpectedly closed.
+ */
+process.stdout.on('error', (err) => { if (err.code === 'EPIPE') { log.transports.console.level = false } });
+
+process.on('uncaughtException', (err) => {
+    if (err.code === 'EPIPE') {
+        log.transports.console.level = false;
+        log.warn('main: EPIPE Error: Der stdout-Stream des ElectronLoggers wird deaktiviert.');
+    } 
+    else {  log.error('main:', err.message); }  // Andere Fehler protokollieren oder anzeigen
+});
+
 
 
 
@@ -124,27 +130,14 @@ log.transports.file.resolvePathFn = () => { return logfile  }
 log.eventLogger.startLogging();
 log.errorHandler.startCatching();
 
-
-
-/**
- * This function specifically checks for EPIPE errors and disables the console transport for the ElectronLogger if such an error occurs.
- * EPIPE errors typically happen when trying to write to a closed pipe, which can occur if the stdout stream is unexpectedly closed.
- */
-process.stdout.on('error', (err) => {
-    if (err.code === 'EPIPE') {
-        log.warn('main: EPIPE-Fehler: Der stdout-Stream für den ElectronLogger wird deaktiviert.');
-        log.transports.console.level = false;
-    }
-});
-
-
-
-
 log.warn(`-------------------`)
-log.warn(`main: starting Next-Exam "${config.version} ${config.info}" (${process.platform})`)
+log.warn(`main: starting Next-Exam Student "${config.version} ${config.info}" (${process.platform})`)
 log.warn(`-------------------`)
 log.info(`main: Logfilelocation at ${logfile}`)
 log.info('main: Next-Exam Logger initialized...');
+
+
+
 
 
 WindowHandler.init(multicastClient, config)  // mainwindow, examwindow, blockwindow
