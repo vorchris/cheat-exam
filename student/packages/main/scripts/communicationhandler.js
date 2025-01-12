@@ -29,7 +29,7 @@ const shell = (cmd) => execSync(cmd, { encoding: 'utf8' });
 import log from 'electron-log';
 import {SchedulerService} from './schedulerservice.ts'
 import Tesseract from 'tesseract.js';
-let TesseractWorker = false
+
 const __dirname = import.meta.dirname;
 import crypto from 'crypto';
 import { Worker } from 'worker_threads';
@@ -246,16 +246,17 @@ const agent = new https.Agent({ rejectUnauthorized: false });
                 : path.resolve(__dirname, '../../public');
 
                 try{
-                    if (!TesseractWorker){ //use local language file
-                        TesseractWorker = await Tesseract.createWorker('eng',1,{ langPath: publicPath });
-                    }
-                    const { data: { text } }   = await Tesseract.recognize(imgBuffer , 'eng' );
+                 
+                    const { data: { text } }   = await Tesseract.recognize(imgBuffer , 'eng',{ langPath: publicPath } );
                     let appWindowVisible = text.includes("Exam")   //check if the word "Exam" can be found in screenshot - otherwise it is most likely a blank desktop - macos quirk
                    
                     if (!appWindowVisible){
                         this.screenshotAbility=false;
                         log.error(`communicationhandler @ sendScreenshot: switching to PageCapture`)
                         log.info("communicationhandler @ sendScreenshot (ocr): Student Screenshot does not fit requirements");
+                    }
+                    else {
+                        log.info("communicationhandler @ sendScreenshot (ocr): MacOS screenshotpermissions check OK");
                     }
                 }
                 catch(err){  log.info(`communicationhandler @ sendScreenshot (ocr): ${err}`); }
