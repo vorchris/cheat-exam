@@ -1,6 +1,6 @@
 {
     "name": "next-exam-student",
-    "version": "1.0.1-250110",
+    "version": "1.0.1-250114",
     "main": "dist/main/main.mjs",
     "author": {
         "name": "Thomas Michael Weissel",
@@ -105,10 +105,11 @@
             ],
             "artifactName": "${productName}_${version}.${ext}",
             "signtoolOptions": {
-                "certificateSubjectName": "OSOS Austria", 
-                "signingHashAlgorithms": ["sha256"]     
+                "certificateSubjectName": "OSOS Austria",
+                "signingHashAlgorithms": [
+                    "sha256"
+                ]
             },
-
             "files": [
                 "dist",
                 "public",
@@ -210,7 +211,7 @@
         "screenshot-desktop-wayland": "^1.15.2",
         "sharp": "^0.33.5",
         "simple-get": "^4.0.1",
-        "tesseract.js": "^5.1.1",
+        "tesseract.js": "^6.0.0",
         "validator": "^13.12.0",
         "vite-plugin-top-level-await": "^1.4.4",
         "vue": "^3.5.6",
