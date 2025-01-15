@@ -2,6 +2,8 @@
 import { app, dialog} from 'electron'
 import ps from 'ps-node'
 import log from 'electron-log';
+import WindowHandler from './windowhandler.js'
+
 
 export async function checkParent() {
     try {
