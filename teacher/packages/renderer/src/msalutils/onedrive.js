@@ -282,27 +282,42 @@ async function downloadFilesFromOneDrive() {
     .then(response => response.json())
     .then( data => { 
         if (data.value && data.value.length > 0) {  return data.value[0].id;  } 
-        else { log.error('Folder not found'); return null; }
+        else { log.error('onedrive @ downloadFilesFromOneDrive: ExamFolder not found in OneDrive Appfolder'); return null; }
      })
     .catch( async (err) => { 
-        log.error("onedrive @ downloadFilesFromOneDrive: ",err) 
+        log.error("onedrive @ downloadFilesFromOneDrive: ",err.message) 
 
+        // this.$swal.fire({
+        //     title: "Microsoft Onedrive Connection",
+        //     text: "Verbindung unterbrochen",
+        //     icon: 'error',
+        //     timer: 3000,
+        //     showCancelButton: false,
+        //     didOpen: () => { this.$swal.showLoading(); },
+        // })
+
+        // // "Unauthorized" Error in der Regel.. microsoft halt.. einfach neu verbinden und gut is
+        // this.config = await ipcRenderer.invoke('resetToken')   //reset and update config
+        return null;
+    });
+
+    // check if folderID was received correctly
+    if (folderID == null) { 
         this.$swal.fire({
             title: "Microsoft Onedrive Connection",
-            text: "Verbindung unterbrochen",
+            text: "Onedrive Exam Ordner konnte nicht gefunden werden. Verbindung unterbrochen",
             icon: 'error',
             timer: 3000,
             showCancelButton: false,
             didOpen: () => { this.$swal.showLoading(); },
         })
 
-        // "Unauthorized" Error in der Regel.. microsoft halt.. einfach neu verbinden und gut is
         this.config = await ipcRenderer.invoke('resetToken')   //reset and update config
-    
-    });
+        return null; 
+    }
+   
 
     const appFolderEndpoint = `https://graph.microsoft.com/v1.0/me/drive/items/${folderID}/children`
-
     // fetch all files from folder
     await fetch(appFolderEndpoint, {
         headers: {'Authorization': `Bearer ${this.config.accessToken}` },
@@ -319,10 +334,10 @@ async function downloadFilesFromOneDrive() {
                 }
             }
         }
-        log.info('All files downloaded successfully');
+        log.info('onedrive @ downloadFilesFromOneDrive: All files downloaded successfully');
     })
     .catch(err => { 
-        log.error(err)
+        log.error("onedrive @ downloadFilesFromOneDrive: ", err.message)
     });
   }
 

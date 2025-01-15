@@ -132,7 +132,7 @@
             </div>
 
             <!-- microsoft365 -->
-            <div class="form-check m-1 mb-3" :class="(serverstatus.exammode)? 'disabledexam':''">
+            <div class="form-check m-1 mb-3" :class="(serverstatus.exammode && this.config.accessToken )? 'disabledexam':''">
                 <input v-model="serverstatus.examtype" value="microsoft365" class="form-check-input" type="radio" name="examtype" id="examtype4">
                 <label class="form-check-label" for="examtype4"> Microsoft365 <span v-if="(this.config.accessToken)">({{$t('dashboard.connected')}})</span> </label>
                 
