@@ -79,7 +79,7 @@
         "codeblock":"codeblock",
         "code":"code",
         "blockquote":"blockquote",
-        "line":"line",
+        "line":"pagebreak",
         "left":"left",
         "center":"center",
         "right":"right",

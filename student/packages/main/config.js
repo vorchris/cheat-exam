@@ -2,8 +2,8 @@ import pjson from "../../package.json"
 
 
 const config = {
-    development: false,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
-    showdevtools: false,
+    development: process.env.NODE_ENV === 'development',  // disable kiosk mode on exam mode and other stuff (autofill input fields)
+    showdevtools: process.env.NODE_ENV === 'development',
     bipIntegration: true,
 
     workdirectory : "",   // (desktop path + examdir)
@@ -21,6 +21,6 @@ const config = {
     electron: false,
     virtualized: false,
     version: pjson.version,
-    info: "LTS"
+    info: process.env.NODE_ENV === 'development' ? process.env.NODE_ENV : 'LTS'
 }
 export default config

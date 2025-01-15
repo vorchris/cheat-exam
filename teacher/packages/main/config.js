@@ -1,8 +1,10 @@
 import pjson from "../../package.json"
 
 const config = {
-    development: false,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
-    showdevtools: false,
+
+    development: process.env.NODE_ENV === 'development',
+    showdevtools: process.env.NODE_ENV === 'development',
+
     bipIntegration: true,
    
     workdirectory : "",   // set by server.js (desktop path + examdir)
@@ -19,8 +21,8 @@ const config = {
     examServerList: {},
     accessToken: false,
     version: pjson.version,
-    info: "LTS",
-    buildforWEB: false
-
+    buildforWEB: false,
+    info: process.env.NODE_ENV === 'development' ? process.env.NODE_ENV : 'LTS'
+  
 }
 export default config

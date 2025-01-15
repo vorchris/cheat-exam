@@ -12,9 +12,13 @@
     "description": "An exam managment tool for digital exams",
     "type": "module",
     "scripts": {
-        "dev": "node scripts/watch.mjs",
+       
+        "dev": "cross-env NODE_ENV=development node scripts/watch.mjs",
+        "prod": "cross-env NODE_ENV=production node scripts/build.mjs",
+
         "clean": "rm -rf ./dist",
         "cleanwin": "rmdir /s /q dist",
+
         "build": "npm run clean && node scripts/build.mjs && electron-builder -l",
         "build:mac": "npm run clean && node scripts/build.mjs && electron-builder -m",
         "build:win": "npm run cleanwin && node scripts/build.mjs && electron-builder -w"
@@ -182,6 +186,7 @@
         "archiver": "^5.3.2",
         "bootstrap": "^5.3.3",
         "cors": "^2.8.5",
+        "cross-env": "^7.0.3",
         "default-gateway": "^7.2.2",
         "dexie": "^4.0.8",
         "dompurify": "^3.1.6",

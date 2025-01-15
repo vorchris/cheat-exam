@@ -12,7 +12,8 @@
     "description": "An exam managment tool for digital exams",
     "type": "module",
     "scripts": {
-        "dev": "node scripts/watch.mjs",
+        "dev": "cross-env NODE_ENV=development node scripts/watch.mjs",
+        "prod": "cross-env NODE_ENV=production node scripts/build.mjs",
         "build": "node scripts/build.mjs && electron-builder -l",
         "build:win": "node scripts/build.mjs && electron-builder -w",
         "build:mac": "node scripts/build.mjs && electron-builder -m",
@@ -176,6 +177,7 @@
         "check-disk-space": "^3.4.0",
         "cookie-parser": "^1.4.6",
         "cors": "^2.8.5",
+        "cross-env": "^7.0.3",
         "default-gateway": "^7.2.2",
         "electron-log": "^5.2.0",
         "electron-vite": "^2.3.0",
