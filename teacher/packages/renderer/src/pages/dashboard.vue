@@ -230,6 +230,7 @@
             <div v-if="(availablePrinters.length < 1)">
                 <button class="btn btn-secondary mt-1 mb-0"><img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" >  no printer found </button>
             </div>
+            
             <div v-for="printer in availablePrinters">
                 <button  :key="printer" @click="selectPrinter(printer)" :title="printer" :class="(defaultPrinter == printer)? 'btn-cyan':'' " class="btn btn-secondary mt-1 mb-0">
                     <img src="/src/assets/img/svg/print.svg" class="" width="22" height="22" >  {{ printer }} 
@@ -1416,7 +1417,7 @@ export default {
 
 #setupdiv button {
     display: inline-block;
-    max-width: 270px; /* oder eine gewünschte feste Breite */
+    max-width: 360px; /* oder eine gewünschte feste Breite */
     overflow: hidden;
     text-overflow: ellipsis;
     text-align: left;
@@ -1832,5 +1833,26 @@ hr {
     margin-left: 1.9em;
   justify-content: flex-start !important; /* Richtet die Buttons linksbündig aus */
 }
+
+
+.custom-tooltip {
+  position: relative; /* container */
+}
+.custom-tooltip:hover .tooltip-content {
+  display: block; /* show tooltip on hover */
+}
+.tooltip-content {
+  display: none; /* hidden by default */
+  position: absolute; /* absolute position */
+  top: 100%; left: 50%; transform: translateX(-50%);
+  background: #333; color: #fff; padding: 6px; border-radius: 4px;
+  white-space: normal; width: 200px; /* wraps text */
+}
+
+
+
+
+
+
 
 </style>
