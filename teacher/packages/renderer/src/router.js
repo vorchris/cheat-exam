@@ -9,8 +9,9 @@ import dashboard from '/src/pages/dashboard.vue'
 import serverlist from '/src/pages/serverlist.vue'
 
 
-//import { ipcRenderer } from 'electron'
-import config from '../../main/config.js';
+
+let config = ipcRenderer.sendSync('getconfig')
+
 
 // check if we run this app in electron (host is always "localhost" then)
 let electron = false

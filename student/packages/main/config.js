@@ -1,9 +1,14 @@
-import pjson from "../../package.json"
+import dotenv from 'dotenv'
+
+
+
+// Lade die env Datei
+const env = dotenv.config({ path: './electron-builder.env' }).parsed;
 
 
 const config = {
-    development: process.env.NODE_ENV === 'development',  // disable kiosk mode on exam mode and other stuff (autofill input fields)
-    showdevtools: process.env.NODE_ENV === 'development',
+    development: env.DEVELOPMENT,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
+    showdevtools: env.DEVELOPMENT,
     bipIntegration: true,
 
     workdirectory : "",   // (desktop path + examdir)
@@ -20,7 +25,7 @@ const config = {
     gateway: true,
     electron: false,
     virtualized: false,
-    version: pjson.version,
-    info: process.env.NODE_ENV === 'development' ? process.env.NODE_ENV : 'LTS'
+    version: env.VERSION + '-' + env.BUILD_NUMBER,
+    info: env.DEVELOPMENT === 'true' ? 'DEV' : 'LTS'
 }
 export default config

@@ -185,7 +185,10 @@ class IpcHandler {
          */ 
         ipcMain.on('getconfig', (event) => {   event.returnValue = this.config   })
 
-
+        // returns current config async
+        ipcMain.handle('getconfigasync', (event) => {  
+            return this.copyConfig(config)
+        })  
         /**
         * Unlock Computer
         */ 
@@ -750,6 +753,31 @@ class IpcHandler {
 
 
     }
+
+
+    copyConfig(conf) {
+        let configCopy = {
+            development: conf.development, 
+            showdevtools: conf.showdevtools,
+            bipIntegration: conf.bipIntegration,
+            workdirectory: conf.workdirectory,
+            tempdirectory: conf.tempdirectory,
+            homedirectory: conf.homedirectory,
+            examdirectory: conf.examdirectory,
+            clientdirectory: conf.clientdirectory,
+            serverApiPort: conf.serverApiPort,
+            multicastClientPort: conf.multicastClientPort,
+            multicastServerAdrr: conf.multicastServerAdrr,
+            hostip: conf.hostip,
+            gateway: conf.gateway,
+            electron: conf.electron,
+            virtualized: conf.virtualized,
+            version: conf.version,
+            info: conf.info
+          };
+        return configCopy
+    }
+
 
 
 

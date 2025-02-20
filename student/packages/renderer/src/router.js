@@ -32,9 +32,7 @@ import microsoft365 from '/src/pages/microsoft365.vue'
 import website from '/src/pages/website.vue'
 
 
-import config from '../../main/config.js';
-
-
+let config = ipcRenderer.sendSync('getconfig')
 
 //console.log(config)  // config is exposed to the renderer (frontend) in preload.js (it's readonly here!)
 

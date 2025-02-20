@@ -1,9 +1,13 @@
-import pjson from "../../package.json"
+import dotenv from 'dotenv'
+
+// Lade die env Datei
+dotenv.config({ path: './electron-builder.env' });
+
 
 const config = {
 
-    development: process.env.NODE_ENV === 'development',
-    showdevtools: process.env.NODE_ENV === 'development',
+    development: process.env.DEVELOPMENT,
+    showdevtools: process.env.DEVELOPMENT,
 
     bipIntegration: true,
    
@@ -20,9 +24,9 @@ const config = {
     gateway: true,
     examServerList: {},
     accessToken: false,
-    version: pjson.version,
+    version: process.env.VERSION + '-' + process.env.BUILD_NUMBER,
     buildforWEB: false,
-    info: process.env.NODE_ENV === 'development' ? process.env.NODE_ENV : 'LTS'
+    info: process.env.DEVELOPMENT === 'true' ? 'DEV' : 'LTS'
   
 }
 export default config
