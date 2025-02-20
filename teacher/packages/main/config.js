@@ -1,32 +1,30 @@
-import dotenv from 'dotenv'
 
-// Lade die env Datei
-dotenv.config({ path: './electron-builder.env' });
-
+/**
+ * DO NOT EDIT - this file is written by prebuild.js via electron-builder.env - edit vars in electron-builder.env file!
+ */
 
 const config = {
-
-    development: process.env.DEVELOPMENT,
-    showdevtools: process.env.DEVELOPMENT,
-
+    development: false,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
+    showdevtools: false,
+    
     bipIntegration: true,
-   
-    workdirectory : "",   // set by server.js (desktop path + examdir)
-    tempdirectory : "",   // set by server.js (desktop path + 'tmp')
-    serverdirectory: "EXAM-TEACHER",
 
-    serverApiPort:22422,  //this must be reachable at the teachers machine otherwise nothing is going to work
-    multicastClientPort: 6024,  //needed for exam autodiscovery by the student
+    workdirectory : "",   // (desktop path + examdir)
+    tempdirectory : "",   // (desktop path + 'tmp')
+    serverdirectory: 'EXAM-TEACHER',
+
+    serverApiPort: 22422,  // this is needed to be reachable on the teachers pc for basic functionality
+    multicastClientPort: 6024,  // only needed for exam autodiscovery
     multicastServerClientPort: 6025,   // needed to find other exams in the network with the same name and prevent using the same exam name twice (confusion alert)
 
     multicastServerAdrr: '239.255.255.250',
-    hostip: "0.0.0.0",
+    hostip: "0.0.0.0",       // server.js
     gateway: true,
     examServerList: {},
     accessToken: false,
-    version: process.env.VERSION + '-' + process.env.BUILD_NUMBER,
+
+    version: '1.0.1-5',
     buildforWEB: false,
-    info: process.env.DEVELOPMENT === 'true' ? 'DEV' : 'LTS'
-  
+    info: 'LTS'
 }
-export default config
+export default config;
