@@ -5,7 +5,61 @@ import dotenv from 'dotenv';
 // Lade die env Datei
 dotenv.config({ path: 'electron-builder.env' });
 
-// 1. Update electron-builder.yml
+
+
+// 1. Update config.js
+const configJsPath = './packages/main/config.js';
+const isDevelopment = process.env.DEVELOPMENT === 'true';
+const bipIntegration = process.env.BIP_INTEGRATION === 'true';
+
+let configJsContent = `
+/**
+ * DO NOT EDIT - this file is written by prebuild.js via electron-builder.env - edit vars in electron-builder.env file!
+ */
+
+const config = {
+    development: ${isDevelopment},  // disable kiosk mode on exam mode and other stuff (autofill input fields)
+    showdevtools: ${isDevelopment},
+    bipIntegration: ${bipIntegration},
+
+    workdirectory : "",   // (desktop path + examdir)
+    tempdirectory : "",   // (desktop path + 'tmp')
+    homedirectory : "",   // set in main.ts
+    examdirectory : "",    // set after registering in ipcHandler
+    clientdirectory: '${process.env.CLIENT_DIRECTORY}',
+
+    serverApiPort: ${process.env.SERVER_API_PORT},  // this is needed to be reachable on the teachers pc for basic functionality
+    multicastClientPort: ${process.env.MULTICAST_CLIENT_PORT},  // only needed for exam autodiscovery
+
+    multicastServerAdrr: '239.255.255.250',
+    hostip: "",       // server.js
+    gateway: true,
+    electron: false,
+    virtualized: false,
+    version: '${process.env.VERSION}-${process.env.BUILD_NUMBER}',
+    info: '${isDevelopment ? 'DEV' : 'LTS'}'
+}
+export default config;
+`;
+
+// Schreibe die aktualisierte config.js
+fs.writeFileSync(configJsPath, configJsContent);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 2. Update electron-builder.yml
 const builderConfigPath = './electron-builder.yml';
 const builderConfig = yaml.parse(fs.readFileSync(builderConfigPath, 'utf8'));
 
@@ -48,7 +102,7 @@ fs.writeFileSync(builderConfigPath, yaml.stringify(builderConfig));
 
 
 
-// 2. Update package.json
+// 3. Update package.json
 const packageJsonPath = './package.json';
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 
