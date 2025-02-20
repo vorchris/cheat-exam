@@ -1,6 +1,7 @@
 {
     "name": "next-exam-teacher",
-    "version": "1.0.1-250115",
+    "version": "1.0.1-250220",
+   
     "main": "dist/main/main.mjs",
     "author": {
         "name": "Thomas Michael Weissel",
@@ -22,6 +23,8 @@
         "vite": "vite ./packages/renderer --host"
     },
     "build": {
+        "buildNumber": "3",
+      
         "productName": "Next-Exam-Teacher",
         "appId": "com.nextexam-teacher.app",
         "asar": true,
@@ -70,7 +73,7 @@
             ]
         },
         "dmg": {
-            "sign": "true"
+            "sign": "false"
         },
         "portable": {
             "useZip": true,
@@ -82,7 +85,7 @@
             "upgradeCode": "77234b48-9292-4b75-acfe-e5645ad97c46"
         },
         "win": {
-            "icon": "public/icons/icon.ico",
+            "icon": "public/icons/icon.ico",            
             "target": [
                 {
                     "target": "portable",
