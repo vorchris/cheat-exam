@@ -12,17 +12,13 @@ asarUnpack:
   - node_modules/get-windows/**/*
   - node_modules/@img/**/*
 directories:
-  output: ../release/1.0.1.5_20250220
+  output: ../release/1.0.1.5_20250221
 compression: normal
-files:
-  - dist
-  - public
-  - electron-builder.env
 linux:
   target: AppImage
   category: Utility
   icon: public/icons/256x256.png
-  artifactName: ${productName}_${env.VERSION}.${env.BUILD_NUMBER}_20250220_${arch}.${ext}
+  artifactName: ${productName}_${env.VERSION}.${env.BUILD_NUMBER}_20250221_${arch}.${ext}
   files:
     - dist
     - public
@@ -31,7 +27,7 @@ linux:
     - "!public/minimal-jre-11-mac-arm64/**/*"
 mac:
   icon: public/icons/icon.png
-  artifactName: ${productName}_${env.VERSION}.${env.BUILD_NUMBER}_20250220_${arch}.${ext}
+  artifactName: ${productName}_${env.VERSION}.${env.BUILD_NUMBER}_20250221_${arch}.${ext}
   hardenedRuntime: true
   gatekeeperAssess: false
   entitlements: scripts/entitlements.mac.plist
@@ -60,13 +56,13 @@ msi:
 win:
   icon: public/icons/icon.ico
   target:
-    - target: msi
-      arch:
-        - x64
     - target: portable
       arch:
         - x64
-  artifactName: ${productName}_${env.VERSION}.${env.BUILD_NUMBER}_20250220_${arch}.${ext}
+    - target: msi
+      arch:
+        - x64
+  artifactName: ${productName}_${env.VERSION}.${env.BUILD_NUMBER}_20250221_${arch}.${ext}
   signtoolOptions:
     certificateSubjectName: OSOS Austria
     signingHashAlgorithms:

@@ -1,6 +1,8 @@
 {
   "name": "next-exam-teacher",
   "version": "1.0.1",
+  "buildNumber": "5",
+  "buildVersion": "1.0.1.5",
   "main": "dist/main/main.mjs",
   "author": {
     "name": "Thomas Michael Weissel",
@@ -13,13 +15,12 @@
   "type": "module",
   "scripts": {
     "dev": "node scripts/watch.mjs",
+    "clean": "rm -rf ./dist",
+    "cleanwin": "rmdir /s /q dist",
     "prebuild": "node scripts/prebuild.js",
-    "build": "npm run prebuild && node scripts/build.mjs && electron-builder -l",
-    "build:win": "npm run prebuild && node scripts/build.mjs && electron-builder -w",
-    "build:mac": "npm run prebuild && node scripts/build.mjs && electron-builder -m",
-    "dev:web": "vite ./packages/renderer --host | npm run serve  ",
-    "serve": "nodemon --experimental-json-modules --trace-warnings packages/server/src/server",
-    "vite": "vite ./packages/renderer --host"
+    "build": "npm run prebuild && npm run clean && node scripts/build.mjs && electron-builder -l",
+    "build:mac": "npm run prebuild && npm run clean && node scripts/build.mjs && electron-builder -m",
+    "build:win": "npm run prebuild && npm run cleanwin && node scripts/build.mjs && electron-builder -w"
   },
   "engines": {
     "node": ">=22.0.0"
@@ -119,7 +120,5 @@
   },
   "overrides": {
     "signal-exit": "3.0.7"
-  },
-  "buildNumber": "5",
-  "buildVersion": "1.0.1.5"
+  }
 }
