@@ -85,12 +85,13 @@ let configStore = {
 const appsToClose = ['Teams','ms-teams', 'zoom.us', 'Google Chrome', 'Microsoft Edge', 'Microsoft Teams','firefox', 'discord', 'zoom', 'chrome', 'msedge', 'teams', 'teamviewer', 'google-chrome','skypeforlinux','skype','brave','opera','anydesk','safari'];
 
 let isKDE = false
-
+let isGNOME = false
 childProcess.exec('echo $XDG_CURRENT_DESKTOP', (error, stdout, stderr) => {
     if (error) {
       console.error(`exec error: ${error}`);
       return;
     }
+    if (stdout.trim() === 'GNOME') { isGNOME = true } 
     if (stdout.trim() === 'KDE') { isKDE = true } 
 });
 
@@ -137,13 +138,13 @@ function enableRestrictions(winhandler){
             //disable META Key for Launchermenu
             childProcess.execFile('kwriteconfig5', ['--file',`${config.homedirectory}/.config/kwinrc`,'--group','ModifierOnlyShortcuts','--key','Meta','""']) 
             childProcess.execFile('kwriteconfig5', ['--file',`kwinrc`,'--group','Desktops','--key','Number','1'])  //remove virtual desktops
-            childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','setCurrentDesktop','1'])
-            childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
+            // childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','setCurrentDesktop','1'])
+            // childProcess.execFile('qdbus', ['org.kde.KWin','/KWin','reconfigure'])
             childProcess.execFile('qdbus', ['org.kde.kglobalaccel' ,'/kglobalaccel', 'blockGlobalShortcuts', 'true']) // Temporarily deactivate ALL global keyboardshortcuts 
-            childProcess.execFile('qdbus', ['org.kde.KWin' ,'/Compositor', 'org.kde.kwin.Compositing.suspend'])   // Temporarily deactivate ALL 3d Effects (present window, change desktop, etc.) 
+           // childProcess.execFile('qdbus', ['org.kde.KWin' ,'/Compositor', 'org.kde.kwin.Compositing.suspend'])   // Temporarily deactivate ALL 3d Effects (present window, change desktop, etc.) 
             childProcess.execFile('qdbus', ['org.kde.klipper' ,'/klipper', 'org.kde.klipper.klipper.clearClipboardHistory']) // Clear Clipboard history 
             childProcess.execFile('kquitapp5', ['kglobalaccel'])  // quitapp nees kglobalaccel while startapp needs kglobalaccel5
-            childProcess.execFile('killall', ['plasmashell'])
+            // childProcess.execFile('killall', ['plasmashell'])
         }
   
         
@@ -155,32 +156,33 @@ function enableRestrictions(winhandler){
         //////////
         // GNOME
         ///////////
-
-        //we probably should do it the "windows - way" and just kill gnomeshell for as long as the exam-mode is active
-        //but it seems there is no convenient way to kill gnome-shell without all applications started on top of it 
-         // for gnome3 we need to set every key individually => reset will obviously set defaults (so we may mess up customized shortcuts here)
-        // possible fix: instead of set > reset we could use get - set - set.. first get the current bindings and store them - then set to nothing - then set to previous setting
-        try {
-            for (let binding of gnomeKeybindings){
-                childProcess.execFile('gsettings', ['set' ,'org.gnome.desktop.wm.keybindings', `${binding}`, `['']`])
+        if (isGNOME) {
+            //we probably should do it the "windows - way" and just kill gnomeshell for as long as the exam-mode is active
+            //but it seems there is no convenient way to kill gnome-shell without all applications started on top of it 
+            // for gnome3 we need to set every key individually => reset will obviously set defaults (so we may mess up customized shortcuts here)
+            // possible fix: instead of set > reset we could use get - set - set.. first get the current bindings and store them - then set to nothing - then set to previous setting
+            try {
+                for (let binding of gnomeKeybindings){
+                    childProcess.execFile('gsettings', ['set' ,'org.gnome.desktop.wm.keybindings', `${binding}`, `['']`])
+                }
+                for (let binding of gnomeWaylandKeybindings){
+                    childProcess.execFile('gsettings', ['set' ,'org.gnome.mutter.wayland.keybindings', `${binding}`, `['']`])
+                }
+                for (let binding of gnomeShellKeybindings){
+                    childProcess.execFile('gsettings', ['set' ,'org.gnome.shell.keybindings', `${binding}`, `['']`])
+                }
+                for (let binding of gnomeMutterKeybindings){
+                    childProcess.execFile('gsettings', ['set' ,'org.gnome.mutter.keybindings', `${binding}`, `['']`])
+                }
+                for (let binding of gnomeDashToDockKeybindings){  // we could use gsettings reset-recursively org.gnome.shell to reset everything
+                    childProcess.execFile('gsettings', ['set' ,'org.gnome.shell.extensions.dash-to-dock', `${binding}`, `['']`])
+                }
+                childProcess.execFile('gsettings', ['set' ,'org.gnome.mutter', `overlay-key`, `''`])  // kind of the menu key
+                childProcess.exec('gsettings set org.gnome.mutter dynamic-workspaces false')  // deactivate multiple desktops
+                childProcess.exec('gsettings set org.gnome.desktop.wm.preferences num-workspaces 1')  
             }
-            for (let binding of gnomeWaylandKeybindings){
-                childProcess.execFile('gsettings', ['set' ,'org.gnome.mutter.wayland.keybindings', `${binding}`, `['']`])
-            }
-            for (let binding of gnomeShellKeybindings){
-                childProcess.execFile('gsettings', ['set' ,'org.gnome.shell.keybindings', `${binding}`, `['']`])
-            }
-            for (let binding of gnomeMutterKeybindings){
-                childProcess.execFile('gsettings', ['set' ,'org.gnome.mutter.keybindings', `${binding}`, `['']`])
-            }
-            for (let binding of gnomeDashToDockKeybindings){  // we could use gsettings reset-recursively org.gnome.shell to reset everything
-                childProcess.execFile('gsettings', ['set' ,'org.gnome.shell.extensions.dash-to-dock', `${binding}`, `['']`])
-            }
-            childProcess.execFile('gsettings', ['set' ,'org.gnome.mutter', `overlay-key`, `''`])  // kind of the menu key
-            childProcess.exec('gsettings set org.gnome.mutter dynamic-workspaces false')  // deactivate multiple desktops
-            childProcess.exec('gsettings set org.gnome.desktop.wm.preferences num-workspaces 1')  
+            catch(err){ log.error(`platformrestrictions @ enableRestrictions (gsettings): ${err}`); }
         }
-        catch(err){ log.error(`platformrestrictions @ enableRestrictions (gsettings): ${err}`); }
 
 
 
