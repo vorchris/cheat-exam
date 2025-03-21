@@ -1308,6 +1308,11 @@ export default {
                 ],
                 content: ``,         
             });
+        },
+        handlePaste(event){
+            event.preventDefault()
+            event.stopPropagation();
+            console.log('Paste-Event wurde verhindert.');
         }
     },
     
@@ -1432,6 +1437,14 @@ export default {
         this.startLanguageTool()
 
     
+        this.sleep(1000).then(() => {
+            const editorContent = this.editorcontentcontainer.querySelector('.ProseMirror');
+            if (editorContent) {
+                editorContent.addEventListener('paste', this.handlePaste, true);
+            } 
+        })
+
+
 
     },
     beforeMount(){ },
@@ -1442,6 +1455,10 @@ export default {
         this.editorcontentcontainer.removeEventListener('keydown', this.insertSpaceInsteadOfTab)
         this.editorcontentcontainer.removeEventListener('contextmenu', this.getWord );
 
+        const editorContent = this.editorcontentcontainer.querySelector('.ProseMirror');
+        if (editorContent) {
+            editorContent.removeEventListener('paste', this.handlePaste, true);
+        }   
 
         //document.removeEventListener('input', this.checkAllWordsOnSpacebar)
         document.body.removeEventListener('mouseleave', this.sendFocuslost);
@@ -1456,7 +1473,6 @@ export default {
         document.getElementById('editormaincontainer').removeEventListener('scroll', this.LTupdateHighlights, { passive: true });
 
         this.editor.destroy()
-
         
         this.saveinterval.removeEventListener('action', this.saveContentCallback);
         this.saveinterval.stop() 

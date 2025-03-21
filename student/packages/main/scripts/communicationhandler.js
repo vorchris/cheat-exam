@@ -38,6 +38,8 @@ import path from 'path';
 import https from 'https';
 const agent = new https.Agent({ rejectUnauthorized: false });
 
+import  { spawn } from 'child_process';
+import screenshot from 'screenshot-desktop-wayland';
 
 
 
@@ -57,22 +59,8 @@ const agent = new https.Agent({ rejectUnauthorized: false });
         this.lastScreenshotBase64 = false
         this.lastScreenshot = false
 
-        this.worker = new Worker(path.join(__dirname, '../../public/imageWorkerSharp.js'));  // revert back to sharp desipte native libraries that kill every other macos build because of performance issues
-        this.worker.on('message', (result) => {
-            if (result.success) {
-                this.resolvePromise(result);
-            } else {
-                this.rejectPromise(new Error(result.error));
-            }
-        });
-
-        this.worker.on('error', error => console.error('Worker error:', error));
-        this.worker.on('exit', code => console.log(`Worker stopped with exit code ${code}`));
-
-       
-
-
-    }
+        this.setupImageWorker()
+     }
  
     init (mc, config) {
         this.multicastClient = mc
@@ -83,10 +71,43 @@ const agent = new https.Agent({ rejectUnauthorized: false });
         this.screenshotScheduler.start()
         
 
+        // linux gnome does not allow to take screenshots without sound and visual flash.. completely insane
+        if (process.platform !== 'linux' || (  !this.isWayland() && this.imagemagickAvailable() || (this.isKDE() && this.isWayland() && this.flameshotAvailable() )  )){ 
+            this.screenshotAbility = true; 
+            log.info("communicationhandler @ init: screenshotAbility set to true") 
+        } 
+        else if (this.isGNOME()){
+            this.screenshotAbility = false;  //for now - GNOME does not allow to take screenshots without sound and visual flash.. completely insane
+            log.info("communicationhandler @ init: screenshotAbility set to false") 
+        }
+        else {
+            log.info("communicationhandler @ init: screenshotAbility set to false")
+        }
 
-        if (process.platform !== 'linux' || (  !this.isWayland() && this.imagemagickAvailable() || (this.isKDE() && this.isWayland() && this.flameshotAvailable() )  )){ this.screenshotAbility = true } // only on linux we need to check for wayland or the absence of imagemagick - other os have other problems ^^
     }
  
+
+    setupImageWorker() {
+        let workerPath;
+        if (app.isPackaged) { workerPath = join(process.resourcesPath, 'app.asar.unpacked', 'public/imageWorkerSharp.js');} 
+        else {                workerPath = path.join(__dirname, '../../public/imageWorkerSharp.js');}
+        
+        this.worker = spawn('node', [workerPath], {
+            stdio: ['ignore', 'ignore', 'pipe', 'ipc'], // 'ignore' für stdin und stdout, 'pipe' für stderr, 'ipc' für Inter-Prozess-Kommunikation
+            detached: true
+        });
+
+        this.worker.stderr.on('data', data => log.error('Worker stderr:', data.toString()));
+        this.worker.on('error', error => log.error('Worker error:', error));
+        this.worker.on('exit', code => {
+            log.error(`Worker stopped with exit code ${code} - restarting`);
+            if (code !== 0) this.setupImageWorker();
+        });
+    }
+
+
+
+
     /**
      * checks for wayland session on linux - no screenshots here for now
      * @returns true or false
@@ -103,6 +124,16 @@ const agent = new https.Agent({ rejectUnauthorized: false });
         }
         catch(error){ log.warn("communicationhandler @ isKDE: no data "); return false }
     }
+
+    isGNOME() {
+        try { 
+            let desktop = shell('echo $XDG_CURRENT_DESKTOP').trim();
+            return desktop === 'GNOME';
+        }
+        catch(error) { log.warn("communicationhandler @ isGNOME: no data ");  return false; }
+    }
+
+
     
     /**
      * Checks if imagemagick on linux is available
@@ -185,13 +216,14 @@ const agent = new https.Agent({ rejectUnauthorized: false });
      * Update Screenshot on Server  (every 4 seconds - or depending on the server setting)
      * if no screenshot is possible (wayland) capture application window via electron webcontents
      */
-
-    processImage(imgBuffer){
-        return new Promise((resolve, reject) => {
-            this.resolvePromise = resolve;
-            this.rejectPromise = reject;
-            this.worker.postMessage({ imgBuffer: imgBuffer });
-        });
+    async processInWorker(imgBuffer) {
+        if (!this.worker) throw new Error('Worker not initialized');
+        
+        this.worker.send({ imgBuffer: Array.from(imgBuffer) });
+        const result = await new Promise(resolve => this.worker.once('message', resolve));
+        
+        if (!result.success) throw new Error(result.error);
+        return result;
     }
 
     terminate() {
@@ -208,62 +240,56 @@ const agent = new https.Agent({ rejectUnauthorized: false });
 
             try {
                 if (this.screenshotAbility){  
-                    ({ success, screenshotBase64, headerBase64, isblack, imgBuffer } = await this.processImage(false));  // kein imageBuffer mitgegeben bedeutet nutze screenshot-desktop im worker
+                    //grab screenshot from desktop via screenshot-desktop-wayland (flameshot, imagemagic, etc)
+                    imgBuffer = await screenshot({ format: 'png' });
+                    ({ success, screenshotBase64, headerBase64, isblack, imgBuffer } = await this.processInWorker(imgBuffer));  // kein imageBuffer mitgegeben bedeutet nutze screenshot-desktop im worker
                     if (success) { this.screenshotFails = 0;}
                     else { 
-                        this.screenshotFails +=1;
-                        if(this.screenshotFails > 4){ this.screenshotAbility=false; log.error(`communicationhandler @ sendScreenshot: switching to PageCapture`) } 
+                        throw new Error("Image processing failed");
                     }
                 }
                 else {
                     //grab "screenshot" from appwindow
                     let currentFocusedMindow = WindowHandler.getCurrentFocusedWindow()  //returns exam window if nothing in focus or main window
                     if (currentFocusedMindow) {
-                        imgBuffer = await currentFocusedMindow.webContents.capturePage()  // this should always work because it's onboard electron
-                        .then((image) => {
-                            const imageBuffer = image.toPNG();// Convert the nativeImage to a Buffer (PNG format)
-                            return imageBuffer
-                        })
-                        .catch((err) => {log.error(`communicationhandler @ sendScreenshot (capturePage): ${err}`)   });
+                        let result = await currentFocusedMindow.webContents.capturePage()  // this should always work because it's onboard electron
+                        imgBuffer = result.toPNG()
                     }
-                    ({ success, screenshotBase64, headerBase64, isblack } = await this.processImage(imgBuffer));
+                    ({ success, screenshotBase64, headerBase64, isblack } = await this.processInWorker(imgBuffer)); // attention processImage  converts buffer to uint8array
                 }
             }
             catch(err){
+                this.screenshotFails +=1;
                 log.error(`communicationhandler @ sendScreenshot: processImage failed: ${err}`)
             }
 
-          
             
+                
             /**
              * MACOS WORKAROUND - switch to pagecapture if no permissons are granted
              */
             if (process.platform === "darwin" && this.firstCheckScreenshot && imgBuffer !== null){  //this is for macOS because it delivers a blank background screenshot without permissions. we catch that case with a workaround
                 this.firstCheckScreenshot = false   //never do this again
-
-                const publicPath = app.isPackaged
-                ? path.join(process.resourcesPath,'app.asar.unpacked', 'public')
-                : path.resolve(__dirname, '../../public');
-
+                const publicPath = app.isPackaged ? path.join(process.resourcesPath,'app.asar.unpacked', 'public') : path.resolve(__dirname, '../../public');
                 try{
-                 
                     const { data: { text } }   = await Tesseract.recognize(imgBuffer , 'eng',{ langPath: publicPath } );
                     let appWindowVisible = text.includes("Exam")   //check if the word "Exam" can be found in screenshot - otherwise it is most likely a blank desktop - macos quirk
-                   
                     if (!appWindowVisible){
                         this.screenshotAbility=false;
                         log.error(`communicationhandler @ sendScreenshot: switching to PageCapture`)
                         log.info("communicationhandler @ sendScreenshot (ocr): Student Screenshot does not fit requirements");
                     }
-                    else {
-                        log.info("communicationhandler @ sendScreenshot (ocr): MacOS screenshotpermissions check OK");
-                    }
+                    else { log.info("communicationhandler @ sendScreenshot (ocr): MacOS screenshotpermissions check OK");}
                 }
                 catch(err){  log.info(`communicationhandler @ sendScreenshot (ocr): ${err}`); }
             }
 
 
-
+            // if something went wrong we do not have a screenshot - so do not update the server
+            if (!screenshotBase64){
+                if(this.screenshotFails > 4){ this.screenshotAbility=false; log.error(`communicationhandler @ sendScreenshot: Fallback -> Switching to PageCapture`) } 
+                return
+            }
 
             //do not run colorcheck if already locked
             if ( this.multicastClient.clientinfo.exammode && !this.config.development && this.multicastClient.clientinfo.focus){
@@ -272,8 +298,13 @@ const agent = new https.Agent({ rejectUnauthorized: false });
                     log.info("communicationhandler @ sendScreenshot: Student Screenshot does not fit requirements (allblack)");
                 }   
             }
-    
-            let screenshothash = crypto.createHash('md5').update(Buffer.from(screenshotBase64, 'base64')).digest("hex");  // Berechnen des MD5-Hashs des Base64-Strings
+        
+
+            // Berechnen des MD5-Hashs des Base64-Strings
+            let screenshothash = null
+            try { screenshothash = crypto.createHash('md5').update(Buffer.from(screenshotBase64, 'base64')).digest("hex");  }  // Berechnen des MD5-Hashs des Base64-Strings
+            catch(err){ log.error(`communicationhandler @ sendScreenshot: creating hash failed: ${err.message}`)  }
+            
             const payload = {
                 clientinfo: {...this.multicastClient.clientinfo},
                 screenshot: screenshotBase64,
@@ -282,7 +313,6 @@ const agent = new https.Agent({ rejectUnauthorized: false });
                 screenshotfilename: this.multicastClient.clientinfo.token + ".jpg",
             };
                 
-
             // send screenshot to server via email fetch request
             let attempt = 0;
             const maxRetries = 2;

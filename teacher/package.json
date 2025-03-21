@@ -1,7 +1,7 @@
 {
   "name": "next-exam-teacher",
   "version": "1.0.1",
-  "buildNumber": "5",
+  "buildNumber": "6",
   "buildVersion": "1.0.1.5",
   "main": "dist/main/main.mjs",
   "author": {
