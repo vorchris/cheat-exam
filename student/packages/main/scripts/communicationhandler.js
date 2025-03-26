@@ -78,10 +78,10 @@ import screenshot from 'screenshot-desktop-wayland';
         } 
         else if (this.isGNOME()){
             this.screenshotAbility = false;  //for now - GNOME does not allow to take screenshots without sound and visual flash.. completely insane
-            log.info("communicationhandler @ init: screenshotAbility set to false") 
+            log.info("communicationhandler @ init: Gnome Wayland detected - screenshotAbility set to false") 
         }
         else {
-            log.info("communicationhandler @ init: screenshotAbility set to false")
+            log.info("communicationhandler @ init: screenshotAbility set to false - needs imagemagick or flameshot")
         }
 
     }

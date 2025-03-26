@@ -11,6 +11,15 @@ asarUnpack:
   - public
   - node_modules/get-windows/**/*
   - node_modules/@img/**/*
+  - node_modules/sharp/**/*
+  - node_modules/detect-libc/**/*
+  - node_modules/semver/**/*
+  - node_modules/color/**/*
+  - node_modules/color-name/**/*
+  - node_modules/color-string/**/*
+  - node_modules/color-convert/**/*
+  - node_modules/simple-swizzle/**/*
+  - node_modules/is-arrayish/**/*
 directories:
   output: ../release/1.0.1.6_20250321
 compression: normal
