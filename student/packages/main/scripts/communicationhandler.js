@@ -38,7 +38,6 @@ import path from 'path';
 import https from 'https';
 const agent = new https.Agent({ rejectUnauthorized: false });
 
-import  { spawn } from 'child_process';
 import screenshot from 'screenshot-desktop-wayland';
 
 
@@ -58,8 +57,7 @@ import screenshot from 'screenshot-desktop-wayland';
         this.firstCheckScreenshot = true
         this.lastScreenshotBase64 = false
         this.lastScreenshot = false
-
-        this.setupImageWorker()
+        this.worker = null
      }
  
     init (mc, config) {
@@ -70,11 +68,15 @@ import screenshot from 'screenshot-desktop-wayland';
         this.screenshotScheduler = new SchedulerService(this.sendScreenshot.bind(this), this.multicastClient.clientinfo.screenshotinterval)
         this.screenshotScheduler.start()
         
+        if (!this.worker){
+            this.setupImageWorker()
+        }
 
         // linux gnome does not allow to take screenshots without sound and visual flash.. completely insane
         if (process.platform !== 'linux' || (  !this.isWayland() && this.imagemagickAvailable() || (this.isKDE() && this.isWayland() && this.flameshotAvailable() )  )){ 
             this.screenshotAbility = true; 
             log.info("communicationhandler @ init: screenshotAbility set to true") 
+            log.info("communicationhandler @ init: starting imageWorker")
         } 
         else if (this.isGNOME()){
             this.screenshotAbility = false;  //for now - GNOME does not allow to take screenshots without sound and visual flash.. completely insane
@@ -88,22 +90,46 @@ import screenshot from 'screenshot-desktop-wayland';
  
 
     setupImageWorker() {
-        let workerPath;
-        if (app.isPackaged) { workerPath = join(process.resourcesPath, 'app.asar.unpacked', 'public/imageWorkerSharp.js');} 
-        else {                workerPath = path.join(__dirname, '../../public/imageWorkerSharp.js');}
-        
-        this.worker = spawn('node', [workerPath], {
-            stdio: ['ignore', 'ignore', 'pipe', 'ipc'], // 'ignore' für stdin und stdout, 'pipe' für stderr, 'ipc' für Inter-Prozess-Kommunikation
-            detached: true
+        const workerPath = app.isPackaged
+            ? join(process.resourcesPath, 'app.asar.unpacked', 'public/imageWorkerSharp.js')
+            : join(__dirname, '../../public/imageWorkerSharp.js');
+    
+        this.worker = new Worker(workerPath);
+
+        this.worker.on('error', error => {
+            log.error('communicationhandler @ setupImageWorker: Worker error:', error);
+
+            // wir brauchen ein fallback für den fall dass der worker nicht startet
+            // wir brauchen ein fallback für den fall dass der worker nicht startet
+            // wir brauchen ein fallback für den fall dass der worker nicht startet
+            // wir brauchen ein fallback für den fall dass der worker nicht startet
+            // wir brauchen ein fallback für den fall dass der worker nicht startet
+            // wir brauchen ein fallback für den fall dass der worker nicht startet
+            // also ohne preprocessing.. geht dann halt auf die netzwerkkarte..
+
+            // if (this.screenshotFails > 4) {
+            //     log.warn('communicationhandler @ setupImageWorker: Worker failed 4 times - screenshotAbility set to false');
+            //     this.screenshotAbility = false;
+            // }
+            // this.screenshotFails +=1;
         });
 
-        this.worker.stderr.on('data', data => log.error('Worker stderr:', data.toString()));
-        this.worker.on('error', error => log.error('Worker error:', error));
         this.worker.on('exit', code => {
-            log.error(`Worker stopped with exit code ${code} - restarting`);
-            if (code !== 0) this.setupImageWorker();
+            log.error(`communicationhandler @ setupImageWorker: Worker exited with code ${code}`);
+            if (code !== 0 && this.screenshotAbility) this.setupImageWorker();
         });
     }
+    
+    async processInWorker(imgBuffer) {
+        if (!this.worker) throw new Error('Worker not initialized');
+        
+        this.worker.postMessage({ imgBuffer: Array.from(imgBuffer) });
+        const result = await new Promise(resolve => this.worker.once('message', resolve));
+        
+        if (!result.success) throw new Error(result.error);
+        return result;
+    }
+
 
 
 
@@ -212,23 +238,9 @@ import screenshot from 'screenshot-desktop-wayland';
 
 
 
-    /** 
-     * Update Screenshot on Server  (every 4 seconds - or depending on the server setting)
-     * if no screenshot is possible (wayland) capture application window via electron webcontents
-     */
-    async processInWorker(imgBuffer) {
-        if (!this.worker) throw new Error('Worker not initialized');
-        
-        this.worker.send({ imgBuffer: Array.from(imgBuffer) });
-        const result = await new Promise(resolve => this.worker.once('message', resolve));
-        
-        if (!result.success) throw new Error(result.error);
-        return result;
-    }
 
-    terminate() {
-        this.worker.terminate();
-    }
+
+
 
     async sendScreenshot(){
         if (this.multicastClient.clientinfo.localLockdown){return}
