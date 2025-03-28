@@ -125,7 +125,7 @@ import { Worker } from 'worker_threads';
             ? join(process.resourcesPath, 'app.asar.unpacked', 'public', workerFileName)
             : join(__dirname, '../../public', workerFileName);
     
-        this.worker = new Worker(workerPath, { env: { ...process.env } });
+        this.worker = new Worker(workerPath, { type: 'module', env: { ...process.env } });
 
         this.worker.on('error', error => {
             log.error('communicationhandler @ setupImageWorker: Worker error:', error);
