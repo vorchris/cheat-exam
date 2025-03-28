@@ -1,18 +1,16 @@
 /**
- * dieser Worker wird nur auf Linux verwendet
+ * Dieser Worker wird nur auf Linux verwendet
  * er nutzt die native ImageMagick Bibliothek um die Bilder zu verarbeiten
  */
 
-
+import { parentPort } from 'worker_threads';
 import { execFile } from 'child_process';
 import { writeFile, readFile, unlink } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
-
-process.on('message', async (message) => {
+parentPort.on('message', async (message) => {
     try {
-            
         const imgBuffer = Buffer.from(message.imgBuffer);
 
         const tmpInput = join(tmpdir(), `input-${Date.now()}.png`);
@@ -47,7 +45,7 @@ process.on('message', async (message) => {
         // Dateien löschen
         await Promise.all([unlink(tmpInput), unlink(tmpResized), unlink(tmpCropped)]);
 
-        process.send({
+        parentPort.postMessage({
             success: true,
             screenshotBase64: resizedBuffer.toString('base64'),
             headerBase64: headerBuffer.toString('base64'),
@@ -55,6 +53,6 @@ process.on('message', async (message) => {
             imgBuffer
         });
     } catch (error) {
-        process.send({ success: false, error: error.message });
+        parentPort.postMessage({ success: false, error: error.message });
     }
 });

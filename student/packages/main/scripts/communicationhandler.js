@@ -38,11 +38,8 @@ import https from 'https';
 const agent = new https.Agent({ rejectUnauthorized: false });
 
 import screenshot from 'screenshot-desktop-wayland';
-// import sharp from 'sharp';
-// sharp.cache(false);
+import { Worker } from 'worker_threads';
 
-//import { Worker } from 'worker_threads';
-import { fork } from 'child_process';
 
 
  /**
@@ -128,10 +125,15 @@ import { fork } from 'child_process';
             ? join(process.resourcesPath, 'app.asar.unpacked', 'public', workerFileName)
             : join(__dirname, '../../public', workerFileName);
     
-        this.worker = fork(workerPath, [], { stdio: ['ignore', 'ignore', 'pipe', 'ipc'], env: { ...process.env } });
-        this.worker.on('error', error => { log.error('communicationhandler @ setupImageWorker: Worker error:', error);  });
-        this.worker.stderr.on('data', data => log.error('communicationhandler @ setupImageWorker: Worker stderr:', data.toString()));
-        this.worker.on('exit', code => { if (code !== 0) this.setupImageWorker(); });
+        this.worker = new Worker(workerPath, { env: { ...process.env } });
+
+        this.worker.on('error', error => {
+            log.error('communicationhandler @ setupImageWorker: Worker error:', error);
+        });
+
+        this.worker.on('exit', code => {
+            if (code !== 0) this.setupImageWorker();
+        });
     }
 
 
@@ -146,8 +148,12 @@ import { fork } from 'child_process';
                 this.useWorker = false
                 throw new Error('Worker not initialized');
             }
-            this.worker.send({ imgBuffer: Array.from(imgBuffer) });
-            const result = await new Promise(resolve => this.worker.once('message', resolve));
+            this.worker.postMessage({ imgBuffer: Array.from(imgBuffer) });
+            const result = await new Promise(resolve => {
+                this.worker.once('message', (message) => {
+                    resolve(message);
+                });
+            });
             
             if (!result.success) throw new Error(result.error);
             return result; 
