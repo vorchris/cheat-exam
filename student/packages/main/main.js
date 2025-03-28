@@ -48,6 +48,8 @@ Menu.setApplicationMenu(null);
 // app.commandLine.appendSwitch('enable-threaded-compositing');
 // app.commandLine.appendSwitch('enable-features', 'Metal,CanvasOopRasterization');
 
+app.commandLine.appendSwitch('enable-unsafe-swiftshader');
+
 if (!app.requestSingleInstanceLock()) {  // allow only one instance of the app per client
     log.warn("main: next-exam already running.")
     app.quit()

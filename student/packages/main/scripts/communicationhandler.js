@@ -21,6 +21,7 @@ import fs from 'fs'
 import archiver from 'archiver'   // das macht krasseste racecoditions mit electron eigenen versionen - unbedingt die selbe version behalten wie electron
 import extract from 'extract-zip'
 import { join } from 'path'
+import path from 'path';
 import { screen, ipcMain, app } from 'electron'
 import WindowHandler from './windowhandler.js'
 import { execSync } from 'child_process';
@@ -32,14 +33,16 @@ import Tesseract from 'tesseract.js';
 
 const __dirname = import.meta.dirname;
 import crypto from 'crypto';
-import { Worker } from 'worker_threads';
-import path from 'path';
 
 import https from 'https';
 const agent = new https.Agent({ rejectUnauthorized: false });
 
 import screenshot from 'screenshot-desktop-wayland';
+// import sharp from 'sharp';
+// sharp.cache(false);
 
+//import { Worker } from 'worker_threads';
+import { fork } from 'child_process';
 
 
  /**
@@ -58,6 +61,7 @@ import screenshot from 'screenshot-desktop-wayland';
         this.lastScreenshotBase64 = false
         this.lastScreenshot = false
         this.worker = null
+        this.useWorker = true
      }
  
     init (mc, config) {
@@ -68,67 +72,98 @@ import screenshot from 'screenshot-desktop-wayland';
         this.screenshotScheduler = new SchedulerService(this.sendScreenshot.bind(this), this.multicastClient.clientinfo.screenshotinterval)
         this.screenshotScheduler.start()
         
-        if (!this.worker){
+   
+        // check for screenshot and pre-processing capabilities
+        if (process.platform === 'linux'){
+
+            // test if image pre-processing is possible - imagemagick is required 
+            if (this.imagemagickAvailable()){ this.useWorker = true;}  //worker is used for image pre-processing - without worker the image is sent unprocessed
+            else { this.useWorker = false }
+
+            // test if screenshot is possible
+            if (this.isGNOME() && this.isWayland()){
+                this.screenshotAbility = false;  //for now - GNOME does not allow to take screenshots without sound and visual flash.. - use pagecapture as default on gnome
+                log.info("communicationhandler @ init: Gnome-Wayland detected - screenshotAbility set to false") 
+            }
+            else if (this.isKDE() && this.isWayland() && this.flameshotAvailable()){   // TODO: extend screenshot-desktop-wayland to support "spectacle" because its pre-installed on KDE
+                this.screenshotAbility = true;
+                log.info("communicationhandler @ init: KDE-Wayland with flameshot detected - screenshotAbility set to true") 
+            }
+            else if (!this.isWayland() && this.imagemagickAvailable()){
+                this.screenshotAbility = true;
+                log.info("communicationhandler @ init: X11 with imagemagick detected - screenshotAbility set to true") 
+            }
+            else {
+                this.screenshotAbility = false;
+                log.info("communicationhandler @ init: screenshotAbility set to false - needs imagemagick or flameshot")
+            }
+
+        }
+        else {  // on windows and macos we try to use the worker and set screenshotAbility to true
+            this.useWorker = true
+            this.screenshotAbility = true
+        }
+
+        
+
+        if (!this.worker && this.useWorker){
+            log.info("communicationhandler @ init: Starting ImageWorker")
             this.setupImageWorker()
         }
 
-        // linux gnome does not allow to take screenshots without sound and visual flash.. completely insane
-        if (process.platform !== 'linux' || (  !this.isWayland() && this.imagemagickAvailable() || (this.isKDE() && this.isWayland() && this.flameshotAvailable() )  )){ 
-            this.screenshotAbility = true; 
-            log.info("communicationhandler @ init: screenshotAbility set to true") 
-            log.info("communicationhandler @ init: starting imageWorker")
-        } 
-        else if (this.isGNOME()){
-            this.screenshotAbility = false;  //for now - GNOME does not allow to take screenshots without sound and visual flash.. completely insane
-            log.info("communicationhandler @ init: Gnome Wayland detected - screenshotAbility set to false") 
-        }
-        else {
-            log.info("communicationhandler @ init: screenshotAbility set to false - needs imagemagick or flameshot")
-        }
 
     }
  
 
-    setupImageWorker() {
+
+    /**
+     * Setup the image worker
+     * uses fork to create a new child process
+     * uses the imageWorkerLinux.js or imageWorkerSharp.js file
+     * the worker is used to process the screenshot in a separate process
+     */
+    async setupImageWorker() {
+        const workerFileName = process.platform === 'linux' ? 'imageWorkerLinux.js' : 'imageWorkerSharp.js';
         const workerPath = app.isPackaged
-            ? join(process.resourcesPath, 'app.asar.unpacked', 'public/imageWorkerSharp.js')
-            : join(__dirname, '../../public/imageWorkerSharp.js');
+            ? join(process.resourcesPath, 'app.asar.unpacked', 'public', workerFileName)
+            : join(__dirname, '../../public', workerFileName);
     
-        this.worker = new Worker(workerPath);
-
-        this.worker.on('error', error => {
-            log.error('communicationhandler @ setupImageWorker: Worker error:', error);
-
-            // wir brauchen ein fallback für den fall dass der worker nicht startet
-            // wir brauchen ein fallback für den fall dass der worker nicht startet
-            // wir brauchen ein fallback für den fall dass der worker nicht startet
-            // wir brauchen ein fallback für den fall dass der worker nicht startet
-            // wir brauchen ein fallback für den fall dass der worker nicht startet
-            // wir brauchen ein fallback für den fall dass der worker nicht startet
-            // also ohne preprocessing.. geht dann halt auf die netzwerkkarte..
-
-            // if (this.screenshotFails > 4) {
-            //     log.warn('communicationhandler @ setupImageWorker: Worker failed 4 times - screenshotAbility set to false');
-            //     this.screenshotAbility = false;
-            // }
-            // this.screenshotFails +=1;
-        });
-
-        this.worker.on('exit', code => {
-            log.error(`communicationhandler @ setupImageWorker: Worker exited with code ${code}`);
-            if (code !== 0 && this.screenshotAbility) this.setupImageWorker();
-        });
+        this.worker = fork(workerPath, [], { stdio: ['ignore', 'ignore', 'pipe', 'ipc'], env: { ...process.env } });
+        this.worker.on('error', error => { log.error('Worker error:', error);  });
+        this.worker.stderr.on('data', data => log.error('Worker stderr:', data.toString()));
+        this.worker.on('exit', code => { log.error(`Worker exited with code ${code}`);  if (code !== 0) this.setupImageWorker(); });
     }
-    
-    async processInWorker(imgBuffer) {
-        if (!this.worker) throw new Error('Worker not initialized');
-        
-        this.worker.postMessage({ imgBuffer: Array.from(imgBuffer) });
-        const result = await new Promise(resolve => this.worker.once('message', resolve));
-        
-        if (!result.success) throw new Error(result.error);
-        return result;
+
+
+    /**
+     * Process the screenshot 
+     * if useWorker is true, the screenshot is processed in a separate process
+     * otherwise the screenshot is not processed and the original screenshot is returned
+     */
+    async processImage(imgBuffer) {
+        if (this.useWorker) {
+            if (!this.worker) { //triple check if worker is initialized
+                this.useWorker = false
+                throw new Error('Worker not initialized');
+            }
+            this.worker.send({ imgBuffer: Array.from(imgBuffer) });
+            const result = await new Promise(resolve => this.worker.once('message', resolve));
+            
+            if (!result.success) throw new Error(result.error);
+            return result; 
+        } else {
+            // fallback to no processing   
+            const screenshotBase64 = Buffer.from(imgBuffer).toString('base64');
+            const headerBase64 = screenshotBase64
+            return { success: true, screenshotBase64: screenshotBase64, headerBase64: headerBase64, isblack: false, imgBuffer: imgBuffer };
+
+        }
     }
+
+
+
+
+
 
 
 
@@ -160,7 +195,6 @@ import screenshot from 'screenshot-desktop-wayland';
     }
 
 
-    
     /**
      * Checks if imagemagick on linux is available
      * @returns true or false
@@ -185,7 +219,6 @@ import screenshot from 'screenshot-desktop-wayland';
      */
     async requestUpdate(){
         if (this.multicastClient.clientinfo.localLockdown){return}
-
         // connection lost reset triggered  no serversignal for 20 seconds
         if (this.multicastClient.beaconsLost >= 5 ){  
             log.warn("communicationhandler @ requestUpdate: Connection to Teacher lost! Removing registration.") //remove server registration locally (same as 'kick')
@@ -193,16 +226,12 @@ import screenshot from 'screenshot-desktop-wayland';
             this.resetConnection()   // this also resets serverip therefore no api calls are made afterwards
             this.killScreenlock()       // just in case screens are blocked.. let students work
         }  
-
         if (this.multicastClient.clientinfo.serverip) {  //check if server connected - get ip
             const clientInfo = JSON.stringify(this.multicastClient.clientinfo);
-
             fetch(`https://${this.multicastClient.clientinfo.serverip}:${this.config.serverApiPort}/server/control/update`, {
                 method: "POST",
                 cache: "no-store",
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: {'Content-Type': 'application/json', },
                 body: JSON.stringify({ clientinfo: clientInfo }),
             })
             .then(response => {
@@ -217,21 +246,17 @@ import screenshot from 'screenshot-desktop-wayland';
                 } else if (data.status === "success") {
                     this.multicastClient.beaconsLost = 0; // Dies zählt ebenfalls als erfolgreicher Heartbeat - Verbindung halten
                     this.multicastClient.clientinfo.printrequest = false  //set this to false after the request left the client to prevent double triggering
-
-                    // Verarbeitung der empfangenen Daten
                     const serverStatusDeepCopy = JSON.parse(JSON.stringify(data.serverstatus));
                     const studentStatusDeepCopy = JSON.parse(JSON.stringify(data.studentstatus));
-                    
-                    this.processUpdatedServerstatus(serverStatusDeepCopy, studentStatusDeepCopy);
-                }
+                    this.processUpdatedServerstatus(serverStatusDeepCopy, studentStatusDeepCopy);    // Verarbeitung der empfangenen Daten
+                }    
             })
             .catch(error => {
                 this.multicastClient.beaconsLost += 1;
                 log.error(`communicationhandler @ requestUpdate: (${this.multicastClient.beaconsLost}) ${error}`);
             });
         }
-        else {
-            // prevent focus warning block if no connection 
+        else { // prevent focus warning block if no connection 
             this.multicastClient.clientinfo.focus = true  // if not connected but still in exam mode you could trigger a focus warning and nobody is able to unlock you
         }
     }
@@ -254,7 +279,7 @@ import screenshot from 'screenshot-desktop-wayland';
                 if (this.screenshotAbility){  
                     //grab screenshot from desktop via screenshot-desktop-wayland (flameshot, imagemagic, etc)
                     imgBuffer = await screenshot({ format: 'png' });
-                    ({ success, screenshotBase64, headerBase64, isblack, imgBuffer } = await this.processInWorker(imgBuffer));  // kein imageBuffer mitgegeben bedeutet nutze screenshot-desktop im worker
+                    ({ success, screenshotBase64, headerBase64, isblack, imgBuffer } = await this.processImage(imgBuffer));  // kein imageBuffer mitgegeben bedeutet nutze screenshot-desktop im worker
                     if (success) { this.screenshotFails = 0;}
                     else { 
                         throw new Error("Image processing failed");
@@ -267,7 +292,7 @@ import screenshot from 'screenshot-desktop-wayland';
                         let result = await currentFocusedMindow.webContents.capturePage()  // this should always work because it's onboard electron
                         imgBuffer = result.toPNG()
                     }
-                    ({ success, screenshotBase64, headerBase64, isblack } = await this.processInWorker(imgBuffer)); // attention processImage  converts buffer to uint8array
+                    ({ success, screenshotBase64, headerBase64, isblack } = await this.processImage(imgBuffer)); // attention processImage  converts buffer to uint8array
                 }
             }
             catch(err){
@@ -288,20 +313,23 @@ import screenshot from 'screenshot-desktop-wayland';
                     let appWindowVisible = text.includes("Exam")   //check if the word "Exam" can be found in screenshot - otherwise it is most likely a blank desktop - macos quirk
                     if (!appWindowVisible){
                         this.screenshotAbility=false;
-                        log.error(`communicationhandler @ sendScreenshot: switching to PageCapture`)
-                        log.info("communicationhandler @ sendScreenshot (ocr): Student Screenshot does not fit requirements");
+                        log.warn("communicationhandler @ sendScreenshot (macos): Please check your screenshot permissions - Switching to PageCapture");
                     }
-                    else { log.info("communicationhandler @ sendScreenshot (ocr): MacOS screenshotpermissions check OK");}
-                }
-                catch(err){  log.info(`communicationhandler @ sendScreenshot (ocr): ${err}`); }
+                    else { log.info("communicationhandler @ sendScreenshot (macos): MacOS screenshotpermissions check OK");}
+                }catch(err){  log.error(`communicationhandler @ sendScreenshot (macos): ${err}`); }
             }
 
 
             // if something went wrong we do not have a screenshot - so do not update the server
             if (!screenshotBase64){
-                if(this.screenshotFails > 4){ this.screenshotAbility=false; log.error(`communicationhandler @ sendScreenshot: Fallback -> Switching to PageCapture`) } 
+                if(this.screenshotFails > 4 && this.screenshotAbility){ this.screenshotAbility=false; log.error(`communicationhandler @ sendScreenshot: Screenshot error -> Switching to PageCapture`) } 
+                else if (this.screenshotFails > 4 && !this.screenshotAbility){ this.useWorker = false; log.error(`communicationhandler @ sendScreenshot: PageCapture error -> Switching to No-Processing`) }   
+                else if (this.screenshotFails > 4 && !this.screenshotAbility && !this.useWorker){ log.error(`communicationhandler @ sendScreenshot: no screenshot available - please fix your setup`) }
                 return
             }
+
+
+
 
             //do not run colorcheck if already locked
             if ( this.multicastClient.clientinfo.exammode && !this.config.development && this.multicastClient.clientinfo.focus){
@@ -355,7 +383,7 @@ import screenshot from 'screenshot-desktop-wayland';
         })
         .then(data => {
             if (data && data.status === "error") {
-                log.error("communicationhandler @ sendScreenshot: status error", data.message);
+                log.error("communicationhandler @ sendScreenshot: status error: ", data.message);
             }
         })
         .catch(error => {
