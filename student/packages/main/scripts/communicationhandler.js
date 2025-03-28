@@ -39,6 +39,7 @@ const agent = new https.Agent({ rejectUnauthorized: false });
 
 import screenshot from 'screenshot-desktop-wayland';
 import { Worker } from 'worker_threads';
+import { pathToFileURL } from 'url';
 
 
 
@@ -125,14 +126,20 @@ import { Worker } from 'worker_threads';
             ? join(process.resourcesPath, 'app.asar.unpacked', 'public', workerFileName)
             : join(__dirname, '../../public', workerFileName);
     
-        this.worker = new Worker(workerPath, { type: 'module', env: { ...process.env } });
-
+        // Konvertiere den absoluten Pfad in ein URL-Objekt (ohne .href)
+        const workerURL = pathToFileURL(workerPath);
+        
+        this.worker = new Worker(workerURL, { type: 'module', env: { ...process.env } });
+        
+        
         this.worker.on('error', error => {
             log.error('communicationhandler @ setupImageWorker: Worker error:', error);
         });
-
+        
         this.worker.on('exit', code => {
-            if (code !== 0) this.setupImageWorker();
+            if (code !== 0) {
+                this.setupImageWorker();
+            }
         });
     }
 
