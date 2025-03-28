@@ -73,7 +73,7 @@ import { fork } from 'child_process';
         this.screenshotScheduler.start()
         
    
-        // check for screenshot and pre-processing capabilities
+        // check for screenshot and pre-processing capabilities on different linux setups to be more verbose and efficient
         if (process.platform === 'linux'){
 
             // test if image pre-processing is possible - imagemagick is required 
@@ -99,7 +99,7 @@ import { fork } from 'child_process';
             }
 
         }
-        else {  // on windows and macos we try to use the worker and set screenshotAbility to true
+        else {  // on windows and macos we try to use the worker and set screenshotAbility to true - if something doesn't work we fallback to pagecapture or no processing
             this.useWorker = true
             this.screenshotAbility = true
         }
@@ -129,9 +129,9 @@ import { fork } from 'child_process';
             : join(__dirname, '../../public', workerFileName);
     
         this.worker = fork(workerPath, [], { stdio: ['ignore', 'ignore', 'pipe', 'ipc'], env: { ...process.env } });
-        this.worker.on('error', error => { log.error('Worker error:', error);  });
-        this.worker.stderr.on('data', data => log.error('Worker stderr:', data.toString()));
-        this.worker.on('exit', code => { log.error(`Worker exited with code ${code}`);  if (code !== 0) this.setupImageWorker(); });
+        this.worker.on('error', error => { log.error('communicationhandler @ setupImageWorker: Worker error:', error);  });
+        this.worker.stderr.on('data', data => log.error('communicationhandler @ setupImageWorker: Worker stderr:', data.toString()));
+        this.worker.on('exit', code => { if (code !== 0) this.setupImageWorker(); });
     }
 
 
@@ -186,13 +186,15 @@ import { fork } from 'child_process';
         catch(error){ log.warn("communicationhandler @ isKDE: no data "); return false }
     }
 
+
     isGNOME() {
         try { 
             let desktop = shell('echo $XDG_CURRENT_DESKTOP').trim();
-            return desktop === 'GNOME';
+            return desktop.includes('GNOME'); // prüft substring statt exakter Übereinstimmung
         }
-        catch(error) { log.warn("communicationhandler @ isGNOME: no data ");  return false; }
+        catch(error) { log.warn("communicationhandler @ isGNOME: no data "); return false; }
     }
+    
 
 
     /**
@@ -202,14 +204,14 @@ import { fork } from 'child_process';
     imagemagickAvailable(){
         try{ shell(`which import`); return true}
         catch(error){
-            log.error("communicationhandler @ imagemagickAvailable: ImageMagick is required to take screenshots on linux")
+            log.error("communicationhandler @ imagemagickAvailable: ImageMagick is required to take screenshots and preprocess images on linux")
             return false
         }
     }
     flameshotAvailable(){
         try{ shell(`which flameshot`); return true}
         catch(error){
-            log.error("communicationhandler @ flameshotAvailable: flameshot is required to take screenshots on wayland")
+            log.error("communicationhandler @ flameshotAvailable: Flameshot is required to take screenshots on kde/wayland")
             return false
         }
     }
@@ -383,7 +385,7 @@ import { fork } from 'child_process';
         })
         .then(data => {
             if (data && data.status === "error") {
-                log.error("communicationhandler @ sendScreenshot: status error: ", data.message);
+                log.error("communicationhandler @ sendScreenshot: Status Error: ", data.message);
             }
         })
         .catch(error => {
