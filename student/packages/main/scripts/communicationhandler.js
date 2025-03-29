@@ -79,21 +79,21 @@ import { pathToFileURL } from 'url';
             else { this.useWorker = false }
 
             // test if screenshot is possible
-            if (this.isGNOME() && this.isWayland()){
+            if ((this.isGNOME() || this.isUNITY()) && this.isWayland()){
                 this.screenshotAbility = false;  //for now - GNOME does not allow to take screenshots without sound and visual flash.. - use pagecapture as default on gnome
-                log.info("communicationhandler @ init: Gnome-Wayland detected - screenshotAbility set to false") 
+                log.info("communicationhandler @ init: Gnome/Unity and Wayland detected - ScreenshotAbility set to false") 
             }
             else if (this.isKDE() && this.isWayland() && this.flameshotAvailable()){   // TODO: extend screenshot-desktop-wayland to support "spectacle" because its pre-installed on KDE
                 this.screenshotAbility = true;
-                log.info("communicationhandler @ init: KDE-Wayland with flameshot detected - screenshotAbility set to true") 
+                log.info("communicationhandler @ init: KDE-Wayland with flameshot detected - ScreenshotAbility set to true") 
             }
             else if (!this.isWayland() && this.imagemagickAvailable()){
                 this.screenshotAbility = true;
-                log.info("communicationhandler @ init: X11 with imagemagick detected - screenshotAbility set to true") 
+                log.info("communicationhandler @ init: X11 with imagemagick detected - ScreenshotAbility set to true") 
             }
             else {
                 this.screenshotAbility = false;
-                log.info("communicationhandler @ init: screenshotAbility set to false - needs imagemagick or flameshot")
+                log.info("communicationhandler @ init: ScreenshotAbility set to false - Using pagecapture as fallback")
             }
 
         }
@@ -102,14 +102,8 @@ import { pathToFileURL } from 'url';
             this.screenshotAbility = true
         }
 
-        
-
-        if (!this.worker && this.useWorker){
-            log.info("communicationhandler @ init: Starting ImageWorker")
-            this.setupImageWorker()
-        }
-
-
+        // setup the image worker
+        if (!this.worker && this.useWorker){   this.setupImageWorker()  }
     }
  
 
@@ -121,7 +115,7 @@ import { pathToFileURL } from 'url';
      * the worker is used to process the screenshot in a separate process
      */
     async setupImageWorker() {
-        const workerFileName = process.platform === 'linux' ? 'imageWorkerLinux.js' : 'imageWorkerSharp.js';
+        const workerFileName = process.platform === 'linux' ? 'imageWorkerLinux.js' : 'imageWorkerSharp.mjs';
         const workerPath = app.isPackaged
             ? join(process.resourcesPath, 'app.asar.unpacked', 'public', workerFileName)
             : join(__dirname, '../../public', workerFileName);
@@ -130,7 +124,7 @@ import { pathToFileURL } from 'url';
         const workerURL = pathToFileURL(workerPath);
         
         this.worker = new Worker(workerURL, { type: 'module', env: { ...process.env } });
-        
+        log.info("communicationhandler @ setupImageWorker: ImageWorker initialized - using " + workerFileName)
         
         this.worker.on('error', error => {
             log.error('communicationhandler @ setupImageWorker: Worker error:', error);
@@ -189,8 +183,6 @@ import { pathToFileURL } from 'url';
     isWayland(){
         return process.env.XDG_SESSION_TYPE === 'wayland'; 
     }
-
-
     isKDE(){
         try{ 
             let output = shell('echo $XDG_CURRENT_DESKTOP')
@@ -198,22 +190,26 @@ import { pathToFileURL } from 'url';
         }
         catch(error){ log.warn("communicationhandler @ isKDE: no data "); return false }
     }
-
-
     isGNOME() {
         try { 
-            let desktop = shell('echo $XDG_CURRENT_DESKTOP').trim();
-            return desktop.includes('GNOME'); // prüft substring statt exakter Übereinstimmung
+            let desktop = shell('echo $XDG_CURRENT_DESKTOP').trim().toLowerCase();
+            return desktop.includes('gnome'); // Case-insensitive Suche
         }
-        catch(error) { log.warn("communicationhandler @ isGNOME: no data "); return false; }
+        catch(error) {
+            log.warn("communicationhandler @ isGNOME: no data ", error);
+            return false;
+        }
     }
-    
-
-
-    /**
-     * Checks if imagemagick on linux is available
-     * @returns true or false
-     */
+    isUNITY() {
+        try { 
+            let desktop = shell('echo $XDG_CURRENT_DESKTOP').trim().toLowerCase();
+            return desktop.includes('unity'); // Case-insensitive Suche
+        }
+        catch(error) {
+            log.warn("communicationhandler @ isUNITY: no data ", error);
+            return false;
+        }
+    }
     imagemagickAvailable(){
         try{ shell(`which import`); return true}
         catch(error){

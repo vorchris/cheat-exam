@@ -23,7 +23,7 @@ const config = {
     examServerList: {},
     accessToken: false,
 
-    version: '1.0.1-5',
+    version: '1.0.1-6',
     buildforWEB: false,
     info: 'DEV'
 }

@@ -22,7 +22,7 @@ const config = {
     gateway: true,
     electron: false,
     virtualized: false,
-    version: '1.0.1-9',
+    version: '1.0.1-10',
     info: 'LTS'
 }
 export default config;
