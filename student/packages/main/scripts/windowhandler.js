@@ -699,10 +699,10 @@ class WindowHandler {
                 //childProcess.exec('tccutil reset AppleEvents com.vscodium') // apple events können resetted werde da macos immerwieder danach fragt
                 //childProcess.exec('tccutil reset Accessibility com.vscodium')  //accessibility wird nur einmal gefragt, danach muss der user es manuell aktivieren
                             
-                let settingsScriptfile = join(__dirname, '../../public/opensettings.applescript')
-                if (app.isPackaged) {
-                    settingsScriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/opensettings.applescript')
-                }
+                // let settingsScriptfile = join(__dirname, '../../public/opensettings.applescript')
+                // if (app.isPackaged) {
+                //     settingsScriptfile = join(process.resourcesPath, 'app.asar.unpacked', 'public/opensettings.applescript')
+                // }
          
                 let accessScriptfile = join(__dirname, '../../public/access.applescript')
                 if (app.isPackaged) {

@@ -397,7 +397,7 @@ class IpcHandler {
         /**
          * Returns all found Servers and the information about this client
          */ 
-        ipcMain.handle('getinfoasync', (event) => {   
+        ipcMain.handle('getinfoasync', async (event) => {   
             let serverstatus = false   
             // serverstatus objekt wird nur bei beginn des exams an das exam window durchgereicht für basis einstellungen
             // alle weiteren updates über das serverstatus object werden im communication handler gelesen und ggf. auf das clientinfo object gelegt
@@ -406,14 +406,17 @@ class IpcHandler {
             if (this.WindowHandler.examwindow) { serverstatus = this.WindowHandler.examwindow.serverstatus }
 
             //count number of files in exam directory
-            if (!this.multicastClient.clientinfo.exammode){
-                const workdir = path.join(config.examdirectory,"/")
-                if (!fs.existsSync(workdir)){ fs.mkdirSync(workdir, { recursive: true });  } //do not crash if the directory is deleted after the app is started ^^
-                let filelist =  fs.readdirSync(workdir, { withFileTypes: true })
-                    .filter(dirent => dirent.isFile())
-                    .map(dirent => dirent.name)
-                this.multicastClient.clientinfo.numberOfFiles = filelist.length
-                //console.log(filelist)
+            if (!this.multicastClient.clientinfo.exammode){  // in exammode this is already done by getfilesasync
+                const workdir = path.join(config.examdirectory, "/")
+                try {
+                    await fs.promises.mkdir(workdir, { recursive: true })  // erstellt falls nötig
+                    const filelist = (await fs.promises.readdir(workdir, { withFileTypes: true }))
+                        .filter(dirent => dirent.isFile())
+                        .map(dirent => dirent.name)
+                    this.multicastClient.clientinfo.numberOfFiles = filelist.length
+                } catch (err) {
+                    this.multicastClient.clientinfo.numberOfFiles = 0
+                }
             }
             
 
