@@ -266,25 +266,34 @@ export default {
 
 
         async fetchInfo() {
-        
             let getinfo = await ipcRenderer.invoke('getinfoasync')  // gets serverlist and clientinfo from multicastclient
-            this.clientinfo = getinfo.clientinfo;
+            if (getinfo.clientinfo.exammode){ return; }  // do not stress ui updates if exammode is active
 
-            this.token = this.clientinfo.token;
-            if (this.token && this.token != "0000" || !this.token) { this.localLockdown = false}  //other token than 0000 or no token.. no (local) exam mode
+            // only update clientinfo if it has changed  // we try to trigger as few ui updates as possible
+            if (JSON.stringify(this.clientinfo) !== JSON.stringify(getinfo.clientinfo)){
+                this.clientinfo = getinfo.clientinfo;
+            }
 
+            // only update token if it has changed
+            if (this.token !== this.clientinfo.token){
+                this.token = this.clientinfo.token;
+            }
+            
+
+            if (this.token && this.token != "0000" || !this.token) { if (this.localLockdown) { this.localLockdown = false}     }  //other token than 0000 or no token.. no (local) exam mode
+
+
+            /**
+             * Fetch serverlist from server via direct ip polling
+             */
             if ( (this.advanced || this.servertimeout > 2 ) && !this.token) {
                 if (validator.isIP(this.serverip) || validator.isFQDN(this.serverip)){
-                   
-                    //give some userfeedback here
-                    if (this.serverlistAdvanced.length == 0){ this.status("Suche Prüfungen...")  }
-                
+                    if (this.serverlistAdvanced.length == 0){ this.status("Suche Prüfungen...")  } //give some userfeedback here
                     fetch(`https://${this.serverip}:${this.serverApiPort}/server/control/serverlist`)
                     .then(response => response.json()) // Parse JSON response
                     .then(data => {
                         if (data && data.status === "success") {
                             this.serverlistAdvanced = data.serverlist;
-                            //if (this.serverlistAdvanced.length > 0){ this.status("Prüfung gefunden...") }
                             this.networkerror = false;
                         }
                     })
@@ -294,35 +303,56 @@ export default {
                     });
                 }
             }
-            else {
-                this.networkerror = false;
-            }
+            else { this.networkerror = false;  }
 
+
+
+            /**
+             * Fetch serverlist from server via multicast
+             * if no serverlist is found via multicast we use the serverlist coming from direct ip polling
+             * otherwise we add all found servers to the serverlist and combine multicasted servers with direct ip polled servers
+             */
             if (getinfo.serverlist.length  !== 0 ) {
-                this.serverlist = getinfo.serverlist; 
+                let newServerlist = getinfo.serverlist; 
                 this.servertimeout = 0 // reset servertimeout (if more than 2 requests return without servers we display serveraddress field - probably multicast blocked)
                 if (this.serverlistAdvanced.length !== 0){  // add servers coming from direct ip polling
-                    this.serverlist = [...this.serverlist, ...this.serverlistAdvanced];
-            
-                    this.serverlist = this.serverlist.reduce((unique, server) => {
+                    newServerlist = [...newServerlist, ...this.serverlistAdvanced];
+                    newServerlist = newServerlist.reduce((unique, server) => {
                         if (!unique.some(u => u.serverip === server.serverip && u.servername === server.servername)) {  // Prüfen, ob der Server bereits im Array basierend auf serverip und servername existiert
                             unique.push(server); // Fügt den Server hinzu, wenn er nicht existiert
                         }
                         return unique;
                     }, []);
                 } 
+                // update serverlist - but only if there are new servers - we need to compare the actual values here not just the length
+                // we try to trigger as few ui updates as possible - this.serverlist is used for rendering server widgets
+                
+                if (JSON.stringify(this.extractServerNames(this.serverlist)) !== JSON.stringify(this.extractServerNames(newServerlist))){   // only compare servernames not the whole server objects (because of ever changing timestamp)
+                    this.serverlist = newServerlist
+                }
             }
             else {  // sometimes explicit is easier to read (no servers incoming via multicast)
-                if (this.serverlistAdvanced.length !== 0){ this.serverlist = this.serverlistAdvanced }  // one server coming via direct ip polling
+                if (this.serverlistAdvanced.length !== 0){  // one server coming via direct ip polling
+                    if (JSON.stringify(this.extractServerNames(this.serverlist)) !== JSON.stringify(this.extractServerNames(this.serverlistAdvanced))){   // only compare servernames not the whole server objects (because of ever changing timestamp)
+                        this.serverlist = this.serverlistAdvanced 
+                    }
+                } 
                 else { this.serverlist = []; this.servertimeout++ }  // no servers found
             }
 
-            // check im networkconnection is still alive - otherwise exit here
-            this.hostip = ipcRenderer.sendSync('checkhostip')
+            /**
+             * check im networkconnection is still alive or if we are already connected and recieved a token 
+             * if not we exit here
+             */
+            this.hostip = await ipcRenderer.invoke('checkhostip')  
             if (!this.hostip) return;  
             if (this.clientinfo.token) return;   // stop spamming the api if already connected
-        
-            // CHECK if Server is still alive otherwise mark with attention sign
+
+            /**
+             * check if server is still alive otherwise mark with attention sign
+             * this is done by pinging the server with a timeout of 2 seconds
+             * if the server does not respond we mark the server as not reachable
+             */
             for (let server of this.serverlist){      
                 const signal = AbortSignal.timeout(2000); // 2000 Millisekunden = 2 Sekunden
                 fetch(`https://${server.serverip}:${this.serverApiPort}/server/control/pong`, { method: 'GET', signal })
@@ -337,7 +367,20 @@ export default {
                 });
             }
         },  
-        
+
+
+
+        extractServerNames(list) {
+            return list.map(item => item.servername).sort();
+        },
+
+
+        /**
+         * toggle advanced mode
+         * this is used to toggle between advanced and basic mode
+         * in advanced mode we can use the server address field to enter a server address manually
+         * in basic mode we use multicast to find servers
+         */
         toggleAdvanced(){
             if (this.advanced) {this.advanced = false; this.biplogin = false;} else {this.advanced = true}
             this.serverip = ""

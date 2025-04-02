@@ -60,6 +60,7 @@ import { pathToFileURL } from 'url';
         this.lastScreenshot = false
         this.worker = null
         this.useWorker = true
+        this.workerFails = 0
      }
  
     init (mc, config) {
@@ -132,7 +133,12 @@ import { pathToFileURL } from 'url';
         
         this.worker.on('exit', code => {
             if (code !== 0) {
-                this.setupImageWorker();
+                this.workerFails += 1
+                if (this.workerFails > 4){
+                    this.useWorker = false
+                    log.error('communicationhandler @ setupImageWorker: Worker failed 5 times - switching to no processing')
+                }
+                else { this.setupImageWorker(); }
             }
         });
     }
