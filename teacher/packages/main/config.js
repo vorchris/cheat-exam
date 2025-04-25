@@ -4,10 +4,10 @@
  */
 
 const config = {
-    development: true,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
-    showdevtools: true,
+    development: false,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
+    showdevtools: false,
     
-    bipIntegration: true,
+    bipIntegration: false,
 
     workdirectory : "",   // (desktop path + examdir)
     tempdirectory : "",   // (desktop path + 'tmp')
@@ -23,8 +23,8 @@ const config = {
     examServerList: {},
     accessToken: false,
 
-    version: '1.0.1-6',
+    version: '1.0.2-1',
     buildforWEB: false,
-    info: 'DEV'
+    info: 'LTS'
 }
 export default config;

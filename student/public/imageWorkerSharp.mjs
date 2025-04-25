@@ -33,6 +33,8 @@ parentPort.on('message', async (message) => {
       }
       if (!isAllBlack) break;
     }
+    
+    if (image) { image.destroy(); }
 
     parentPort.postMessage({
       success: true,

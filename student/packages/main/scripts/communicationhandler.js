@@ -155,7 +155,7 @@ import { pathToFileURL } from 'url';
                 this.useWorker = false
                 throw new Error('Worker not initialized');
             }
-            this.worker.postMessage({ imgBuffer: Array.from(imgBuffer) });
+            this.worker.postMessage({ imgBuffer: Array.from(imgBuffer), imVersion: this.config.imVersion });
             const result = await new Promise(resolve => {
                 this.worker.once('message', (message) => {
                     resolve(message);
@@ -216,13 +216,30 @@ import { pathToFileURL } from 'url';
             return false;
         }
     }
-    imagemagickAvailable(){
-        try{ shell(`which import`); return true}
-        catch(error){
-            log.error("communicationhandler @ imagemagickAvailable: ImageMagick is required to take screenshots and preprocess images on linux")
-            return false
+
+    imagemagickAvailable() {
+        try {
+            // Bei Version 7 liefert "magick -version" etwas – sonst lösen wir einen Fehler aus.
+            shell("magick -version");
+            this.config.imVersion = "7";
+            log.info("communicationhandler: Found ImageMagick version 7 – using 'magick' as command.");
+            return true;
+        } catch (e) {
+            try {
+                // Fallback zu älteren Versionen: Prüfen, ob "import" verfügbar ist.
+                shell("which import");
+                this.config.imVersion = "<7";
+                log.info("communicationhandler: Found ImageMagick version <7 – using 'import' as command.");
+                return true;
+            } catch (err) {
+                log.error("communicationhandler @ imagemagickAvailable: ImageMagick is required to take screenshots and preprocess images on linux", err);
+                return false;
+            }
         }
     }
+
+
+
     flameshotAvailable(){
         try{ shell(`which flameshot`); return true}
         catch(error){

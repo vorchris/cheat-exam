@@ -1,8 +1,8 @@
 {
   "name": "next-exam-teacher",
-  "version": "1.0.1",
-  "buildNumber": "6",
-  "buildVersion": "1.0.1.6",
+  "version": "1.0.2",
+  "buildNumber": "1",
+  "buildVersion": "1.0.2.1",
   "main": "dist/main/main.mjs",
   "author": {
     "name": "Thomas Michael Weissel",

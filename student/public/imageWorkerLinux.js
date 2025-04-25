@@ -12,6 +12,7 @@ import { join } from 'path';
 parentPort.on('message', async (message) => {
     try {
         const imgBuffer = Buffer.from(message.imgBuffer);
+        const imVersion = message.imVersion;
 
         const tmpInput = join(tmpdir(), `input-${Date.now()}.png`);
         const tmpResized = join(tmpdir(), `resized-${Date.now()}.png`);
@@ -21,12 +22,12 @@ parentPort.on('message', async (message) => {
 
         // resize auf Breite 1024
         await new Promise((resolve, reject) => {
-            execFile('convert', [tmpInput, '-resize', '1024x', tmpResized], (err) => err ? reject(err) : resolve());
+            execFile(imVersion === "7" ? 'magick' : 'convert', [tmpInput, '-resize', '1024x', tmpResized], (err) => err ? reject(err) : resolve());
         });
 
         // crop oberste 100 Pixel (max. 1024 breit)
         await new Promise((resolve, reject) => {
-            execFile('convert', [tmpInput, '-crop', '1024x100+0+0', tmpCropped], (err) => err ? reject(err) : resolve());
+            execFile(imVersion === "7" ? 'magick' : 'convert', [tmpInput, '-crop', '1024x100+0+0', tmpCropped], (err) => err ? reject(err) : resolve());
         });
 
         const resizedBuffer = await readFile(tmpResized);
@@ -35,7 +36,7 @@ parentPort.on('message', async (message) => {
         // Prüfe, ob headerBuffer schwarz ist (erste 10x10 Pixel):
         let isAllBlack = true;
         await new Promise((resolve, reject) => {
-            execFile('convert', [tmpCropped, '-crop', '10x10+0+0', '-format', '%[mean]', 'info:'], (err, stdout) => {
+            execFile(imVersion === "7" ? 'magick' : 'convert', [tmpCropped, '-crop', '10x10+0+0', '-format', '%[mean]', 'info:'], (err, stdout) => {
                 if (err) return reject(err);
                 isAllBlack = parseFloat(stdout) === 0;
                 resolve();
