@@ -736,20 +736,7 @@ class IpcHandler {
         
      
         ipcMain.on('get-cpu-info', (event) => {
-            const cpus = os.cpus().map(cpu => cpu.model.toLowerCase());
-            const vmCpuKeywords = ['qemu', 'virtual', 'vmware', 'kvm', 'xen', 'hyper-v'];
-    
-
-            let virtualCpu = false;
-            cpus.forEach(cpu => {
-                vmCpuKeywords.forEach(keyword => {
-                    if (cpu.includes(keyword)) {
-                        virtualCpu = true;
-                    }
-                });
-            });
-    
-            event.returnValue = virtualCpu;
+            event.returnValue = this.isVirtualMachine()
         });
 
 
@@ -776,6 +763,34 @@ class IpcHandler {
 
 
     }
+
+
+    isVirtualMachine() {
+        try {
+            const cpuinfo = readFileSync('/proc/cpuinfo', 'utf8')                // Linux CPU flags
+            if (/^flags.* hypervisor/m.test(cpuinfo)) return true
+        } catch {}
+        
+        try {
+            const v = readFileSync('/sys/class/dmi/id/sys_vendor', 'utf8')        // Linux DMI vendor
+            const p = readFileSync('/sys/class/dmi/id/product_name', 'utf8')      // Linux DMI product
+            if (/Oracle|VirtualBox|VMware|QEMU|KVM|Xen/i.test(v + p)) return true
+        } catch {}
+        
+        try {
+            const ps = execSync(
+                'powershell -NoProfile -Command ' +
+                '"(Get-CimInstance Win32_ComputerSystem).Manufacturer, ' +
+                '(Get-CimInstance Win32_ComputerSystem).Model"',
+                { encoding: 'utf8' }
+            )                                                                   // Windows CIM query
+            if (/VirtualBox|VMware|KVM|Hyper-V|Xen/i.test(ps)) return true
+        } catch {}
+        
+        return false                                                           // default to physical
+    }
+
+
 
 
     copyConfig(conf) {
