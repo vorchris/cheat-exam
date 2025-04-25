@@ -116,7 +116,7 @@ export default {
             version: this.$route.params.version,
             info: config.info,
             title: document.title,
-            servername : this.$route.params.config.development ? "Mathe5A":"",
+            servername : this.$route.params.config.development ? "mathe5a":"",
             password: this.$route.params.config.development ? "password": Math.floor(1000 + Math.random() * 9000),   //we could use this password to allow students to manually leave exam mode 
             prod : false,
             serverApiPort: this.$route.params.serverApiPort,
@@ -204,7 +204,7 @@ export default {
                 this.status(this.$t("startserver.emptypw")); 
             }
             else {
-                fetch(`https://${this.hostname}:${this.serverApiPort}/server/control/start/${this.servername}/${this.password}`, { 
+                fetch(`https://${this.hostname}:${this.serverApiPort}/server/control/start/${this.servername.toLowerCase()}/${this.password}`, { 
                     method: 'POST',
                     headers: {'Content-Type': 'application/json' },
                     body: JSON.stringify({ workdir: this.workdir  })
@@ -215,7 +215,7 @@ export default {
                     if (response.status === "success") {  //directly log in
                         this.status(response.message);
                         await this.sleep(1000);
-                        
+
                         this.$router.push({  // for some reason this doesn't work on mobile
                             name: 'dashboard', 
                             params:{

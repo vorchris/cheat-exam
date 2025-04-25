@@ -4,8 +4,8 @@
  */
 
 const config = {
-    development: false,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
-    showdevtools: false,
+    development: true,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
+    showdevtools: true,
     
     bipIntegration: false,
 
@@ -25,6 +25,6 @@ const config = {
 
     version: '1.0.2-1',
     buildforWEB: false,
-    info: 'LTS'
+    info: 'DEV'
 }
 export default config;
