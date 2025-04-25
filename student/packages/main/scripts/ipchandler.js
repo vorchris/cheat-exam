@@ -29,6 +29,7 @@ import {disableRestrictions} from './platformrestrictions.js';
 import mammoth from 'mammoth';
 import wifi from 'node-wifi';
 import languageToolServer from './lt-server';
+import { execSync } from 'child_process';
 
 const __dirname = import.meta.dirname;
 
@@ -778,15 +779,18 @@ class IpcHandler {
         } catch {}
         
         try {
-            const ps = execSync(
-                'powershell -NoProfile -Command ' +
-                '"(Get-CimInstance Win32_ComputerSystem).Manufacturer, ' +
-                '(Get-CimInstance Win32_ComputerSystem).Model"',
-                { encoding: 'utf8' }
-            )                                                                   // Windows CIM query
-            if (/VirtualBox|VMware|KVM|Hyper-V|Xen/i.test(ps)) return true
+            const ps = execSync('powershell -NoProfile -Command "(Get-CimInstance Win32_ComputerSystem).Manufacturer, (Get-CimInstance Win32_ComputerSystem).Model" ',  { encoding: 'utf8' })                                                                   
+            // Convert to lowercase for case-insensitive comparison and check for common VM identifiers
+            const psLower = ps.toLowerCase();
+            if (psLower.includes('virtualbox') || 
+                psLower.includes('vmware') || 
+                psLower.includes('kvm') || 
+                psLower.includes('hyper-v') || 
+                psLower.includes('xen') ||
+                psLower.includes('innotek'))  { 
+                    return true
+                 }
         } catch {}
-        
         return false                                                           // default to physical
     }
 

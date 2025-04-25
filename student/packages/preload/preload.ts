@@ -28,8 +28,7 @@ import virtualized from './scripts/simplevmdetect.js';  // has to run in fronten
 let config = ipcRenderer.sendSync('getconfig')  // we need to fetch the updated version of the systemconfig from express api (server.js)
 let virtualCpu = ipcRenderer.sendSync('get-cpu-info')
 
-
-if (virtualized && virtualCpu ){ipcRenderer.send('virtualized')}
+if (virtualized ||  virtualCpu ){ipcRenderer.send('virtualized')}
 
 // Expose configuration (readonly) to the renderer process
 contextBridge.exposeInMainWorld('config', config);
