@@ -770,13 +770,13 @@ class IpcHandler {
 
         if (process.platform === 'linux') {
         try {
-            const cpuinfo = readFileSync('/proc/cpuinfo', 'utf8')                // Linux CPU flags
+            const cpuinfo = fs.readFileSync('/proc/cpuinfo', 'utf8')                // Linux CPU flags
             if (/^flags.* hypervisor/m.test(cpuinfo)) return true
         } catch {}
         
         try {
-            const v = readFileSync('/sys/class/dmi/id/sys_vendor', 'utf8')        // Linux DMI vendor
-            const p = readFileSync('/sys/class/dmi/id/product_name', 'utf8')      // Linux DMI product
+            const v = fs.readFileSync('/sys/class/dmi/id/sys_vendor', 'utf8')        // Linux DMI vendor
+            const p = fs.readFileSync('/sys/class/dmi/id/product_name', 'utf8')      // Linux DMI product
             if (/Oracle|VirtualBox|VMware|QEMU|KVM|Xen/i.test(v + p)) return true
         } catch {}
         }
