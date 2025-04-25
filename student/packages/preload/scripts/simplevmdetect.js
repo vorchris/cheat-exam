@@ -9,15 +9,13 @@ if (gl) {
     if (debugInfo) {
         const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL).toLowerCase();
         const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL).toLowerCase();
-        console.log('WebGL Vendor:', vendor);    // Debug-Ausgabe hinzugefügt
-        console.log('WebGL Renderer:', renderer); // Debug-Ausgabe hinzugefügt
-
+  
         // Erweiterte Keywords für moderne VM-Setups
         const keywords = [
             'vmware', 'virtualbox', 'parallels', 'solarwinds', 
             'qemu', 'hyper-v', 'bootcamp', 'xen', 
             'citrix', 'kvm', 'wsl', 'docker', 'cloud',
-            'llvmpipe', 'swiftshader', 'angle', 'microsoft basic render driver'
+            'llvmpipe', 'microsoft basic render driver', 'basic render'
         ];
 
         // Zusätzliche Checks für indirekte VM-Indikatoren

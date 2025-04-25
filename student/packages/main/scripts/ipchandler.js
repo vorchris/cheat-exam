@@ -767,6 +767,8 @@ class IpcHandler {
 
 
     isVirtualMachine() {
+
+        if (process.platform === 'linux') {
         try {
             const cpuinfo = readFileSync('/proc/cpuinfo', 'utf8')                // Linux CPU flags
             if (/^flags.* hypervisor/m.test(cpuinfo)) return true
@@ -777,7 +779,9 @@ class IpcHandler {
             const p = readFileSync('/sys/class/dmi/id/product_name', 'utf8')      // Linux DMI product
             if (/Oracle|VirtualBox|VMware|QEMU|KVM|Xen/i.test(v + p)) return true
         } catch {}
-        
+        }
+
+        if (process.platform === 'win32') {
         try {
             const ps = execSync('powershell -NoProfile -Command "(Get-CimInstance Win32_ComputerSystem).Manufacturer, (Get-CimInstance Win32_ComputerSystem).Model" ',  { encoding: 'utf8' })                                                                   
             // Convert to lowercase for case-insensitive comparison and check for common VM identifiers
@@ -790,7 +794,8 @@ class IpcHandler {
                 psLower.includes('innotek'))  { 
                     return true
                  }
-        } catch {}
+            } catch {}
+        }
         return false                                                           // default to physical
     }
 
