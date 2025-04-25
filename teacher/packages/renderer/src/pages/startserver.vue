@@ -215,16 +215,15 @@ export default {
                     if (response.status === "success") {  //directly log in
                         this.status(response.message);
                         await this.sleep(1000);
-                        if (this.electron){
-                            this.$router.push({  // for some reason this doesn't work on mobile
-                                name: 'dashboard', 
-                                params:{
-                                    servername: this.servername, 
-                                    passwd: this.password
-                                }
-                            })
-                        }
-                        else {window.location.href = `#/dashboard/${this.servername}/${this.password}`}
+                        
+                        this.$router.push({  // for some reason this doesn't work on mobile
+                            name: 'dashboard', 
+                            params:{
+                                servername: this.servername.toLowerCase(), 
+                                passwd: this.password
+                            }
+                        })
+       
                     }
                     else { 
                         this.status(response.message); 

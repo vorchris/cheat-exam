@@ -321,9 +321,7 @@ runCheckParentInWorker();
         console.log('Versuch, mit Alt+Left zurückzunavigieren, wurde blockiert.');
     });
 
-    globalShortcut.register('Space+L', () => {
-        console.log('Blockiert: Space + L');
-    });
+    globalShortcut.register('Space+L', () => {});
 })
 
 
