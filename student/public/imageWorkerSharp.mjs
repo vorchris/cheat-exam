@@ -34,7 +34,7 @@ parentPort.on('message', async (message) => {
 
     parentPort.postMessage({
       success: true,
-      screenshotBase64: headerBuffer.toString('base64'),
+      screenshotBase64: resizedBuffer.toString('base64'),
       headerBase64: headerBuffer.toString('base64'),
       isblack: isAllBlack,
       imgBuffer
