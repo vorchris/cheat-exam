@@ -4,8 +4,8 @@
  */
 
 const config = {
-    development: true,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
-    showdevtools: true,
+    development: false,  // disable kiosk mode on exam mode and other stuff (autofill input fields)
+    showdevtools: false,
     bipIntegration: false,
 
     workdirectory : "",   // (desktop path + examdir)
@@ -23,6 +23,6 @@ const config = {
     electron: false,
     virtualized: false,
     version: '1.0.2-1',
-    info: 'DEV'
+    info: 'LTS'
 }
 export default config;
