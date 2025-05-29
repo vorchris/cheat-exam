@@ -1310,9 +1310,6 @@ export default {
             });
         },
         handlePaste(event){
-            event.preventDefault()
-            event.stopPropagation();
-            console.log('Paste-Event wurde verhindert.');
         }
     },
     
