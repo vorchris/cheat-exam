@@ -217,9 +217,9 @@ class WindowHandler {
         }
         
         blockwin.removeMenu() 
-        blockwin.setMinimizable(false)
-        blockwin.setKiosk(true)
-        blockwin.setAlwaysOnTop(true, "screen-saver", 1) 
+        blockwin.setMinimizable(true)
+        blockwin.setKiosk(false)
+        blockwin.setAlwaysOnTop(false, "screen-saver", 1) 
         blockwin.show()
         blockwin.moveTop();
         this.blockwindows.push(blockwin)
@@ -372,7 +372,7 @@ class WindowHandler {
                 this.examwindow.focus()
      
                 if (process.platform ==='darwin') { this.examwindow.setAlwaysOnTop(true, "pop-up-menu", 0)  }  // do not display above popup because of colorpicker in editor (fix that!)
-                else {                              this.examwindow.setAlwaysOnTop(true, "screen-saver", 1) }
+                else {                              this.examwindow.setAlwaysOnTop(false, "screen-saver", 1) }
 
                 // this.examwindow.setMinimizable(false)
                 // this.examwindow.setVisibleOnAllWorkspaces(true); 
