@@ -82,7 +82,7 @@ let configStore = {
 }
 
 // list of apps we do not want to run in background
-const appsToClose = ['ChatGPT','Teams','ms-teams', 'zoom.us', 'Google Chrome', 'Microsoft Edge', 'Microsoft Teams','firefox', 'discord', 'zoom', 'chrome', 'msedge', 'teams', 'teamviewer', 'google-chrome','skypeforlinux','skype','brave','opera','anydesk','safari'];
+const appsToClose = [];
 
 let isKDE = false
 let isGNOME = false
@@ -101,11 +101,6 @@ function enableRestrictions(winhandler){
     if (config.development) {return}
     
     log.info("enabling platform restrictions")
-
-    globalShortcut.register('CommandOrControl+V', () => {console.log('no clipboard')});
-    globalShortcut.register('CommandOrControl+Shift+V', () => {console.log('no clipboard')});
-    globalShortcut.register('CommandOrControl+X', () => {console.log('no clipboard')});
-    globalShortcut.register('CommandOrControl+C', () => {console.log('no clipboard')});
     
     clipboard.clear()  //this should clean the clipboard for the electron app
   

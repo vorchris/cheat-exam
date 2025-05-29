@@ -136,16 +136,4 @@ app.whenReady().then(()=>{
 
     WindowHandler.createWindow()
 
-    globalShortcut.register('CommandOrControl+Shift+D', () => {
-        const win = BrowserWindow.getFocusedWindow()
-        if (win) {
-            win.webContents.toggleDevTools()
-        }
-    })
-
-
-    globalShortcut.register('Alt+Left', () => {
-        console.log('Versuch, mit Alt+Left zurückzunavigieren, wurde blockiert.');
-    });
-
 })

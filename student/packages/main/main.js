@@ -289,42 +289,6 @@ const runCheckParentInWorker = () => {
 
 runCheckParentInWorker();
 
-
-
-
-    //these are some shortcuts we try to capture
-    globalShortcut.register('CommandOrControl+R', () => {});
-    globalShortcut.register('F5', () => {});  //reload page
-    globalShortcut.register('CommandOrControl+Shift+R', () => {});
-    globalShortcut.register('Alt+F4', () => {console.log("Alt+F4")});  //exit app
- 
-    globalShortcut.register('CommandOrControl+W', () => {});
-    globalShortcut.register('CommandOrControl+Q', () => {});  //quit
-    globalShortcut.register('CommandOrControl+D', () => {});  //show desktop
-    globalShortcut.register('CommandOrControl+L', () => {});  //lockscreen
-    globalShortcut.register('CommandOrControl+P', () => {});  //change screen layout
- 
-
-    if (!config.development){
-    }
-    else { 
-        globalShortcut.register('CommandOrControl+Shift+G', () => {  console.log("triggering scavenge GC"); if (global && global.gc){ global.gc({type:'mayor',execution: 'async'}); global.gc({type:'minor',execution: 'async'});  }});
-        globalShortcut.register('CommandOrControl+Shift+D', () => {
-            const win = BrowserWindow.getFocusedWindow()
-            if (win) {
-                win.webContents.toggleDevTools()
-            }
-        })
-    }
-
-    globalShortcut.register('Alt+Left', () => {
-        console.log('Versuch, mit Alt+Left zurückzunavigieren, wurde blockiert.');
-    });
-
-
-
-    
-
 })
 
 
