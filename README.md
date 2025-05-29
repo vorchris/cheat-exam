@@ -1,21 +1,13 @@
-# next-exam
-A next-generation digital examination environment for the secure administration of tests, school assignments, and final exams.
+# cheat-exam
 
-# technologies used
-* electron
-* vite
-* node
-* node-express
-* vue
-* bootstrap
+Features
+- Unnoticed operation in a Virtual Machine (VM)
 
+- Seamless tabbing out of the application
 
-## download latest builds
-https://next-exam.at
+- Copy-pasting enabled for easier interaction
 
-
-![screenshot](/info/screenshot.png)
-
+Note: Be cautious as the screenshots might not work as expected due to the cheat. All other functionalities should be unaffected.
 
 
 
